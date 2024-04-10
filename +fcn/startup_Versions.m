@@ -44,11 +44,11 @@ function appVersion = startup_Versions(ReadType, RootFolder)
     end
 
     % RFDataHub
-    global RFDataHub
-    global RFDataHub_info
-
-    if isempty(RFDataHub) || isempty(RFDataHub_info)
-        class.RFDataHub.read(RootFolder)
-    end
-    appVersion.RFDataHub = RFDataHub_info;   
+    % global RFDataHub
+    % global RFDataHub_info
+    % 
+    % if isempty(RFDataHub) || isempty(RFDataHub_info)
+    %     class.RFDataHub.read(RootFolder)
+    % end
+    % appVersion.RFDataHub = RFDataHub_info;   
 end

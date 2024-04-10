@@ -9,43 +9,11 @@ classdef (Abstract) Constants
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
 
-        gps2locAPI    = 'https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=<Latitude>&longitude=<Longitude>&localityLanguage=pt'
-        gps2loc_City  = 'city'
-        gps2loc_Unit  = 'principalSubdivisionCode'
-
         userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
-        Interactions  = {'datacursor', 'zoomin', 'restoreview'}
-
-        yMinLimRange  = 80                                                  % Minimum y-Axis limit range
-        yMaxLimRange  = 100                                                 % Maximum y-Axis limit range
-
-        specDataTypes = [1, 2, 4, 7, 60, 61, 63, 64, 67, 68, 167, 168, 1000, 1809];
-        occDataTypes  = [8, 62, 65, 69];
-
-        xDecimals     = 5
-        
+        xDecimals     = 5        
         floatDiffTolerance  = 1e-5
-        nMaxWaterFallPoints = 1474560
-        ElevationTolerance  = .85
 
-        reportOCC            = struct('Method',    'Linear adaptativo',           ...
-                                                   'IntegrationTime',     15,     ...
-                                                   'Offset',              12,     ...
-                                                   'noiseFcn',            'mean', ...
-                                                   'noiseTrashSamples',   0.10,   ...
-                                                   'noiseUsefulSamples',  0.20)
-        reportDetection      = struct('ManualMode', 0,                            ...
-                                      'Algorithm', 'FindPeaks+OCC',               ...
-                                      'Parameters', struct('Distance',    25,     ... % kHz
-                                                           'BW',          10,     ... % kHz
-                                                           'Prominence1', 10,     ...
-                                                           'Prominence2', 30,     ...
-                                                           'meanOCC',     10,     ...
-                                                           'maxOCC',      67))
-        reportClassification = struct('Algorithm',  'Frequency+Distance Type 1',  ...
-                                      'Parameters', struct('Contour', 30,         ...
-                                                           'ClassMultiplier', 2,  ...
-                                                           'bwFactors', [100, 300]))
+        NumberOfValues = 20
     end
 
     
