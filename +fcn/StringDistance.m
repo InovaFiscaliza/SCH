@@ -14,13 +14,9 @@ function idxFiltered = StringDistance(value2Search, rawColumnData, methodName, i
                 HH = numel(rawColumnData_uniqueTokens);
                 MM = numel(value2Search);
 
-                dists = zeros(numel(rawColumnData_uniqueTokens), 1, 'single');
-                iquals = zeros(numel(rawColumnData_uniqueTokens), 1, 'single');
-                acums = zeros(numel(rawColumnData_uniqueTokens), 1, 'single');
-                dists_iquals_acums = [];
-                matriz_ordenada = [];
-                matriz_total =[];
-                ok=0;
+                LevenshteinArray = zeros(HH, 1, 'single');
+                blockOfTwoArray  = zeros(HH, 1, 'single');
+                countainsArray   = zeros(HH, 1, 'single');                
     
                 for ii = 1:HH
                     NN = numel(rawColumnData_uniqueTokens{ii});
@@ -29,23 +25,21 @@ function idxFiltered = StringDistance(value2Search, rawColumnData, methodName, i
                     d(:,1) = (0:MM)';
                     d(1,:) = 0:NN;
                     
-                    Iqual = 0;
-                    ActualValue = 0;
-                    DifValue = 0;
-                    LastValue = 1;
-                    AcumValue = 0;
+                    % countainsCharCount: quanto maior, melhor. soma acumulada de caracteres do token que possuem na palavra digitada.
+                    % blockOfCharsCount: quanto maior, melhor. número de blocos de dois caraceres da palavra digitada que possuem equivalência no token
+
+                    countainsCharCount   = 0;                    
+                    blockOfTwoCharsCount = 0;
+                                        
                     for jj = 1:NN
                         for kk = 1:MM
                             if value2Search(kk) == rawColumnData_uniqueTokens{ii}(jj)
-                                Iqual = Iqual + 1;
-                                ActualValue = kk;
-                                DifValue = ActualValue - LastValue;
-                                if DifValue == 1
-                                    AcumValue = AcumValue+1;
-                                    LastValue = ActualValue;
-                                end
-
                                 cost = 0;
+
+                                % Experimento de evolução do "Método de Levenshtein"
+                                % (PARTE 1)
+                                countainsCharCount = countainsCharCount + 1;  
+                                % Experimento de evolução do "Método de Levenshtein"
                             else
                                 cost = 1;
                             end
@@ -53,18 +47,27 @@ function idxFiltered = StringDistance(value2Search, rawColumnData, methodName, i
                         end
                     end
 
-                    dists(ii) = d(MM+1,NN+1);
-                    iquals(ii) = abs(NN - Iqual);
-                    acums(ii) = abs(MM - AcumValue);
+                    % Experimento de evolução do "Método de Levenshtein"
+                    % (PARTE 2)
+                    if numel(value2Search) > 1
+                        for kk = 2:MM
+                            blockOfTwoChars      = value2Search(kk-1:kk);
+                            blockOfTwoCharsCount = blockOfTwoCharsCount + numel(strfind(rawColumnData_uniqueTokens{ii}, blockOfTwoChars));
+                        end
+                    end
+                    % Experimento de evolução do "Método de Levenshtein"
+
+                    LevenshteinArray(ii) = d(MM+1, NN+1);
+                    blockOfTwoArray(ii)  = -blockOfTwoCharsCount;
+                    countainsArray(ii)   = -countainsCharCount;
                 end
                 
-                  dists_iquals_acums = [dists, acums, iquals];
-                  [~, matriz_ordenada_index] = sortrows(dists_iquals_acums, [1, 2, 3]);
-      
-                % [~, sortedIndex] = sort(dists);
-                sortedIndex = matriz_ordenada_index;
+                [~, sortedIndex] = sortrows([LevenshteinArray, blockOfTwoArray, countainsArray]);
+              % [~, sortedIndex] = sort(LevenshteinArray);
+
                 sortedTokenList  = rawColumnData_uniqueTokens(sortedIndex);
                 
+                % Iteração para garantir que tenhamos o NumberMaxValues...
                 kk = 0;
                 while numel(idxFiltered) < NumberMaxValues
                     kk = kk+1;
