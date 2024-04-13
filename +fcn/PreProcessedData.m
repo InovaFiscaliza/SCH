@@ -1,24 +1,30 @@
-function preProcessedData = PreProcessedData(rawData)
+function [uniqueData, referenceData] = PreProcessedData(rawData)
 
-    if iscell(rawData) % lista de valores de uma coluna em cellstring (cache)
-        preProcessedData = unique(rawData);
-
-    elseif iscategorical(rawData) % lista de valores de uma coluna em categorical, transformando-o para cellstr (cache)
-        preProcessedData = unique(cellstr(string(rawData)));
-        
-    else % acho que aqui é a consulta do usuário
-        preProcessedData = rawData;
+    classData = class(rawData);
+    switch classData
+        case 'cell'
+            referenceData = rawData;
+        case 'categorical'
+            referenceData = cellstr(rawData);
+        case {'char', 'string'}
+            referenceData = char(rawData);
+        otherwise
+            error('Unexpected datatype')
     end
 
-    preProcessedData = lower(preProcessedData);
-    preProcessedData = replace(preProcessedData, {'ç', 'ã', 'á', 'à', 'â', 'ê', 'é', 'í', 'î', 'ì', 'ó', 'ò', 'ô', 'õ', 'ú', 'ù', 'û', 'ü'}, ...
-                                                 {'c', 'a', 'a', 'a', 'a', 'e', 'e', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u'});
-    preProcessedData = replace(preProcessedData, {',', ';', '.', ':', '?', '!', '"', '''', '(', ')', '[', ']', '{', '}'}, ...
-                                                 {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '});
-    preProcessedData = strtrim(preProcessedData);
+    referenceData =   lower(referenceData);
+    referenceData = replace(referenceData, {'ç', 'ã', 'á', 'à', 'â', 'ê', 'é', 'í', 'î', 'ì', 'ó', 'ò', 'ô', 'õ', 'ú', 'ù', 'û', 'ü'}, ...
+                                           {'c', 'a', 'a', 'a', 'a', 'e', 'e', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u'});
+    referenceData = replace(referenceData, {',', ';', '.', ':', '?', '!', '"', '''', '(', ')', '[', ']', '{', '}'}, ...
+                                           {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '});
+    referenceData = strtrim(referenceData);
 
-    if iscell(preProcessedData) % usado apenas para cache...
-        preProcessedData(cellfun(@(x) isempty(x), preProcessedData)) = [];
-        preProcessedData = unique(preProcessedData);
+    switch classData
+        case {'cell', 'categorical'}
+            uniqueData = unique(referenceData);
+            uniqueData(cellfun(@(x) isempty(x), uniqueData)) = [];
+
+        case {'char', 'string'}
+            uniqueData = referenceData;
     end
 end
