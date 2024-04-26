@@ -13,7 +13,7 @@ classdef (Abstract) Constants
         xDecimals     = 5        
         floatDiffTolerance  = 1e-5
 
-        NumberOfValues = 50
+        NumberOfValues = 20
     end
 
     
