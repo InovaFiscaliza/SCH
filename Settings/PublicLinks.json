@@ -1,4 +1,9 @@
 {
   "VersionFile": "https://raw.githubusercontent.com/InovaFiscaliza/.github/main/releases/VersionFile.json",
-  "RFDataHub": "https://www.anatel.gov.br/dadosabertos/paineis_de_dados/sentinela/estacoes.parquet.gzip"
+  "SCH": {
+      "Table": "https://github.com/InovaFiscaliza/.github/releases/download/SCH/Table.gzip",
+      "Annotation": "https://github.com/InovaFiscaliza/.github/releases/download/SCH/Annotation.gzip",
+      "Release": "https://github.com/InovaFiscaliza/.github/releases/download/SCH/Release.json",
+      "Sharepoint": "https://anatel365.sharepoint.com/sites/InovaFiscaliza/SitePages/SCH.aspx"
+  }
 }

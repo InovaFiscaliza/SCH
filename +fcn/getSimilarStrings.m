@@ -3,11 +3,11 @@ function idxFiltered = getSimilarStrings(methodName, cacheStringList, cacheToken
     switch methodName
         case 'startsWith'
             idxLogical  = startsWith(cacheStringList, value2Search);
-            idxFiltered = IndexMerge(idxFiltered, find(idxLogical), nMaxValues);
+            idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
     
         case 'Contains'
             idxLogical  = contains(cacheStringList, value2Search);
-            idxFiltered = IndexMerge(idxFiltered, find(idxLogical), nMaxValues);
+            idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
     
         case 'Levenshtein'
             nTokens     = numel(cacheTokenList);
@@ -31,13 +31,4 @@ function idxFiltered = getSimilarStrings(methodName, cacheStringList, cacheToken
             end
             idxFiltered = idxFiltered(1:min([numel(idxFiltered), nMaxValues]));
     end
-end
-
-
-%-------------------------------------------------------------------------%
-function idxFiltered = IndexMerge(idxFiltered, idxSortedData, nMaxValues)
-
-    idxFiltered = unique([idxFiltered; idxSortedData], 'stable');
-    idxFiltered = idxFiltered(1:min([numel(idxFiltered), nMaxValues]));
-
 end

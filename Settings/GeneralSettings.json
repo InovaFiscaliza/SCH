@@ -1,95 +1,23 @@
 {
   "userPath": "",
-  "pythonPath": "",
-  "openGL": "hardware",
-  "Merge": {
-    "DataType": "keep",
-    "Antenna": "keep",
-    "Distance": 100
+  "webApp": {
+    "computerName": "WIMATLABPDIN01",
+    "filePath": ".\\AppData\\Roaming\\ANATEL\\SCH",
+    "fileName": "Produtos_Homologados_Anatel.csv"
   },
-  "Image": {
-    "Visibility": "on",
-    "Format": "jpeg",
-    "Resolution": 120
+  "desktopApp": {
+    "computerName": "",
+    "filePath": ".\\DataBase",
+    "fileName": "Produtos_Homologados_Anatel.mat"
   },
-  "Plot": {
-    "Axes": {
-      "xLabel": true,
-      "yLabel": true,
-      "xTickLabel": true,
-      "yTickLabel": true,
-      "xGuardBandFactor": 1
-    },
-    "MinHold": {
-      "Fcn": "area",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#005cd1",
-      "FaceColor": "#005cd1"
-    },
-    "ClearWrite": {
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
-    },
-    "Average": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "Playback": "#00ff00",
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
-    },
-    "MaxHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
-    },
-    "ROI": {
-      "Color": "#66bae0",
-      "EdgeAlpha": 0,
-      "FaceAlpha": 0.4,
-      "yPosition": 1,
-      "TextColor": "#000000",
-      "TextFontSize": 8
-    },
-    "Persistance": {
-      "Interpolation": "nearest",
-      "Colormap": "winter"
-    },
-    "Waterfall": {
-      "Fcn": "image",
-      "View": "vertical",
-      "MeshStyle": "both",
-      "Colormap": "winter"
-    },
-    "occMinHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#005cd1",
-      "FaceColor": "#005cd1"
-    },
-    "occAverage": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ffff12",
-      "FaceColor": "#ffff12"
-    },
-    "occMaxHold": {
-      "Fcn": "line",
-      "LineStyle": "-",
-      "LineWidth": 0.5,
-      "EdgeColor": "#ff12a6",
-      "FaceColor": "#ff12a6"
-    }
+  "annotation": {
+    "syncMode": "auto",
+    "syncStatus": true,
+    "fileName": "Annotation.xlsx",
+    "tempFileName": "Annotation_TempFile.xlsx"
   },
-  "Integration": {
-    "Trace": null,
-    "SampleTime": 10
-  }
+  "cacheColumns": [
+    "Modelo",
+    "Nome Comercial"
+  ]
 }

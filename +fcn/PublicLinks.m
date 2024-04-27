@@ -1,7 +1,7 @@
-function [versionLink, RFDataHubLink] = PublicLinks(RootFolder)
+function [versionFileLink, SCHLinks] = PublicLinks(rootFolder)
 
-    PublicLinks  = jsondecode(fileread(fullfile(RootFolder, 'Settings', 'PublicLinks.json')));
+    publicLinks     = jsondecode(fileread(fullfile(rootFolder, 'Settings', 'PublicLinks.json')));
+    versionFileLink = publicLinks.VersionFile;
+    SCHLinks        = publicLinks.SCH;
 
-    versionLink   = PublicLinks.VersionFile;
-    RFDataHubLink = PublicLinks.RFDataHub;
 end
