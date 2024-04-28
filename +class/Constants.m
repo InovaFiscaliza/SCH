@@ -14,6 +14,8 @@ classdef (Abstract) Constants
 
         userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
 
+        cacheColumns  = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
+        GUIColumns    = {'Homologação', 'Tipo', 'Solicitante', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'};
         nMaxSuggested = 20
     end
 
@@ -21,7 +23,7 @@ classdef (Abstract) Constants
     methods (Static = true)
         %-----------------------------------------------------------------%
         function fileName = DefaultFileName(userPath, Prefix, Issue)
-            fileName = fullfile(userPath, sprintf('%s_%s', Prefix, datestr(now,'yyyy.mm.dd_THH.MM.SS')));
+            fileName = fullfile(userPath, sprintf('%s_%s', Prefix, datestr(now, 'yyyy.mm.dd_THH.MM.SS')));
 
             if Issue > 0
                 fileName = sprintf('%s_%d', fileName, Issue);

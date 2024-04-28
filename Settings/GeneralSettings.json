@@ -8,16 +8,12 @@
   "desktopApp": {
     "computerName": "",
     "filePath": ".\\DataBase",
-    "fileName": "Produtos_Homologados_Anatel.mat"
+    "fileName": "Produtos_Homologados_Anatel.csv"
   },
   "annotation": {
     "syncMode": "auto",
     "syncStatus": true,
     "fileName": "Annotation.xlsx",
     "tempFileName": "Annotation_TempFile.xlsx"
-  },
-  "cacheColumns": [
-    "Modelo",
-    "Nome Comercial"
-  ]
+  }
 }

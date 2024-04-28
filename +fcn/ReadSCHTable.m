@@ -2,11 +2,12 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
 
     arguments
         fileFullPath
-        cacheColumns = {'Modelo', 'Nome Comercial', 'Fabricante', 'Solicitante'}
+        cacheColumns = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
     end
 
     cacheData    = [];
     matFullFile  = '';
+    saveMATFile  = false;
 
     [filePath, fileName, fileExt] = fileparts(fileFullPath);
 
@@ -22,7 +23,7 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
                                               'VariableNamingRule', 'preserve', ...
                                               'VariableNamesLine',  1,          ...
                                               'DataLines',          2,          ...
-                                              'VariableTypes',      {'datetime', 'char', 'categorical', 'categorical', 'char', 'datetime', 'datetime', 'double', 'categorical', 'double', 'categorical', 'categorical', 'char', 'char', 'double', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical'});
+                                              'VariableTypes',      {'datetime', 'char', 'char', 'categorical', 'char', 'datetime', 'datetime', 'double', 'categorical', 'double', 'categorical', 'categorical', 'char', 'char', 'double', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical'});
             
             opts = setvaropts(opts, 1, 'InputFormat', 'dd/MM/yyyy');
             opts = setvaropts(opts, 6, 'InputFormat', 'dd/MM/yyyy');
@@ -52,11 +53,15 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
             error('Unexpected file format')
     end
 
-    if isempty(cacheData) || any(~contains(cacheColumns, {cacheData.Column}))
+    listOfColumns = cellfun(@(x) strsplit(x, ' | '), cacheColumns, 'UniformOutput', false);
+    listOfColumns = horzcat(listOfColumns{:});
+
+    if isempty(cacheData) || any(~contains(listOfColumns, {cacheData.Column}))
+        saveMATFile  = true;
         [rawDataTable, cacheData] = CacheDataCreation(rawDataTable, cacheColumns);
     end
 
-    if strcmpi(fileExt, '.csv')
+    if saveMATFile
         matFullFile = fullfile(filePath, [fileName '.mat']);
         save(matFullFile, 'rawDataTable', 'releasedData', 'cacheData')
     end
@@ -70,17 +75,27 @@ function [rawTable, cacheData] = CacheDataCreation(rawTable, cacheColumns)
     cacheData = repmat(struct('Column', '', 'uniqueValues', {{}}, 'uniqueTokens', {{}}), numel(cacheColumns), 1);
 
     for ii = 1:numel(cacheColumns)
-        cacheColumn        = cacheColumns{ii};
-        [uniqueValues, ...
-            referenceData] = fcn.PreProcessedData(rawTable.(cacheColumn));
-        tokenizedDoc       = tokenizedDocument(uniqueValues);
-        uniqueTokens       = unique(cellstr(tokenizedDoc.tokenDetails.Token));
+        listOfColumns = strsplit(cacheColumns{ii}, ' | ');
 
-        cacheData(ii)      = struct('Column',       cacheColumn,  ...
-                                    'uniqueValues', {uniqueValues}, ...
-                                    'uniqueTokens', {unique([uniqueValues; uniqueTokens])});
+        uniqueValues  = {};
+        uniqueTokens  = {};
 
-        rawTable.(sprintf('_%s', cacheColumn)) = referenceData;
+        for jj = 1:numel(listOfColumns)
+            cacheColumn        = listOfColumns{jj};
+            [uniqueTempValues, ...
+                referenceData] = fcn.PreProcessedData(rawTable.(cacheColumn));
+            tokenizedDoc       = tokenizedDocument(uniqueTempValues);
+
+            uniqueValues       = [uniqueValues; uniqueTempValues];
+            uniqueTokens       = [uniqueTokens; cellstr(tokenizedDoc.tokenDetails.Token)];
+    
+            rawTable.(sprintf('_%s', cacheColumn)) = referenceData;
+        end
+        uniqueValues  = unique(uniqueValues);
+
+        cacheData(ii) = struct('Column',       cacheColumns{ii},  ...
+                               'uniqueValues', {uniqueValues},    ...
+                               'uniqueTokens', {unique([uniqueValues; uniqueTokens])});
     end
 
 end
