@@ -3,12 +3,12 @@
   "webApp": {
     "computerName": "WIMATLABPDIN01",
     "filePath": ".\\AppData\\Roaming\\ANATEL\\SCH",
-    "fileName": "Produtos_Homologados_Anatel.csv"
+    "fileName": "Produtos_Homologados_Anatel.mat"
   },
   "desktopApp": {
     "computerName": "",
     "filePath": ".\\DataBase",
-    "fileName": "Produtos_Homologados_Anatel.csv"
+    "fileName": "Produtos_Homologados_Anatel.mat"
   },
   "annotation": {
     "syncMode": "auto",

@@ -53,10 +53,7 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
             error('Unexpected file format')
     end
 
-    listOfColumns = cellfun(@(x) strsplit(x, ' | '), cacheColumns, 'UniformOutput', false);
-    listOfColumns = horzcat(listOfColumns{:});
-
-    if isempty(cacheData) || any(~contains(listOfColumns, {cacheData.Column}))
+    if isempty(cacheData) || any(~ismember(cacheColumns, {cacheData.Column}))
         saveMATFile  = true;
         [rawDataTable, cacheData] = CacheDataCreation(rawDataTable, cacheColumns);
     end
