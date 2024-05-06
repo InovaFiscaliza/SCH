@@ -26,7 +26,7 @@
       <file>C:\P&amp;D\ccTools</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
-      <file>${PROJECT_ROOT}\+layoutFcn</file>
+      <file>${PROJECT_ROOT}\+layout</file>
       <file>${PROJECT_ROOT}\DataBase</file>
       <file>${PROJECT_ROOT}\Icons</file>
       <file>${PROJECT_ROOT}\Settings</file>

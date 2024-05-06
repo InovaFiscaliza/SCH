@@ -23,7 +23,7 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
                                               'VariableNamingRule', 'preserve', ...
                                               'VariableNamesLine',  1,          ...
                                               'DataLines',          2,          ...
-                                              'VariableTypes',      {'datetime', 'char', 'char', 'categorical', 'char', 'datetime', 'datetime', 'double', 'categorical', 'double', 'categorical', 'categorical', 'char', 'char', 'double', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical'});
+                                              'VariableTypes',      {'datetime', 'char', 'char', 'char', 'categorical', 'datetime', 'datetime', 'categorical', 'categorical', 'categorical', 'categorical', 'char', 'char', 'char', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical', 'categorical'});
             
             opts = setvaropts(opts, 1, 'InputFormat', 'dd/MM/yyyy');
             opts = setvaropts(opts, 6, 'InputFormat', 'dd/MM/yyyy');
@@ -32,18 +32,25 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
             % Simplificação dos nomes de algumas das colunas que serão apresentadas 
             % na interface gráfica do usuário.
             rawColumnNames    = {'Número de Homologação', 'Nome do Solicitante', 'CNPJ do Solicitante', 'Nome do Fabricante', 'Situação do Requerimento', 'Tipo do Produto'};
-            editedColumnNames = {'Homologação', 'Solicitante', 'CNPJ', 'Fabricante', 'Situação', 'Tipo'};
+            editedColumnNames = {'Homologação', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Situação', 'Tipo'};
             
             rawDataTable = readtable(fileFullPath, opts);
             rawDataTable = renamevars(rawDataTable, rawColumnNames, editedColumnNames);
 
-            % Exclusão de registros cujo campo de "Homologação" não possui
-            % 12 caracteres, formatando-o posteriormente.
-            dataIndex = find(cellfun(@(x) numel(x)~=12, rawDataTable.("Homologação")));
-            if ~isempty(dataIndex)
-                rawDataTable(dataIndex,:) = [];
+            % Formatando a coluna "Homologação"
+            nHomLogicalIndex = cellfun(@(x) numel(x)~=12, rawDataTable.("Homologação"));
+            if any(nHomLogicalIndex)
+                rawDataTable(nHomLogicalIndex,:) = [];
             end
-            rawDataTable.("Homologação") = cellfun(@(x) sprintf('%s-%s-%s', x(1:5), x(6:7), x(8:12)), rawDataTable.("Homologação"), 'UniformOutput', false);
+            rawDataTable.("Homologação") = regexprep(rawDataTable.("Homologação"), '(\d{5})(\d{2})(\d{5})', '$1-$2-$3');
+
+            % Formatando a coluna "CNPJ/CPF"
+            nCharactersCNPJCPF = cellfun(@(x) numel(x), rawDataTable.("CNPJ/CPF"));
+            nCPFLogicalIndex   = nCharactersCNPJCPF == 11;
+            nCNPJLogicalIndex  = nCharactersCNPJCPF == 14;
+            
+            rawDataTable.("CNPJ/CPF")(nCPFLogicalIndex)  = regexprep(rawDataTable.("CNPJ/CPF")(nCPFLogicalIndex),  '(\d{3})(\d{3})(\d{3})(\d{2})',        '$1.$2.$3-$4');
+            rawDataTable.("CNPJ/CPF")(nCNPJLogicalIndex) = regexprep(rawDataTable.("CNPJ/CPF")(nCNPJLogicalIndex), '(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})', '$1.$2.$3/$4-$5');
 
             % releasedData
             fileInfo     = dir(fileFullPath);

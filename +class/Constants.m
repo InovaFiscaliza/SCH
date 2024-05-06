@@ -15,8 +15,14 @@ classdef (Abstract) Constants
         userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
 
         cacheColumns  = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
-        GUIColumns    = {'Homologação', 'Tipo', 'Solicitante', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'};
+        GUIColumns    = {'Homologação', 'Tipo', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}
+        notesColumns  = {'ID', 'Data/Hora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor'}
+
         nMaxSuggested = 20
+
+        tblStyle_row  = uistyle('BackgroundColor', [.96,.96,.96]);                          % Row striping
+        tblStyle_col  = uistyle('BackgroundColor', [.24 .47 .85], 'FontColor', 'white');    % Table primary column background
+        tblStyle_cell = uistyle('Icon', 'Edit_18x18G.png', 'IconAlignment', 'rightmargin');  % Cell annotation icon
     end
 
     
