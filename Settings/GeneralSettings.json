@@ -1,19 +1,23 @@
 {
   "userPath": "",
-  "webApp": {
-    "computerName": "WIMATLABPDIN01",
-    "filePath": ".\\AppData\\Roaming\\ANATEL\\SCH",
-    "fileName": "Produtos_Homologados_Anatel.mat"
-  },
   "desktopApp": {
     "computerName": "",
     "filePath": ".\\DataBase",
-    "fileName": "Produtos_Homologados_Anatel.mat"
+    "fileName": "SCHData.mat"
   },
-  "annotation": {
-    "syncMode": "auto",
-    "syncStatus": true,
-    "fileName": "Annotation.xlsx",
-    "tempFileName": "Annotation_TempFile.xlsx"
+  "webServer": {
+    "computerName": "WIMATLABPDIN01",
+    "filePath": "fullfile(getenv('PROGRAMDATA'), 'ANATEL', 'SCH')",
+    "fileName": "SCHData.mat"
+  },
+  "deployServer": {
+    "computerName": "DF6963612DTN",
+    "filePath": "fullfile(getenv('PROGRAMDATA'), 'ANATEL', 'SCH')",
+    "fileName": "SCHData.mat"
+  },
+  "Annotation": {
+    "fileSource": "Local",
+    "filePath": "",
+    "fileName": "Annotation.xlsx"
   }
 }

@@ -21,7 +21,7 @@ function [uniqueData, referenceData] = PreProcessedData(rawData)
 
     switch classData
         case {'cell', 'categorical'}
-            uniqueData = unique(referenceData);
+            uniqueData = unique(referenceData, 'stable');
             uniqueData(cellfun(@(x) isempty(x), uniqueData)) = [];
 
         case {'char', 'string'}

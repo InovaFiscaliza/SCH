@@ -1,7 +1,7 @@
-function [versionFileLink, SCHLinks] = PublicLinks(rootFolder)
+function [version, SCH] = PublicLinks(rootFolder)
 
-    publicLinks     = jsondecode(fileread(fullfile(rootFolder, 'Settings', 'PublicLinks.json')));
-    versionFileLink = publicLinks.VersionFile;
-    SCHLinks        = publicLinks.SCH;
+    fileParser = jsondecode(fileread(fullfile(rootFolder, 'Settings', 'PublicLinks.json')));
+    version    = fileParser.VersionFile;
+    SCH        = fileParser.SCH;
 
 end

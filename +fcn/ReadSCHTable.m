@@ -9,7 +9,7 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
     matFullFile  = '';
     saveMATFile  = false;
 
-    [filePath, fileName, fileExt] = fileparts(fileFullPath);
+    [filePath, ~, fileExt] = fileparts(fileFullPath);
 
     switch lower(fileExt)
         case '.mat'
@@ -66,7 +66,7 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
     end
 
     if saveMATFile
-        matFullFile = fullfile(filePath, [fileName '.mat']);
+        matFullFile = fullfile(filePath, 'SCHData.mat');
         save(matFullFile, 'rawDataTable', 'releasedData', 'cacheData')
     end
 
