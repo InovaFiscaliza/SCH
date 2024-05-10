@@ -48,7 +48,7 @@ function idxFiltered = getSimilarStringsIndex(methodName, cacheStringList, cache
     
             fcn.parpoolCheck()
             parfor ii = 1:nTokens
-                levDistance(ii) = fcn.LevenshteinDistance(cacheTokenList{ii}, value2Search);
+                levDistance(ii) = suggestion.LevenshteinDistance(cacheTokenList{ii}, value2Search);
             end
             [~, sortedIndex] = sortrows(levDistance);
     
