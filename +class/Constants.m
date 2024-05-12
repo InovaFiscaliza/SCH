@@ -4,20 +4,17 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'SCH'
         appRelease    = 'R2024a'
-        appVersion    = '0.01'
+        appVersion    = '0.10'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
         
-        xDecimals     = 5        
+        xDecimals     = 5
         floatDiffTol  = 1e-5
 
-        userPaths     = {fullfile(getenv('USERPROFILE'), 'Documents'); fullfile(getenv('USERPROFILE'), 'Downloads')}
-
-        cacheColumns  = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}        
-        staticColumns = {'Homologação', 'Tipo', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}
-        
-        allColumns    = {'Data da Homologação', 'Homologação', 'Solicitante', 'CNPJ/CPF', 'Certificado de Conformidade Técnica', ...
+        cacheColumns  = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
+        staticColumns = {'Homologação', 'Tipo', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}        
+        allColumns    = {'Data da Homologação', 'Homologação', 'Solicitante', 'CNPJ/CPF', 'Certificado de Conformidade Técnica',                ...
                          'Data do Certificado de Conformidade Técnica', 'Data de Validade do Certificado', 'Código de Situação do Certificado', ...
                          'Situação do Certificado', 'Código de Situação do Requerimento', 'Situação', 'Fabricante', 'Modelo', 'Nome Comercial', ...
                          'Categoria do Produto', 'Tipo', 'IC_ANTENA', 'IC_ATIVO', 'País do Fabricante', 'CodUIT', 'CodISO'}

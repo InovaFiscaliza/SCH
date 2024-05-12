@@ -5,7 +5,7 @@ function htmlCode = htmlCode_appsStyle(MetaDataInfo, InvalidValueStatus)
         InvalidValueStatus = 'print -1'
     end
     
-    htmlCode = '<font style="font-family: Helvetica; font-size: 10px;">';
+    htmlCode = '<font style="font-family: Helvetica; font-size: 12px;">';
     for ii = 1:numel(MetaDataInfo)
         htmlCode = sprintf('%s<b>%s</b>', htmlCode, MetaDataInfo(ii).group);
         htmlCode = structParser(MetaDataInfo(ii).value, htmlCode, 1, InvalidValueStatus);

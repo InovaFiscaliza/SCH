@@ -1,25 +1,19 @@
 {
-  "userPath": "",
-  "DataHub_GET": "",
-  "DataHub_POST": "",
-  "desktopApp": {
-    "computerName": "",
-    "filePath": ".\\DataBase",
-    "fileName": "SCHData.mat"
+  "version": 1,
+  "computerName": {
+    "deskopApp": "",
+    "webServer": "WIMATLABPDIN01",
+    "deployServer": "DF6963612DTN"
   },
-  "webServer": {
-    "computerName": "WIMATLABPDIN01",
-    "filePath": "fullfile(getenv('PROGRAMDATA'), 'ANATEL', 'SCH')",
-    "fileName": "SCHData.mat"
+  "fileFolder": {
+    "userPath": "E:\\",
+    "tempPath": "",
+    "pythonPath": "",
+    "DataHub_GET": "D:\\ANATEL\\InovaFiscaliza - DataHub - GET\\SCH",
+    "DataHub_POST": "D:\\ANATEL\\InovaFiscaliza - DataHub - POST\\SCH"
   },
-  "deployServer": {
-    "computerName": "DF6963612DTN",
-    "filePath": "fullfile(getenv('PROGRAMDATA'), 'ANATEL', 'SCH')",
-    "fileName": "SCHData.mat"
-  },
-  "Annotation": {
-    "fileSource": "Local",
-    "filePath": "",
-    "fileName": "Annotation.xlsx"
+  "fileName": {
+    "SCHData": "SCHData.mat",
+    "Annotation": "Annotation.xlsx"
   }
 }

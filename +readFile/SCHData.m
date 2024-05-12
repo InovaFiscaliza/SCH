@@ -1,9 +1,4 @@
-function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fileFullPath, cacheColumns)
-
-    arguments
-        fileFullPath
-        cacheColumns = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
-    end
+function [rawDataTable, releasedData, cacheData, matFullFile] = SCHData(fileFullPath)
 
     cacheData    = [];
     matFullFile  = '';
@@ -14,6 +9,12 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
     switch lower(fileExt)
         case '.mat'
             load(fileFullPath, 'rawDataTable', 'releasedData', 'cacheData')
+
+        case '.gzip'
+            rawDataTable = parquetread(fileFullPath, "VariableNamingRule", "preserve");
+            % !! PONTO DE EVOLUÇÃO !!
+            % PENDENTE LEITURA DO ARQUIVO E CONVERSÕES NECESSÁRIAS...
+            % !! PONTO DE EVOLUÇÃO !!
 
         case '.csv'
             % rawTable
@@ -60,46 +61,15 @@ function [rawDataTable, releasedData, cacheData, matFullFile] = ReadSCHTable(fil
             error('Unexpected file format')
     end
 
+    cacheColumns = class.Constants.cacheColumns;
     if isempty(cacheData) || any(~ismember(cacheColumns, {cacheData.Column}))
         saveMATFile  = true;
-        [rawDataTable, cacheData] = CacheDataCreation(rawDataTable, cacheColumns);
+        [rawDataTable, cacheData] = suggestion.CacheCreation(rawDataTable, cacheColumns);
     end
 
     if saveMATFile
         matFullFile = fullfile(filePath, 'SCHData.mat');
         save(matFullFile, 'rawDataTable', 'releasedData', 'cacheData')
-    end
-
-end
-
-
-%-------------------------------------------------------------------------%
-function [rawTable, cacheData] = CacheDataCreation(rawTable, cacheColumns)
-
-    cacheData = repmat(struct('Column', '', 'uniqueValues', {{}}, 'uniqueTokens', {{}}), numel(cacheColumns), 1);
-
-    for ii = 1:numel(cacheColumns)
-        listOfColumns = strsplit(cacheColumns{ii}, ' | ');
-
-        uniqueValues  = {};
-        uniqueTokens  = {};
-
-        for jj = 1:numel(listOfColumns)
-            cacheColumn        = listOfColumns{jj};
-            [uniqueTempValues, ...
-                referenceData] = fcn.PreProcessedData(rawTable.(cacheColumn));
-            tokenizedDoc       = tokenizedDocument(uniqueTempValues);
-
-            uniqueValues       = [uniqueValues; uniqueTempValues];
-            uniqueTokens       = [uniqueTokens; cellstr(tokenizedDoc.tokenDetails.Token)];
-    
-            rawTable.(sprintf('_%s', cacheColumn)) = referenceData;
-        end
-        uniqueValues  = unique(uniqueValues);
-
-        cacheData(ii) = struct('Column',       cacheColumns{ii},  ...
-                               'uniqueValues', {uniqueValues},    ...
-                               'uniqueTokens', {unique([uniqueValues; uniqueTokens])});
     end
 
 end
