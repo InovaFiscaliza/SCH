@@ -40,7 +40,7 @@ classdef (Abstract) Constants
                           55, ... % 'CodUIT' 
                           55}     % 'CodISO'
 
-        notesColumns  = {'ID', 'Data/Hora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'}
+        notesColumns  = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'}
 
         tblStyle_row  = uistyle('BackgroundColor', [.96,.96,.96])                            % Row striping
         tblStyle_col  = uistyle('BackgroundColor', [.24 .47 .85], 'FontColor', 'white')      % Table primary column background

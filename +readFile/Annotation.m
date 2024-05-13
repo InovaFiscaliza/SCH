@@ -52,7 +52,7 @@ function annotationTable = EmptyTable()
     % Por enquanto, não estará habilitada a exclusão do registro. E
     % a edição estará limitada ao atributo "WordCloud".
 
-  % columnNames     = {'ID', 'Data/Hora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'};
+  % columnNames     = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'};
     columnNames     = class.Constants.notesColumns;
 
     annotationTable = table('Size', [0, 8],                                        ...
