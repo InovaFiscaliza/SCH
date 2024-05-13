@@ -6,14 +6,32 @@
     "deployServer": "DF6963612DTN"
   },
   "fileFolder": {
-    "userPath": "E:\\",
+    "userPath": "",
     "tempPath": "",
     "pythonPath": "",
-    "DataHub_GET": "D:\\ANATEL\\InovaFiscaliza - DataHub - GET\\SCH",
-    "DataHub_POST": "D:\\ANATEL\\InovaFiscaliza - DataHub - POST\\SCH"
+    "DataHub_GET": "",
+    "DataHub_POST": ""
   },
   "fileName": {
     "SCHData": "SCHData.mat",
     "Annotation": "Annotation.xlsx"
+  },
+  "listOfProducts": {
+    "requiredInfo": [
+       "Tipo",
+       "Modelo",
+       "Fabricante",
+       "Informações adicionais",
+       "Usa radiofrequência?",
+       "Valor unitário (R$)",
+       "Qtd. unidades em uso/comercializadas",
+       "Qtd. unidades em estoque",
+       "Em uso?",
+       "Evidenciada interferência?",
+       "Qtd. lacradas",
+       "Qtd. apreendidas",
+       "Qtd. retidas (RFB)",
+       "Situação"
+     ]
   }
 }

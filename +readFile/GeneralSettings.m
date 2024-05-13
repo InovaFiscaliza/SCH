@@ -23,12 +23,19 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
             externalFileContent = jsondecode(fileread(externalFilePath));
 
             if projectFileContent.version > externalFileContent.version
-                projectFileContent.fileFolder = externalFileContent.fileFolder;
+                % Para não perder o mapeamento de pastas...
+                oldFields = fieldnames(externalFileContent.fileFolder);
+                for ii = 1:numel(oldFields)
+                    if isfield(projectFileContent.fileFolder, oldFields{ii})
+                        projectFileContent.fileFolder.(oldFields{ii}) = externalFileContent.fileFolder.(oldFields{ii});
+                    end
+                end
 
-                copyfile(projectFilePath, externalFolder, 'f');
+                writematrix(jsonencode(projectFileContent, "PrettyPrint", true), externalFilePath, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
+                
                 error(['O arquivo de configuração "GeneralSettings.json", '        ...
                        'hospedado na pasta de configuração local, foi atualizado ' ...
-                       'da v. %d para a v. %d'], externalFileContent.version, projectFileContent.version)
+                       'da v. %.0f para a v. %.0f'], externalFileContent.version, projectFileContent.version)
             
             else
                 generalSettings = externalFileContent;

@@ -1,7 +1,7 @@
 function GeneralSettings(appGeneral, rootFolder)
     
-    if ismember(appGeneral.userPath, ccTools.fcn.OperationSystem('userPath'))
-        appGeneral.userPath = '';
+    if ismember(appGeneral.fileFolder.userPath, ccTools.fcn.OperationSystem('userPath'))
+        appGeneral.fileFolder.userPath = '';
     end
 
     [~, ...
@@ -11,7 +11,7 @@ function GeneralSettings(appGeneral, rootFolder)
     externalFilePath   = fullfile(externalFolder, fileName);
 
     try
-        writematrix(jsonencode(appGeneral, 'PrettyPrint', true), externalFilePath, "FileType", "text", "QuoteStrings", "none")
+        writematrix(jsonencode(appGeneral, 'PrettyPrint', true), externalFilePath, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
     catch
     end
     

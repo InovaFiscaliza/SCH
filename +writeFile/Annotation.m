@@ -14,19 +14,29 @@ function Annotation(rootFolder, postCloudFolder, annotationTable)
     try
         % É submetido ao repositório na nuvem apenas aqueles registros com 
         % "Situação" igual a 1. Ao submeter os dados, contudo, a "Situação" 
+        % é alterada para 0, simplificando a concatenação dos dados pela rotina 
+        % a ser criada no Power Automate, mas na sua versão local a "Situação"
         % é alterada para 2.
 
-        idx2 = localAnnotationTable.("Situação") == 1;
-        localAnnotationTable.("Situação")(idx2) = 2;
-
-        writetable(localAnnotationTable(idx2, :), cloudFilePath)
+        idx2 = localAnnotationTable.("Situação") == 1;        
+        if any(idx2)
+            % A versão submetida à pasta do Sharepoint POST...
+            localAnnotationTable.("Situação")(idx2) = 0;
+            writetable(localAnnotationTable(idx2, :), cloudFilePath)
+    
+            % O backup local...
+            localAnnotationTable.("Situação")(idx2) = 2;
+        end
         
     catch
+        % E se der erro mantém a "Situação" igual a 1.
         localAnnotationTable.("Situação")(idx2) = 1;
     end
 
     try
-        writetable(localAnnotationTable, externalFilePath, 'WriteMode', 'replacefile')
+        if any(idx2)
+            writetable(localAnnotationTable, externalFilePath, 'WriteMode', 'replacefile')
+        end
     catch
     end
 
