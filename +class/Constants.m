@@ -12,42 +12,32 @@ classdef (Abstract) Constants
         xDecimals     = 5
         floatDiffTol  = 1e-5
 
-        cacheColumns  = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
-        staticColumns = {'Homologação', 'Tipo', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}        
-        allColumns    = {'Data da Homologação', 'Homologação', 'Solicitante', 'CNPJ/CPF', 'Certificado de Conformidade Técnica',                ...
-                         'Data do Certificado de Conformidade Técnica', 'Data de Validade do Certificado', 'Código de Situação do Certificado', ...
-                         'Situação do Certificado', 'Código de Situação do Requerimento', 'Situação', 'Fabricante', 'Modelo', 'Nome Comercial', ...
-                         'Categoria do Produto', 'Tipo', 'IC_ANTENA', 'IC_ATIVO', 'País do Fabricante', 'CodUIT', 'CodISO'}
-        widthColumns  = { 90, ... % 'Data da Homologação'
-                         110, ... % 'Homologação'
-                      'auto', ... % 'Solicitante'
-                         110, ... % 'CNPJ/CPF'
-                         110, ... % 'Certificado de Conformidade Técnica'
-                          90, ... % 'Data do Certificado de Conformidade Técnica'
-                          90, ... % 'Data de Validade do Certificado' 
-                          55, ... % 'Código de Situação do Certificado'
-                         150, ... % 'Situação do Certificado'
-                          55, ... % 'Código de Situação do Requerimento'
-                         150, ... % 'Situação'
-                      'auto', ... % 'Fabricante'
-                         150, ... % 'Modelo'
-                         150, ... % 'Nome Comercial'
-                          55, ... % 'Categoria do Produto'
-                         300, ... % 'Tipo'
-                          55, ... % 'IC_ANTENA'
-                          55, ... % 'IC_ATIVO'
-                         110, ... % 'País do Fabricante'
-                          55, ... % 'CodUIT' 
-                          55}     % 'CodISO'
+        % uistyle
+        configStyle1  = uistyle('BackgroundColor', [.96,.96,.96])                                                           % Search table "row striping"
+        configStyle2  = uistyle('BackgroundColor', [.24 .47 .85], 'FontColor', 'white')                                     % Search table "primary column background"
+        configStyle3  = uistyle('Icon', 'Edit_18x18White2.png', 'IconAlignment', 'rightmargin')                             % Search table "cell annotation icon - Type1"
+        configStyle4  = uistyle('Icon', 'Edit_18x18Gray2.png',  'IconAlignment', 'rightmargin')                             % Search table "cell annotation icon - Type2"
+        configStyle5  = uistyle('Icon', 'Lock1_18x18Gray.png', 'FontColor', [.65,.65,.65], 'IconAlignment', 'leftmargin')   % Config uitree (Search table)
 
-        notesColumns  = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'}
+        % app.cacheData
+        cacheColumns              = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}
 
-        tblStyle_row  = uistyle('BackgroundColor', [.96,.96,.96])                            % Row striping
-        tblStyle_col  = uistyle('BackgroundColor', [.24 .47 .85], 'FontColor', 'white')      % Table primary column background
-        tblStyle_cell1= uistyle('Icon', 'Edit_18x18GT.png', 'IconAlignment', 'rightmargin')  % Cell annotation icon
-        tblStyle_cell2= uistyle('Icon', 'Edit_18x18WT.png', 'IconAlignment', 'rightmargin')  % Cell annotation icon
+        % app.annotationTable & app.listOfProducts
+        annotationTableColumns    = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'}
+        listOfProductsColumns     = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
+                                     'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração', 'Informações adicionais'}
+
+        % app.search_Table & app.report_Table (GUI)
+        search_TableStaticColumns = {'Homologação', 'Tipo', 'Solicitante', 'CNPJ/CPF', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}
+        search_TableColumnNames   = {'Data da Homologação', 'Homologação', 'Solicitante', 'CNPJ/CPF', 'Certificado de Conformidade Técnica',                ...
+                                     'Data do Certificado de Conformidade Técnica', 'Data de Validade do Certificado', 'Código de Situação do Certificado', ...
+                                     'Situação do Certificado', 'Código de Situação do Requerimento', 'Situação', 'Fabricante', 'Modelo', 'Nome Comercial', ...
+                                     'Categoria do Produto', 'Tipo', 'IC_ANTENA', 'IC_ATIVO', 'País do Fabricante', 'CodUIT', 'CodISO'}
+        search_TableColumnWidths  = {90, 110, 'auto', 110, 110, 90, 90, 55, 150, 55, 150, 'auto', 150, 150, 55, 300, 55, 55, 110, 55, 55}
         
-        listBoxStyle  = uistyle('FontColor', [.65,.65,.65], 'Icon', 'LockClose_18x18G.png', 'IconAlignment', 'leftmargin')
+        report_TableColumnNames   = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
+                                     'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}
+        report_TableColumnWidths  = {110, 300, 'auto', 150, 'auto', 'auto', 'auto', 110, 110, 110, 110, 110, 110}
     end
 
     
@@ -160,6 +150,27 @@ classdef (Abstract) Constants
                       "Integração", ...
                       "Traço", ...
                       "Modo de apontamento"];
+        
+            d = dictionary(names, values);
+        end
+
+
+        %-----------------------------------------------------------------%
+        function d = listOfProductsColumnNames()
+            names  = [ "RF?", ...
+                       "Qtd uso/vendida", ...
+                       "Qtd estoque", ...
+                       "Interferência?", ...
+                       "Qtd lacradas", ...
+                       "Qtd apreendidas", ...
+                       "Qtd retidas (RFB)"];
+            values = [ "Usa radiofrequência?", ...
+                       "Qtd. unidades em uso/comercializadas", ...
+                       "Qtd. unidades em estoque", ...
+                       "Evidenciada interferência?", ...
+                       "Qtd. unidades lacradas", ...
+                       "Qtd. unidades apreendidas", ...
+                       "Qtd. unidades retidas (RFB)"];
         
             d = dictionary(names, values);
         end

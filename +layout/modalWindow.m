@@ -21,9 +21,9 @@ function d = modalWindow(fHandle, type, msg, varargin)
         case {'error', 'warning', 'info'}
             msg = sprintf('<font style="font-size:12;">%s</font>', msg);            
             switch type
-                case 'error';   uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'error',          varargin{:})
-                case 'warning'; uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'warning',        varargin{:})
-                case 'info';    uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'Info_36x36.png', varargin{:})
+                case 'error';   uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'error',       varargin{:})
+                case 'warning'; uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'warning',     varargin{:})
+                case 'info';    uialert(fHandle, msg, '', 'Interpreter', 'html', 'Icon', 'Info_36.png', varargin{:})
             end
             beep
             

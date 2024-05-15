@@ -1,4 +1,4 @@
-function Annotation(rootFolder, postCloudFolder, annotationTable)
+function Annotation(rootFolder, postCloudFolder, annotationTable, annotationBackupFlag)
 
     [~, ...
      externalFolder] = fcn.Path(rootFolder);
@@ -34,7 +34,7 @@ function Annotation(rootFolder, postCloudFolder, annotationTable)
     end
 
     try
-        if any(idx2)
+        if annotationBackupFlag || any(idx2)
             writetable(localAnnotationTable, externalFilePath, 'WriteMode', 'replacefile')
         end
     catch

@@ -16,22 +16,28 @@
     "SCHData": "SCHData.mat",
     "Annotation": "Annotation.xlsx"
   },
-  "listOfProducts": {
-    "requiredInfo": [
-       "Tipo",
-       "Modelo",
-       "Fabricante",
-       "Informações adicionais",
-       "Usa radiofrequência?",
-       "Valor unitário (R$)",
-       "Qtd. unidades em uso/comercializadas",
-       "Qtd. unidades em estoque",
-       "Em uso?",
-       "Evidenciada interferência?",
-       "Qtd. lacradas",
-       "Qtd. apreendidas",
-       "Qtd. retidas (RFB)",
-       "Situação"
-     ]
-  }
+  "typeOfProduct": [
+    "Antena",
+    "Baterias",
+    "Bloqueador de sinal (Jammer)",
+    "Cabo Metálico",
+    "Cabo Óptico",
+    "Carregadores de Baterias",
+    "Celulares",
+    "Decodificador de sinal para SeAC",
+    "Equipamento de Radiação Restrita",
+    "Equipamento de Rede de Dados",
+    "Equipamento óptico",
+    "Reforçador de sinal",
+    "SmartTV Box",
+    "Transmissor Radiodifusão",
+    "Transceptor RF",
+    "Outros"
+  ],
+  "typeOfViolation": [
+    "Comercialização",
+    "Identificação da homologação",
+    "Importação",
+    "Uso"
+  ]
 }

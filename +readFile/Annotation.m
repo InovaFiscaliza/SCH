@@ -1,6 +1,7 @@
-function [annotationTable, msgWarning] = Annotation(rootFolder, getCloudFolder)
+function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFolder, getCloudFolder)
 
     annotationTable  = EmptyTable();
+    annotationBackupFlag = false;
     msgWarning       = '';
 
     [~, ...
@@ -16,7 +17,7 @@ function [annotationTable, msgWarning] = Annotation(rootFolder, getCloudFolder)
         end
 
         if isfile(externalFilePath)
-            annotationTable = MergeTables(annotationTable, externalFilePath);
+            [annotationTable, annotationBackupFlag] = MergeTables(annotationTable, externalFilePath);
         end
 
     catch ME
@@ -53,7 +54,7 @@ function annotationTable = EmptyTable()
     % a edição estará limitada ao atributo "WordCloud".
 
   % columnNames     = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'};
-    columnNames     = class.Constants.notesColumns;
+    columnNames     = class.Constants.annotationTableColumns;
 
     annotationTable = table('Size', [0, 8],                                        ...
                             'VariableTypes', [repmat({'cell'}, 1, 7), {'double'}], ...
@@ -63,9 +64,14 @@ end
 
 
 %-------------------------------------------------------------------------%
-function annotationTable = MergeTables(annotationTable, externalFilePath)
+function [annotationTable, annotationBackupFlag] = MergeTables(annotationTable, externalFilePath)
 
     externalFileContent = readtable(externalFilePath, 'VariableNamingRule', 'preserve');
+    if isempty(externalFileContent)
+        annotationBackupFlag = false;
+    else
+        annotationBackupFlag = true;
+    end
     
     idx = ~ismember(externalFileContent.ID, annotationTable.ID) & (externalFileContent.("Situação") ~= -1);
     externalFileNewRows = externalFileContent(idx, :);

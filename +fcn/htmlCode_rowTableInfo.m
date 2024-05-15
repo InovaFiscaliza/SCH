@@ -1,30 +1,30 @@
-function htmlContent = htmlCode_rowTableInfo(rowSCHTable, relatedAnnotationTable)
-    Homologacao   = char(rowSCHTable.("Homologação")(1));
-    Status        = char(rowSCHTable.("Situação")(1));
+function htmlContent = htmlCode_rowTableInfo(relatedSCHTable, relatedAnnotationTable)
+    Homologacao   = char(relatedSCHTable.("Homologação")(1));
+    Status        = char(relatedSCHTable.("Situação")(1));
     StatusColor   = '';
     if ismember(Status, {'Homologação Anulada', 'Homologação Cancelada', 'Homologação Suspensa', 'Requerimento - Cancelado'})
         StatusColor = ' style="color:red;"';
     end
     
-    DataEmissao   = char(rowSCHTable.("Data da Homologação")(1));
+    DataEmissao   = char(relatedSCHTable.("Data da Homologação")(1));
 
-    certID        = char(rowSCHTable.("Certificado de Conformidade Técnica")(1));
-    certEmissao   = char(rowSCHTable.("Data do Certificado de Conformidade Técnica")(1));
-    certValidade  = char(rowSCHTable.("Data de Validade do Certificado")(1));
+    certID        = char(relatedSCHTable.("Certificado de Conformidade Técnica")(1));
+    certEmissao   = char(relatedSCHTable.("Data do Certificado de Conformidade Técnica")(1));
+    certValidade  = char(relatedSCHTable.("Data de Validade do Certificado")(1));
     if ~strcmp(certValidade, 'NaT')
         certValidade = sprintf(', válido até %s', certValidade);
     else
         certValidade = '';
     end
 
-    Solicitante   = upper(char(rowSCHTable.("Solicitante")(1)));
-    CNPJ          = char(rowSCHTable.("CNPJ/CPF")(1));
-    Fabricante    = upper(char(rowSCHTable.("Fabricante")(1)));
-    Pais          = char(rowSCHTable.("País do Fabricante")(1));
-    Tipo          = FindListOfValues(rowSCHTable, "Tipo");
-    Categoria     = char(rowSCHTable.("Categoria do Produto")(1));
-    Modelo        = FindListOfValues(rowSCHTable, "Modelo");
-    NomeComercial = FindListOfValues(rowSCHTable, "Nome Comercial");
+    Solicitante   = upper(char(relatedSCHTable.("Solicitante")(1)));
+    CNPJ          = char(relatedSCHTable.("CNPJ/CPF")(1));
+    Fabricante    = upper(char(relatedSCHTable.("Fabricante")(1)));
+    Pais          = char(relatedSCHTable.("País do Fabricante")(1));
+    Tipo          = FindListOfValues(relatedSCHTable, "Tipo");
+    Categoria     = char(relatedSCHTable.("Categoria do Produto")(1));
+    Modelo        = FindListOfValues(relatedSCHTable, "Modelo");
+    NomeComercial = FindListOfValues(relatedSCHTable, "Nome Comercial");
 
     Anotacoes     = {};
     for ii = 1:height(relatedAnnotationTable)
