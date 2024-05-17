@@ -69,14 +69,15 @@ function [annotationTable, annotationBackupFlag] = MergeTables(annotationTable, 
     externalFileContent = readtable(externalFilePath, 'VariableNamingRule', 'preserve');
     if isempty(externalFileContent)
         annotationBackupFlag = false;
+
     else
         annotationBackupFlag = true;
-    end
-    
-    idx = ~ismember(externalFileContent.ID, annotationTable.ID) & (externalFileContent.("Situação") ~= -1);
-    externalFileNewRows = externalFileContent(idx, :);
 
-    annotationTable     = [annotationTable; externalFileNewRows];
+        idx = ~ismember(externalFileContent.ID, annotationTable.ID) & (externalFileContent.("Situação") ~= -1);
+        externalFileNewRows = externalFileContent(idx, :);
+    
+        annotationTable     = [annotationTable; externalFileNewRows];
+    end
 
 end
 

@@ -34,7 +34,12 @@ function Annotation(rootFolder, postCloudFolder, annotationTable, annotationBack
     end
 
     try
-        if annotationBackupFlag || any(idx2)
+        if isempty(localAnnotationTable)
+            if isfile(externalFilePath)
+                delete(externalFilePath)
+            end
+
+        elseif annotationBackupFlag || any(idx2)
             writetable(localAnnotationTable, externalFilePath, 'WriteMode', 'replacefile')
         end
     catch
