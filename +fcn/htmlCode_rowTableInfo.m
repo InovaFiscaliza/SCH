@@ -33,7 +33,7 @@ function htmlContent = htmlCode_rowTableInfo(relatedSCHTable, relatedAnnotationT
         if strcmp(relatedAnnotationTable.("Atributo"){ii}, 'WordCloud')
             try
                 wordCloudInfo = jsondecode(relatedAnnotationTable.("Valor"){ii});
-                value = sprintf('%s (<i>Pesquisa: "%s"</i>)', wordCloudInfo.cloudOfWords(2:end-1), wordCloudInfo.searchedWord);
+                value = sprintf('%s<br><span style="color: gray;">Termo pesquisado: "%s"</span>', wordCloudInfo.cloudOfWords(2:end-1), wordCloudInfo.searchedWord);
             catch
             end
         end
