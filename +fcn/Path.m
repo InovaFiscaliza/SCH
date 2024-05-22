@@ -1,8 +1,7 @@
-function [localPath, configPath] = Path(rootFolder)
+function [settingsFolder, externalFolder, reportFolder] = Path(rootFolder)
 
-    appName    = class.Constants.appName;
-
-    localPath  = fullfile(rootFolder, 'Settings');
-    configPath = fullfile(getenv('PROGRAMDATA'), 'ANATEL', appName);
+    settingsFolder = fullfile(rootFolder, 'Settings');
+    externalFolder = fullfile(getenv('PROGRAMDATA'), 'ANATEL', class.Constants.appName);
+    reportFolder   = fullfile(rootFolder, '+reportLibConnection');
 
 end

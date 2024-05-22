@@ -17,6 +17,7 @@
     "Annotation": "Annotation.xlsx"
   },
   "typeOfProduct": [
+    "-1",
     "Antena",
     "Baterias",
     "Bloqueador de sinal (Jammer)",
@@ -38,5 +39,8 @@
     "Comercialização",
     "Identificação homologação",
     "Uso"
-  ]
+  ],
+  "defaultTypeOfProduct": "-1",
+  "defaultTypeOfViolation": "Comercialização",
+  "lastDocFullPath": ""
 }
