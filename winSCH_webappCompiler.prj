@@ -23,17 +23,19 @@
       <file>${PROJECT_ROOT}\winSCH.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
-      <file>C:\P&amp;D\ccTools</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
       <file>${PROJECT_ROOT}\+layout</file>
       <file>${PROJECT_ROOT}\+readFile</file>
+      <file>${PROJECT_ROOT}\+reportLibConnection</file>
       <file>${PROJECT_ROOT}\+suggestion</file>
       <file>${PROJECT_ROOT}\+writeFile</file>
       <file>${PROJECT_ROOT}\DataBase</file>
       <file>${PROJECT_ROOT}\Icons</file>
       <file>${PROJECT_ROOT}\Settings</file>
       <file>${PROJECT_ROOT}\Temp</file>
+      <file>D:\SupportPackages\+ccTools</file>
+      <file>D:\SupportPackages\+reportLib</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />

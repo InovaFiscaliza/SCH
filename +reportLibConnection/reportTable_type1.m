@@ -8,8 +8,8 @@ function Table = reportTable_type1(reportTable, configTable)
 
     Table         = [table(columnID, columnProduct), reportTable(:, [5,7:13,15,16])];
 
-    Table.("RF?")                    = report.Constants.logical2String(Table.("RF?"), 'cellstr');
-    Table.("Interferência?")         = report.Constants.logical2String(Table.("Interferência?"), 'cellstr');
+    Table.("RF?")                    = reportLib.Constants.logical2String(Table.("RF?"), 'cellstr');
+    Table.("Interferência?")         = reportLib.Constants.logical2String(Table.("Interferência?"), 'cellstr');
     Table.("Informações adicionais") = replace(Table.("Informações adicionais"), newline, '<br>');
 
     Table.Properties.VariableNames   = {configTable.Settings.ColumnName};

@@ -84,7 +84,7 @@ classdef (Abstract) Controller
             dataOverview(1).HTML    = [];
             
             % docContent
-            docContent   = report.Controller(reportInfo, dataOverview);
+            docContent   = reportLib.Controller(reportInfo, dataOverview);
             tempFileName = [tempname(tempdir) '.html'];
             writematrix(docContent, tempFileName, 'QuoteStrings', 'none', 'FileType', 'text')
             if webView                
