@@ -14,6 +14,14 @@ function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFo
     try
         if ~isempty(getCloudFolder) && isfile(cloudFilePath)
             annotationTable = readtable(cloudFilePath, 'VariableNamingRule', 'preserve');
+
+            % A coluna "Situação" controla os registros que serão submetidos 
+            % ao repositório do Sharepoint (POST). De forma geral, ao fechar 
+            % a sessão do app, todo registro com "Situação" = 1 será submetido 
+            % ao repositório. Ao fazer a operação abaixo, evita-se submeter
+            % registros que já constam no repositório, mas que por engano estavam
+            % com registro diferente de 0.
+            annotationTable.("Situação")(:) = 0;
         end
 
         if isfile(externalFilePath)
