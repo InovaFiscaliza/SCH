@@ -49,5 +49,6 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
     if isempty(generalSettings)
         generalSettings = projectFileContent;
     end
+    generalSettings.SCHDataInfo = struct2table(generalSettings.SCHDataInfo);
 
 end

@@ -4,7 +4,9 @@ function Annotation(rootFolder, postCloudFolder, annotationTable, annotationBack
      externalFolder] = fcn.Path(rootFolder);
 
     externalFilePath = fullfile(externalFolder,  'Annotation.xlsx');
-    cloudFilePath    = [class.Constants.DefaultFileName(postCloudFolder, 'Annotation', -1) '.xlsx'];
+    if isfolder(postCloudFolder)
+        cloudFilePath = [class.Constants.DefaultFileName(postCloudFolder, 'Annotation', -1) '.xlsx'];
+    end
 
     % É salvo localmente todos os registros com o campo "Situação" igual a
     % 1 ou 2. 
