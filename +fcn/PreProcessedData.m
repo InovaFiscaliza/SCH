@@ -11,10 +11,8 @@ function [uniqueData, referenceData] = PreProcessedData(rawData)
         otherwise
             error('Unexpected datatype')
     end
-
-    referenceData =   lower(referenceData);
-    referenceData = replace(referenceData, {'ç', 'ã', 'á', 'à', 'â', 'ê', 'é', 'í', 'î', 'ì', 'ó', 'ò', 'ô', 'õ', 'ú', 'ù', 'û', 'ü'}, ...
-                                           {'c', 'a', 'a', 'a', 'a', 'e', 'e', 'i', 'i', 'i', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u'});
+  
+    referenceData = textAnalysis.normalizeWords(referenceData);
     referenceData = replace(referenceData, {',', ';', '.', ':', '?', '!', '"', '''', '(', ')', '[', ']', '{', '}'}, ...
                                            {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '});
     referenceData = strtrim(referenceData);

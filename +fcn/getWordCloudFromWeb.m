@@ -11,11 +11,33 @@ function [wordCloudTable, wordCloudInfo] = getWordCloudFromWeb(word2Search, nMax
     webContent  = webread(webURL);
 
     listOfWords = fcn.extractHTMLText(webContent, TAG);
-    wordCloudTable = wordCloudCounts(listOfWords);
+    
+    referenceWordCloud  = wordCloudCounts(listOfWords);
+    referenceWordCloud  = convertvars(referenceWordCloud, "Word", 'cellstr');
+    
+    referenceData       = textAnalysis.normalizeWords(referenceWordCloud.Word);
+    [~, uniqueIndex]    = unique(referenceData, 'stable');
+    
+    referenceWordCloud.editedWord = referenceData;
+    referenceWordCloud  = referenceWordCloud(uniqueIndex,:);
 
-    if height(wordCloudTable) > nMaxWords
-        wordCloudTable = wordCloudTable(1:nMaxWords,:);
-    end
+    % A normalização de palavras garante o tratamento igual às palavras "iPhone" 
+    % e "iphone", ou "Ação" e "acao", por exemplo. Ao final, contudo, usa-se
+    % a primeira referência da palavra normalizada: "iPhone" e "Ação", nos 
+    % supracitados exemplos.
+    referenceData       = textAnalysis.normalizeWords(listOfWords);
+
+    % Aqui os dados são processados, sendo excluídas pontuações e "stop words" 
+    % comuns da língua portuguesa.
+    documents           = tokenizedDocument(referenceData);
+    documents           = erasePunctuation(documents);
+    % documents           = removeShortWords(documents, 1);
+
+    bag                 = bagOfWords(documents);
+    bag                 = bag.removeWords(textAnalysis.stopWords);
+
+    wordCloudTable      = topkwords(bag, nMaxWords);
+    wordCloudTable.Word = regexprep(wordCloudTable.Word, cellfun(@(x) sprintf('\\<%s\\>', x), referenceWordCloud.editedWord, 'UniformOutput', false), referenceWordCloud.Word);
 
     wordCloudJSON = jsonEncode(wordCloudTable);
     wordCloudInfo = sprintf(['{"metaData": {'          ...
