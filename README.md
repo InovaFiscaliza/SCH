@@ -1,5 +1,5 @@
 # SCH
-![Screenshot 2024-06-06 000913](https://github.com/InovaFiscaliza/SCH/assets/75496918/b5ddd04e-dfbd-4aa7-917b-d126a7a6d437)
+![Screenshot 2024-06-06 003044](https://github.com/InovaFiscaliza/SCH/assets/75496918/94b0b697-d46f-48be-bf77-2872f63a4fc7)
 
 O SCH é um app que possibilita consulta à base de dados dos produtos para telecomunicações com homologação expedida pela Agência, sendo útil nas fiscalizações de combate à pirataria. A ferramenta possui uma versão desktop, que pode ser usada em ambiente offline, e uma versão webapp, acessível na intranet.
 
