@@ -20,7 +20,7 @@
         {
             "Column": "Categoria do Produto",
             "Class": "categorical",
-            "FilterType": "numeric",
+            "FilterType": "listOfText",
             "GUI_Static": false,
             "GUI_Width": 55
         },
@@ -55,35 +55,35 @@
         {
             "Column": "Código de Situação do Certificado",
             "Class": "categorical",
-            "FilterType": "numeric",
+            "FilterType": "listOfText",
             "GUI_Static": false,
             "GUI_Width": 55
         },
         {
             "Column": "Código de Situação do Requerimento",
             "Class": "categorical",
-            "FilterType": "numeric",
+            "FilterType": "listOfText",
             "GUI_Static": false,
             "GUI_Width": 55
         },
         {
             "Column": "Data da Homologação",
             "Class": "datetime",
-            "FilterType": "numeric",
+            "FilterType": "datetime",
             "GUI_Static": false,
             "GUI_Width": 90
         },
         {
             "Column": "Data de Validade do Certificado",
             "Class": "datetime",
-            "FilterType": "numeric",
+            "FilterType": "datetime",
             "GUI_Static": false,
             "GUI_Width": 90
         },
         {
             "Column": "Data do Certificado de Conformidade Técnica",
             "Class": "datetime",
-            "FilterType": "numeric",
+            "FilterType": "datetime",
             "GUI_Static": false,
             "GUI_Width": 90
         },

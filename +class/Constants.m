@@ -4,7 +4,7 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'SCH'
         appRelease    = 'R2024a'
-        appVersion    = '0.58'
+        appVersion    = '0.61'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
@@ -51,6 +51,26 @@ classdef (Abstract) Constants
             if Issue > 0
                 fileName = sprintf('%s_%d', fileName, Issue);
             end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function d = english2portuguese()
+            % !! PONTO DE EVOLUÇÃO !!
+            % Pendente identificar chaves em inglês aplicáveis ao SCH...
+            names  = ["Azimuth", ...
+                      "File", ...
+                      "Frequency", ...
+                      "Height", ...
+                      "nSweeps"];
+            values = ["Azimute", ...
+                      "Arquivo", ...
+                      "Frequência", ...
+                      "Altura", ...
+                      "Qtd. varreduras"];
+            % !! PONTO DE EVOLUÇÃO !!
+        
+            d = dictionary(names, values);
         end
 
 

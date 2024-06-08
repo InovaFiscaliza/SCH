@@ -35,6 +35,8 @@
       <file>${PROJECT_ROOT}\Settings</file>
       <file>C:\SupportPackages\+ccTools</file>
       <file>C:\SupportPackages\+reportLib</file>
+      <file>C:\SupportPackages\tableFiltering.m</file>
+      <file>C:\SupportPackages\textAnalysis.m</file>
       <file>C:\SupportPackages\wordCloud</file>
       <file>C:\SupportPackages\wordCloud.m</file>
     </fileset.resources>
