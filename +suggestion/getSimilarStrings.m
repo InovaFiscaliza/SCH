@@ -46,7 +46,7 @@ function idxFiltered = getSimilarStringsIndex(methodName, cacheStringList, cache
             nTokens     = numel(cacheTokenList);
             levDistance = zeros(nTokens, 1, 'single');
     
-            fcn.parpoolCheck()
+            parpoolCheck()
             parfor ii = 1:nTokens
                 levDistance(ii) = suggestion.LevenshteinDistance(cacheTokenList{ii}, value2Search);
             end

@@ -4,7 +4,7 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'SCH'
         appRelease    = 'R2024a'
-        appVersion    = '0.61'
+        appVersion    = '0.62'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
@@ -19,7 +19,7 @@ classdef (Abstract) Constants
         configStyle4  = uistyle('Icon', 'Edit_18x18Gray2.png',  'IconAlignment', 'rightmargin')                             % Search table "cell annotation icon - Type2"
         configStyle5  = uistyle('Icon', 'Lock1_18x18Gray.png', 'FontColor', [.65,.65,.65], 'IconAlignment', 'leftmargin')   % Config uitree (Search table)
         configStyle6  = uistyle('Icon', 'Warn_18.png',  'IconAlignment', 'rightmargin')                                     % Incomplete data (Report table)
-        configStyle7  = uistyle('BackgroundColor', '#c80b0f', 'FontColor', 'white')                                          % Incomplete data (Report table)
+        configStyle7  = uistyle('BackgroundColor', '#c80b0f', 'FontColor', 'white')                                         % Incomplete data (Report table)
 
         % app.cacheData
         cacheColumns              = {'Homologação', 'Solicitante | Fabricante', 'Modelo | Nome Comercial'}

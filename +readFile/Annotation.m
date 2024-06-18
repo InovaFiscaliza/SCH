@@ -1,4 +1,4 @@
-function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFolder, getCloudFolder)
+function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFolder, cloudFolder)
 
     annotationTable  = EmptyTable();
     annotationBackupFlag = false;
@@ -9,10 +9,10 @@ function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFo
     fileName         = 'Annotation.xlsx';
 
     externalFilePath = fullfile(externalFolder, fileName);
-    cloudFilePath    = fullfile(getCloudFolder, fileName);
+    cloudFilePath    = fullfile(cloudFolder,    fileName);
 
     try
-        if ~isempty(getCloudFolder) && isfile(cloudFilePath)
+        if ~isempty(cloudFolder) && isfile(cloudFilePath)
             annotationTable = readtable(cloudFilePath, 'VariableNamingRule', 'preserve');
 
             % A coluna "Situação" controla os registros que serão submetidos 

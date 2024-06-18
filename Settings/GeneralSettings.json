@@ -2,8 +2,7 @@
     "version": 1,
     "computerName": {
         "deskopApp": "",
-        "webServer": "WIMATLABPDIN01",
-        "deployServer": "DF6963612DTN"
+        "webServer": "WIMATLABPDIN01"
     },
     "fileFolder": {
         "userPath": "",

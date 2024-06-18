@@ -8,40 +8,19 @@ classdef (Abstract) Controller
 
     methods (Static)
         %-----------------------------------------------------------------%
-        function [modelFileContent, projectFolder, appDataFolder] = Read(rootFolder)
+        function [modelFileContent, projectFolder, externalFolder] = Read(rootFolder)
             [projectFolder, ...
-             appDataFolder]  = reportLibConnection.Controller.Path(rootFolder);
+             externalFolder] = fcn.Path(rootFolder);
             fileName         = reportLibConnection.Controller.fileName;
         
-            projectFilePath  = fullfile(projectFolder, fileName);
-            appDataFilePath  = fullfile(appDataFolder, fileName);
+            projectFilePath  = fullfile(projectFolder,  fileName);
+            externalFilePath = fullfile(externalFolder, fileName);
         
-            modelFileContent = jsondecode(fileread(projectFilePath));
             try
-                if ~isfolder(appDataFolder)
-                    mkdir(appDataFolder)
-                end
-        
-                if ~isfile(appDataFilePath)
-                    copyfile(projectFilePath, appDataFolder, 'f');
-
-                    jsonFiles = dir(fullfile(projectFolder, '*.json'));
-                    for ii = 1:numel(jsonFiles)
-                        jsonFilePath = fullfile(jsonFiles(ii).folder, jsonFiles(ii).name);
-                        copyfile(jsonFilePath, appDataFolder, 'f');
-                    end
-                else
-                    modelFileContent = jsondecode(fileread(appDataFilePath));
-                end
+                modelFileContent = jsondecode(fileread(externalFilePath));
             catch
+                modelFileContent = jsondecode(fileread(projectFilePath));
             end        
-        end
-
-
-        %-----------------------------------------------------------------%
-        function [projectFolder, appDataFolder] = Path(rootFolder)
-            projectFolder = fullfile(rootFolder, '+reportLibConnection');
-            appDataFolder = fullfile(getenv('PROGRAMDATA'), 'ANATEL', class.Constants.appName, 'reportLibConnection');
         end
 
 

@@ -11,12 +11,10 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDa
 
         case 'webApp'                                                       % MATLAB WEBSERVER + RUNTIME
             computerName = getenv('COMPUTERNAME');
-            switch computerName
-                case appGeneral.computerName.webServer
-                    appMode = 'webServer';
-
-                case appGeneral.computerName.deployServer
-                    appMode = 'deployServer';
+            if strcmpi(computerName, appGeneral.computerName.webServer)
+                appMode = 'webServer';
+            else
+                appMode = 'deployServer';                    
             end
     end
 

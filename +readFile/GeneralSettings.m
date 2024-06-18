@@ -12,12 +12,21 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
 
     projectFileContent = jsondecode(fileread(projectFilePath));
     try
-        if ~isfolder(externalFolder)
-            mkdir(externalFolder)
-        end
+        % Cria a pasta externa - em "%PROGRAMDATA%\ANATEL\SCH" -, caso ainda
+        % não exista. E, além disso, copia arquivos do projeto, independente 
+        % das suas versões (MATLAB IDE, webapp ou desktop standalone) para a 
+        % pasta externa.
+
+        % Caso o arquivo de configurações principal - o "GeneralSettings.json"
+        % - exista, verifica-se o seu versionamento. Caso o projeto possua
+        % um arquivo mais recente, os antigos são salvos em subpasta "oldFiles"
+        % e os novos são copiados para a pasta externa.
 
         if ~isfile(externalFilePath)
-            copyfile(projectFilePath, externalFolder, 'f');
+            if ~isfolder(externalFolder)
+                mkdir(externalFolder)
+            end
+            copyFiles(projectFolder, externalFolder)
         
         else
             externalFileContent = jsondecode(fileread(externalFilePath));
@@ -31,11 +40,17 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
                     end
                 end
 
+                % Cria a subpasta "oldFiles"...
+                externalFolder_backup = fullfile(externalFolder, 'oldFiles');
+                if ~isfolder(externalFolder_backup)
+                    mkdir(externalFolder_backup)
+                end
+
+                copyFiles(externalFolder, externalFolder_backup)
+                copyFiles(projectFolder, externalFolder)
                 writematrix(jsonencode(projectFileContent, "PrettyPrint", true), externalFilePath, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
                 
-                error(['O arquivo de configuração "GeneralSettings.json", '        ...
-                       'hospedado na pasta de configuração local, foi atualizado ' ...
-                       'da v. %.0f para a v. %.0f'], externalFileContent.version, projectFileContent.version)
+                error('Os arquivos de configuração do app hospedado na pasta de configuração local, incluindo "GeneralSettings.json", foram atualizados. As versões antigas dos arquivos foram salvas na subpasta "oldFiles".')
             
             else
                 generalSettings = externalFileContent;
@@ -50,5 +65,19 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
         generalSettings = projectFileContent;
     end
     generalSettings.SCHDataInfo = struct2table(generalSettings.SCHDataInfo);
+
+end
+
+
+%-------------------------------------------------------------------------%
+function copyFiles(oldPath, newPath)
+
+    jsonFiles = dir(oldPath);
+    jsonFiles([jsonFiles.isdir]) = [];
+
+    for ii = 1:numel(jsonFiles)
+        jsonFilePath = fullfile(jsonFiles(ii).folder, jsonFiles(ii).name);
+        copyfile(jsonFilePath, newPath, 'f');
+    end
 
 end
