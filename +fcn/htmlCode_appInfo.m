@@ -10,7 +10,7 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDa
             appMode = 'desktopApp';
 
         case 'webApp'                                                       % MATLAB WEBSERVER + RUNTIME
-            computerName = getenv('COMPUTERNAME');
+            computerName = ccTools.fcn.OperationSystem('computerName');
             if strcmpi(computerName, appGeneral.computerName.webServer)
                 appMode = 'webServer';
             else
