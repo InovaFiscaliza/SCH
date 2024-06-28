@@ -26,7 +26,7 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
             if ~isfolder(externalFolder)
                 mkdir(externalFolder)
             end
-            copyFiles(projectFolder, externalFolder)
+            copyConfigFiles(projectFolder, externalFolder)
         
         else
             externalFileContent = jsondecode(fileread(externalFilePath));
@@ -46,8 +46,8 @@ function [generalSettings, msgError] = GeneralSettings(rootFolder)
                     mkdir(externalFolder_backup)
                 end
 
-                copyFiles(externalFolder, externalFolder_backup)
-                copyFiles(projectFolder, externalFolder)
+                copyConfigFiles(externalFolder, externalFolder_backup)
+                copyConfigFiles(projectFolder,  externalFolder)
                 writematrix(jsonencode(projectFileContent, "PrettyPrint", true), externalFilePath, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
                 
                 error('Os arquivos de configuração do app hospedado na pasta de configuração local, incluindo "GeneralSettings.json", foram atualizados. As versões antigas dos arquivos foram salvas na subpasta "oldFiles".')
@@ -70,13 +70,14 @@ end
 
 
 %-------------------------------------------------------------------------%
-function copyFiles(oldPath, newPath)
+function copyConfigFiles(oldPath, newPath)
 
-    jsonFiles = dir(oldPath);
-    jsonFiles([jsonFiles.isdir]) = [];
+    cfgFiles = dir(oldPath);
+    cfgFiles([cfgFiles.isdir]) = [];
+    cfgFiles(strcmpi({cfgFiles.name}, 'Annotation.xlsx')) = [];
 
-    for ii = 1:numel(jsonFiles)
-        jsonFilePath = fullfile(jsonFiles(ii).folder, jsonFiles(ii).name);
+    for ii = 1:numel(cfgFiles)
+        jsonFilePath = fullfile(cfgFiles(ii).folder, cfgFiles(ii).name);
         copyfile(jsonFilePath, newPath, 'f');
     end
 
