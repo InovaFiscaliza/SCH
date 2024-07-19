@@ -190,5 +190,8 @@
     ],
     "defaultTypeOfProduct": "-1",
     "defaultTypeOfViolation": "Comercialização",
-    "lastDocFullPath": ""
+    "fiscaliza": {
+        "systemVersion": "HOM",
+        "lastDocFullPath": ""
+    }
 }
