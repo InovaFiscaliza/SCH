@@ -40,6 +40,9 @@ classdef (Abstract) Constants
         report_TableColumnNames   = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
                                      'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}
         report_TableColumnWidths  = {110, 300, 'auto', 150, 'auto', 'auto', 'auto', 110, 110, 110, 110, 110, 110}
+
+        report_TableColumns2CSV   = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
+                                     'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração'}
     end
 
     
