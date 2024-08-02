@@ -1,8 +1,12 @@
-function appVersion = envVersion(rootFolder, versionType)
+function appVersion = envVersion(rootFolder, versionType, varargin)
 
     arguments
         rootFolder 
         versionType = 'full'
+    end
+
+    arguments (Repeating)
+        varargin
     end
 
     appName = class.Constants.appName;
@@ -37,10 +41,15 @@ function appVersion = envVersion(rootFolder, versionType)
                                         'products', strjoin(matProducts.Name + " v. " + matProducts.Version, ', '), ...
                                         'openGL',   graphRender);
         case 'reportLib'
-            appVersion = struct('App', struct('name',       appName,                    ...
-                                              'release',    class.Constants.appRelease, ...
-                                              'version',    class.Constants.appVersion, ...
-                                              'rootFolder', rootFolder));
+            rawDataTable = varargin{1};
+            releaseDate  = varargin{2};
+            appVersion   = struct('App', struct('name',              appName,                    ...
+                                                'release',           class.Constants.appRelease, ...
+                                                'version',           class.Constants.appVersion, ...
+                                                'rootFolder',        rootFolder,                 ...
+                                                'databaseRelease',   releaseDate,                ...
+                                                'databaseRows',      sprintf('%.0f', height(rawDataTable)), ...
+                                                'databaseUniqueHom', sprintf('%.0f', numel(unique(rawDataTable.("Homologação"))))));
     end
 
 end

@@ -1,5 +1,5 @@
 {
-    "version": 1,
+    "version": 0.79,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -17,151 +17,137 @@
     },
     "SCHDataInfo": [
         {
-            "Column": "Categoria do Produto",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
+            "Column": "Data da Homologação",
+            "Class": "datetime",
+            "FilterType": "datetime",
+            "GUI_Static": 0,
+            "GUI_Width": 90
         },
         {
-            "Column": "Certificado de Conformidade Técnica",
-            "Class": "categorical",
+            "Column": "Homologação",
+            "Class": "cell",
             "FilterType": "freeText",
-            "GUI_Static": false,
+            "GUI_Static": 1,
             "GUI_Width": 110
+        },
+        {
+            "Column": "Solicitante",
+            "Class": "cell",
+            "FilterType": "freeText",
+            "GUI_Static": 3,
+            "GUI_Width": "auto"
         },
         {
             "Column": "CNPJ/CPF",
             "Class": "cell",
             "FilterType": "freeText",
-            "GUI_Static": false,
+            "GUI_Static": 0,
             "GUI_Width": 110
         },
         {
-            "Column": "CodISO",
+            "Column": "Certificado de Conformidade Técnica",
             "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
+            "FilterType": "freeText",
+            "GUI_Static": 0,
+            "GUI_Width": 110
         },
         {
-            "Column": "CodUIT",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
-        },
-        {
-            "Column": "Código de Situação do Certificado",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
-        },
-        {
-            "Column": "Código de Situação do Requerimento",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
-        },
-        {
-            "Column": "Data da Homologação",
+            "Column": "Data do Certificado de Conformidade Técnica",
             "Class": "datetime",
             "FilterType": "datetime",
-            "GUI_Static": false,
+            "GUI_Static": 0,
             "GUI_Width": 90
         },
         {
             "Column": "Data de Validade do Certificado",
             "Class": "datetime",
             "FilterType": "datetime",
-            "GUI_Static": false,
+            "GUI_Static": 0,
             "GUI_Width": 90
         },
         {
-            "Column": "Data do Certificado de Conformidade Técnica",
-            "Class": "datetime",
-            "FilterType": "datetime",
-            "GUI_Static": false,
-            "GUI_Width": 90
+            "Column": "Situação do Certificado",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 150
+        },
+        {
+            "Column": "Situação",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 7,
+            "GUI_Width": 150
         },
         {
             "Column": "Fabricante",
             "Class": "cell",
             "FilterType": "freeText",
-            "GUI_Static": true,
+            "GUI_Static": 4,
             "GUI_Width": "auto"
-        },
-        {
-            "Column": "Homologação",
-            "Class": "cell",
-            "FilterType": "freeText",
-            "GUI_Static": true,
-            "GUI_Width": 110
-        },
-        {
-            "Column": "IC_ANTENA",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
-        },
-        {
-            "Column": "IC_ATIVO",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 55
         },
         {
             "Column": "Modelo",
             "Class": "cell",
             "FilterType": "freeText",
-            "GUI_Static": true,
+            "GUI_Static": 5,
             "GUI_Width": 150
         },
         {
             "Column": "Nome Comercial",
             "Class": "cell",
             "FilterType": "freeText",
-            "GUI_Static": true,
+            "GUI_Static": 6,
             "GUI_Width": 150
         },
         {
-            "Column": "País do Fabricante",
+            "Column": "Categoria do Produto",
             "Class": "categorical",
             "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 110
-        },
-        {
-            "Column": "Situação",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": true,
-            "GUI_Width": 150
-        },
-        {
-            "Column": "Situação do Certificado",
-            "Class": "categorical",
-            "FilterType": "listOfText",
-            "GUI_Static": false,
-            "GUI_Width": 150
-        },
-        {
-            "Column": "Solicitante",
-            "Class": "cell",
-            "FilterType": "freeText",
-            "GUI_Static": true,
-            "GUI_Width": "auto"
+            "GUI_Static": 0,
+            "GUI_Width": 55
         },
         {
             "Column": "Tipo",
             "Class": "categorical",
             "FilterType": "listOfText",
-            "GUI_Static": true,
+            "GUI_Static": 2,
             "GUI_Width": 300
+        },
+        {
+            "Column": "IC_ANTENA",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 55
+        },
+        {
+            "Column": "IC_ATIVO",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 55
+        },
+        {
+            "Column": "País do Fabricante",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 110
+        },
+        {
+            "Column": "CodUIT",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 55
+        },
+        {
+            "Column": "CodISO",
+            "Class": "categorical",
+            "FilterType": "listOfText",
+            "GUI_Static": 0,
+            "GUI_Width": 55
         }
     ],
     "typeOfProduct": [
@@ -192,6 +178,44 @@
     "defaultTypeOfViolation": "Comercialização",
     "fiscaliza": {
         "systemVersion": "HOM",
-        "lastDocFullPath": ""
+        "lastHTMLDocFullPath": "",
+        "lastCSVDocFullPath": "",
+        "defaultValues": {
+            "entidade_com_cadastro_stel": {
+                "value": "Não",
+                "options": [
+                    "Não",
+                    "Sim"
+                    ]
+            },
+            "gerar_plai": {
+                "value": "1",
+                "options": [
+                    "0",
+                    "1"
+                    ]
+            },
+            "tipo_do_processo_plai": {
+                "value": "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                "options": [
+                    "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                    "Gestão da Fiscalização: Processo de Guarda"
+                ]
+            },
+            "motivo_de_lai": {
+                "value": [
+                    "Uso de produto não certificado", 
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ],
+                "options": [
+                    "Risco à vida",
+                    "Clandestinidade",
+                    "Interferência prejudicial",
+                    "Uso de produto não certificado",
+                    "Garantir a segurança (exposição a campos eletromagnéticos)",
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ]
+            }
+        }
     }
 }

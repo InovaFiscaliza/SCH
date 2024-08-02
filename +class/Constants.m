@@ -4,7 +4,7 @@ classdef (Abstract) Constants
         %-----------------------------------------------------------------%
         appName       = 'SCH'
         appRelease    = 'R2024a'
-        appVersion    = '0.75'
+        appVersion    = '0.80'
 
         windowSize    = [1244, 660]
         windowMinSize = [ 880, 660]
@@ -17,7 +17,7 @@ classdef (Abstract) Constants
         configStyle2  = uistyle('BackgroundColor', [.24 .47 .85], 'FontColor', 'white')                                     % Search table "primary column background"
         configStyle3  = uistyle('Icon', 'Edit_18x18White2.png', 'IconAlignment', 'rightmargin')                             % Search table "cell annotation icon - Type1"
         configStyle4  = uistyle('Icon', 'Edit_18x18Gray2.png',  'IconAlignment', 'rightmargin')                             % Search table "cell annotation icon - Type2"
-        configStyle5  = uistyle('Icon', 'Lock1_18x18Gray.png', 'FontColor', [.65,.65,.65], 'IconAlignment', 'leftmargin')   % Config uitree (Search table)
+        configStyle5  = uistyle('Icon', 'Lock1_18Gray.png', 'FontColor', [.65,.65,.65], 'IconAlignment', 'leftmargin')      % Config uitree (Search table)
         configStyle6  = uistyle('Icon', 'Warn_18.png',  'IconAlignment', 'rightmargin')                                     % Incomplete data (Report table)
         configStyle7  = uistyle('BackgroundColor', '#c80b0f', 'FontColor', 'white')                                         % Incomplete data (Report table)
 
@@ -29,14 +29,7 @@ classdef (Abstract) Constants
         listOfProductsColumns     = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
                                      'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração', 'Informações adicionais'}
 
-        % app.search_Table & app.report_Table (GUI)
-        search_TableStaticColumns = {'Homologação', 'Tipo', 'Solicitante', 'Fabricante', 'Modelo', 'Nome Comercial', 'Situação'}
-        search_TableColumnNames   = {'Data da Homologação', 'Homologação', 'Solicitante', 'CNPJ/CPF', 'Certificado de Conformidade Técnica',                ...
-                                     'Data do Certificado de Conformidade Técnica', 'Data de Validade do Certificado', 'Código de Situação do Certificado', ...
-                                     'Situação do Certificado', 'Código de Situação do Requerimento', 'Situação', 'Fabricante', 'Modelo', 'Nome Comercial', ...
-                                     'Categoria do Produto', 'Tipo', 'IC_ANTENA', 'IC_ATIVO', 'País do Fabricante', 'CodUIT', 'CodISO'}
-        search_TableColumnWidths  = {90, 110, 'auto', 110, 110, 90, 90, 55, 150, 55, 150, 'auto', 150, 150, 55, 300, 55, 55, 110, 55, 55}
-        
+        % app.report_Table (GUI)        
         report_TableColumnNames   = {'Homologação', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
                                      'Qtd. uso/vendida', 'Qtd. estoque', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}
         report_TableColumnWidths  = {110, 300, 'auto', 150, 'auto', 'auto', 'auto', 110, 110, 110, 110, 110, 110}

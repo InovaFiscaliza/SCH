@@ -3,7 +3,9 @@ function GeneralSettings(appGeneral, rootFolder)
     if ismember(appGeneral.fileFolder.userPath, ccTools.fcn.OperationSystem('userPath'))
         appGeneral.fileFolder.userPath = '';
     end
-    appGeneral.fiscaliza.lastDocFullPath = '';
+    
+    appGeneral.fiscaliza.lastHTMLDocFullPath = '';
+    appGeneral.fiscaliza.lastCSVDocFullPath  = '';
 
     [~, ...
      externalFolder] = fcn.Path(rootFolder);
