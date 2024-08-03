@@ -5,7 +5,7 @@ function htmlCode = htmlCode_appsStyle(MetaDataInfo, InvalidValueStatus)
         InvalidValueStatus = 'print -1'
     end
     
-    htmlCode = '<p style="font-family: Helvetica; font-size: 12px; text-align: justify;">';
+    htmlCode = '<p style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; text-align: justify;">';
     for ii = 1:numel(MetaDataInfo)
         htmlCode = sprintf('%s<b>%s</b>', htmlCode, MetaDataInfo(ii).group);
         htmlCode = structParser(MetaDataInfo(ii).value, htmlCode, 1, InvalidValueStatus);
@@ -65,9 +65,9 @@ function htmlCode = structParser(Data, htmlCode, Level, InvalidValueStatus)
         end
         
         switch Level
-            case 1; htmlCode = sprintf('%s\n• <span style="color: #808080;">%s:</span> %s',     htmlCode, Field, Value);
-            case 2; htmlCode = sprintf('%s\n  ○ <span style="color: #808080;">%s:</span> %s',   htmlCode, Field, Value);
-            case 3; htmlCode = sprintf('%s\n    □ <span style="color: #808080;">%s:</span> %s', htmlCode, Field, Value);
+            case 1; htmlCode = sprintf('%s\n•&thinsp;<font style="color: gray;">%s:</font> %s',                                 htmlCode, Field, Value);
+            case 2; htmlCode = sprintf('%s\n&thinsp;&thinsp;○&thinsp;<font style="color: gray;">%s:</font> %s',                 htmlCode, Field, Value);
+            case 3; htmlCode = sprintf('%s\n&thinsp;&thinsp;&thinsp;&thinsp;□&thinsp;<font style="color: gray;">%s:</font> %s', htmlCode, Field, Value);
         end
     end
 end

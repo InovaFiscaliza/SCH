@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.webdeploy" plugin-version="1.0">
-  <configuration file="C:\InovaFiscaliza\SCH\winSCH_webappCompiler.prj" location="C:\InovaFiscaliza\SCH" name="winSCH_webappCompiler" target="target.webdeploy" target-name="Web App Compiler">
+  <configuration file="D:\InovaFiscaliza\SCH\winSCH_webappCompiler.prj" location="D:\InovaFiscaliza\SCH" name="winSCH_webappCompiler" target="target.webdeploy" target-name="Web App Compiler">
     <param.appname>SCH</param.appname>
     <param.intermediate>${PROJECT_ROOT}\winSCH_webappCompiler</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\winSCH_webappCompiler</param.files.only>
@@ -23,6 +23,7 @@
       <file>${PROJECT_ROOT}\winSCH.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
+      <file>C:\SupportPackages</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
       <file>${PROJECT_ROOT}\+layout</file>
@@ -33,21 +34,11 @@
       <file>${PROJECT_ROOT}\DataBase</file>
       <file>${PROJECT_ROOT}\Icons</file>
       <file>${PROJECT_ROOT}\Settings</file>
-      <file>C:\SupportPackages\+ccTools</file>
-      <file>C:\SupportPackages\+reportLib</file>
-      <file>C:\SupportPackages\checkCNPJ.m</file>
-      <file>C:\SupportPackages\disablingWarningMessages.m</file>
-      <file>C:\SupportPackages\killingMATLABRuntime.m</file>
-      <file>C:\SupportPackages\parpoolCheck.m</file>
-      <file>C:\SupportPackages\tableFiltering.m</file>
-      <file>C:\SupportPackages\textAnalysis.m</file>
-      <file>C:\SupportPackages\wordCloud</file>
-      <file>C:\SupportPackages\wordCloud.m</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\winSCH_webappCompiler" name="SCH.ctf" optional="false">C:\InovaFiscaliza\SCH\winSCH_webappCompiler\SCH.ctf</file>
+      <file location="${PROJECT_ROOT}\winSCH_webappCompiler" name="SCH.ctf" optional="false">D:\InovaFiscaliza\SCH\winSCH_webappCompiler\SCH.ctf</file>
     </build-deliverables>
     <workflow />
     <matlab>
