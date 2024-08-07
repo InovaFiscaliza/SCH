@@ -1,7 +1,6 @@
-function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFolder, cloudFolder)
+function [annotationTable, msgWarning] = Annotation(rootFolder, cloudFolder)
 
     annotationTable  = EmptyTable();
-    annotationBackupFlag = false;
     msgWarning       = '';
 
     [~, ...
@@ -25,7 +24,7 @@ function [annotationTable, annotationBackupFlag, msgWarning] = Annotation(rootFo
         end
 
         if isfile(externalFilePath)
-            [annotationTable, annotationBackupFlag] = MergeTables(annotationTable, externalFilePath);
+            annotationTable = MergeTables(annotationTable, externalFilePath);
         end
 
     catch ME
@@ -72,15 +71,10 @@ end
 
 
 %-------------------------------------------------------------------------%
-function [annotationTable, annotationBackupFlag] = MergeTables(annotationTable, externalFilePath)
+function annotationTable = MergeTables(annotationTable, externalFilePath)
 
     externalFileContent = readtable(externalFilePath, 'VariableNamingRule', 'preserve');
-    if isempty(externalFileContent)
-        annotationBackupFlag = false;
-
-    else
-        annotationBackupFlag = true;
-
+    if ~isempty(externalFileContent)
         idx = ~ismember(externalFileContent.ID, annotationTable.ID) & (externalFileContent.("Situação") ~= -1);
         externalFileNewRows = externalFileContent(idx, :);
     

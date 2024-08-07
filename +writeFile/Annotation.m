@@ -1,17 +1,15 @@
-function Annotation(rootFolder, postCloudFolder, annotationTable, annotationBackupFlag)
+function [annotationTable, msgWarning] = Annotation(rootFolder, postCloudFolder, annotationTable)
+
+    msgWarning = {};
 
     [~, ...
      externalFolder] = fcn.Path(rootFolder);
-
     externalFilePath = fullfile(externalFolder,  'Annotation.xlsx');
-    if isfolder(postCloudFolder)
-        cloudFilePath = [class.Constants.DefaultFileName(postCloudFolder, 'Annotation', -1) '.xlsx'];
-    end
 
     % É salvo localmente todos os registros com o campo "Situação" igual a
     % 1 ou 2. 
-    idx1 = annotationTable.("Situação") > 0;
-    localAnnotationTable = annotationTable(idx1, :);
+    idx1 = annotationTable.("Situação") == 1;
+    idx2 = annotationTable.("Situação") > 0;
 
     try
         % É submetido ao repositório na nuvem apenas aqueles registros com 
@@ -19,32 +17,39 @@ function Annotation(rootFolder, postCloudFolder, annotationTable, annotationBack
         % é alterada para 0, simplificando a concatenação dos dados pela rotina 
         % a ser criada no Power Automate, mas na sua versão local a "Situação"
         % é alterada para 2.
+        if isfolder(postCloudFolder)
+            cloudFilePath = [class.Constants.DefaultFileName(postCloudFolder, 'Annotation', -1) '.xlsx'];
+        else
+            error('Pendente mapear a pasta "SCH" do repositório "DataHub - POST". Independente disso, a anotação será registrada em <i>cache</i> local, sendo feito o seu <i>upload</i> ao repositório após o mapeamento.')
+        end
 
-        idx2 = localAnnotationTable.("Situação") == 1;        
-        if any(idx2)
+        if any(idx1)
             % A versão submetida à pasta do Sharepoint POST...
-            localAnnotationTable.("Situação")(idx2) = 0;
-            writetable(localAnnotationTable(idx2, :), cloudFilePath)
+            annotationTable.("Situação")(idx1) = 0;
+            writetable(annotationTable(idx1,:), cloudFilePath)
     
             % O backup local...
-            localAnnotationTable.("Situação")(idx2) = 2;
+            annotationTable.("Situação")(idx1) = 2;
         end
         
-    catch
+    catch ME
         % E se der erro mantém a "Situação" igual a 1.
-        localAnnotationTable.("Situação")(idx2) = 1;
+        annotationTable.("Situação")(idx1) = 1;
+        msgWarning{end+1} = ME.message;
     end
 
     try
-        if isempty(localAnnotationTable)
+        if any(idx2)
+            writetable(annotationTable(idx2,:), externalFilePath, 'WriteMode', 'replacefile')
+        else
             if isfile(externalFilePath)
                 delete(externalFilePath)
             end
-
-        elseif annotationBackupFlag || any(idx2)
-            writetable(localAnnotationTable, externalFilePath, 'WriteMode', 'replacefile')
         end
-    catch
+    catch ME
+        msgWarning{end+1} = ME.message;
     end
+
+    msgWarning = strjoin(msgWarning, '\n');
 
 end

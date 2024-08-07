@@ -19,8 +19,7 @@
     <param.installpath.string>\ANATEL\SCH\</param.installpath.string>
     <param.installpath.combo>option.installpath.appdata</param.installpath.combo>
     <param.logo />
-    <param.install.notes>Executável gerado em 04/08/2024 23:00.
-Eliminado a execução inline de código JS usado no uihtml (app.jsBackDoor).</param.install.notes>
+    <param.install.notes>Executável gerado em 05/08/2024 14:31</param.install.notes>
     <param.target.install.notes />
     <param.intermediate>${PROJECT_ROOT}\winSCH_desktopCompiler\for_testing</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\winSCH_desktopCompiler\for_redistribution_files_only</param.files.only>

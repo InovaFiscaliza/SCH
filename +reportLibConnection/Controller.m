@@ -66,7 +66,7 @@ classdef (Abstract) Controller
             % Documentos:
             switch docVersion
                 case 'preview'; tempFullPath = tempname;
-                case 'final';   tempFullPath = class.Constants.DefaultFileName(app.config_Folder_UserPath.Value, 'Report', app.report_Issue.Value);
+                case 'final';   tempFullPath = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'Report', app.report_Issue.Value);
             end
             HTMLDocFullPath = [tempFullPath '.html'];
             CSVDocFullPath  = [tempFullPath '.csv'];
