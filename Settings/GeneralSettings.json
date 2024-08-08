@@ -1,5 +1,5 @@
 {
-    "version": 0.83,
+    "version": 0.85,
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -9,7 +9,50 @@
         "tempPath": "",
         "pythonPath": "",
         "DataHub_GET": "",
-        "DataHub_POST": ""
+        "DataHub_POST": "",
+        "lastVisited": ""
+    },
+    "fiscaliza": {
+        "systemVersion": "HOM",
+        "lastHTMLDocFullPath": "",
+        "lastTableFullPath": "",
+        "defaultValues": {
+            "entidade_com_cadastro_stel": {
+                "value": "Não",
+                "options": [
+                    "Não",
+                    "Sim"
+                    ]
+            },
+            "gerar_plai": {
+                "value": "1",
+                "options": [
+                    "0",
+                    "1"
+                    ]
+            },
+            "tipo_do_processo_plai": {
+                "value": "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                "options": [
+                    "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
+                    "Gestão da Fiscalização: Processo de Guarda"
+                ]
+            },
+            "motivo_de_lai": {
+                "value": [
+                    "Uso de produto não certificado", 
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ],
+                "options": [
+                    "Risco à vida",
+                    "Clandestinidade",
+                    "Interferência prejudicial",
+                    "Uso de produto não certificado",
+                    "Garantir a segurança (exposição a campos eletromagnéticos)",
+                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
+                ]
+            }
+        }
     },
     "fileName": {
         "SCHData": "SCHData.mat",
@@ -175,47 +218,5 @@
         "Uso"
     ],
     "defaultTypeOfProduct": "-1",
-    "defaultTypeOfViolation": "Comercialização",
-    "fiscaliza": {
-        "systemVersion": "HOM",
-        "lastHTMLDocFullPath": "",
-        "lastCSVDocFullPath": "",
-        "defaultValues": {
-            "entidade_com_cadastro_stel": {
-                "value": "Não",
-                "options": [
-                    "Não",
-                    "Sim"
-                    ]
-            },
-            "gerar_plai": {
-                "value": "1",
-                "options": [
-                    "0",
-                    "1"
-                    ]
-            },
-            "tipo_do_processo_plai": {
-                "value": "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
-                "options": [
-                    "Gestão da Fiscalização: Lacração, Apreensão e Interrupção",
-                    "Gestão da Fiscalização: Processo de Guarda"
-                ]
-            },
-            "motivo_de_lai": {
-                "value": [
-                    "Uso de produto não certificado", 
-                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
-                ],
-                "options": [
-                    "Risco à vida",
-                    "Clandestinidade",
-                    "Interferência prejudicial",
-                    "Uso de produto não certificado",
-                    "Garantir a segurança (exposição a campos eletromagnéticos)",
-                    "Necessidade de assegurar o planejamento, o gerenciamento e a coordenação do uso de espectro de radiofrequências (justificar)"
-                ]
-            }
-        }
-    }
+    "defaultTypeOfViolation": "Comercialização"
 }
