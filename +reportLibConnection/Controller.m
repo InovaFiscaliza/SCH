@@ -10,7 +10,7 @@ classdef (Abstract) Controller
         %-----------------------------------------------------------------%
         function [modelFileContent, projectFolder, externalFolder] = Read(rootFolder)
             [projectFolder, ...
-             externalFolder] = fcn.Path(rootFolder);
+             externalFolder] = appUtil.Path(class.Constants.appName, rootFolder);
             fileName         = reportLibConnection.Controller.fileName;
         
             projectFilePath  = fullfile(projectFolder,  fileName);

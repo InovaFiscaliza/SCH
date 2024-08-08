@@ -4,7 +4,7 @@ function [annotationTable, msgWarning] = Annotation(rootFolder, cloudFolder)
     msgWarning       = '';
 
     [~, ...
-     externalFolder] = fcn.Path(rootFolder);
+     externalFolder] = appUtil.Path(class.Constants.appName, rootFolder);
     fileName         = 'Annotation.xlsx';
 
     externalFilePath = fullfile(externalFolder, fileName);

@@ -3,7 +3,7 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDa
     appName       = class.Constants.appName;
     appVersion    = fcn.envVersion(rootFolder);
     cacheColumns  = ccTools.fcn.FormatString({cacheData.Column});
-    [~, SCHLinks] = fcn.PublicLinks(rootFolder);
+    [~, SCHLinks] = readFile.PublicLinks(rootFolder);
 
     switch executionMode
         case {'MATLABEnvironment', 'desktopStandaloneApp'}                  % MATLAB | MATLAB RUNTIME

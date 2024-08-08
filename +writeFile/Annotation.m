@@ -3,7 +3,7 @@ function [annotationTable, msgWarning] = Annotation(rootFolder, postCloudFolder,
     msgWarning = {};
 
     [~, ...
-     externalFolder] = fcn.Path(rootFolder);
+     externalFolder] = appUtil.Path(class.Constants.appName, rootFolder);
     externalFilePath = fullfile(externalFolder,  'Annotation.xlsx');
 
     % É salvo localmente todos os registros com o campo "Situação" igual a

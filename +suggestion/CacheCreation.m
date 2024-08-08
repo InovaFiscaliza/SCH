@@ -11,7 +11,7 @@ function [rawTable, cacheData] = CacheCreation(rawTable, cacheColumns)
         for jj = 1:numel(listOfColumns)
             cacheColumn        = listOfColumns{jj};
             [uniqueTempValues, ...
-                referenceData] = fcn.PreProcessedData(rawTable.(cacheColumn));
+                referenceData] = textAnalysis.preProcessedData(rawTable.(cacheColumn));
             tokenizedDoc       = tokenizedDocument(uniqueTempValues);
 
             uniqueValues       = [uniqueValues; uniqueTempValues];
