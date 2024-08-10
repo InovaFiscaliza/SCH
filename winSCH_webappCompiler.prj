@@ -26,7 +26,6 @@
       <file>C:\SupportPackages</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
-      <file>${PROJECT_ROOT}\+layout</file>
       <file>${PROJECT_ROOT}\+readFile</file>
       <file>${PROJECT_ROOT}\+reportLibConnection</file>
       <file>${PROJECT_ROOT}\+suggestion</file>

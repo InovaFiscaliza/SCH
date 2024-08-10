@@ -8,7 +8,7 @@
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_24.png</file>
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_16.png</file>
     </param.icons>
-    <param.version>0.82</param.version>
+    <param.version>0.87</param.version>
     <param.authnamewatermark>Escritório de inovação da SFI</param.authnamewatermark>
     <param.email />
     <param.company>ANATEL</param.company>
@@ -19,7 +19,7 @@
     <param.installpath.string>\ANATEL\SCH\</param.installpath.string>
     <param.installpath.combo>option.installpath.appdata</param.installpath.combo>
     <param.logo />
-    <param.install.notes>Executável gerado em 05/08/2024 14:31</param.install.notes>
+    <param.install.notes>Executável gerado em 09/08/2024 12:20</param.install.notes>
     <param.target.install.notes />
     <param.intermediate>${PROJECT_ROOT}\winSCH_desktopCompiler\for_testing</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\winSCH_desktopCompiler\for_redistribution_files_only</param.files.only>
@@ -81,7 +81,6 @@
       <file>C:\SupportPackages</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
-      <file>${PROJECT_ROOT}\+layout</file>
       <file>${PROJECT_ROOT}\+readFile</file>
       <file>${PROJECT_ROOT}\+reportLibConnection</file>
       <file>${PROJECT_ROOT}\+suggestion</file>
