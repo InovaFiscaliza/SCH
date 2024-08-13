@@ -20,7 +20,7 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDa
 
     dataStruct    = struct('group', 'COMPUTADOR',            'value', struct('Machine', appVersion.Machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
     dataStruct(2) = struct('group', upper(appName),          'value', appVersion.(appName));
-    dataStruct(3) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedData', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
+    dataStruct(3) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
     dataStruct(4) = struct('group', 'MATLAB',                'value', appVersion.Matlab);
 
     appInfo = sprintf(['<p style="font-size: 12px; text-align:justify;">O repositório das '   ...
