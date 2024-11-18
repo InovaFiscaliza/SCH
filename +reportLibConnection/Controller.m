@@ -60,7 +60,7 @@ classdef (Abstract) Controller
             dataOverview(1).InfoSet = struct('EntityName',  upper(app.report_Entity.Value),     ...
                                              'EntityID',    app.report_EntityID.Value,          ...
                                              'EntityType',  upper(app.report_EntityType.Value), ...
-                                             'reportTable', app.listOfProducts);
+                                             'reportTable', app.projectData.listOfProducts);
             dataOverview(1).HTML    = [];
             
             % Documentos:
@@ -77,7 +77,7 @@ classdef (Abstract) Controller
                 web(HTMLDocFullPath)
             end
 
-            writetable(app.listOfProducts(:, class.Constants.report_TableColumns2CSV), CSVDocFullPath, "QuoteStrings", "all");
+            writetable(app.projectData.listOfProducts(:, class.Constants.report_TableColumns2CSV), CSVDocFullPath, "QuoteStrings", "all");
         end
     end
 end
