@@ -4,10 +4,13 @@ classdef winSCH_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
         GridLayout                      matlab.ui.container.GridLayout
+        popupContainerGrid              matlab.ui.container.GridLayout
+        SplashScreen                    matlab.ui.control.Image
+        popupContainer                  matlab.ui.container.Panel
         menu_Grid                       matlab.ui.container.GridLayout
         dockModule_Undock               matlab.ui.control.Image
         dockModule_Close                matlab.ui.control.Image
-        menu_Separator2                 matlab.ui.control.Image
+        menu_Separator                  matlab.ui.control.Image
         AppInfo                         matlab.ui.control.Image
         FigurePosition                  matlab.ui.control.Image
         DataHubLamp                     matlab.ui.control.Lamp
@@ -15,27 +18,22 @@ classdef winSCH_exported < matlab.apps.AppBase
         menu_Button3                    matlab.ui.control.StateButton
         menu_Button2                    matlab.ui.control.StateButton
         menu_Button1                    matlab.ui.control.StateButton
-        popupContainerGrid              matlab.ui.container.GridLayout
-        SplashScreen                    matlab.ui.control.Image
         TabGroup                        matlab.ui.container.TabGroup
         Tab1_Search                     matlab.ui.container.Tab
-        GridLayout3                     matlab.ui.container.GridLayout
-        file_toolGrid                   matlab.ui.container.GridLayout
-        search_ExportTable              matlab.ui.control.Image
-        search_PanelVisibility          matlab.ui.control.Image
-        search_mainGrid                 matlab.ui.container.GridLayout
-        search_Control                  matlab.ui.container.GridLayout
-        search_ControlMenu              matlab.ui.container.GridLayout
-        search_menuBtn2Grid             matlab.ui.container.GridLayout
-        search_menuBtn2Icon             matlab.ui.control.Image
-        search_menuBtn2Label            matlab.ui.control.Label
+        Tab1_SearchGrid                 matlab.ui.container.GridLayout
+        search_Document                 matlab.ui.container.GridLayout
+        search_nRows                    matlab.ui.control.Label
+        search_Suggestions              matlab.ui.control.ListBox
+        search_Metadata                 matlab.ui.control.Label
+        search_entryPointPanel          matlab.ui.container.Panel
+        search_entryPointGrid           matlab.ui.container.GridLayout
+        search_entryPointImage          matlab.ui.control.Image
+        search_entryPoint               matlab.ui.control.EditField
+        search_Table                    matlab.ui.control.Table
+        search_Tab1Grid                 matlab.ui.container.GridLayout
         search_menuBtn1Grid             matlab.ui.container.GridLayout
         search_menuBtn1Icon             matlab.ui.control.Image
         search_menuBtn1Label            matlab.ui.control.Label
-        search_menuUnderline            matlab.ui.control.Image
-        search_ControlTabGroup          matlab.ui.container.TabGroup
-        search_Tab1                     matlab.ui.container.Tab
-        search_Tab1Grid                 matlab.ui.container.GridLayout
         search_ToolbarAnnotation        matlab.ui.control.Image
         search_ListOfProducts           matlab.ui.control.ListBox
         search_ListOfProductsAdd        matlab.ui.control.Image
@@ -57,90 +55,36 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_ToolbarListOfProducts    matlab.ui.control.Image
         search_ToolbarWordCloud         matlab.ui.control.Image
         search_ProductInfoLabel         matlab.ui.control.Label
-        search_Tab2                     matlab.ui.container.Tab
-        search_Tab2Grid                 matlab.ui.container.GridLayout
-        search_SecundaryListOfFilters   matlab.ui.control.ListBox
-        search_SecundaryAddFilter       matlab.ui.control.Image
-        search_SecundaryPanel           matlab.ui.container.Panel
-        search_SecundaryGrid            matlab.ui.container.GridLayout
-        search_SecundaryTextListValue   matlab.ui.control.DropDown
-        search_SecundaryTextFreeValue   matlab.ui.control.EditField
-        search_SecundaryDateTime2       matlab.ui.control.EditField
-        search_SecundaryDateTimeSeparator  matlab.ui.control.Label
-        search_SecundaryDateTime1       matlab.ui.control.EditField
-        search_SecundaryOperation       matlab.ui.control.DropDown
-        search_SecundaryColumn          matlab.ui.control.DropDown
-        search_SecundaryPanelLabel      matlab.ui.control.Label
-        search_PrimaryPanel             matlab.ui.container.ButtonGroup
-        search_PrimaryOption3           matlab.ui.control.RadioButton
-        search_PrimaryOption2           matlab.ui.control.RadioButton
-        search_PrimaryOption1           matlab.ui.control.RadioButton
-        search_PrimaryPanelLabel        matlab.ui.control.Label
-        search_Document                 matlab.ui.container.GridLayout
-        search_Suggestions              matlab.ui.control.ListBox
-        search_nRows                    matlab.ui.control.Label
-        search_Metadata                 matlab.ui.control.Label
-        search_entryPointPanel          matlab.ui.container.Panel
-        search_entryPointGrid           matlab.ui.container.GridLayout
-        search_entryPointImage          matlab.ui.control.Image
-        search_entryPoint               matlab.ui.control.EditField
-        search_Table                    matlab.ui.control.Table
+        file_toolGrid                   matlab.ui.container.GridLayout
+        search_OrientationProduct       matlab.ui.control.Button
+        search_OrientationEntity        matlab.ui.control.Button
+        search_OrientationHomologation  matlab.ui.control.Button
+        search_ExportTable              matlab.ui.control.Image
+        search_FilterSetup              matlab.ui.control.Image
+        search_Panel1Visibility         matlab.ui.control.Image
         Tab2_Report                     matlab.ui.container.Tab
-        GridLayout4                     matlab.ui.container.GridLayout
-        report_mainGrid                 matlab.ui.container.GridLayout
-        report_Control                  matlab.ui.container.GridLayout
-        report_ControlMenu              matlab.ui.container.GridLayout
-        report_menuBtn3Grid             matlab.ui.container.GridLayout
-        report_menuBtn3Icon             matlab.ui.control.Image
-        report_menuBtn3Label            matlab.ui.control.Label
-        report_menuBtn2Grid             matlab.ui.container.GridLayout
-        report_menuBtn2Icon             matlab.ui.control.Image
-        report_menuBtn2Label            matlab.ui.control.Label
-        report_menuBtn1Grid             matlab.ui.container.GridLayout
-        report_menuBtn1Icon             matlab.ui.control.Image
-        report_menuBtn1Label            matlab.ui.control.Label
-        report_menuUnderline            matlab.ui.control.Image
-        report_ControlTabGroup          matlab.ui.container.TabGroup
-        report_Tab1                     matlab.ui.container.Tab
-        report_Tab1Grid                 matlab.ui.container.GridLayout
-        report_ToolbarEditOrAdd         matlab.ui.control.Image
-        report_EditableInfoPanel        matlab.ui.container.Panel
-        report_EditableInfoGrid         matlab.ui.container.GridLayout
-        report_Corrigible               matlab.ui.control.DropDown
-        report_CorrigibleLabel          matlab.ui.control.Label
-        ImportadorEditField             matlab.ui.control.EditField
-        ImportadorEditFieldLabel        matlab.ui.control.Label
-        report_EditOrAddButton          matlab.ui.control.Image
-        report_Notes                    matlab.ui.control.TextArea
-        report_NotesLabel               matlab.ui.control.Label
-        report_Violation                matlab.ui.control.DropDown
-        report_ViolationLabel           matlab.ui.control.Label
-        report_Situation                matlab.ui.control.DropDown
-        report_SituationLabel           matlab.ui.control.Label
-        report_IDAduana                 matlab.ui.control.EditField
-        report_IDAduanaLabel            matlab.ui.control.Label
-        report_nHom                     matlab.ui.control.EditField
-        report_nHomLabel                matlab.ui.control.Label
-        report_productSituationPanel    matlab.ui.container.ButtonGroup
-        report_productSituation2        matlab.ui.control.RadioButton
-        report_productSituation1        matlab.ui.control.RadioButton
-        report_EditableInfoLabel        matlab.ui.control.Label
-        report_ProductInfoPanel         matlab.ui.container.Panel
-        report_ProductInfoGrid          matlab.ui.container.GridLayout
-        report_ProductInfo              matlab.ui.control.HTML
-        report_ProductInfoLabel         matlab.ui.control.Label
-        report_Tab2                     matlab.ui.container.Tab
+        Tab2_ReportGrid                 matlab.ui.container.GridLayout
+        GridLayout7                     matlab.ui.container.GridLayout
+        report_Table                    matlab.ui.control.Table
+        report_NewProduct               matlab.ui.control.Image
+        report_EditProduct              matlab.ui.control.Image
+        report_nRows                    matlab.ui.control.Label
+        LISTADEPRODUTOSSOBANLISEButtonGroup  matlab.ui.container.ButtonGroup
+        AduanaButton                    matlab.ui.control.RadioButton
+        FornecedorouusurioButton        matlab.ui.control.RadioButton
+        GridLayout6                     matlab.ui.container.GridLayout
         report_Tab2Grid                 matlab.ui.container.GridLayout
-        report_ProjectWarnIcon          matlab.ui.control.Image
+        report_ProjectName              matlab.ui.control.TextArea
+        report_ProjectSave              matlab.ui.control.Image
+        report_ProjectOpen              matlab.ui.control.Image
+        report_ProjectNew               matlab.ui.control.Image
         report_IssuePanel               matlab.ui.container.Panel
         report_IssueGrid                matlab.ui.container.GridLayout
-        report_DocumentPanel            matlab.ui.container.Panel
-        report_DocumentGrid             matlab.ui.container.GridLayout
+        Image4                          matlab.ui.control.Image
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
-        report_ModelName                matlab.ui.control.DropDown
         report_ModelNameLabel           matlab.ui.control.Label
-        report_DocumentLabel            matlab.ui.control.Label
+        report_ModelName                matlab.ui.control.DropDown
         report_EntityPanel              matlab.ui.container.Panel
         report_EntityGrid               matlab.ui.container.GridLayout
         Image                           matlab.ui.control.Image
@@ -154,33 +98,37 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_Issue                    matlab.ui.control.NumericEditField
         report_IssueLabel               matlab.ui.control.Label
         report_IssuePanelLabel          matlab.ui.control.Label
-        report_ProjectPanel             matlab.ui.container.Panel
-        report_ProjectGrid              matlab.ui.container.GridLayout
-        report_ProjectName              matlab.ui.control.TextArea
-        report_ProjectSave              matlab.ui.control.Image
-        report_ProjectOpen              matlab.ui.control.Image
-        report_ProjectNew               matlab.ui.control.Image
-        report_ProjectNameLabel         matlab.ui.control.Label
         report_ProjectLabel             matlab.ui.control.Label
-        report_Tab3                     matlab.ui.container.Tab
         report_Tab3Grid                 matlab.ui.container.GridLayout
         report_FiscalizaPanel           matlab.ui.container.Panel
         report_FiscalizaGrid            matlab.ui.container.GridLayout
         report_FiscalizaIcon            matlab.ui.control.Image
         report_FiscalizaRefresh         matlab.ui.control.Image
         report_Fiscaliza_PanelLabel     matlab.ui.control.Label
-        report_Document                 matlab.ui.container.GridLayout
-        report_Table                    matlab.ui.control.Table
-        report_nRows                    matlab.ui.control.Label
-        report_TableLabel               matlab.ui.control.Label
+        report_menuBtn3Grid             matlab.ui.container.GridLayout
+        report_menuBtn3Icon             matlab.ui.control.Image
+        report_menuBtn3Label            matlab.ui.control.Label
+        report_menuBtn2Grid             matlab.ui.container.GridLayout
+        report_ProjectWarnIcon          matlab.ui.control.Image
+        report_menuBtn2Icon             matlab.ui.control.Image
+        report_menuBtn2Label            matlab.ui.control.Label
+        report_Tab1Grid                 matlab.ui.container.GridLayout
+        report_menuBtn1Grid             matlab.ui.container.GridLayout
+        report_menuBtn1Icon             matlab.ui.control.Image
+        report_menuBtn1Label            matlab.ui.control.Label
+        report_ProductInfoPanel         matlab.ui.container.Panel
+        report_ProductInfoGrid          matlab.ui.container.GridLayout
+        report_ProductInfo              matlab.ui.control.HTML
+        report_ProductInfoLabel         matlab.ui.control.Label
         file_toolGrid_2                 matlab.ui.container.GridLayout
-        report_FiscalizaUpdateImage     matlab.ui.control.Image
-        report_FiscalizaAutoFillImage   matlab.ui.control.Image
+        report_Panel2Visibility         matlab.ui.control.Image
+        tool_FiscalizaUpdate            matlab.ui.control.Image
+        tool_FiscalizaAutoFill          matlab.ui.control.Image
         report_ReportGeneration         matlab.ui.control.Image
         report_ShowCells2Edit           matlab.ui.control.Image
-        report_PanelVisibility          matlab.ui.control.Image
+        report_Panel1Visibility         matlab.ui.control.Image
         Tab3_Config                     matlab.ui.container.Tab
-        GridLayout5                     matlab.ui.container.GridLayout
+        Tab3_ConfigGrid                 matlab.ui.container.GridLayout
         config_mainGrid                 matlab.ui.container.GridLayout
         config_Option3Grid              matlab.ui.container.GridLayout
         config_DefaultIssueValuesPanel  matlab.ui.container.Panel
@@ -248,12 +196,10 @@ classdef winSCH_exported < matlab.apps.AppBase
         config_Option_Folder            matlab.ui.control.RadioButton
         config_Option_Fiscaliza         matlab.ui.control.RadioButton
         config_Option_Search            matlab.ui.control.RadioButton
-        config_Label                    matlab.ui.control.Label
         config_ControlMenu              matlab.ui.container.GridLayout
         config_menuBtn1Grid             matlab.ui.container.GridLayout
         config_menuBtn1Icon             matlab.ui.control.Image
         config_menuBtn1Label            matlab.ui.control.Label
-        config_menuUnderline            matlab.ui.control.Image
         file_toolGrid_3                 matlab.ui.container.GridLayout
         config_PanelVisibility          matlab.ui.control.Image
         ContextMenu                     matlab.ui.container.ContextMenu
@@ -284,8 +230,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         % não visíveis. E a customização de componentes, usando a lib ccTools, 
         % somente é possível após a sua renderização. Controla-se a aplicação 
         % da customizaçao por meio dessa propriedade jsBackDoorFlag.
-        jsBackDoorFlag = {[true, true],       ...
-                          [true, true, true], ...
+        jsBackDoorFlag = {true, ...
+                          true, ...
                           true};
 
         % Janela de progresso já criada no DOM. Dessa forma, controla-se 
@@ -320,7 +266,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = ccTools.fcn.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLSource           = appUtil.jsBackDoorHTMLSource();
             app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
         end
 
@@ -466,8 +412,14 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 %---------------------------------------------------------%
                 case 'BackgroundColorTurnedInvisible'
-                    if isvalid(app.popupContainerGrid)
-                        delete(app.popupContainerGrid)
+                    switch event.HTMLEventData
+                        case 'SplashScreen'
+                            if isvalid(app.SplashScreen)
+                                delete(app.SplashScreen)
+                                app.popupContainerGrid.Visible = 0;
+                            end
+                        otherwise
+                            % ...
                     end
             end
             drawnow
@@ -521,51 +473,31 @@ classdef winSCH_exported < matlab.apps.AppBase
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
                     
                     ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+                    sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
 
                 case 1 % SEARCH
                     if any(app.jsBackDoorFlag{tabIndex})
-                        subIndex = find(app.search_ControlTabGroup.Children == app.search_ControlTabGroup.SelectedTab, 1);
-                        app.jsBackDoorFlag{tabIndex}(subIndex) = false;
+                        app.jsBackDoorFlag{tabIndex} = false;
 
-                        switch subIndex
-                            case 1                    
-                                % Aplica customizações estéticas ao(s) componente(s).
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.search_entryPoint,           'borderWidth', '0px')
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.search_ControlTabGroup,      'transparentHeader', 'transparent')
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.search_WordCloudRefreshGrid, 'backgroundColor', 'transparent')
-                                                                                                
-                                % Cria keydown listeners, em JS, para os componentes descritos
-                                % em objList.
-                                objList = {app.search_entryPoint, app.search_Suggestions};
-                                for ii = 1:numel(objList)
-                                    objList{ii}.UserData = struct(objList{ii}).Controller.ViewModel.Id;
-                                end
-                                sendEventToHTMLSource(app.jsBackDoor, "addKeyDownListener", struct('componentName', 'app.search_entryPoint',  'componentDataTag', app.search_entryPoint.UserData,  'keyEvents', ["ArrowUp", "ArrowDown", "Enter", "Escape", "Tab"]))
-                                sendEventToHTMLSource(app.jsBackDoor, "addKeyDownListener", struct('componentName', 'app.search_Suggestions', 'componentDataTag', app.search_Suggestions.UserData, 'keyEvents', ["ArrowUp", "ArrowDown", "Enter", "Escape", "Tab"]))
-                                drawnow
-
-                            case 2
-                                % ...
+                        % Aplica customizações estéticas ao(s) componente(s).
+                        ccTools.compCustomizationV2(app.jsBackDoor, app.search_entryPoint,           'borderWidth', '0px')
+                        ccTools.compCustomizationV2(app.jsBackDoor, app.search_WordCloudRefreshGrid, 'backgroundColor', 'transparent')
+                                                                                        
+                        % Cria keydown listeners, em JS, para os componentes descritos
+                        % em objList.
+                        objList = {app.search_entryPoint, app.search_Suggestions};
+                        for ii = 1:numel(objList)
+                            objList{ii}.UserData = struct(objList{ii}).Controller.ViewModel.Id;
                         end
+                        sendEventToHTMLSource(app.jsBackDoor, "addKeyDownListener", struct('componentName', 'app.search_entryPoint',  'componentDataTag', app.search_entryPoint.UserData,  'keyEvents', ["ArrowUp", "ArrowDown", "Enter", "Escape", "Tab"]))
+                        sendEventToHTMLSource(app.jsBackDoor, "addKeyDownListener", struct('componentName', 'app.search_Suggestions', 'componentDataTag', app.search_Suggestions.UserData, 'keyEvents', ["ArrowUp", "ArrowDown", "Enter", "Escape", "Tab"]))
+                        drawnow
                     end
 
                 case 2 % REPORT
-                    if any(app.jsBackDoorFlag{tabIndex})
-                        subIndex = find(app.report_ControlTabGroup.Children == app.report_ControlTabGroup.SelectedTab, 1);
-                        app.jsBackDoorFlag{tabIndex}(subIndex) = false;
-
-                        switch subIndex
-                            case 1
-                                % Aplica customizações estéticas ao(s) componente(s).
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.report_ControlTabGroup, 'transparentHeader', 'transparent')
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.report_Notes,           'textAlign', 'justify')
-
-                            case 2
-                                ccTools.compCustomizationV2(app.jsBackDoor, app.report_ProjectName,     'textAlign', 'justify')
-                                
-                            case 3
-                                % ...
-                        end                        
+                    if app.jsBackDoorFlag{tabIndex}
+                        app.jsBackDoorFlag{tabIndex} = false;
+                        ccTools.compCustomizationV2(app.jsBackDoor, app.report_ProjectName, 'textAlign', 'justify')                     
                     end
 
                 case 3 % CONFIG
@@ -678,13 +610,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                 % em tela dos componentes.
                 sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
                 set(findobj(app.menu_Grid.Children, '-not', 'Type', 'uihtml'), 'Enable', 1)
+                app.menu_Separator.Enable = 0;
                 drawnow
 
                 % Força a exclusão do SplashScreen.
                 app.TabGroup.Visible = 1;
-                if isvalid(app.popupContainerGrid)
+                if isvalid(app.SplashScreen)
                     pause(1)
-                    delete(app.popupContainerGrid)
+                    delete(app.SplashScreen)
+                    app.popupContainerGrid.Visible = 0;
                 end
             end
         end        
@@ -722,7 +656,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
-            app.projectData = projectLib(app, app.General.typeOfProduct);
+            app.projectData = projectLib(app, app.General.typeOfProduct, app.General.typeOfViolation);
             startup_mainVariables(app)            
         end
 
@@ -773,16 +707,18 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarWordCloud.UserData      = struct('iconOptions', {{'Cloud_32x32Gray.png',   'Cloud_32x32Blue.png'}});
             app.search_ToolbarListOfProducts.UserData = struct('iconOptions', {{'Box_32x32Gray.png',     'Box_32x32Blue.png'}});
 
-            app.report_ToolbarEditOrAdd.UserData      = struct('iconOptions', {{'Edit_18x18Gray.png',    'Edit_18x18Blue.png'}});
-            app.report_EditOrAddButton.UserData       = struct('iconOptions', {{'Edit_36.png',           'NewFile_36.png'}});
-
             % Inicialização da propriedade "UserData" da tabela.
-            app.search_Table.UserData = struct('primaryIndex', [], 'secundaryIndex', [], 'cacheColumns', {{}});
+            app.search_entryPointImage.UserData       = struct('value2Search', '', 'words2Search', '');
+            app.search_Table.UserData                 = struct('primaryIndex', [], 'secundaryIndex', [], 'cacheColumns', {{}});
 
             % Inicialização dos painéis de metadados do registro selecionado 
             % em uma das tabelas.
-            app.search_ProductInfo.UserData = struct('selectedRow', [], 'showedHom', '');
-            app.report_ProductInfo.UserData = struct('selectedRow', [], 'showedHom', '');
+            app.search_ProductInfo.UserData           = struct('selectedRow', [], 'showedHom', '');
+            app.report_ProductInfo.UserData           = struct('selectedRow', [], 'showedHom', '');
+
+            app.search_OrientationHomologation.UserData = false;
+            app.search_OrientationEntity.UserData       = false;
+            app.search_OrientationProduct.UserData      = true;
 
             if strcmp(app.executionMode, 'webApp')
                 % Webapps não suporta uigetdir, então o mapeamento das pastas
@@ -830,13 +766,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.config_SelectedTableColumns.CheckedNodes = listOfTreeNodes(isStaticColumn);
             addStyle(app.config_SelectedTableColumns, class.Constants.configStyle5, 'node', listOfTreeNodes(isStaticColumn))
 
-            % FILTROS SECUNDÁRIOS
-            app.search_SecundaryColumn.Items = GUIAllColumns;
-            search_SecundaryColumnValueChanged(app)
-
             % RELATÓRIO
-            app.report_Violation.Items = app.General.typeOfViolation;
-            app.report_Violation.Value = app.General.defaultTypeOfViolation;
             app.report_ModelName.Items = [{''}, {reportLibConnection.Controller.Read(app.rootFolder).Name}];
 
             % CONFIG
@@ -846,7 +776,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case 'HOM'
                     app.config_FiscalizaHM.Value = 1;
             end
-            config_FiscalizaModeLayout(app)
+            fiscalizaLibConnection.config_SystemMode(app)
             config_FiscalizaDefaultValues(app)
 
             config_ButtonGroupSelectionChanged(app)
@@ -862,28 +792,63 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case {1, 3} % SEARCH | CONFIG
                     switch tabIndex
                         case 1
-                            app.search_PanelVisibility.Visible = 1;
-                            app.config_PanelVisibility.Visible = 0;
+                            app.search_Panel1Visibility.Visible = 1;
+                            app.config_PanelVisibility.Visible  = 0;
                         case 3
-                            app.search_PanelVisibility.Visible = 0;
-                            app.config_PanelVisibility.Visible = 1;
+                            app.search_Panel1Visibility.Visible = 0;
+                            app.config_PanelVisibility.Visible  = 1;
                     end
 
-                    app.report_PanelVisibility.Visible         = 0;                    
-                    app.report_ShowCells2Edit.Visible          = 0;
-                    app.report_FiscalizaAutoFillImage.Visible  = 0;
-                    app.report_ReportGeneration.Visible        = 0;
-                    app.report_FiscalizaUpdateImage.Visible    = 0;
+                    app.report_Panel1Visibility.Visible  = 0;                    
+                    app.report_ShowCells2Edit.Visible    = 0;
+                    app.tool_FiscalizaAutoFill.Visible   = 0;
+                    app.report_ReportGeneration.Visible  = 0;
+                    app.tool_FiscalizaUpdate.Visible     = 0;
 
                 case 2 % REPORT
-                    app.search_PanelVisibility.Visible         = 0;
-                    app.report_PanelVisibility.Visible         = 1;
-                    app.config_PanelVisibility.Visible         = 0;
-                    app.report_ShowCells2Edit.Visible          = 1;
-                    app.report_FiscalizaAutoFillImage.Visible  = 1;
-                    app.report_ReportGeneration.Visible        = 1;
-                    app.report_FiscalizaUpdateImage.Visible    = 1;
+                    app.search_Panel1Visibility.Visible  = 0;
+                    app.report_Panel1Visibility.Visible  = 1;
+                    app.config_PanelVisibility.Visible   = 0;
+                    app.report_ShowCells2Edit.Visible    = 1;
+                    app.tool_FiscalizaAutoFill.Visible   = 1;
+                    app.report_ReportGeneration.Visible  = 1;
+                    app.tool_FiscalizaUpdate.Visible     = 1;
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function menu_LayoutPopupApp(app, auxiliarApp, varargin)
+            arguments
+                app
+                auxiliarApp char {mustBeMember(auxiliarApp, {'FilterSetup', 'ProductInfo', 'AddFiles'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            app.progressDialog.Visible = 'visible';
+
+            % Inicialmente ajusta as dimensões do container.
+            switch auxiliarApp
+                case 'FilterSetup'; screenWidth = 412; screenHeight = 464;
+                case 'ProductInfo'; screenWidth = 412; screenHeight = 464;
+                case 'AddFiles';    screenWidth = 880; screenHeight = 480;
+            end
+
+            app.popupContainerGrid.ColumnWidth{2} = screenWidth;
+            app.popupContainerGrid.RowHeight{3}   = screenHeight-180;
+
+            % Executa o app auxiliar, mas antes tenta configurar transparência
+            % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
+            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+            inputArguments = [{app}, varargin];
+            eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
+            
+            app.popupContainerGrid.Visible = 1;
+            app.popupContainer.Visible     = 1;
+
+            app.progressDialog.Visible = 'hidden';
         end
 
         %-----------------------------------------------------------------%
@@ -972,8 +937,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             % Rotina de inicialização dos objetos relacionados aos filtros 
             % secundários.
-            app.filteringObj.filterRules(:,:)       = [];
-            app.search_SecundaryListOfFilters.Items = {};
+            app.filteringObj.filterRules(:,:) = [];
 
             % O "primaryTempIndex" retorna os registros da tabela que deram match
             % com "words2Search". Uma homologação, contudo, pode estar relacionada 
@@ -1017,9 +981,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Aplica estilo na tabela e verifica se a tabela está visível...
             search_Table_AddStyle(app)
 
-            % Reinicia painel de filtragem secundária...
-            search_SecundaryColumnValueChanged(app)
-
             app.progressDialog.Visible = 'hidden';
         end
  
@@ -1051,76 +1012,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function listOfColumns = search_Filtering_PrimaryTableColumns(app)
-            selectedButton = app.search_PrimaryPanel.SelectedObject;
-            listOfColumns  = selectedButton.Text;
-        end
-
-
-       %-----------------------------------------------------------------%
-        function [Value, msgWarning] = search_Filtering_SecundaryFilterValue(app)
-            Value       = [];
-            msgWarning  = '';
-
-            columnName  = app.search_SecundaryColumn.Value;
-            columnIndex = find(strcmp(app.General.SCHDataInfo.Column, columnName), 1);
-
-            filterType  = app.General.SCHDataInfo.FilterType{columnIndex};
-            selectedOperation = app.search_SecundaryOperation.Value;
-            switch filterType
-                case 'datetime'
-                    switch selectedOperation
-                        case {'=', '≠', '<', '≤', '>', '≥'}
-                            Value = datetime(app.search_SecundaryDateTime1.Value, 'InputFormat', 'dd/MM/yyyy', 'Format', 'dd/MM/yyyy');
-                            
-                        case {'><', '<>'}
-                            Value = datetime({app.search_SecundaryDateTime1.Value, app.search_SecundaryDateTime2.Value}, 'InputFormat', 'dd/MM/yyyy', 'Format', 'dd/MM/yyyy');
-
-                        case {'⊃', '⊅'}
-                            try
-                                Value = cellfun(@(x) datetime(x, "InputFormat", 'dd/MM/yyyy', 'Format', 'dd/MM/yyyy'), strtrim(strsplit(app.search_SecundaryTextFreeValue.Value, ',')));
-                            catch ME
-                                app.search_SecundaryTextFreeValue.Value = '';
-
-                                msgWarning = ME.message;
-                                return
-                            end
-                    end
-
-                case 'freeText'
-                    Value = strtrim(strsplit(app.search_SecundaryTextFreeValue.Value, ','));
-                    if isscalar(Value)
-                        Value = char(Value);
-                    end
-
-                case 'listOfText'
-                    Value = app.search_SecundaryTextListValue.Value;
-            end
-
-            if isempty(Value)
-                msgWarning = 'Valor inválido.';
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function search_Filtering_SecundaryFilterLayout(app)
-            configValue = {};
-            for ii = 1:height(app.filteringObj.filterRules)
-                Value = app.filteringObj.filterRules.Value{ii};
-
-                if isnumeric(Value)
-                    configValue{ii,1} = sprintf('[%s]', strjoin(string(Value), ', '));
-
-                elseif iscellstr(Value)
-                    configValue{ii,1} = textAnalysis.cellstrGUIStyle(Value);
-
-                else %ischar(Value)
-                    configValue{ii,1} = sprintf('"%s"', Value);
-                end
-            end
-            
-            filterList = cellstr("SCH.(""" + string(app.filteringObj.filterRules.Column) + """) " + string(app.filteringObj.filterRules.Operation) + " " + string(configValue));
-            app.search_SecundaryListOfFilters.Items = filterList;
+            listOfColumns  = app.General.ColumnNamesForSearching;
         end
 
 
@@ -1204,6 +1096,52 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.search_Table.Visible    = 1;
                 app.search_Metadata.Visible = 1;                
                 app.search_nRows.Visible    = 1;
+
+                if ~app.Tab1_SearchGrid.ColumnWidth{1}
+                    misc_Panel_VisibilityImageClicked(app, struct('Source', app.search_Panel1Visibility))
+                end
+            end
+        end
+
+
+        %-----------------------------------------------------------------%
+        function search_FilterSpecification(app)
+            allButtons    = [app.search_OrientationHomologation, ...
+                             app.search_OrientationEntity,       ...
+                             app.search_OrientationProduct];
+            clickedButton = findobj(allButtons, 'UserData', true);
+
+            primaryTag    = strjoin(clickedButton.Tooltip);
+            secondaryTag  = strjoin(FilterList(app.filteringObj, 'SCH'), ', ');
+            if isempty(secondaryTag)
+                secondaryTag = '[]';
+            end
+
+            value2Search = app.search_entryPointImage.UserData.value2Search;
+            words2Search = app.search_entryPointImage.UserData.words2Search;
+            
+            if app.config_SearchModeTokenSuggestion.Value
+                if ~isempty(words2Search)
+                    nWords2Search  = numel(words2Search);
+                    nWordsContains = sum(contains(words2Search, value2Search));                   
+    
+                    % Inserindo o texto "e similiares" caso exista alguma
+                    % palavra-chave que não contenha o termo a procurar.
+                    if nWordsContains < nWords2Search
+                        searchNote = ' e similares';
+                    else
+                        searchNote = '';
+                    end
+        
+                    app.search_Metadata.Text = sprintf('Exibindo resultados para "<b>%s</b>"%s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
+                                                       value2Search, searchNote, primaryTag, secondaryTag);
+                end
+
+            else
+                if ~isempty(words2Search)
+                    app.search_Metadata.Text = sprintf('Exibindo resultados para %s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
+                                                       strjoin("""<b>" + string(words2Search) + "</b>""", ', '), primaryTag, secondaryTag);
+                end
             end
         end
 
@@ -1321,10 +1259,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             listOfCells       = [annotationIndex, repmat(homColumnIndex, numel(annotationIndex), 1)];
 
             if ~isempty(listOfCells)
-                if app.search_PrimaryOption1.Value
-                    s = class.Constants.configStyle3;
-                else
-                    s = class.Constants.configStyle4;
+                switch app.General.ColumnNamesForSearching
+                    case 'Homologação'
+                        s = class.Constants.configStyle3;
+                    otherwise
+                        s = class.Constants.configStyle4;
                 end
                 addStyle(app.search_Table, s, "cell", listOfCells)
             end
@@ -1393,7 +1332,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'hidden';
         end
 
-
         %-----------------------------------------------------------------%
         function word2Search = search_WordCloud_Word2Search(app, showedHom)
             selectedRow = find(strcmp(app.search_Table.Data.("Homologação"), showedHom), 1);
@@ -1418,55 +1356,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
         end
-
-
-        %-----------------------------------------------------------------%
-        function report_SelectedHomPanel_InfoUpdate(app, selected2showedHom, selectedRow)
-            if ~isempty(selected2showedHom)
-                % Primeiro ajusta o painel com botões de rádio...
-                if ~strcmp(selected2showedHom, '-1')
-                    app.report_productSituation1.Value = 1; % HOMOLOGADO
-                else
-                    app.report_productSituation2.Value = 1; % NÃO HOMOLOGADO
-                end
-                set(app.report_productSituationPanel.Children, 'Enable', 0)
-
-                % O título do painel e a imagem para confirmar alteração...
-                app.report_EditableInfoLabel.Text      = 'EDIÇÃO COMPLEMENTAR À DA TABELA';
-                app.report_EditOrAddButton.ImageSource = app.report_EditOrAddButton.UserData.iconOptions{1};
-
-                % E depois as caixas de edição abaixo...
-                idx = selectedRow;
-                set(app.report_nHom, 'Enable', 0, 'Value', app.projectData.listOfProducts.("Homologação"){idx})
-                app.ImportadorEditField.Value = app.projectData.listOfProducts.("Importador"){idx};
-                app.report_IDAduana.Value   = app.projectData.listOfProducts.("Código aduaneiro"){idx};
-                app.report_Situation.Value  = app.projectData.listOfProducts.("Situação"){idx};
-                report_SituationValueChanged(app)
-
-                app.report_Violation.Value  = app.projectData.listOfProducts.("Infração"){idx};
-                app.report_Corrigible.Value = app.projectData.listOfProducts.("Sanável?"){idx};
-                app.report_Notes.Value      = app.projectData.listOfProducts.("Informações adicionais"){idx};
-
-            else
-                app.report_productSituation2.Value = 1;
-                set(app.report_productSituationPanel.Children, 'Enable', 1)
-                report_productSituationPanelSelectionChanged(app)
-
-                app.report_EditableInfoLabel.Text      = 'INCLUSÃO';
-                app.report_EditOrAddButton.ImageSource = app.report_EditOrAddButton.UserData.iconOptions{2};
-
-                app.ImportadorEditField.Value = '';
-                app.report_IDAduana.Value = '';
-
-                app.report_Situation.Value = 'Irregular';
-                report_SituationValueChanged(app)
-
-                app.report_Violation.Value = app.General.defaultTypeOfViolation;
-                app.report_Corrigible.Value = 'Não';
-                app.report_Notes.Value     = '';
-            end
-        end
-
 
         %-----------------------------------------------------------------%
         function report_ListOfProductsAdd(app, srcMode, listOfHom2Add)
@@ -1569,7 +1458,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function report_UpdatingTable(app)
-            app.report_Table.Data = app.projectData.listOfProducts(:, [1, 4:15]);
+            report_UpdatingTableData(app)
 
             % LAYOUT
             misc_Table_NumberOfRows(app, 'report')
@@ -1586,6 +1475,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             report_ModelNameValueChanged(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function report_UpdatingTableData(app)
+            switch app.LISTADEPRODUTOSSOBANLISEButtonGroup.SelectedObject
+                case app.FornecedorouusurioButton
+                    columnIndex = [1, 4:15, 17];
+                case app.AduanaButton
+                    columnIndex = [1, 4:7, 10, 12, 2:3, 16, 18];
+            end
+            app.report_Table.Data = app.projectData.listOfProducts(:, columnIndex);
         end
 
 
@@ -1695,7 +1595,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             Situacao      = 'Irregular';
             typeViolation = app.General.defaultTypeOfViolation;
-            Sanavel       = 'Não';
+            Sanavel       = '-1';
             optionalNote  = sprintf('TIPO: %s\nMODELO: %s', ccTools.fcn.FormatString(typeList), ccTools.fcn.FormatString(modelList));
             
             newRow2Add    = {selectedHom2Add, Importador, CodAduaneiro, typeValue, Fabricante, modelValue, Situacao, typeViolation, Sanavel, optionalNote};
@@ -1730,8 +1630,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                         RefreshGUI(app.fiscalizaObj)
                 end
 
-                misc_Panel_menuButtonPushed(app, 'report', 2, 3)
-                report_FiscalizaToolbarStatus(app)
+                app.GridLayout6.RowHeight([2,4]) = {0, '1x'};
+                fiscalizaLibConnection.report_ToolbarStatus(app)
 
             catch ME
                 % Se a operação registrar um erro, faz-se necessária a realização
@@ -1740,189 +1640,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                 %     app.fiscalizaObj exista;
                 % (2) Apresentar o ícone do REDMINE como placeholder; e
                 % (3) Desabilitar o botão que possibilita o relato.
-                report_FiscalizaResetGUI(app)
+                fiscalizaLibConnection.report_ResetGUI(app)
                 appUtil.modalWindow(app.UIFigure, 'error', ME.message);
             end
             app.progressDialog.Visible = 'hidden';
         end
-
-
-        %-----------------------------------------------------------------%
-        function report_FiscalizaToolbarStatus(app)
-            % Habilita botões de "AutoFill" e "Update" apenas se a
-            % inspeção estiver num estado relatável. Lembrando que se der 
-            % algum erro no processo, o grid app.report_Fiscaliza.Grid
-            % terá um único filho - a imagem do Redmine (placeholder).
-            if numel(app.report_FiscalizaGrid.Children) <= 1
-                app.report_FiscalizaAutoFillImage.Enable = 0;
-                app.report_FiscalizaUpdateImage.Enable   = 0;
-            else
-                app.report_FiscalizaAutoFillImage.Enable = 1;
-                app.report_FiscalizaUpdateImage.Enable   = 1;
-            end
-        end
-
-
-        %-----------------------------------------------------------------%
-        function report_FiscalizaResetGUI(app)
-            if ~isempty(app.fiscalizaObj)
-                GridInitialization(app.fiscalizaObj, false)
-                app.fiscalizaObj.issueID = [];
-            end
-            set(app.report_FiscalizaIcon, 'Parent', app.report_FiscalizaGrid, 'Visible', 1)
-
-            app.report_FiscalizaAutoFillImage.Enable = 0;
-            app.report_FiscalizaUpdateImage.Enable   = 0;
-        end
-
-
-        %-----------------------------------------------------------------%
-        function report_FiscalizaAutoFill(app)
-            app.progressDialog.Visible = 'visible';
-            try
-                automaticData = report_FiscalizaInfo2AutoFill(app);
-                AutoFillFields(app.fiscalizaObj, automaticData, 1)
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-            end
-            app.progressDialog.Visible = 'hidden';
-        end
-
-
-        %-----------------------------------------------------------------%
-        function report_FiscalizaUpdate(app)
-            msgQuestion = '<p style="font-size: 12px; text-align: justify;">Confirma a tentativa de atualizar informações da inspeção?</p>';            
-            selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',     ...
-                                                                   'Options', {'SIM', 'NÃO'}, ...
-                                                                   'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-            if strcmp(selection, 'NÃO')
-                return
-            end
-
-            app.progressDialog.Visible = 'visible';
-            try
-                UploadFiscaliza(app.fiscalizaObj)
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-            end
-            app.progressDialog.Visible = 'hidden';
-        end
-
-
-        %-----------------------------------------------------------------%
-        function automaticData = report_FiscalizaInfo2AutoFill(app)
-            automaticData = struct('tipo_de_inspecao',           'Certificação', ...
-                                   'entidade_com_cadastro_stel', app.config_CadastroSTEL.Value);
-
-            % RELATÓRIO (VERSÃO DEFINITIVA)
-            if ~isempty(app.General.fiscaliza.lastHTMLDocFullPath)
-                automaticData.html_path = app.General.fiscaliza.lastHTMLDocFullPath;
-            end
-
-            % QUALIFICAÇÃO DA FISCALIZADA
-            nEntity = strtrim(app.report_Entity.Value);
-            if ~isempty(nEntity)
-                automaticData.nome_da_entidade = nEntity;
-            end
-
-            try
-                [~, nCNPJ] = checkCNPJ(app.report_EntityID.Value, false);
-                
-                automaticData.entidade_da_inspecao = {nCNPJ};
-                automaticData.cnpjcpf_da_entidade  = nCNPJ;
-            catch
-            end
-
-            % FISCAL RESPONSÁVEL E FISCAIS
-            hDropDown   = findobj(app.report_FiscalizaGrid, 'Type', 'uidropdown',     'Tag', 'fiscal_responsavel');
-            hTree       = findobj(app.report_FiscalizaGrid, 'Type', 'uicheckboxtree', 'Tag', 'fiscais');
-            currentUser = getCurrentUser(app.fiscalizaObj);
-            try                
-                if ~isempty(currentUser)
-                    if ~isempty(hDropDown) && ~isempty(hDropDown.Items)
-                        idxFiscal1 = find(strcmp(hDropDown.Items, currentUser), 1);
-                        if ~isempty(idxFiscal1)
-                            automaticData.fiscal_responsavel = currentUser;
-                        end
-                    end
-                end
-            catch
-            end
-
-            try
-                if ~isempty(currentUser)
-                    if ~isempty(hTree) && ~isempty(hTree.Children)
-                        idxFiscal2 = find(strcmp({hTree.Children.Text}, currentUser), 1);
-                        if ~isempty(idxFiscal2)
-                            automaticData.fiscais = {currentUser};
-                        end
-                    end
-                end
-            catch
-            end
-
-            % MEDIDA CAUTELAR
-            qtdLacrados    = sum(app.projectData.listOfProducts{:, 'Qtd. lacradas'});
-            qtdApreendidas = sum(app.projectData.listOfProducts{:, 'Qtd. apreendidas'});
-            
-            procedimentos = {};
-            if qtdLacrados
-                procedimentos = [procedimentos, {'Lacração'}];
-            end
-
-            if qtdApreendidas
-                procedimentos = [procedimentos, {'Apreensão'}];
-            end
-
-            if ~isempty(procedimentos)
-                automaticData.procedimentos = procedimentos;
-            end
-
-            automaticData.qnt_produt_lacradosapreend = qtdLacrados + qtdApreendidas;
-            if qtdLacrados || qtdApreendidas
-                if ~isempty(app.config_MotivoLAI.CheckedNodes)
-                    automaticData.motivo_de_lai = {app.config_MotivoLAI.CheckedNodes.Text};
-                end
-
-                if strcmp(app.config_GerarPLAI.Value, '1')
-                    automaticData.gerar_plai = '1';
-                    automaticData.tipo_do_processo_plai = app.config_TipoPLAI.Value;
-
-                    hComponent = findobj(app.report_FiscalizaGrid, 'Tag', 'coordenacao_responsavel');
-                    if ~isempty(hComponent)
-                        automaticData.coord_fi_plai = hComponent.Value;
-                    end
-                end
-            end
-
-            % SERVIÇOS
-            if ~isempty(app.config_ServicoInspecao.CheckedNodes)
-                automaticData.servicos_da_inspecao = {app.config_ServicoInspecao.CheckedNodes.Text};
-            end
-
-            % SITUAÇÃO
-            if ismember('Irregular', app.projectData.listOfProducts.('Situação'))
-                automaticData.situacao_constatada = 'Irregular';
-
-                irregularidade = {};
-                if ismember('Comercialização', app.projectData.listOfProducts.('Infração'))
-                    irregularidade = [irregularidade, {'Comercialização de produtos'}];
-                end
-
-                if ismember('Uso', app.projectData.listOfProducts.('Infração'))
-                    irregularidade = [irregularidade, {'Utilização de produtos'}];
-                end
-
-                if ~isempty(irregularidade)
-                    automaticData.irregularidade = irregularidade;
-                end
-            else
-                automaticData.situacao_constatada = 'Regular';
-            end
-        end
-
 
         %-----------------------------------------------------------------%
         % MISCELÂNEAS
@@ -1942,32 +1664,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         % - showedHom.........: Homologação apresentada em painel de metadados.
         % - selected2showedHom: Em processo de atualização do painel de metadados.
         %                       De selectedHom{1} para showedHom...
-        %-----------------------------------------------------------------%
-        function misc_Panel_menuButtonPushed(app, operationMode, tabIndex, subIndex)
-            NN = eval(sprintf('numel(app.%s_ControlMenu.ColumnWidth)', operationMode));
-
-            for ii = 1:NN
-                switch ii
-                    case subIndex
-                        eval(sprintf('app.%s_menuBtn%dGrid.ColumnWidth{2} = "1x";', operationMode, ii))
-                    otherwise
-                        eval(sprintf('app.%s_menuBtn%dGrid.ColumnWidth{2} = 0;',    operationMode, ii))
-                end
-            end
-
-            columnWidth           = repmat({22}, 1, NN);
-            columnWidth(subIndex) = {'1x'};
-
-            eval(sprintf('app.%s_ControlMenu.ColumnWidth     = columnWidth;', operationMode))
-            eval(sprintf('app.%s_menuUnderline.Layout.Column = subIndex;',    operationMode))
-            eval(sprintf('app.%s_ControlTabGroup.SelectedTab = app.%s_ControlTabGroup.Children(subIndex);', operationMode, operationMode))
-
-            jsBackDoor_Customizations(app, tabIndex)
-
-            focus(app.jsBackDoor)
-        end
-
-
         %-----------------------------------------------------------------%
         function [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app, operationMode)
             switch operationMode
@@ -1993,11 +1689,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         function misc_Table_NumberOfRows(app, operationMode)
             switch operationMode
                 case 'search'
-                    nRows = height(app.search_Table.Data);
-                    app.search_nRows.Text = sprintf('# %d ', nRows);
+                    nHom  = numel(unique(app.search_Table.Data.("Homologação")));
+                    nRows = height(app.search_Table.Data);                    
+                    app.search_nRows.Text = sprintf('%d <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>\n%d <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>', nHom, nRows);
+
                 case 'report'
                     nRows = height(app.report_Table.Data);
-                    app.report_nRows.Text = sprintf('# %d ', nRows);
+                    app.report_nRows.Text = sprintf('%d <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>', nRows);
             end
         end
 
@@ -2058,22 +1756,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
         end
 
-
-        %-----------------------------------------------------------------%
-        function config_FiscalizaModeLayout(app)
-            selectedButton = app.config_FiscalizaVersion.SelectedObject;
-            switch selectedButton
-                case app.config_FiscalizaPD
-                    app.report_Fiscaliza_PanelLabel.Text = 'API FISCALIZA';
-                    app.General.fiscaliza.systemVersion  = 'PROD';
-
-                case app.config_FiscalizaHM
-                    app.report_Fiscaliza_PanelLabel.Text = 'API FISCALIZA HOMOLOGAÇÃO';
-                    app.General.fiscaliza.systemVersion  = 'HOM';
-            end
-        end
-
-
         %-----------------------------------------------------------------%
         function config_FiscalizaDefaultValues(app)
             set(app.config_CadastroSTEL, 'Items', app.General.fiscaliza.defaultValues.entidade_com_cadastro_stel.options, ...
@@ -2090,7 +1772,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             config_FiscalizaFillTree(app, 'config_ServicoInspecao', 'servicos_da_inspecao')
         end
 
-
         %-----------------------------------------------------------------%
         function config_FiscalizaFillTree(app, componentName, fieldName)
             fieldOptions = app.General.fiscaliza.defaultValues.(fieldName).options;
@@ -2102,7 +1783,65 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
         end
-end
+    end
+
+
+    methods (Access = public)
+        %-----------------------------------------------------------------%
+        % AUXILIAR FUNCTIONS TO OTHERS APPS OR EXTERNAL FUNCTIONS
+        %-----------------------------------------------------------------%
+        function appBackDoor(app, callingApp, operationType, varargin)
+            try
+                switch class(callingApp)
+                    case {'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ... % SEARCH:FILTERSETUP
+                          'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported'}     % REPORT:PRODUCTINFO
+                        
+                        % Esse ramo do switch trata chamados de módulos auxiliares dos 
+                        % modos "SEARCH" e "REPORT". Algumas das funcionalidades 
+                        % desses módulos requerem atualização do SCH:
+                        % (a) SEARCH: atualização da filtragem, impactando na tabela com
+                        %     resultado de busca e o seu painel.
+                        % (b) REPORT: atualização da tabela com a lista de produtos sob
+                        %     análise e o seu painel.
+
+                        % O flag "updateFlag" provê essa atualização, e o flag "returnFlag" 
+                        % evita que o módulo seja "fechado" (por meio da invisibilidade do 
+                        % app.popupContainerGrid).
+
+                        updateFlag = varargin{1};
+                        returnFlag = varargin{2};
+
+                        if updateFlag
+                            switch operationType
+                                case 'SEARCH:FILTERSETUP'
+                                    search_Filtering_secundaryFilter(app)
+                                    search_FilterSpecification(app)                                    
+
+                                case 'REPORT:PRODUCTINFO'
+                                    report_TreeBuilding(app)
+                            end
+                        end
+
+                        if returnFlag
+                            return
+                        end
+                        
+                        app.popupContainerGrid.Visible = 0;
+    
+                    otherwise
+                        error('UnexpectedCall')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);            
+            end
+
+            % Caso um app auxiliar esteja em modo DOCK, o progressDialog do
+            % app auxiliar coincide com o do SCH. Força-se, portanto, a condição 
+            % abaixo para evitar possível bloqueio da tela.
+            app.progressDialog.Visible = 'hidden';
+        end
+    end
     
 
     % Callbacks that handle component events
@@ -2120,11 +1859,8 @@ end
                 app.popupContainerGrid.Layout.Row = [1,2];
                 app.GridLayout.RowHeight = {44, '1x'};
 
-                app.search_mainGrid.ColumnWidth{1}  = 0;
-
-                app.search_Tab1Grid.RowHeight(4:14) = repmat({0}, 1, 11);
-                app.report_Tab1Grid.RowHeight(4:7)  = {0,0,0,0};
-                
+                app.Tab1_SearchGrid.ColumnWidth(1:2) = {0,5};
+                app.search_Tab1Grid.RowHeight(4:9)   = repmat({0}, 1, 6);
                 config_ButtonGroupSelectionChanged(app)
                 % </GUI>
 
@@ -2268,49 +2004,23 @@ end
 
         % Image clicked function: search_entryPointImage
         function search_EntryPoint_ImageClicked(app, event)
-            
-            listOfColumns = search_Filtering_PrimaryTableColumns(app);
-            selectedMode  = fcn.extractHTMLText(app.config_SearchModePanel.SelectedObject.Text, 'P');            
+
+            value2Search = textAnalysis.preProcessedData(app.search_entryPoint.Value);
 
             if app.config_SearchModeTokenSuggestion.Value
-                value2Search = textAnalysis.preProcessedData(app.search_entryPoint.Value);
-                words2Search = app.search_Suggestions.Items;
-                
+                words2Search = app.search_Suggestions.Items;                
                 if ~isempty(words2Search)
-                    nWords2Search  = numel(words2Search);
-                    nWordsContains = sum(contains(words2Search, value2Search));
-                    
-                    % Criando uma amostra da lista para mostrar em tela, mas 
-                    % limitando a lista em 400 caracteres...
-                    sizeOfWords    = cellfun(@(x) numel(x), words2Search);
-                    
-                    for ii = 0:nWords2Search-1
-                        if sum(sizeOfWords(1:nWords2Search-ii)) < 256
-                            listOfWords = words2Search(1:nWords2Search-ii);
-                            break
-                        end
-                    end
-    
-                    % Inserindo o texto "e similiares" caso exista alguma
-                    % palavra-chave que não contenha o termo a procurar.
-                    if nWordsContains < nWords2Search
-                        searchNote = ' e similares';
-                    else
-                        searchNote = '';
-                    end
-        
-                    app.search_Metadata.Text = sprintf('Exibindo resultados para "<b>%s</b>"%s\n<p style="color: #808080; font-size:10px; text-align:justify;">Parâmetros de pesquisa: %s</p>', ...
-                                                       app.search_entryPoint.Value, searchNote, jsonencode(struct('Modo', selectedMode, 'Coluna', {listOfColumns}, 'Qtd', sprintf('%d de %d', nWordsContains, nWords2Search), 'Amostra', {listOfWords})));
                     search_Filtering_primaryFilter(app, words2Search)
+                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', words2Search);
+                    search_FilterSpecification(app)
                 end
 
             else
                 words2Search = textAnalysis.preProcessedData(strsplit(app.search_entryPoint.Value, ','));
-
                 if ~isempty(words2Search)
-                    app.search_Metadata.Text = sprintf('Exibindo resultados para %s\n<p style="color: #808080; font-size:10px;">Parâmetros de pesquisa: %s</p>', ...
-                                                       strjoin("""<b>" + string(words2Search) + "</b>""", ', '), jsonencode(struct('Modo', selectedMode, 'Coluna', {listOfColumns})));
                     search_Filtering_primaryFilter(app, words2Search)
+                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', words2Search);
+                    search_FilterSpecification(app)
                 end
             end
 
@@ -2363,44 +2073,35 @@ end
             
         end
 
-        % Selection changed function: search_PrimaryPanel
-        function search_Filtering_primaryTableColumnsChanged(app, event)
-            
-            app.previousSearch = '';
-
-            search_EntryPoint_InitialValue(app)
-            search_SuggestionPanel_InitialValues(app)
-
-        end
-
         % Image clicked function: search_ToolbarAnnotation, 
         % ...and 2 other components
         function search_Panel_ToolbarButtonClicked(app, event)
             
+            focus(app.jsBackDoor)
+
             switch event.Source
                 case app.search_ToolbarAnnotation
-                    if app.search_Tab1Grid.RowHeight{6}
+                    if app.search_Tab1Grid.RowHeight{5}
                         app.search_ToolbarAnnotation.ImageSource = app.search_ToolbarAnnotation.UserData.iconOptions{1};
-                        app.search_Tab1Grid.RowHeight(6:7)       = {0,0};
+                        app.search_Tab1Grid.RowHeight(5)         = {0};
                         
-                        if ~app.search_Tab1Grid.RowHeight{8}
-                            app.search_Tab1Grid.RowHeight(4:5)   = {0,0};
+                        if ~app.search_Tab1Grid.RowHeight{6}
+                            app.search_Tab1Grid.RowHeight(4)     = {0};
                         end
 
                     else
                         app.search_ToolbarAnnotation.ImageSource = app.search_ToolbarAnnotation.UserData.iconOptions{2};
-                        app.search_Tab1Grid.RowHeight(4:7)       = {5,22,5,148};
+                        app.search_Tab1Grid.RowHeight(4:5)       = {22,148};
                     end
                     search_Panel_Visibility(app)
 
                 case app.search_ToolbarWordCloud
-                    %app.search_Tab1Grid.RowHeight = {22, 5, '1x', 5, 22, 5, 148, 5, 44, 5, 5, 22, 5, 44, 1};
-                    if app.search_Tab1Grid.RowHeight{8}
+                    if app.search_Tab1Grid.RowHeight{6}
                         app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{1};
-                        app.search_Tab1Grid.RowHeight(8:10)       = {0,0,0};
+                        app.search_Tab1Grid.RowHeight(6:7)        = {0,0};
 
-                        if ~app.search_Tab1Grid.RowHeight{6}
-                            app.search_Tab1Grid.RowHeight(4:5)    = {0,0};
+                        if ~app.search_Tab1Grid.RowHeight{5}
+                            app.search_Tab1Grid.RowHeight(4)      = {0};
                         end
 
                     else
@@ -2408,7 +2109,7 @@ end
                         % MATLAB precisa renderizar em tela o container do
                         % WordCloud (um objeto uihtml).
                         app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{2};
-                        app.search_Tab1Grid.RowHeight([4:5,8:10]) = {5,22,5,121,22};
+                        app.search_Tab1Grid.RowHeight([4,6,7]) = {22,121,22};
                         drawnow nocallbacks
 
                         selectedRow = app.search_ProductInfo.UserData.selectedRow;
@@ -2421,17 +2122,15 @@ end
                     end
 
                 case app.search_ToolbarListOfProducts
-                    if app.search_Tab1Grid.RowHeight{11}
+                    if app.search_Tab1Grid.RowHeight{9}
                         app.search_ToolbarListOfProducts.ImageSource = app.search_ToolbarListOfProducts.UserData.iconOptions{1};
-                        app.search_Tab1Grid.RowHeight(11:14)         = {0,0,0,0};
+                        app.search_Tab1Grid.RowHeight(8:9)           = {0,0};
 
                     else
                         app.search_ToolbarListOfProducts.ImageSource = app.search_ToolbarListOfProducts.UserData.iconOptions{2};
-                        app.search_Tab1Grid.RowHeight(11:14)         = {5,22,5,148};
+                        app.search_Tab1Grid.RowHeight(8:9)           = {22,148};
                     end
             end
-
-            focus(app.jsBackDoor)
 
         end
 
@@ -2515,125 +2214,6 @@ end
 
         end
 
-        % Value changed function: search_SecundaryColumn
-        function search_SecundaryColumnValueChanged(app, event)
-            
-            columnName  = app.search_SecundaryColumn.Value;
-            columnIndex = find(strcmp(app.General.SCHDataInfo.Column, columnName), 1);
-
-            filterType  = app.General.SCHDataInfo.FilterType{columnIndex};
-            switch filterType
-                case 'datetime'
-                    Operations = {'=', '≠', '<', '≤', '>', '≥', '><', '<>', '⊃', '⊅'};
-
-                case 'freeText'
-                    Operations = {'=', '≠', '⊃', '⊅'};
-
-                case 'listOfText'
-                    Operations = {'=', '≠'};
-            end
-            app.search_SecundaryOperation.Items = Operations;
-
-            app.search_SecundaryOperation.Value = app.search_SecundaryOperation.Items{1};
-            search_SecundaryOperationValueChanged(app)
-
-
-        end
-
-        % Value changed function: search_SecundaryOperation
-        function search_SecundaryOperationValueChanged(app, event)
-            
-            columnName  = app.search_SecundaryColumn.Value;
-            columnIndex = find(strcmp(app.General.SCHDataInfo.Column, columnName), 1);
-
-            filterType  = app.General.SCHDataInfo.FilterType{columnIndex};
-            selectedOperation = app.search_SecundaryOperation.Value;
-            switch filterType
-                case 'datetime'
-                    switch selectedOperation
-                        case {'=', '≠', '<', '≤', '>', '≥'}
-                            set(app.search_SecundaryDateTime1,         'Visible', 1)
-                            set(app.search_SecundaryDateTimeSeparator, 'Visible', 0)
-                            set(app.search_SecundaryDateTime2,         'Visible', 0)
-                            set(app.search_SecundaryTextFreeValue,     'Visible', 0)
-                            set(app.search_SecundaryTextListValue,     'Visible', 0, 'Items', {})
-                            
-                        case {'><', '<>'}
-                            set(app.search_SecundaryDateTime1,         'Visible', 1)
-                            set(app.search_SecundaryDateTimeSeparator, 'Visible', 1)
-                            set(app.search_SecundaryDateTime2,         'Visible', 1)
-                            set(app.search_SecundaryTextFreeValue,     'Visible', 0)
-                            set(app.search_SecundaryTextListValue,     'Visible', 0, 'Items', {})
-
-                        case {'⊃', '⊅'}
-                            set(app.search_SecundaryDateTime1,         'Visible', 0)
-                            set(app.search_SecundaryDateTimeSeparator, 'Visible', 0)
-                            set(app.search_SecundaryDateTime2,         'Visible', 0)
-                            set(app.search_SecundaryTextFreeValue,     'Visible', 1)
-                            set(app.search_SecundaryTextListValue,     'Visible', 0, 'Items', {})
-                    end
-
-                case 'freeText'
-                    set(app.search_SecundaryDateTime1,         'Visible', 0)
-                    set(app.search_SecundaryDateTimeSeparator, 'Visible', 0)
-                    set(app.search_SecundaryDateTime2,         'Visible', 0)
-                    set(app.search_SecundaryTextFreeValue,     'Visible', 1)
-                    set(app.search_SecundaryTextListValue,     'Visible', 0, 'Items', {})
-
-                case 'listOfText'
-                    try
-                        primaryIndex = app.search_Table.UserData.primaryIndex;
-                        columnItems  = [{''}; cellstr(unique(app.rawDataTable{primaryIndex, columnName}))];
-                    catch
-                        columnItems = {};
-                    end
-
-                    set(app.search_SecundaryDateTime1,         'Visible', 0)
-                    set(app.search_SecundaryDateTimeSeparator, 'Visible', 0)
-                    set(app.search_SecundaryDateTime2,         'Visible', 0)
-                    set(app.search_SecundaryTextFreeValue,     'Visible', 0)
-                    set(app.search_SecundaryTextListValue,     'Visible', 1, 'Items', columnItems)
-            end
-            
-        end
-
-        % Image clicked function: search_SecundaryAddFilter
-        function search_SecundaryAddFilterImageClicked(app, event)
-            
-            primaryIndex = app.search_Table.UserData.primaryIndex;
-            if isempty(primaryIndex)
-                appUtil.modalWindow(app.UIFigure, 'warning', 'A filtragem secundária é aplicável apenas após a realização de uma pesquisa (filtragem primária), e desde que tenha retornado algum registro dessa pesquisa.');
-                return
-            end
-
-            % Afere os valores do novo filtro, validando-os.
-            Column    = app.search_SecundaryColumn.Value;
-            Operation = app.search_SecundaryOperation.Value;
-            
-            [Value, msgWarning] = search_Filtering_SecundaryFilterValue(app);
-            if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                return
-            end
-
-            % Adiciona um novo filtro à lista de filtros secundários.
-            msgWarning = addFilterRule(app.filteringObj, Column, Operation, Value);
-            if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-                return
-            end
-
-            % Atualiza lista de filtros.
-            search_Filtering_SecundaryFilterLayout(app)
-
-            % Aplica estilo nos desabilitados...
-            pause(1)
-
-            % Filtra...
-            search_Filtering_secundaryFilter(app)
-
-        end
-
         % Image clicked function: report_ReportGeneration
         function report_ReportGenerationImageClicked(app, event)
             
@@ -2650,7 +2230,7 @@ end
 
             nEntity = strtrim(app.report_Entity.Value);
             try
-                [~, nCNPJ] = checkCNPJ(app.report_EntityID.Value, false);
+                nCNPJ = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
             catch
                 nCNPJ = '';
             end
@@ -2705,11 +2285,11 @@ end
                 
                 switch app.report_Version.Value
                     case 'Definitiva'
-                        app.General.fiscaliza.lastHTMLDocFullPath = HTMLDocFullPath;
-                        app.General.fiscaliza.lastTableFullPath   = CSVDocFullPath;
+                        app.projectData.generatedFiles.lastHTMLDocFullPath = HTMLDocFullPath;
+                        app.projectData.generatedFiles.lastTableFullPath   = CSVDocFullPath;
+
                     case 'Preliminar'
-                        app.General.fiscaliza.lastHTMLDocFullPath = '';
-                        app.General.fiscaliza.lastTableFullPath   = '';
+                        app.projectData.generatedFiles = [];
                 end
 
             catch ME
@@ -2749,22 +2329,6 @@ end
 
         end
 
-        % Image clicked function: report_ToolbarEditOrAdd
-        function report_ToolbarEditOrAddImageClicked(app, event)
-            
-            if app.report_Tab1Grid.RowHeight{4}
-                app.report_ToolbarEditOrAdd.ImageSource = app.report_ToolbarEditOrAdd.UserData.iconOptions{1};
-                app.report_Tab1Grid.RowHeight(4:7)      = {0,0,0,0};
-
-            else
-                app.report_ToolbarEditOrAdd.ImageSource = app.report_ToolbarEditOrAdd.UserData.iconOptions{2};
-                app.report_Tab1Grid.RowHeight(4:7)      = {5,22,5,292};
-            end
-
-            focus(app.jsBackDoor)
-
-        end
-
         % Selection changed function: report_Table
         function report_TableSelectionChanged(app, event)
             
@@ -2791,16 +2355,12 @@ end
 
                     htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable);
                     misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, selectedRow(1), selected2showedHom)
-                    report_SelectedHomPanel_InfoUpdate(app, selected2showedHom, selectedRow(1))
                 end                
 
             else
                 htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
                 misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, [], '')
-                report_SelectedHomPanel_InfoUpdate(app, '', [])
             end
-
-            app.report_EditOrAddButton.Enable = 0;
 
         end
 
@@ -2835,68 +2395,6 @@ end
 
         end
 
-        % Selection changed function: report_productSituationPanel
-        function report_productSituationPanelSelectionChanged(app, event)
-            
-            selectedButton = app.report_productSituationPanel.SelectedObject;
-            
-            switch selectedButton
-                case app.report_productSituation1 % HOMOLOGADO
-                    set(app.report_nHom, 'Enable', 1, 'Value', '')
-
-                case app.report_productSituation2 % NÃO HOMOLOGADO
-                    set(app.report_nHom, 'Enable', 0, 'Value', '-1')
-            end
-            
-        end
-
-        % Image clicked function: report_EditOrAddButton
-        function report_EditOrAddButtonImageClicked(app, event)
-            
-            app.report_EditOrAddButton.Enable = 0;
-
-            [~, showedHom] = misc_Table_SelectedRow(app, 'report');
-            selectedHom = app.report_nHom.Value;
-
-            if isempty(showedHom)
-                srcMode = 'report - addRow';
-
-                if ~strcmp(selectedHom, '-1')
-                    if ismember(selectedHom, app.projectData.listOfProducts.("Homologação"))
-                        appUtil.modalWindow(app.UIFigure, 'warning', sprintf('O número de homologação "%s" já foi incluído à lista de produtos sob análise.', selectedHom));
-                        return
-    
-                    elseif ~ismember(selectedHom, app.rawDataTable.("Homologação"))
-                        appUtil.modalWindow(app.UIFigure, 'warning', sprintf('O número de homologação "%s" não foi encontrado na base de dados. O formato esperado para esse campo é XXXXX-XX-XXXXX.', selectedHom));
-                        return
-                    end
-                end      
-
-            else
-                srcMode = 'report - edit';
-            end
-      
-            report_ListOfProductsAdd(app, srcMode, {selectedHom})
-
-            focus(app.jsBackDoor)
-
-        end
-
-        % Value changed function: report_Situation
-        function report_SituationValueChanged(app, event)
-            
-            switch app.report_Situation.Value
-                case 'Irregular'
-                    set(app.report_Violation,  'Enable', 1, 'Items', app.General.typeOfViolation)
-                    set(app.report_Corrigible, 'Enable', 1, 'Items', {'Sim', 'Não'})
-                case 'Regular'
-                    set(app.report_Violation,  'Enable', 0, 'Items', {''})
-                    set(app.report_Corrigible, 'Enable', 0, 'Items', {''})
-            end
-            report_EnablingEditOrAddImage(app)
-            
-        end
-
         % Value changed function: report_ModelName
         function report_ModelNameValueChanged(app, event)
             
@@ -2906,14 +2404,6 @@ end
                 app.report_ReportGeneration.Enable = 0;
             end
 
-        end
-
-        % Callback function: ImportadorEditField, report_Corrigible, 
-        % ...and 4 other components
-        function report_EnablingEditOrAddImage(app, event)
-            
-            app.report_EditOrAddButton.Enable = 1;
-            
         end
 
         % Image clicked function: report_ProjectNew, report_ProjectOpen, 
@@ -2949,7 +2439,7 @@ end
 
                     app.report_ProjectWarnIcon.Visible = 0;
 
-                    report_FiscalizaResetGUI(app)
+                    fiscalizaLibConnection.report_ResetGUI(app)
 
                 %---------------------------------------------------------%
                 case app.report_ProjectOpen
@@ -3047,41 +2537,45 @@ end
             
             entityID = regexprep(app.report_EntityID.Value, '\D', '');
             if isempty(entityID)
-                appUtil.modalWindow(app.UIFigure, 'info', 'Consulta limitada a valores não nulos de CNPJ.');
+                appUtil.modalWindow(app.UIFigure, 'info', 'Consulta limitada a valores não nulos de CNPJ ou CPF');
                 return
             end
 
             if ~isempty(app.report_EntityID.UserData) && isequal(regexprep(app.report_EntityID.UserData.cnpj, '\D', ''), entityID)
                 CNPJ = app.report_EntityID.UserData;
+                app.report_EntityID.Value = CNPJ.cnpj;
                 appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJ, "PrettyPrint", true));
 
             else
                 try                
-                    CNPJ = checkCNPJ(app.report_EntityID.Value);
+                    CNPJ = checkCNPJOrCPF(app.report_EntityID.Value, 'PublicAPI');
     
-                    app.report_EntityID.UserData = CNPJ;
+                    set(app.report_EntityID, Value = CNPJ.cnpj, UserData = CNPJ)
                     appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJ, "PrettyPrint", true));
                 
                 catch ME
+                    app.report_EntityID.UserData = [];
                     appUtil.modalWindow(app.UIFigure, 'error', ME.message);
                 end
             end
 
         end
 
-        % Image clicked function: report_FiscalizaAutoFillImage, 
+        % Image clicked function: report_FiscalizaRefresh, 
         % ...and 2 other components
         function report_FiscalizaCallbacks(app, event)
             
+            focus(app.jsBackDoor)
+
             switch event.Source
                 case app.report_FiscalizaRefresh
                     report_FiscalizaConnect(app, [], 'RefreshIssue')
 
-                case app.report_FiscalizaAutoFillImage
-                    report_FiscalizaAutoFill(app)
+                case app.tool_FiscalizaAutoFill
+                    fiscalizaLibConnection.report_AutoFill(app)
 
-                case app.report_FiscalizaUpdateImage
-                    report_FiscalizaUpdate(app)
+                case app.tool_FiscalizaUpdate
+                    fiscalizaLibConnection.report_Update(app)
             end
 
 
@@ -3182,7 +2676,7 @@ end
             selectedButton = app.config_SearchModePanel.SelectedObject;
             switch selectedButton
                 case app.config_SearchModeTokenSuggestion
-                    app.search_Document.ColumnWidth = {400, '1x'};
+                    app.search_Document.ColumnWidth = {412, '1x'};
 
                 case app.config_SearchModeListOfWords
                     app.search_Document.ColumnWidth = {'1x', 0};
@@ -3252,7 +2746,7 @@ end
         % Selection changed function: config_FiscalizaVersion
         function config_FiscalizaMode(app, event)
             
-            config_FiscalizaModeLayout(app)
+            fiscalizaLibConnection.config_SystemMode(app)
             appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General, app.executionMode)
 
             % Reinicia o objeto, caso necessário...
@@ -3261,8 +2755,8 @@ end
                 app.fiscalizaObj = [];
 
                 misc_Panel_TabControlButtonPushed(app, struct('Source', app.report_menuBtn1Icon))
-                app.report_FiscalizaAutoFillImage.Enable = 0;
-                app.report_FiscalizaUpdateImage.Enable   = 0;
+                app.tool_FiscalizaAutoFill.Enable = 0;
+                app.tool_FiscalizaUpdate.Enable   = 0;
             end
 
         end
@@ -3291,87 +2785,80 @@ end
 
         end
 
-        % Image clicked function: report_menuBtn1Icon, 
-        % ...and 4 other components
-        function misc_Panel_TabControlButtonPushed(app, event)
+        % Image clicked function: report_menuBtn2Icon, report_menuBtn3Icon
+        function report_menuBtn2IconImageClicked(app, event)
             
             switch event.Source
-                case {app.search_menuBtn1Icon, app.search_menuBtn2Icon}
-                    operationMode = 'search';
-                    tabIndex = 1;
+                case app.report_menuBtn2Icon
+                    app.GridLayout6.RowHeight([2,4]) = {'1x', 0};
 
-                case {app.report_menuBtn1Icon, app.report_menuBtn2Icon, app.report_menuBtn3Icon}
-                    operationMode = 'report';
-                    tabIndex = 2;
-            end
-            subIndex = str2double(event.Source.Tag);
-
-            % Validação relacionado à API Fiscaliza...
-            if ~isequal([tabIndex, subIndex], [2, 3])
-                misc_Panel_menuButtonPushed(app, operationMode, tabIndex, subIndex)
-                app.report_FiscalizaAutoFillImage.Enable = 0;
-                app.report_FiscalizaUpdateImage.Enable   = 0;
-
-            else
-                if ~report_checkValidIssueID(app)
-                    appUtil.modalWindow(app.UIFigure, 'warning', 'Pendente inserir o número da Inspeção.');
-                    return
-                end
-
-                if ~isempty(app.fiscalizaObj) && strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
-                    misc_Panel_menuButtonPushed(app, operationMode, tabIndex, subIndex)
-
-                else
-                    msgQuestion = sprintf('<p style="font-size:12px; text-align:justify;">Deseja obter informações da Inspeção nº %.0f?</p>', app.report_Issue.Value);
-                    selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
-                                                                           'Options', {'   OK   ', 'CANCELAR'}, ...
-                                                                           'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-                    if strcmp(selection, 'CANCELAR')
+                case app.report_menuBtn3Icon
+                    if ~report_checkValidIssueID(app)
+                        appUtil.modalWindow(app.UIFigure, 'warning', 'Pendente inserir o número da Inspeção.');
                         return
                     end
     
-                    if isempty(app.fiscalizaObj)
-                        sendEventToHTMLSource(app.jsBackDoor, 'credentialDialog', struct('UUID', char(matlab.lang.internal.uuid())));
-                    else
-                        report_FiscalizaConnect(app, [], 'GetIssue')
+                    if isempty(app.fiscalizaObj) || ~strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
+                        msgQuestion = sprintf('<p style="font-size:12px; text-align:justify;">Deseja obter informações da Inspeção nº %.0f?</p>', app.report_Issue.Value);
+                        selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
+                                                                               'Options', {'   OK   ', 'CANCELAR'}, ...
+                                                                               'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
+                        if strcmp(selection, 'CANCELAR')
+                            return
+                        end
+        
+                        if isempty(app.fiscalizaObj)
+                            sendEventToHTMLSource(app.jsBackDoor, 'credentialDialog', struct('UUID', char(matlab.lang.internal.uuid())));
+                        else
+                            report_FiscalizaConnect(app, [], 'GetIssue')
+                        end
                     end
-                end
-
-                report_FiscalizaToolbarStatus(app)
+    
+                    fiscalizaLibConnection.report_ToolbarStatus(app)
+                    app.GridLayout6.RowHeight([2,4]) = {0, '1x'};
             end
 
         end
 
         % Image clicked function: config_PanelVisibility, 
-        % ...and 2 other components
+        % ...and 3 other components
         function misc_Panel_VisibilityImageClicked(app, event)
             
             switch event.Source
-                case app.search_PanelVisibility
-                    if app.search_mainGrid.ColumnWidth{1}
-                        app.search_PanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.search_mainGrid.ColumnWidth{1}     = 0;        
+                case app.search_Panel1Visibility
+                    if app.Tab1_SearchGrid.ColumnWidth{1}
+                        app.search_Panel1Visibility.ImageSource = 'ArrowRight_32.png';
+                        app.Tab1_SearchGrid.ColumnWidth(1:2)    = {0,5};
                     else
-                        app.search_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.search_mainGrid.ColumnWidth{1}     = 330;
+                        app.search_Panel1Visibility.ImageSource = 'ArrowLeft_32.png';
+                        app.Tab1_SearchGrid.ColumnWidth(1:2)    = {320,10};
                     end
 
-                case app.report_PanelVisibility
-                    if app.report_mainGrid.ColumnWidth{1}
-                        app.report_PanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.report_mainGrid.ColumnWidth{1}     = 0;        
+                case app.report_Panel1Visibility
+                    if app.Tab2_ReportGrid.ColumnWidth{1}
+                        app.report_Panel1Visibility.ImageSource = 'ArrowRight_32.png';
+                        app.Tab2_ReportGrid.ColumnWidth(1:2)    = {0,5};
                     else
-                        app.report_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.report_mainGrid.ColumnWidth{1}     = 330;
+                        app.report_Panel1Visibility.ImageSource = 'ArrowLeft_32.png';
+                        app.Tab2_ReportGrid.ColumnWidth(1:2)    = {320,10};
+                    end
+
+                case app.report_Panel2Visibility
+                    if app.Tab2_ReportGrid.ColumnWidth{end}
+                        app.report_Panel2Visibility.ImageSource = 'ArrowLeft_32.png';
+                        app.Tab2_ReportGrid.ColumnWidth(4:5)    = {5,0};
+                    else
+                        app.report_Panel2Visibility.ImageSource = 'ArrowRight_32.png';
+                        app.Tab2_ReportGrid.ColumnWidth(4:5)    = {10,320};
                     end
 
                 case app.config_PanelVisibility
                     if app.config_mainGrid.ColumnWidth{1}
-                        app.config_PanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.config_mainGrid.ColumnWidth{1}     = 0;        
+                        app.config_PanelVisibility.ImageSource  = 'ArrowRight_32.png';
+                        app.config_mainGrid.ColumnWidth{1}      = 0;        
                     else
-                        app.config_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.config_mainGrid.ColumnWidth{1}     = 330;
+                        app.config_PanelVisibility.ImageSource  = 'ArrowLeft_32.png';
+                        app.config_mainGrid.ColumnWidth{1}      = 315;
                     end
             end
 
@@ -3402,19 +2889,6 @@ end
                         idx = selectedTableIndex(~strcmp(app.report_Table.Data.("Homologação")(selectedTableIndex), '-1'));
                         selectedProduct = app.report_Table.Data.("Homologação")(idx);
                     end
-
-                % Relacionado à exclusão de filtro secundário.
-                case app.search_SecundaryListOfFilters
-                    selectedFilter = app.search_SecundaryListOfFilters.Value;
-
-                    if ~isempty(selectedFilter)
-                        idx = find(ismember(app.search_SecundaryListOfFilters.Items, selectedFilter));
-                        removeFilterRule(app.filteringObj, idx);
-                        
-                        search_Filtering_SecundaryFilterLayout(app)
-                        search_Filtering_secundaryFilter(app)
-                    end
-                    return
             end
 
             if ~isempty(selectedTableIndex)                        
@@ -3494,6 +2968,64 @@ end
                 app.progressDialog.Visible = 'hidden';
 
         end
+
+        % Selection changed function: LISTADEPRODUTOSSOBANLISEButtonGroup
+        function LISTADEPRODUTOSSOBANLISEButtonGroupSelectionChanged(app, event)
+            
+            report_UpdatingTableData(app)
+
+            switch app.LISTADEPRODUTOSSOBANLISEButtonGroup.SelectedObject
+                case app.FornecedorouusurioButton
+                    app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'QTD.|USO/VENDIDA'; 'QTD.|ESTOQUE'; 'QTD.|LACRADAS'; 'QTD.|APREENDIDAS'; 'QTD.|RETIDAS (RFB)'; 'INFRAÇÃO'};
+                    app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 58, 96, 90, 90, 90, 90, 90, 90, 'auto'};
+
+                case app.AduanaButton
+                    app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'VALOR|UNITÁRIO (R$)'; 'QTD.|ADUANA'; 'IMPORTADOR'; 'CÓDIGO|ADUANEIRO'; 'SITUAÇÃO'; 'SANÁVEL?'};
+                    app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 90, 90, 'auto', 'auto', 'auto', 70};
+            end
+
+        end
+
+        % Image clicked function: report_EditProduct, report_NewProduct, 
+        % ...and 1 other component
+        function search_FilterSetupClicked(app, event)
+            
+            switch event.Source
+                case app.search_FilterSetup
+                    menu_LayoutPopupApp(app, 'FilterSetup')
+
+                case app.report_EditProduct
+                    menu_LayoutPopupApp(app, 'ProductInfo', 'Edit')
+
+                case app.report_NewProduct
+                    menu_LayoutPopupApp(app, 'ProductInfo', 'New')
+            end
+
+        end
+
+        % Button pushed function: search_OrientationEntity, 
+        % ...and 2 other components
+        function search_OrientationHomologationButtonPushed(app, event)
+            
+            clickedButton = event.Source;
+            if clickedButton.UserData
+                return
+            end
+
+            allButtons = [app.search_OrientationHomologation, ...
+                          app.search_OrientationEntity,       ...
+                          app.search_OrientationProduct];
+
+            app.General.ColumnNamesForSearching = clickedButton.Tag;
+
+            set(clickedButton,                      BackgroundColor = [.24 .47 .85], FontColor = [1 1 1],    UserData = true)
+            set(setdiff(allButtons, clickedButton), BackgroundColor = [.94 .94 .94], FontColor = [.5 .5 .5], UserData = false)
+
+            app.previousSearch = '';
+            search_EntryPoint_InitialValue(app)
+            search_SuggestionPanel_InitialValues(app)
+
+        end
     end
 
     % Component initialization
@@ -3533,32 +3065,307 @@ end
             app.Tab1_Search = uitab(app.TabGroup);
             app.Tab1_Search.AutoResizeChildren = 'off';
 
-            % Create GridLayout3
-            app.GridLayout3 = uigridlayout(app.Tab1_Search);
-            app.GridLayout3.ColumnWidth = {'1x'};
-            app.GridLayout3.RowHeight = {'1x', 34};
-            app.GridLayout3.RowSpacing = 0;
-            app.GridLayout3.Padding = [0 0 0 26];
-            app.GridLayout3.BackgroundColor = [1 1 1];
+            % Create Tab1_SearchGrid
+            app.Tab1_SearchGrid = uigridlayout(app.Tab1_Search);
+            app.Tab1_SearchGrid.ColumnWidth = {320, 10, '1x', 5};
+            app.Tab1_SearchGrid.RowHeight = {'1x', 34};
+            app.Tab1_SearchGrid.ColumnSpacing = 0;
+            app.Tab1_SearchGrid.RowSpacing = 5;
+            app.Tab1_SearchGrid.Padding = [0 0 0 26];
+            app.Tab1_SearchGrid.BackgroundColor = [1 1 1];
 
-            % Create search_mainGrid
-            app.search_mainGrid = uigridlayout(app.GridLayout3);
-            app.search_mainGrid.ColumnWidth = {330, '1x'};
-            app.search_mainGrid.RowHeight = {'1x'};
-            app.search_mainGrid.Padding = [5 5 5 0];
-            app.search_mainGrid.Layout.Row = 1;
-            app.search_mainGrid.Layout.Column = 1;
-            app.search_mainGrid.BackgroundColor = [1 1 1];
+            % Create file_toolGrid
+            app.file_toolGrid = uigridlayout(app.Tab1_SearchGrid);
+            app.file_toolGrid.ColumnWidth = {22, 22, 22, '1x', 110, 110, 110};
+            app.file_toolGrid.RowHeight = {4, 17, '1x'};
+            app.file_toolGrid.ColumnSpacing = 5;
+            app.file_toolGrid.RowSpacing = 0;
+            app.file_toolGrid.Padding = [0 5 5 5];
+            app.file_toolGrid.Layout.Row = 2;
+            app.file_toolGrid.Layout.Column = [1 4];
+
+            % Create search_Panel1Visibility
+            app.search_Panel1Visibility = uiimage(app.file_toolGrid);
+            app.search_Panel1Visibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
+            app.search_Panel1Visibility.Layout.Row = 2;
+            app.search_Panel1Visibility.Layout.Column = 1;
+            app.search_Panel1Visibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowRight_32.png');
+
+            % Create search_FilterSetup
+            app.search_FilterSetup = uiimage(app.file_toolGrid);
+            app.search_FilterSetup.ScaleMethod = 'none';
+            app.search_FilterSetup.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.search_FilterSetup.Tooltip = {'Edita filtragem secundária'};
+            app.search_FilterSetup.Layout.Row = [1 3];
+            app.search_FilterSetup.Layout.Column = 2;
+            app.search_FilterSetup.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Filter_18x18.png');
+
+            % Create search_ExportTable
+            app.search_ExportTable = uiimage(app.file_toolGrid);
+            app.search_ExportTable.ScaleMethod = 'none';
+            app.search_ExportTable.ImageClickedFcn = createCallbackFcn(app, @search_ExportTableClicked, true);
+            app.search_ExportTable.Enable = 'off';
+            app.search_ExportTable.Tooltip = {'Exporta resultados de busca em arquivo XLSX'};
+            app.search_ExportTable.Layout.Row = 2;
+            app.search_ExportTable.Layout.Column = 3;
+            app.search_ExportTable.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Export_16.png');
+
+            % Create search_OrientationHomologation
+            app.search_OrientationHomologation = uibutton(app.file_toolGrid, 'push');
+            app.search_OrientationHomologation.ButtonPushedFcn = createCallbackFcn(app, @search_OrientationHomologationButtonPushed, true);
+            app.search_OrientationHomologation.Tag = 'Homologação';
+            app.search_OrientationHomologation.WordWrap = 'on';
+            app.search_OrientationHomologation.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.search_OrientationHomologation.FontSize = 11;
+            app.search_OrientationHomologation.FontColor = [0.502 0.502 0.502];
+            app.search_OrientationHomologation.Tooltip = {'Filtragem primária orientada à coluna'; '"Homologação"'};
+            app.search_OrientationHomologation.Layout.Row = [1 3];
+            app.search_OrientationHomologation.Layout.Column = 5;
+            app.search_OrientationHomologation.Text = 'HOMOLOGAÇÃO';
+
+            % Create search_OrientationEntity
+            app.search_OrientationEntity = uibutton(app.file_toolGrid, 'push');
+            app.search_OrientationEntity.ButtonPushedFcn = createCallbackFcn(app, @search_OrientationHomologationButtonPushed, true);
+            app.search_OrientationEntity.Tag = 'Solicitante | Fabricante';
+            app.search_OrientationEntity.WordWrap = 'on';
+            app.search_OrientationEntity.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.search_OrientationEntity.FontSize = 11;
+            app.search_OrientationEntity.FontColor = [0.502 0.502 0.502];
+            app.search_OrientationEntity.Tooltip = {'Filtragem primária orientada às colunas'; '"Solicitante" e "Fabricante"'};
+            app.search_OrientationEntity.Layout.Row = [1 3];
+            app.search_OrientationEntity.Layout.Column = 6;
+            app.search_OrientationEntity.Text = 'EMPRESA';
+
+            % Create search_OrientationProduct
+            app.search_OrientationProduct = uibutton(app.file_toolGrid, 'push');
+            app.search_OrientationProduct.ButtonPushedFcn = createCallbackFcn(app, @search_OrientationHomologationButtonPushed, true);
+            app.search_OrientationProduct.Tag = 'Modelo | Nome Comercial';
+            app.search_OrientationProduct.WordWrap = 'on';
+            app.search_OrientationProduct.BackgroundColor = [0.2392 0.4706 0.851];
+            app.search_OrientationProduct.FontSize = 11;
+            app.search_OrientationProduct.FontColor = [1 1 1];
+            app.search_OrientationProduct.Tooltip = {'Filtragem primária orientada às colunas'; '"Modelo" e "Nome Comercial"'};
+            app.search_OrientationProduct.Layout.Row = [1 3];
+            app.search_OrientationProduct.Layout.Column = 7;
+            app.search_OrientationProduct.Text = 'PRODUTO';
+
+            % Create search_Tab1Grid
+            app.search_Tab1Grid = uigridlayout(app.Tab1_SearchGrid);
+            app.search_Tab1Grid.ColumnWidth = {'1x', 18, 18, 18};
+            app.search_Tab1Grid.RowHeight = {22, 22, '1x', 22, 148, 44, 22, 22, 44};
+            app.search_Tab1Grid.ColumnSpacing = 2;
+            app.search_Tab1Grid.RowSpacing = 5;
+            app.search_Tab1Grid.Padding = [5 0 0 0];
+            app.search_Tab1Grid.Layout.Row = 1;
+            app.search_Tab1Grid.Layout.Column = 1;
+            app.search_Tab1Grid.BackgroundColor = [1 1 1];
+
+            % Create search_ProductInfoLabel
+            app.search_ProductInfoLabel = uilabel(app.search_Tab1Grid);
+            app.search_ProductInfoLabel.VerticalAlignment = 'bottom';
+            app.search_ProductInfoLabel.FontSize = 10;
+            app.search_ProductInfoLabel.Layout.Row = 2;
+            app.search_ProductInfoLabel.Layout.Column = 1;
+            app.search_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
+
+            % Create search_ToolbarWordCloud
+            app.search_ToolbarWordCloud = uiimage(app.search_Tab1Grid);
+            app.search_ToolbarWordCloud.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
+            app.search_ToolbarWordCloud.Enable = 'off';
+            app.search_ToolbarWordCloud.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
+            app.search_ToolbarWordCloud.Layout.Row = 2;
+            app.search_ToolbarWordCloud.Layout.Column = 3;
+            app.search_ToolbarWordCloud.VerticalAlignment = 'bottom';
+            app.search_ToolbarWordCloud.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Cloud_32x32Gray.png');
+
+            % Create search_ToolbarListOfProducts
+            app.search_ToolbarListOfProducts = uiimage(app.search_Tab1Grid);
+            app.search_ToolbarListOfProducts.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
+            app.search_ToolbarListOfProducts.Enable = 'off';
+            app.search_ToolbarListOfProducts.Tooltip = {'Lista de produtos homologados sob análise'};
+            app.search_ToolbarListOfProducts.Layout.Row = 2;
+            app.search_ToolbarListOfProducts.Layout.Column = 4;
+            app.search_ToolbarListOfProducts.VerticalAlignment = 'bottom';
+            app.search_ToolbarListOfProducts.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Box_32x32Gray.png');
+
+            % Create search_ProductInfoPanel
+            app.search_ProductInfoPanel = uipanel(app.search_Tab1Grid);
+            app.search_ProductInfoPanel.AutoResizeChildren = 'off';
+            app.search_ProductInfoPanel.Layout.Row = 3;
+            app.search_ProductInfoPanel.Layout.Column = [1 4];
+
+            % Create search_ProductInfoGrid
+            app.search_ProductInfoGrid = uigridlayout(app.search_ProductInfoPanel);
+            app.search_ProductInfoGrid.ColumnWidth = {'1x'};
+            app.search_ProductInfoGrid.RowHeight = {'1x'};
+            app.search_ProductInfoGrid.Padding = [0 0 0 0];
+            app.search_ProductInfoGrid.BackgroundColor = [1 1 1];
+
+            % Create search_ProductInfo
+            app.search_ProductInfo = uihtml(app.search_ProductInfoGrid);
+            app.search_ProductInfo.HTMLSource = 'Warning.html';
+            app.search_ProductInfo.Layout.Row = 1;
+            app.search_ProductInfo.Layout.Column = 1;
+
+            % Create search_AnnotationPanelLabel
+            app.search_AnnotationPanelLabel = uilabel(app.search_Tab1Grid);
+            app.search_AnnotationPanelLabel.VerticalAlignment = 'bottom';
+            app.search_AnnotationPanelLabel.FontSize = 10;
+            app.search_AnnotationPanelLabel.Layout.Row = 4;
+            app.search_AnnotationPanelLabel.Layout.Column = [1 2];
+            app.search_AnnotationPanelLabel.Text = 'ANOTAÇÃO';
+
+            % Create search_AnnotationPanel
+            app.search_AnnotationPanel = uipanel(app.search_Tab1Grid);
+            app.search_AnnotationPanel.AutoResizeChildren = 'off';
+            app.search_AnnotationPanel.Layout.Row = 5;
+            app.search_AnnotationPanel.Layout.Column = [1 4];
+
+            % Create search_AnnotationGrid
+            app.search_AnnotationGrid = uigridlayout(app.search_AnnotationPanel);
+            app.search_AnnotationGrid.ColumnWidth = {'1x', 20};
+            app.search_AnnotationGrid.RowHeight = {17, 22, 17, '1x', 20};
+            app.search_AnnotationGrid.ColumnSpacing = 3;
+            app.search_AnnotationGrid.RowSpacing = 5;
+            app.search_AnnotationGrid.Padding = [10 10 5 5];
+            app.search_AnnotationGrid.BackgroundColor = [1 1 1];
+
+            % Create search_AnnotationAttributeLabel
+            app.search_AnnotationAttributeLabel = uilabel(app.search_AnnotationGrid);
+            app.search_AnnotationAttributeLabel.VerticalAlignment = 'bottom';
+            app.search_AnnotationAttributeLabel.FontSize = 10;
+            app.search_AnnotationAttributeLabel.Layout.Row = 1;
+            app.search_AnnotationAttributeLabel.Layout.Column = 1;
+            app.search_AnnotationAttributeLabel.Text = 'Atributo:';
+
+            % Create search_AnnotationAttribute
+            app.search_AnnotationAttribute = uidropdown(app.search_AnnotationGrid);
+            app.search_AnnotationAttribute.Items = {'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
+            app.search_AnnotationAttribute.FontSize = 11;
+            app.search_AnnotationAttribute.BackgroundColor = [1 1 1];
+            app.search_AnnotationAttribute.Layout.Row = 2;
+            app.search_AnnotationAttribute.Layout.Column = 1;
+            app.search_AnnotationAttribute.Value = 'Fornecedor';
+
+            % Create search_AnnotationValueLabel
+            app.search_AnnotationValueLabel = uilabel(app.search_AnnotationGrid);
+            app.search_AnnotationValueLabel.VerticalAlignment = 'bottom';
+            app.search_AnnotationValueLabel.FontSize = 10;
+            app.search_AnnotationValueLabel.Layout.Row = 3;
+            app.search_AnnotationValueLabel.Layout.Column = 1;
+            app.search_AnnotationValueLabel.Text = 'Valor:';
+
+            % Create search_AnnotationValue
+            app.search_AnnotationValue = uitextarea(app.search_AnnotationGrid);
+            app.search_AnnotationValue.FontSize = 11;
+            app.search_AnnotationValue.Layout.Row = [4 5];
+            app.search_AnnotationValue.Layout.Column = 1;
+
+            % Create search_AnnotationPanelAdd
+            app.search_AnnotationPanelAdd = uiimage(app.search_AnnotationGrid);
+            app.search_AnnotationPanelAdd.ImageClickedFcn = createCallbackFcn(app, @search_Annotation_AddImageClicked, true);
+            app.search_AnnotationPanelAdd.Enable = 'off';
+            app.search_AnnotationPanelAdd.Layout.Row = 5;
+            app.search_AnnotationPanelAdd.Layout.Column = 2;
+            app.search_AnnotationPanelAdd.VerticalAlignment = 'bottom';
+            app.search_AnnotationPanelAdd.ImageSource = fullfile(pathToMLAPP, 'Icons', 'NewFile_36.png');
+
+            % Create search_WordCloudPanel
+            app.search_WordCloudPanel = uipanel(app.search_Tab1Grid);
+            app.search_WordCloudPanel.AutoResizeChildren = 'off';
+            app.search_WordCloudPanel.BackgroundColor = [1 1 1];
+            app.search_WordCloudPanel.Layout.Row = [6 7];
+            app.search_WordCloudPanel.Layout.Column = [1 4];
+
+            % Create search_WordCloudRefreshGrid
+            app.search_WordCloudRefreshGrid = uigridlayout(app.search_Tab1Grid);
+            app.search_WordCloudRefreshGrid.ColumnWidth = {18, '1x'};
+            app.search_WordCloudRefreshGrid.RowHeight = {'1x'};
+            app.search_WordCloudRefreshGrid.ColumnSpacing = 2;
+            app.search_WordCloudRefreshGrid.RowSpacing = 2;
+            app.search_WordCloudRefreshGrid.Padding = [2 3 3 1];
+            app.search_WordCloudRefreshGrid.Layout.Row = 7;
+            app.search_WordCloudRefreshGrid.Layout.Column = 1;
+            app.search_WordCloudRefreshGrid.BackgroundColor = [1 1 1];
+
+            % Create search_WordCloudRefresh
+            app.search_WordCloudRefresh = uiimage(app.search_WordCloudRefreshGrid);
+            app.search_WordCloudRefresh.ImageClickedFcn = createCallbackFcn(app, @search_WordCloud_RefreshImageClicked, true);
+            app.search_WordCloudRefresh.Enable = 'off';
+            app.search_WordCloudRefresh.Layout.Row = 1;
+            app.search_WordCloudRefresh.Layout.Column = 1;
+            app.search_WordCloudRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18Gray.png');
+
+            % Create search_ListOfProductsLabel
+            app.search_ListOfProductsLabel = uilabel(app.search_Tab1Grid);
+            app.search_ListOfProductsLabel.VerticalAlignment = 'bottom';
+            app.search_ListOfProductsLabel.FontSize = 10;
+            app.search_ListOfProductsLabel.Layout.Row = 8;
+            app.search_ListOfProductsLabel.Layout.Column = [1 3];
+            app.search_ListOfProductsLabel.Text = 'LISTA DE PRODUTOS HOMOLOGADOS SOB ANÁLISE';
+
+            % Create search_ListOfProductsAdd
+            app.search_ListOfProductsAdd = uiimage(app.search_Tab1Grid);
+            app.search_ListOfProductsAdd.ImageClickedFcn = createCallbackFcn(app, @search_Report_ListOfProductsAddImageClicked, true);
+            app.search_ListOfProductsAdd.Layout.Row = 8;
+            app.search_ListOfProductsAdd.Layout.Column = 4;
+            app.search_ListOfProductsAdd.VerticalAlignment = 'bottom';
+            app.search_ListOfProductsAdd.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Sum_36.png');
+
+            % Create search_ListOfProducts
+            app.search_ListOfProducts = uilistbox(app.search_Tab1Grid);
+            app.search_ListOfProducts.Items = {};
+            app.search_ListOfProducts.Multiselect = 'on';
+            app.search_ListOfProducts.FontSize = 11;
+            app.search_ListOfProducts.Layout.Row = 9;
+            app.search_ListOfProducts.Layout.Column = [1 4];
+            app.search_ListOfProducts.Value = {};
+
+            % Create search_ToolbarAnnotation
+            app.search_ToolbarAnnotation = uiimage(app.search_Tab1Grid);
+            app.search_ToolbarAnnotation.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
+            app.search_ToolbarAnnotation.Enable = 'off';
+            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
+            app.search_ToolbarAnnotation.Layout.Row = 2;
+            app.search_ToolbarAnnotation.Layout.Column = 2;
+            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
+            app.search_ToolbarAnnotation.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_18x18Gray.png');
+
+            % Create search_menuBtn1Grid
+            app.search_menuBtn1Grid = uigridlayout(app.search_Tab1Grid);
+            app.search_menuBtn1Grid.ColumnWidth = {18, '1x'};
+            app.search_menuBtn1Grid.RowHeight = {'1x'};
+            app.search_menuBtn1Grid.ColumnSpacing = 3;
+            app.search_menuBtn1Grid.Padding = [2 0 0 0];
+            app.search_menuBtn1Grid.Layout.Row = 1;
+            app.search_menuBtn1Grid.Layout.Column = [1 4];
+            app.search_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create search_menuBtn1Label
+            app.search_menuBtn1Label = uilabel(app.search_menuBtn1Grid);
+            app.search_menuBtn1Label.FontSize = 11;
+            app.search_menuBtn1Label.Layout.Row = 1;
+            app.search_menuBtn1Label.Layout.Column = 2;
+            app.search_menuBtn1Label.Text = 'DADOS';
+
+            % Create search_menuBtn1Icon
+            app.search_menuBtn1Icon = uiimage(app.search_menuBtn1Grid);
+            app.search_menuBtn1Icon.ScaleMethod = 'none';
+            app.search_menuBtn1Icon.Tag = '1';
+            app.search_menuBtn1Icon.Layout.Row = 1;
+            app.search_menuBtn1Icon.Layout.Column = 1;
+            app.search_menuBtn1Icon.HorizontalAlignment = 'left';
+            app.search_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Classification_18.png');
 
             % Create search_Document
-            app.search_Document = uigridlayout(app.search_mainGrid);
-            app.search_Document.ColumnWidth = {400, '1x'};
-            app.search_Document.RowHeight = {35, 1, 5, 67, 329, '1x', 1};
+            app.search_Document = uigridlayout(app.Tab1_SearchGrid);
+            app.search_Document.ColumnWidth = {412, '1x'};
+            app.search_Document.RowHeight = {35, 1, 5, 54, 329, '1x', 1};
             app.search_Document.ColumnSpacing = 5;
             app.search_Document.RowSpacing = 0;
             app.search_Document.Padding = [0 0 0 0];
             app.search_Document.Layout.Row = 1;
-            app.search_Document.Layout.Column = 2;
+            app.search_Document.Layout.Column = 3;
             app.search_Document.BackgroundColor = [1 1 1];
 
             % Create search_Table
@@ -3620,17 +3427,7 @@ end
             app.search_Metadata.Layout.Row = 4;
             app.search_Metadata.Layout.Column = [1 2];
             app.search_Metadata.Interpreter = 'html';
-            app.search_Metadata.Text = {'Exibindo resultados para "<b>apple iphone</b>"'; '<p style="color: #808080; font-size:10px;">Pesquisa realizada nas colunas "Nome do Produto" e "Modelo Comercial".</p><p style="color: #808080; font-size:10px;">Pesquisa realizada nas colunas "Nome do Produto" e "Modelo Comercial".</p>'};
-
-            % Create search_nRows
-            app.search_nRows = uilabel(app.search_Document);
-            app.search_nRows.HorizontalAlignment = 'right';
-            app.search_nRows.VerticalAlignment = 'bottom';
-            app.search_nRows.FontSize = 10;
-            app.search_nRows.Visible = 'off';
-            app.search_nRows.Layout.Row = 4;
-            app.search_nRows.Layout.Column = [1 2];
-            app.search_nRows.Text = '# 0 ';
+            app.search_Metadata.Text = {'Exibindo resultados para "<b>apple iphone</b>"'; '<p style="color: #808080; font-size:10px;">Filtragem primária: Homologação<br>Filtragem secundária: []</p>'};
 
             % Create search_Suggestions
             app.search_Suggestions = uilistbox(app.search_Document);
@@ -3642,492 +3439,57 @@ end
             app.search_Suggestions.Layout.Column = 1;
             app.search_Suggestions.Value = {};
 
-            % Create search_Control
-            app.search_Control = uigridlayout(app.search_mainGrid);
-            app.search_Control.ColumnWidth = {'1x'};
-            app.search_Control.RowHeight = {2, 24, '1x'};
-            app.search_Control.ColumnSpacing = 0;
-            app.search_Control.RowSpacing = 0;
-            app.search_Control.Padding = [0 0 0 0];
-            app.search_Control.Layout.Row = 1;
-            app.search_Control.Layout.Column = 1;
-            app.search_Control.BackgroundColor = [1 1 1];
-
-            % Create search_ControlTabGroup
-            app.search_ControlTabGroup = uitabgroup(app.search_Control);
-            app.search_ControlTabGroup.AutoResizeChildren = 'off';
-            app.search_ControlTabGroup.Layout.Row = [2 3];
-            app.search_ControlTabGroup.Layout.Column = 1;
-
-            % Create search_Tab1
-            app.search_Tab1 = uitab(app.search_ControlTabGroup);
-            app.search_Tab1.AutoResizeChildren = 'off';
-
-            % Create search_Tab1Grid
-            app.search_Tab1Grid = uigridlayout(app.search_Tab1);
-            app.search_Tab1Grid.ColumnWidth = {'1x', 18, 18, 18};
-            app.search_Tab1Grid.RowHeight = {22, 5, '1x', 5, 22, 5, 148, 5, 44, 5, 5, 22, 5, 44, 1};
-            app.search_Tab1Grid.ColumnSpacing = 2;
-            app.search_Tab1Grid.RowSpacing = 0;
-            app.search_Tab1Grid.Padding = [0 0 0 0];
-            app.search_Tab1Grid.BackgroundColor = [1 1 1];
-
-            % Create search_ProductInfoLabel
-            app.search_ProductInfoLabel = uilabel(app.search_Tab1Grid);
-            app.search_ProductInfoLabel.VerticalAlignment = 'bottom';
-            app.search_ProductInfoLabel.FontSize = 10;
-            app.search_ProductInfoLabel.Layout.Row = 1;
-            app.search_ProductInfoLabel.Layout.Column = 1;
-            app.search_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
-
-            % Create search_ToolbarWordCloud
-            app.search_ToolbarWordCloud = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarWordCloud.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
-            app.search_ToolbarWordCloud.Enable = 'off';
-            app.search_ToolbarWordCloud.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
-            app.search_ToolbarWordCloud.Layout.Row = [1 2];
-            app.search_ToolbarWordCloud.Layout.Column = 3;
-            app.search_ToolbarWordCloud.VerticalAlignment = 'bottom';
-            app.search_ToolbarWordCloud.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Cloud_32x32Gray.png');
-
-            % Create search_ToolbarListOfProducts
-            app.search_ToolbarListOfProducts = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarListOfProducts.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
-            app.search_ToolbarListOfProducts.Enable = 'off';
-            app.search_ToolbarListOfProducts.Tooltip = {'Lista de produtos homologados sob anáilse'};
-            app.search_ToolbarListOfProducts.Layout.Row = [1 2];
-            app.search_ToolbarListOfProducts.Layout.Column = 4;
-            app.search_ToolbarListOfProducts.VerticalAlignment = 'bottom';
-            app.search_ToolbarListOfProducts.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Box_32x32Gray.png');
-
-            % Create search_ProductInfoPanel
-            app.search_ProductInfoPanel = uipanel(app.search_Tab1Grid);
-            app.search_ProductInfoPanel.AutoResizeChildren = 'off';
-            app.search_ProductInfoPanel.Layout.Row = 3;
-            app.search_ProductInfoPanel.Layout.Column = [1 4];
-
-            % Create search_ProductInfoGrid
-            app.search_ProductInfoGrid = uigridlayout(app.search_ProductInfoPanel);
-            app.search_ProductInfoGrid.ColumnWidth = {'1x'};
-            app.search_ProductInfoGrid.RowHeight = {'1x'};
-            app.search_ProductInfoGrid.Padding = [0 0 0 0];
-            app.search_ProductInfoGrid.BackgroundColor = [1 1 1];
-
-            % Create search_ProductInfo
-            app.search_ProductInfo = uihtml(app.search_ProductInfoGrid);
-            app.search_ProductInfo.HTMLSource = 'Warning.html';
-            app.search_ProductInfo.Layout.Row = 1;
-            app.search_ProductInfo.Layout.Column = 1;
-
-            % Create search_AnnotationPanelLabel
-            app.search_AnnotationPanelLabel = uilabel(app.search_Tab1Grid);
-            app.search_AnnotationPanelLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationPanelLabel.FontSize = 10;
-            app.search_AnnotationPanelLabel.Layout.Row = 5;
-            app.search_AnnotationPanelLabel.Layout.Column = [1 2];
-            app.search_AnnotationPanelLabel.Text = 'ANOTAÇÃO';
-
-            % Create search_AnnotationPanel
-            app.search_AnnotationPanel = uipanel(app.search_Tab1Grid);
-            app.search_AnnotationPanel.AutoResizeChildren = 'off';
-            app.search_AnnotationPanel.Layout.Row = 7;
-            app.search_AnnotationPanel.Layout.Column = [1 4];
-
-            % Create search_AnnotationGrid
-            app.search_AnnotationGrid = uigridlayout(app.search_AnnotationPanel);
-            app.search_AnnotationGrid.ColumnWidth = {'1x', 20};
-            app.search_AnnotationGrid.RowHeight = {17, 22, 17, '1x', 20};
-            app.search_AnnotationGrid.ColumnSpacing = 3;
-            app.search_AnnotationGrid.RowSpacing = 5;
-            app.search_AnnotationGrid.Padding = [10 10 5 5];
-            app.search_AnnotationGrid.BackgroundColor = [1 1 1];
-
-            % Create search_AnnotationAttributeLabel
-            app.search_AnnotationAttributeLabel = uilabel(app.search_AnnotationGrid);
-            app.search_AnnotationAttributeLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationAttributeLabel.FontSize = 10;
-            app.search_AnnotationAttributeLabel.Layout.Row = 1;
-            app.search_AnnotationAttributeLabel.Layout.Column = 1;
-            app.search_AnnotationAttributeLabel.Text = 'Atributo:';
-
-            % Create search_AnnotationAttribute
-            app.search_AnnotationAttribute = uidropdown(app.search_AnnotationGrid);
-            app.search_AnnotationAttribute.Items = {'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
-            app.search_AnnotationAttribute.FontSize = 11;
-            app.search_AnnotationAttribute.BackgroundColor = [1 1 1];
-            app.search_AnnotationAttribute.Layout.Row = 2;
-            app.search_AnnotationAttribute.Layout.Column = 1;
-            app.search_AnnotationAttribute.Value = 'Fornecedor';
-
-            % Create search_AnnotationValueLabel
-            app.search_AnnotationValueLabel = uilabel(app.search_AnnotationGrid);
-            app.search_AnnotationValueLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationValueLabel.FontSize = 10;
-            app.search_AnnotationValueLabel.Layout.Row = 3;
-            app.search_AnnotationValueLabel.Layout.Column = 1;
-            app.search_AnnotationValueLabel.Text = 'Valor:';
-
-            % Create search_AnnotationValue
-            app.search_AnnotationValue = uitextarea(app.search_AnnotationGrid);
-            app.search_AnnotationValue.FontSize = 11;
-            app.search_AnnotationValue.Layout.Row = [4 5];
-            app.search_AnnotationValue.Layout.Column = 1;
-
-            % Create search_AnnotationPanelAdd
-            app.search_AnnotationPanelAdd = uiimage(app.search_AnnotationGrid);
-            app.search_AnnotationPanelAdd.ImageClickedFcn = createCallbackFcn(app, @search_Annotation_AddImageClicked, true);
-            app.search_AnnotationPanelAdd.Enable = 'off';
-            app.search_AnnotationPanelAdd.Layout.Row = 5;
-            app.search_AnnotationPanelAdd.Layout.Column = 2;
-            app.search_AnnotationPanelAdd.VerticalAlignment = 'bottom';
-            app.search_AnnotationPanelAdd.ImageSource = fullfile(pathToMLAPP, 'Icons', 'NewFile_36.png');
-
-            % Create search_WordCloudPanel
-            app.search_WordCloudPanel = uipanel(app.search_Tab1Grid);
-            app.search_WordCloudPanel.AutoResizeChildren = 'off';
-            app.search_WordCloudPanel.BackgroundColor = [1 1 1];
-            app.search_WordCloudPanel.Layout.Row = [9 10];
-            app.search_WordCloudPanel.Layout.Column = [1 4];
-
-            % Create search_WordCloudRefreshGrid
-            app.search_WordCloudRefreshGrid = uigridlayout(app.search_Tab1Grid);
-            app.search_WordCloudRefreshGrid.ColumnWidth = {18, '1x'};
-            app.search_WordCloudRefreshGrid.RowHeight = {'1x'};
-            app.search_WordCloudRefreshGrid.ColumnSpacing = 2;
-            app.search_WordCloudRefreshGrid.RowSpacing = 2;
-            app.search_WordCloudRefreshGrid.Padding = [2 3 3 1];
-            app.search_WordCloudRefreshGrid.Layout.Row = 10;
-            app.search_WordCloudRefreshGrid.Layout.Column = 1;
-            app.search_WordCloudRefreshGrid.BackgroundColor = [1 1 1];
-
-            % Create search_WordCloudRefresh
-            app.search_WordCloudRefresh = uiimage(app.search_WordCloudRefreshGrid);
-            app.search_WordCloudRefresh.ImageClickedFcn = createCallbackFcn(app, @search_WordCloud_RefreshImageClicked, true);
-            app.search_WordCloudRefresh.Enable = 'off';
-            app.search_WordCloudRefresh.Layout.Row = 1;
-            app.search_WordCloudRefresh.Layout.Column = 1;
-            app.search_WordCloudRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18Gray.png');
-
-            % Create search_ListOfProductsLabel
-            app.search_ListOfProductsLabel = uilabel(app.search_Tab1Grid);
-            app.search_ListOfProductsLabel.VerticalAlignment = 'bottom';
-            app.search_ListOfProductsLabel.FontSize = 10;
-            app.search_ListOfProductsLabel.Layout.Row = 12;
-            app.search_ListOfProductsLabel.Layout.Column = [1 3];
-            app.search_ListOfProductsLabel.Text = 'LISTA DE PRODUTOS HOMOLOGADOS SOB ANÁLISE';
-
-            % Create search_ListOfProductsAdd
-            app.search_ListOfProductsAdd = uiimage(app.search_Tab1Grid);
-            app.search_ListOfProductsAdd.ImageClickedFcn = createCallbackFcn(app, @search_Report_ListOfProductsAddImageClicked, true);
-            app.search_ListOfProductsAdd.Layout.Row = [12 13];
-            app.search_ListOfProductsAdd.Layout.Column = 4;
-            app.search_ListOfProductsAdd.VerticalAlignment = 'bottom';
-            app.search_ListOfProductsAdd.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Sum_36.png');
-
-            % Create search_ListOfProducts
-            app.search_ListOfProducts = uilistbox(app.search_Tab1Grid);
-            app.search_ListOfProducts.Items = {};
-            app.search_ListOfProducts.Multiselect = 'on';
-            app.search_ListOfProducts.FontSize = 11;
-            app.search_ListOfProducts.Layout.Row = 14;
-            app.search_ListOfProducts.Layout.Column = [1 4];
-            app.search_ListOfProducts.Value = {};
-
-            % Create search_ToolbarAnnotation
-            app.search_ToolbarAnnotation = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarAnnotation.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
-            app.search_ToolbarAnnotation.Enable = 'off';
-            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
-            app.search_ToolbarAnnotation.Layout.Row = [1 2];
-            app.search_ToolbarAnnotation.Layout.Column = 2;
-            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
-            app.search_ToolbarAnnotation.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_18x18Gray.png');
-
-            % Create search_Tab2
-            app.search_Tab2 = uitab(app.search_ControlTabGroup);
-            app.search_Tab2.AutoResizeChildren = 'off';
-            app.search_Tab2.BackgroundColor = [1 1 1];
-
-            % Create search_Tab2Grid
-            app.search_Tab2Grid = uigridlayout(app.search_Tab2);
-            app.search_Tab2Grid.ColumnWidth = {'1x', 18};
-            app.search_Tab2Grid.RowHeight = {22, 5, 88, 5, 22, 5, 69, 22, '1x', 1};
-            app.search_Tab2Grid.ColumnSpacing = 5;
-            app.search_Tab2Grid.RowSpacing = 0;
-            app.search_Tab2Grid.Padding = [0 0 0 0];
-            app.search_Tab2Grid.BackgroundColor = [1 1 1];
-
-            % Create search_PrimaryPanelLabel
-            app.search_PrimaryPanelLabel = uilabel(app.search_Tab2Grid);
-            app.search_PrimaryPanelLabel.VerticalAlignment = 'bottom';
-            app.search_PrimaryPanelLabel.FontSize = 10;
-            app.search_PrimaryPanelLabel.Layout.Row = 1;
-            app.search_PrimaryPanelLabel.Layout.Column = 1;
-            app.search_PrimaryPanelLabel.Text = 'PRIMÁRIA';
-
-            % Create search_PrimaryPanel
-            app.search_PrimaryPanel = uibuttongroup(app.search_Tab2Grid);
-            app.search_PrimaryPanel.AutoResizeChildren = 'off';
-            app.search_PrimaryPanel.SelectionChangedFcn = createCallbackFcn(app, @search_Filtering_primaryTableColumnsChanged, true);
-            app.search_PrimaryPanel.BackgroundColor = [1 1 1];
-            app.search_PrimaryPanel.Layout.Row = 3;
-            app.search_PrimaryPanel.Layout.Column = [1 2];
-
-            % Create search_PrimaryOption1
-            app.search_PrimaryOption1 = uiradiobutton(app.search_PrimaryPanel);
-            app.search_PrimaryOption1.Text = 'Homologação';
-            app.search_PrimaryOption1.FontSize = 11;
-            app.search_PrimaryOption1.Position = [11 58 90 22];
-
-            % Create search_PrimaryOption2
-            app.search_PrimaryOption2 = uiradiobutton(app.search_PrimaryPanel);
-            app.search_PrimaryOption2.Text = 'Solicitante | Fabricante';
-            app.search_PrimaryOption2.FontSize = 11;
-            app.search_PrimaryOption2.Position = [11 33 134 22];
-
-            % Create search_PrimaryOption3
-            app.search_PrimaryOption3 = uiradiobutton(app.search_PrimaryPanel);
-            app.search_PrimaryOption3.Text = 'Modelo | Nome Comercial';
-            app.search_PrimaryOption3.FontSize = 11;
-            app.search_PrimaryOption3.Position = [11 8 149 22];
-            app.search_PrimaryOption3.Value = true;
-
-            % Create search_SecundaryPanelLabel
-            app.search_SecundaryPanelLabel = uilabel(app.search_Tab2Grid);
-            app.search_SecundaryPanelLabel.VerticalAlignment = 'bottom';
-            app.search_SecundaryPanelLabel.FontSize = 10;
-            app.search_SecundaryPanelLabel.Layout.Row = 5;
-            app.search_SecundaryPanelLabel.Layout.Column = 1;
-            app.search_SecundaryPanelLabel.Text = 'SECUNDÁRIA';
-
-            % Create search_SecundaryPanel
-            app.search_SecundaryPanel = uipanel(app.search_Tab2Grid);
-            app.search_SecundaryPanel.Layout.Row = 7;
-            app.search_SecundaryPanel.Layout.Column = [1 2];
-
-            % Create search_SecundaryGrid
-            app.search_SecundaryGrid = uigridlayout(app.search_SecundaryPanel);
-            app.search_SecundaryGrid.ColumnWidth = {55, '1x', 10, '1x'};
-            app.search_SecundaryGrid.RowHeight = {22, 22};
-            app.search_SecundaryGrid.ColumnSpacing = 5;
-            app.search_SecundaryGrid.RowSpacing = 5;
-            app.search_SecundaryGrid.BackgroundColor = [1 1 1];
-
-            % Create search_SecundaryColumn
-            app.search_SecundaryColumn = uidropdown(app.search_SecundaryGrid);
-            app.search_SecundaryColumn.Items = {};
-            app.search_SecundaryColumn.ValueChangedFcn = createCallbackFcn(app, @search_SecundaryColumnValueChanged, true);
-            app.search_SecundaryColumn.FontSize = 11;
-            app.search_SecundaryColumn.BackgroundColor = [1 1 1];
-            app.search_SecundaryColumn.Layout.Row = 1;
-            app.search_SecundaryColumn.Layout.Column = [1 4];
-            app.search_SecundaryColumn.Value = {};
-
-            % Create search_SecundaryOperation
-            app.search_SecundaryOperation = uidropdown(app.search_SecundaryGrid);
-            app.search_SecundaryOperation.Items = {'=', '≠', '⊃', '⊅', '<', '≤', '>', '≥', '><', '<>'};
-            app.search_SecundaryOperation.ValueChangedFcn = createCallbackFcn(app, @search_SecundaryOperationValueChanged, true);
-            app.search_SecundaryOperation.FontName = 'Consolas';
-            app.search_SecundaryOperation.BackgroundColor = [1 1 1];
-            app.search_SecundaryOperation.Layout.Row = 2;
-            app.search_SecundaryOperation.Layout.Column = 1;
-            app.search_SecundaryOperation.Value = '=';
-
-            % Create search_SecundaryDateTime1
-            app.search_SecundaryDateTime1 = uieditfield(app.search_SecundaryGrid, 'text');
-            app.search_SecundaryDateTime1.CharacterLimits = [10 10];
-            app.search_SecundaryDateTime1.Visible = 'off';
-            app.search_SecundaryDateTime1.Placeholder = 'dd/mm/yyyy';
-            app.search_SecundaryDateTime1.Layout.Row = 2;
-            app.search_SecundaryDateTime1.Layout.Column = 2;
-
-            % Create search_SecundaryDateTimeSeparator
-            app.search_SecundaryDateTimeSeparator = uilabel(app.search_SecundaryGrid);
-            app.search_SecundaryDateTimeSeparator.HorizontalAlignment = 'center';
-            app.search_SecundaryDateTimeSeparator.Visible = 'off';
-            app.search_SecundaryDateTimeSeparator.Layout.Row = 2;
-            app.search_SecundaryDateTimeSeparator.Layout.Column = 3;
-            app.search_SecundaryDateTimeSeparator.Text = '-';
-
-            % Create search_SecundaryDateTime2
-            app.search_SecundaryDateTime2 = uieditfield(app.search_SecundaryGrid, 'text');
-            app.search_SecundaryDateTime2.CharacterLimits = [10 10];
-            app.search_SecundaryDateTime2.Visible = 'off';
-            app.search_SecundaryDateTime2.Placeholder = 'dd/mm/yyyy';
-            app.search_SecundaryDateTime2.Layout.Row = 2;
-            app.search_SecundaryDateTime2.Layout.Column = 4;
-
-            % Create search_SecundaryTextFreeValue
-            app.search_SecundaryTextFreeValue = uieditfield(app.search_SecundaryGrid, 'text');
-            app.search_SecundaryTextFreeValue.FontSize = 10;
-            app.search_SecundaryTextFreeValue.FontColor = [0.149 0.149 0.149];
-            app.search_SecundaryTextFreeValue.Visible = 'off';
-            app.search_SecundaryTextFreeValue.Layout.Row = 2;
-            app.search_SecundaryTextFreeValue.Layout.Column = [2 4];
-
-            % Create search_SecundaryTextListValue
-            app.search_SecundaryTextListValue = uidropdown(app.search_SecundaryGrid);
-            app.search_SecundaryTextListValue.Items = {};
-            app.search_SecundaryTextListValue.Visible = 'off';
-            app.search_SecundaryTextListValue.FontSize = 10;
-            app.search_SecundaryTextListValue.BackgroundColor = [1 1 1];
-            app.search_SecundaryTextListValue.Layout.Row = 2;
-            app.search_SecundaryTextListValue.Layout.Column = [2 4];
-            app.search_SecundaryTextListValue.Value = {};
-
-            % Create search_SecundaryAddFilter
-            app.search_SecundaryAddFilter = uiimage(app.search_Tab2Grid);
-            app.search_SecundaryAddFilter.ImageClickedFcn = createCallbackFcn(app, @search_SecundaryAddFilterImageClicked, true);
-            app.search_SecundaryAddFilter.Layout.Row = 8;
-            app.search_SecundaryAddFilter.Layout.Column = 2;
-            app.search_SecundaryAddFilter.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Sum_36.png');
-
-            % Create search_SecundaryListOfFilters
-            app.search_SecundaryListOfFilters = uilistbox(app.search_Tab2Grid);
-            app.search_SecundaryListOfFilters.Items = {};
-            app.search_SecundaryListOfFilters.Multiselect = 'on';
-            app.search_SecundaryListOfFilters.FontSize = 11;
-            app.search_SecundaryListOfFilters.Layout.Row = 9;
-            app.search_SecundaryListOfFilters.Layout.Column = [1 2];
-            app.search_SecundaryListOfFilters.Value = {};
-
-            % Create search_ControlMenu
-            app.search_ControlMenu = uigridlayout(app.search_Control);
-            app.search_ControlMenu.ColumnWidth = {'1x', 22};
-            app.search_ControlMenu.RowHeight = {'1x', 3};
-            app.search_ControlMenu.ColumnSpacing = 1;
-            app.search_ControlMenu.RowSpacing = 0;
-            app.search_ControlMenu.Padding = [0 0 0 0];
-            app.search_ControlMenu.Layout.Row = [1 2];
-            app.search_ControlMenu.Layout.Column = 1;
-            app.search_ControlMenu.BackgroundColor = [1 1 1];
-
-            % Create search_menuUnderline
-            app.search_menuUnderline = uiimage(app.search_ControlMenu);
-            app.search_menuUnderline.ScaleMethod = 'scaleup';
-            app.search_menuUnderline.Layout.Row = 2;
-            app.search_menuUnderline.Layout.Column = 1;
-            app.search_menuUnderline.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineH.png');
-
-            % Create search_menuBtn1Grid
-            app.search_menuBtn1Grid = uigridlayout(app.search_ControlMenu);
-            app.search_menuBtn1Grid.ColumnWidth = {18, '1x'};
-            app.search_menuBtn1Grid.RowHeight = {'1x'};
-            app.search_menuBtn1Grid.ColumnSpacing = 3;
-            app.search_menuBtn1Grid.Padding = [2 0 0 0];
-            app.search_menuBtn1Grid.Layout.Row = 1;
-            app.search_menuBtn1Grid.Layout.Column = 1;
-            app.search_menuBtn1Grid.BackgroundColor = [0.9608 0.9608 0.9608];
-
-            % Create search_menuBtn1Label
-            app.search_menuBtn1Label = uilabel(app.search_menuBtn1Grid);
-            app.search_menuBtn1Label.FontSize = 11;
-            app.search_menuBtn1Label.Layout.Row = 1;
-            app.search_menuBtn1Label.Layout.Column = 2;
-            app.search_menuBtn1Label.Text = 'ASPECTOS GERAIS';
-
-            % Create search_menuBtn1Icon
-            app.search_menuBtn1Icon = uiimage(app.search_menuBtn1Grid);
-            app.search_menuBtn1Icon.ScaleMethod = 'none';
-            app.search_menuBtn1Icon.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_TabControlButtonPushed, true);
-            app.search_menuBtn1Icon.Tag = '1';
-            app.search_menuBtn1Icon.Layout.Row = 1;
-            app.search_menuBtn1Icon.Layout.Column = [1 2];
-            app.search_menuBtn1Icon.HorizontalAlignment = 'left';
-            app.search_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Classification_18.png');
-
-            % Create search_menuBtn2Grid
-            app.search_menuBtn2Grid = uigridlayout(app.search_ControlMenu);
-            app.search_menuBtn2Grid.ColumnWidth = {18, 0};
-            app.search_menuBtn2Grid.RowHeight = {'1x'};
-            app.search_menuBtn2Grid.ColumnSpacing = 3;
-            app.search_menuBtn2Grid.Padding = [2 0 0 0];
-            app.search_menuBtn2Grid.Layout.Row = 1;
-            app.search_menuBtn2Grid.Layout.Column = 2;
-            app.search_menuBtn2Grid.BackgroundColor = [0.9608 0.9608 0.9608];
-
-            % Create search_menuBtn2Label
-            app.search_menuBtn2Label = uilabel(app.search_menuBtn2Grid);
-            app.search_menuBtn2Label.FontSize = 11;
-            app.search_menuBtn2Label.FontWeight = 'bold';
-            app.search_menuBtn2Label.Layout.Row = 1;
-            app.search_menuBtn2Label.Layout.Column = 2;
-            app.search_menuBtn2Label.Text = 'FILTRAGEM';
-
-            % Create search_menuBtn2Icon
-            app.search_menuBtn2Icon = uiimage(app.search_menuBtn2Grid);
-            app.search_menuBtn2Icon.ScaleMethod = 'none';
-            app.search_menuBtn2Icon.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_TabControlButtonPushed, true);
-            app.search_menuBtn2Icon.Tag = '2';
-            app.search_menuBtn2Icon.Layout.Row = 1;
-            app.search_menuBtn2Icon.Layout.Column = [1 2];
-            app.search_menuBtn2Icon.HorizontalAlignment = 'left';
-            app.search_menuBtn2Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Filter_18x18.png');
-
-            % Create file_toolGrid
-            app.file_toolGrid = uigridlayout(app.GridLayout3);
-            app.file_toolGrid.ColumnWidth = {22, 22, '1x'};
-            app.file_toolGrid.RowHeight = {4, 17, '1x'};
-            app.file_toolGrid.ColumnSpacing = 5;
-            app.file_toolGrid.RowSpacing = 0;
-            app.file_toolGrid.Padding = [0 5 0 5];
-            app.file_toolGrid.Layout.Row = 2;
-            app.file_toolGrid.Layout.Column = 1;
-
-            % Create search_PanelVisibility
-            app.search_PanelVisibility = uiimage(app.file_toolGrid);
-            app.search_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
-            app.search_PanelVisibility.Layout.Row = 2;
-            app.search_PanelVisibility.Layout.Column = 1;
-            app.search_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowRight_32.png');
-
-            % Create search_ExportTable
-            app.search_ExportTable = uiimage(app.file_toolGrid);
-            app.search_ExportTable.ScaleMethod = 'none';
-            app.search_ExportTable.ImageClickedFcn = createCallbackFcn(app, @search_ExportTableClicked, true);
-            app.search_ExportTable.Enable = 'off';
-            app.search_ExportTable.Tooltip = {'Exporta resultados de busca em arquivo XLSX'};
-            app.search_ExportTable.Layout.Row = 2;
-            app.search_ExportTable.Layout.Column = 2;
-            app.search_ExportTable.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Export_16.png');
+            % Create search_nRows
+            app.search_nRows = uilabel(app.search_Document);
+            app.search_nRows.HorizontalAlignment = 'right';
+            app.search_nRows.VerticalAlignment = 'bottom';
+            app.search_nRows.FontColor = [0.502 0.502 0.502];
+            app.search_nRows.Visible = 'off';
+            app.search_nRows.Layout.Row = [1 4];
+            app.search_nRows.Layout.Column = 2;
+            app.search_nRows.Interpreter = 'html';
+            app.search_nRows.Text = {'88 <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '137 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>'};
 
             % Create Tab2_Report
             app.Tab2_Report = uitab(app.TabGroup);
             app.Tab2_Report.AutoResizeChildren = 'off';
 
-            % Create GridLayout4
-            app.GridLayout4 = uigridlayout(app.Tab2_Report);
-            app.GridLayout4.ColumnWidth = {'1x'};
-            app.GridLayout4.RowHeight = {'1x', 34};
-            app.GridLayout4.RowSpacing = 0;
-            app.GridLayout4.Padding = [0 0 0 26];
-            app.GridLayout4.BackgroundColor = [1 1 1];
+            % Create Tab2_ReportGrid
+            app.Tab2_ReportGrid = uigridlayout(app.Tab2_Report);
+            app.Tab2_ReportGrid.ColumnWidth = {320, 10, '1x', 5, 320};
+            app.Tab2_ReportGrid.RowHeight = {'1x', 5, 34};
+            app.Tab2_ReportGrid.ColumnSpacing = 0;
+            app.Tab2_ReportGrid.RowSpacing = 0;
+            app.Tab2_ReportGrid.Padding = [0 0 0 26];
+            app.Tab2_ReportGrid.BackgroundColor = [1 1 1];
 
             % Create file_toolGrid_2
-            app.file_toolGrid_2 = uigridlayout(app.GridLayout4);
-            app.file_toolGrid_2.ColumnWidth = {22, 22, 22, 22, 22, '1x', 110};
+            app.file_toolGrid_2 = uigridlayout(app.Tab2_ReportGrid);
+            app.file_toolGrid_2.ColumnWidth = {22, 22, '1x', 22, 22, 22, 22};
             app.file_toolGrid_2.RowHeight = {'1x', 17, '1x'};
             app.file_toolGrid_2.ColumnSpacing = 5;
             app.file_toolGrid_2.RowSpacing = 0;
             app.file_toolGrid_2.Padding = [0 5 0 5];
-            app.file_toolGrid_2.Layout.Row = 2;
-            app.file_toolGrid_2.Layout.Column = 1;
+            app.file_toolGrid_2.Layout.Row = 3;
+            app.file_toolGrid_2.Layout.Column = [1 5];
 
-            % Create report_PanelVisibility
-            app.report_PanelVisibility = uiimage(app.file_toolGrid_2);
-            app.report_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
-            app.report_PanelVisibility.Layout.Row = 2;
-            app.report_PanelVisibility.Layout.Column = 1;
-            app.report_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowLeft_32.png');
+            % Create report_Panel1Visibility
+            app.report_Panel1Visibility = uiimage(app.file_toolGrid_2);
+            app.report_Panel1Visibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
+            app.report_Panel1Visibility.Layout.Row = 2;
+            app.report_Panel1Visibility.Layout.Column = 1;
+            app.report_Panel1Visibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowLeft_32.png');
 
             % Create report_ShowCells2Edit
             app.report_ShowCells2Edit = uiimage(app.file_toolGrid_2);
             app.report_ShowCells2Edit.ImageClickedFcn = createCallbackFcn(app, @report_ShowCells2EditClicked, true);
             app.report_ShowCells2Edit.Tag = 'off';
+            app.report_ShowCells2Edit.Enable = 'off';
             app.report_ShowCells2Edit.Tooltip = {'Destaca células pendentes de edição'};
             app.report_ShowCells2Edit.Layout.Row = 2;
             app.report_ShowCells2Edit.Layout.Column = 2;
-            app.report_ShowCells2Edit.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Warn_32.png');
+            app.report_ShowCells2Edit.VerticalAlignment = 'bottom';
+            app.report_ShowCells2Edit.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Warn_32Red.png');
 
             % Create report_ReportGeneration
             app.report_ReportGeneration = uiimage(app.file_toolGrid_2);
@@ -4135,113 +3497,49 @@ end
             app.report_ReportGeneration.Enable = 'off';
             app.report_ReportGeneration.Tooltip = {'Gera relatório'};
             app.report_ReportGeneration.Layout.Row = 2;
-            app.report_ReportGeneration.Layout.Column = 3;
+            app.report_ReportGeneration.Layout.Column = 4;
             app.report_ReportGeneration.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Publish_HTML_16-8792a26e8b38d73b8ffe54ffae928360.png');
 
-            % Create report_FiscalizaAutoFillImage
-            app.report_FiscalizaAutoFillImage = uiimage(app.file_toolGrid_2);
-            app.report_FiscalizaAutoFillImage.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
-            app.report_FiscalizaAutoFillImage.Enable = 'off';
-            app.report_FiscalizaAutoFillImage.Tooltip = {'Preenche campos automaticamente'};
-            app.report_FiscalizaAutoFillImage.Layout.Row = 2;
-            app.report_FiscalizaAutoFillImage.Layout.Column = 4;
-            app.report_FiscalizaAutoFillImage.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AutoFill_36Blue.png');
+            % Create tool_FiscalizaAutoFill
+            app.tool_FiscalizaAutoFill = uiimage(app.file_toolGrid_2);
+            app.tool_FiscalizaAutoFill.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
+            app.tool_FiscalizaAutoFill.Enable = 'off';
+            app.tool_FiscalizaAutoFill.Tooltip = {'Preenche campos automaticamente'};
+            app.tool_FiscalizaAutoFill.Layout.Row = 2;
+            app.tool_FiscalizaAutoFill.Layout.Column = 5;
+            app.tool_FiscalizaAutoFill.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AutoFill_36Blue.png');
 
-            % Create report_FiscalizaUpdateImage
-            app.report_FiscalizaUpdateImage = uiimage(app.file_toolGrid_2);
-            app.report_FiscalizaUpdateImage.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
-            app.report_FiscalizaUpdateImage.Enable = 'off';
-            app.report_FiscalizaUpdateImage.Tooltip = {'Atualiza inspeção no FISCALIZA'};
-            app.report_FiscalizaUpdateImage.Layout.Row = 2;
-            app.report_FiscalizaUpdateImage.Layout.Column = 5;
-            app.report_FiscalizaUpdateImage.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Up_24.png');
+            % Create tool_FiscalizaUpdate
+            app.tool_FiscalizaUpdate = uiimage(app.file_toolGrid_2);
+            app.tool_FiscalizaUpdate.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
+            app.tool_FiscalizaUpdate.Enable = 'off';
+            app.tool_FiscalizaUpdate.Tooltip = {'Atualiza inspeção no FISCALIZA'};
+            app.tool_FiscalizaUpdate.Layout.Row = 2;
+            app.tool_FiscalizaUpdate.Layout.Column = 6;
+            app.tool_FiscalizaUpdate.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Up_24.png');
 
-            % Create report_mainGrid
-            app.report_mainGrid = uigridlayout(app.GridLayout4);
-            app.report_mainGrid.ColumnWidth = {330, '1x'};
-            app.report_mainGrid.RowHeight = {'1x'};
-            app.report_mainGrid.Padding = [5 5 5 0];
-            app.report_mainGrid.Layout.Row = 1;
-            app.report_mainGrid.Layout.Column = 1;
-            app.report_mainGrid.BackgroundColor = [1 1 1];
-
-            % Create report_Document
-            app.report_Document = uigridlayout(app.report_mainGrid);
-            app.report_Document.ColumnWidth = {'1x'};
-            app.report_Document.RowHeight = {22, 5, '1x', 1};
-            app.report_Document.ColumnSpacing = 5;
-            app.report_Document.RowSpacing = 0;
-            app.report_Document.Padding = [0 0 0 0];
-            app.report_Document.Layout.Row = 1;
-            app.report_Document.Layout.Column = 2;
-            app.report_Document.BackgroundColor = [1 1 1];
-
-            % Create report_TableLabel
-            app.report_TableLabel = uilabel(app.report_Document);
-            app.report_TableLabel.VerticalAlignment = 'bottom';
-            app.report_TableLabel.FontSize = 10;
-            app.report_TableLabel.Layout.Row = 1;
-            app.report_TableLabel.Layout.Column = 1;
-            app.report_TableLabel.Text = 'LISTA DE PRODUTOS SOB ANÁLISE';
-
-            % Create report_nRows
-            app.report_nRows = uilabel(app.report_Document);
-            app.report_nRows.HorizontalAlignment = 'right';
-            app.report_nRows.VerticalAlignment = 'bottom';
-            app.report_nRows.FontSize = 10;
-            app.report_nRows.Layout.Row = [1 2];
-            app.report_nRows.Layout.Column = 1;
-            app.report_nRows.Text = '# 0 ';
-
-            % Create report_Table
-            app.report_Table = uitable(app.report_Document);
-            app.report_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
-            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'QTD.|USO/VENDIDA'; 'QTD.|ESTOQUE/ADUANA'; 'QTD.|LACRADAS'; 'QTD.|APREENDIDAS'; 'QTD.|RETIDAS (RFB)'};
-            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 58, 96, 90, 90, 90, 90, 90, 90};
-            app.report_Table.RowName = {};
-            app.report_Table.SelectionType = 'row';
-            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true];
-            app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
-            app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
-            app.report_Table.Layout.Row = 3;
-            app.report_Table.Layout.Column = 1;
-            app.report_Table.FontSize = 10;
-
-            % Create report_Control
-            app.report_Control = uigridlayout(app.report_mainGrid);
-            app.report_Control.ColumnWidth = {'1x'};
-            app.report_Control.RowHeight = {2, 24, '1x'};
-            app.report_Control.ColumnSpacing = 0;
-            app.report_Control.RowSpacing = 0;
-            app.report_Control.Padding = [0 0 0 0];
-            app.report_Control.Layout.Row = 1;
-            app.report_Control.Layout.Column = 1;
-            app.report_Control.BackgroundColor = [1 1 1];
-
-            % Create report_ControlTabGroup
-            app.report_ControlTabGroup = uitabgroup(app.report_Control);
-            app.report_ControlTabGroup.AutoResizeChildren = 'off';
-            app.report_ControlTabGroup.Layout.Row = [2 3];
-            app.report_ControlTabGroup.Layout.Column = 1;
-
-            % Create report_Tab1
-            app.report_Tab1 = uitab(app.report_ControlTabGroup);
-            app.report_Tab1.AutoResizeChildren = 'off';
+            % Create report_Panel2Visibility
+            app.report_Panel2Visibility = uiimage(app.file_toolGrid_2);
+            app.report_Panel2Visibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
+            app.report_Panel2Visibility.Layout.Row = 2;
+            app.report_Panel2Visibility.Layout.Column = 7;
+            app.report_Panel2Visibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowRight_32.png');
 
             % Create report_Tab1Grid
-            app.report_Tab1Grid = uigridlayout(app.report_Tab1);
-            app.report_Tab1Grid.ColumnWidth = {'1x', 18};
-            app.report_Tab1Grid.RowHeight = {22, 5, '1x', 5, 22, 5, 292, 1};
-            app.report_Tab1Grid.ColumnSpacing = 2;
-            app.report_Tab1Grid.RowSpacing = 0;
-            app.report_Tab1Grid.Padding = [0 0 0 0];
+            app.report_Tab1Grid = uigridlayout(app.Tab2_ReportGrid);
+            app.report_Tab1Grid.ColumnWidth = {'1x'};
+            app.report_Tab1Grid.RowHeight = {22, 22, '1x'};
+            app.report_Tab1Grid.RowSpacing = 5;
+            app.report_Tab1Grid.Padding = [5 5 0 0];
+            app.report_Tab1Grid.Layout.Row = [1 2];
+            app.report_Tab1Grid.Layout.Column = 1;
             app.report_Tab1Grid.BackgroundColor = [1 1 1];
 
             % Create report_ProductInfoLabel
             app.report_ProductInfoLabel = uilabel(app.report_Tab1Grid);
             app.report_ProductInfoLabel.VerticalAlignment = 'bottom';
             app.report_ProductInfoLabel.FontSize = 10;
-            app.report_ProductInfoLabel.Layout.Row = 1;
+            app.report_ProductInfoLabel.Layout.Row = 2;
             app.report_ProductInfoLabel.Layout.Column = 1;
             app.report_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
 
@@ -4249,7 +3547,7 @@ end
             app.report_ProductInfoPanel = uipanel(app.report_Tab1Grid);
             app.report_ProductInfoPanel.AutoResizeChildren = 'off';
             app.report_ProductInfoPanel.Layout.Row = 3;
-            app.report_ProductInfoPanel.Layout.Column = [1 2];
+            app.report_ProductInfoPanel.Layout.Column = 1;
 
             % Create report_ProductInfoGrid
             app.report_ProductInfoGrid = uigridlayout(app.report_ProductInfoPanel);
@@ -4264,198 +3562,160 @@ end
             app.report_ProductInfo.Layout.Row = 1;
             app.report_ProductInfo.Layout.Column = 1;
 
-            % Create report_EditableInfoLabel
-            app.report_EditableInfoLabel = uilabel(app.report_Tab1Grid);
-            app.report_EditableInfoLabel.VerticalAlignment = 'bottom';
-            app.report_EditableInfoLabel.FontSize = 10;
-            app.report_EditableInfoLabel.Layout.Row = 5;
-            app.report_EditableInfoLabel.Layout.Column = 1;
-            app.report_EditableInfoLabel.Text = 'INCLUSÃO';
+            % Create report_menuBtn1Grid
+            app.report_menuBtn1Grid = uigridlayout(app.report_Tab1Grid);
+            app.report_menuBtn1Grid.ColumnWidth = {18, '1x'};
+            app.report_menuBtn1Grid.RowHeight = {'1x'};
+            app.report_menuBtn1Grid.ColumnSpacing = 3;
+            app.report_menuBtn1Grid.Padding = [2 0 0 0];
+            app.report_menuBtn1Grid.Layout.Row = 1;
+            app.report_menuBtn1Grid.Layout.Column = 1;
+            app.report_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
 
-            % Create report_EditableInfoPanel
-            app.report_EditableInfoPanel = uipanel(app.report_Tab1Grid);
-            app.report_EditableInfoPanel.AutoResizeChildren = 'off';
-            app.report_EditableInfoPanel.Layout.Row = 7;
-            app.report_EditableInfoPanel.Layout.Column = [1 2];
+            % Create report_menuBtn1Label
+            app.report_menuBtn1Label = uilabel(app.report_menuBtn1Grid);
+            app.report_menuBtn1Label.FontSize = 11;
+            app.report_menuBtn1Label.Layout.Row = 1;
+            app.report_menuBtn1Label.Layout.Column = 2;
+            app.report_menuBtn1Label.Text = 'DADOS';
 
-            % Create report_EditableInfoGrid
-            app.report_EditableInfoGrid = uigridlayout(app.report_EditableInfoPanel);
-            app.report_EditableInfoGrid.ColumnWidth = {80, 10, '1x', 10, 60, 20, 5};
-            app.report_EditableInfoGrid.RowHeight = {36, 17, 22, 17, 22, 17, 22, 17, '1x', 20};
-            app.report_EditableInfoGrid.ColumnSpacing = 0;
-            app.report_EditableInfoGrid.RowSpacing = 5;
-            app.report_EditableInfoGrid.Padding = [10 10 5 10];
-            app.report_EditableInfoGrid.BackgroundColor = [1 1 1];
+            % Create report_menuBtn1Icon
+            app.report_menuBtn1Icon = uiimage(app.report_menuBtn1Grid);
+            app.report_menuBtn1Icon.ScaleMethod = 'none';
+            app.report_menuBtn1Icon.Tag = '1';
+            app.report_menuBtn1Icon.Layout.Row = 1;
+            app.report_menuBtn1Icon.Layout.Column = 1;
+            app.report_menuBtn1Icon.HorizontalAlignment = 'left';
+            app.report_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Classification_18.png');
 
-            % Create report_productSituationPanel
-            app.report_productSituationPanel = uibuttongroup(app.report_EditableInfoGrid);
-            app.report_productSituationPanel.AutoResizeChildren = 'off';
-            app.report_productSituationPanel.SelectionChangedFcn = createCallbackFcn(app, @report_productSituationPanelSelectionChanged, true);
-            app.report_productSituationPanel.BackgroundColor = [1 1 1];
-            app.report_productSituationPanel.Layout.Row = 1;
-            app.report_productSituationPanel.Layout.Column = [1 5];
+            % Create GridLayout6
+            app.GridLayout6 = uigridlayout(app.Tab2_ReportGrid);
+            app.GridLayout6.ColumnWidth = {'1x'};
+            app.GridLayout6.RowHeight = {22, '1x', 22, 0};
+            app.GridLayout6.RowSpacing = 5;
+            app.GridLayout6.Padding = [0 0 5 0];
+            app.GridLayout6.Layout.Row = 1;
+            app.GridLayout6.Layout.Column = 5;
+            app.GridLayout6.BackgroundColor = [1 1 1];
 
-            % Create report_productSituation1
-            app.report_productSituation1 = uiradiobutton(app.report_productSituationPanel);
-            app.report_productSituation1.Text = 'HOMOLOGADO';
-            app.report_productSituation1.FontSize = 11;
-            app.report_productSituation1.Interpreter = 'html';
-            app.report_productSituation1.Position = [11 7 103 22];
+            % Create report_menuBtn2Grid
+            app.report_menuBtn2Grid = uigridlayout(app.GridLayout6);
+            app.report_menuBtn2Grid.ColumnWidth = {18, '1x', 16};
+            app.report_menuBtn2Grid.RowHeight = {'1x'};
+            app.report_menuBtn2Grid.ColumnSpacing = 3;
+            app.report_menuBtn2Grid.Padding = [2 0 0 0];
+            app.report_menuBtn2Grid.Layout.Row = 1;
+            app.report_menuBtn2Grid.Layout.Column = 1;
+            app.report_menuBtn2Grid.BackgroundColor = [0.749 0.749 0.749];
 
-            % Create report_productSituation2
-            app.report_productSituation2 = uiradiobutton(app.report_productSituationPanel);
-            app.report_productSituation2.Text = '<font style="color:red;">NÃO</font> HOMOLOGADO';
-            app.report_productSituation2.FontSize = 11;
-            app.report_productSituation2.Interpreter = 'html';
-            app.report_productSituation2.Position = [147 7 132 22];
-            app.report_productSituation2.Value = true;
+            % Create report_menuBtn2Label
+            app.report_menuBtn2Label = uilabel(app.report_menuBtn2Grid);
+            app.report_menuBtn2Label.FontSize = 11;
+            app.report_menuBtn2Label.Layout.Row = 1;
+            app.report_menuBtn2Label.Layout.Column = 2;
+            app.report_menuBtn2Label.Text = 'PROJETO';
 
-            % Create report_nHomLabel
-            app.report_nHomLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_nHomLabel.VerticalAlignment = 'bottom';
-            app.report_nHomLabel.FontSize = 10;
-            app.report_nHomLabel.Layout.Row = 2;
-            app.report_nHomLabel.Layout.Column = 1;
-            app.report_nHomLabel.Text = 'Homologação:';
+            % Create report_menuBtn2Icon
+            app.report_menuBtn2Icon = uiimage(app.report_menuBtn2Grid);
+            app.report_menuBtn2Icon.ScaleMethod = 'none';
+            app.report_menuBtn2Icon.ImageClickedFcn = createCallbackFcn(app, @report_menuBtn2IconImageClicked, true);
+            app.report_menuBtn2Icon.Tag = '2';
+            app.report_menuBtn2Icon.Layout.Row = 1;
+            app.report_menuBtn2Icon.Layout.Column = [1 3];
+            app.report_menuBtn2Icon.HorizontalAlignment = 'left';
+            app.report_menuBtn2Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Report_18x18.png');
 
-            % Create report_nHom
-            app.report_nHom = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.report_nHom.CharacterLimits = [0 14];
-            app.report_nHom.ValueChangingFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.report_nHom.FontSize = 11;
-            app.report_nHom.Enable = 'off';
-            app.report_nHom.Layout.Row = 3;
-            app.report_nHom.Layout.Column = 1;
-            app.report_nHom.Value = '-1';
+            % Create report_ProjectWarnIcon
+            app.report_ProjectWarnIcon = uiimage(app.report_menuBtn2Grid);
+            app.report_ProjectWarnIcon.Visible = 'off';
+            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
+            app.report_ProjectWarnIcon.Layout.Row = 1;
+            app.report_ProjectWarnIcon.Layout.Column = 3;
+            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Warn_18.png');
 
-            % Create report_IDAduanaLabel
-            app.report_IDAduanaLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_IDAduanaLabel.VerticalAlignment = 'bottom';
-            app.report_IDAduanaLabel.FontSize = 10;
-            app.report_IDAduanaLabel.Layout.Row = 2;
-            app.report_IDAduanaLabel.Layout.Column = 3;
-            app.report_IDAduanaLabel.Text = 'Código aduaneiro:';
+            % Create report_menuBtn3Grid
+            app.report_menuBtn3Grid = uigridlayout(app.GridLayout6);
+            app.report_menuBtn3Grid.ColumnWidth = {18, '1x'};
+            app.report_menuBtn3Grid.RowHeight = {'1x'};
+            app.report_menuBtn3Grid.ColumnSpacing = 3;
+            app.report_menuBtn3Grid.Padding = [2 0 0 0];
+            app.report_menuBtn3Grid.Layout.Row = 3;
+            app.report_menuBtn3Grid.Layout.Column = 1;
+            app.report_menuBtn3Grid.BackgroundColor = [0.749 0.749 0.749];
 
-            % Create report_IDAduana
-            app.report_IDAduana = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.report_IDAduana.ValueChangingFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.report_IDAduana.FontSize = 11;
-            app.report_IDAduana.Layout.Row = 3;
-            app.report_IDAduana.Layout.Column = [3 5];
+            % Create report_menuBtn3Label
+            app.report_menuBtn3Label = uilabel(app.report_menuBtn3Grid);
+            app.report_menuBtn3Label.FontSize = 11;
+            app.report_menuBtn3Label.Layout.Row = 1;
+            app.report_menuBtn3Label.Layout.Column = 2;
+            app.report_menuBtn3Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
 
-            % Create report_SituationLabel
-            app.report_SituationLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_SituationLabel.VerticalAlignment = 'bottom';
-            app.report_SituationLabel.FontSize = 10;
-            app.report_SituationLabel.Layout.Row = 6;
-            app.report_SituationLabel.Layout.Column = 1;
-            app.report_SituationLabel.Text = 'Situação:';
+            % Create report_menuBtn3Icon
+            app.report_menuBtn3Icon = uiimage(app.report_menuBtn3Grid);
+            app.report_menuBtn3Icon.ScaleMethod = 'none';
+            app.report_menuBtn3Icon.ImageClickedFcn = createCallbackFcn(app, @report_menuBtn2IconImageClicked, true);
+            app.report_menuBtn3Icon.Tag = '3';
+            app.report_menuBtn3Icon.Layout.Row = 1;
+            app.report_menuBtn3Icon.Layout.Column = [1 2];
+            app.report_menuBtn3Icon.HorizontalAlignment = 'left';
+            app.report_menuBtn3Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Redmine_18.png');
 
-            % Create report_Situation
-            app.report_Situation = uidropdown(app.report_EditableInfoGrid);
-            app.report_Situation.Items = {'Irregular', 'Regular'};
-            app.report_Situation.ValueChangedFcn = createCallbackFcn(app, @report_SituationValueChanged, true);
-            app.report_Situation.FontSize = 11;
-            app.report_Situation.BackgroundColor = [1 1 1];
-            app.report_Situation.Layout.Row = 7;
-            app.report_Situation.Layout.Column = 1;
-            app.report_Situation.Value = 'Irregular';
+            % Create report_Tab3Grid
+            app.report_Tab3Grid = uigridlayout(app.GridLayout6);
+            app.report_Tab3Grid.ColumnWidth = {'1x', 16};
+            app.report_Tab3Grid.RowHeight = {22, '1x'};
+            app.report_Tab3Grid.RowSpacing = 5;
+            app.report_Tab3Grid.Padding = [0 0 0 0];
+            app.report_Tab3Grid.Layout.Row = 4;
+            app.report_Tab3Grid.Layout.Column = 1;
+            app.report_Tab3Grid.BackgroundColor = [1 1 1];
 
-            % Create report_ViolationLabel
-            app.report_ViolationLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_ViolationLabel.VerticalAlignment = 'bottom';
-            app.report_ViolationLabel.FontSize = 10;
-            app.report_ViolationLabel.Layout.Row = 6;
-            app.report_ViolationLabel.Layout.Column = 3;
-            app.report_ViolationLabel.Text = 'Infração:';
+            % Create report_Fiscaliza_PanelLabel
+            app.report_Fiscaliza_PanelLabel = uilabel(app.report_Tab3Grid);
+            app.report_Fiscaliza_PanelLabel.VerticalAlignment = 'bottom';
+            app.report_Fiscaliza_PanelLabel.FontSize = 10;
+            app.report_Fiscaliza_PanelLabel.Layout.Row = 1;
+            app.report_Fiscaliza_PanelLabel.Layout.Column = 1;
+            app.report_Fiscaliza_PanelLabel.Text = 'API FISCALIZA';
 
-            % Create report_Violation
-            app.report_Violation = uidropdown(app.report_EditableInfoGrid);
-            app.report_Violation.Items = {'Comercialização', 'Identificação homologação', 'Uso'};
-            app.report_Violation.ValueChangedFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.report_Violation.FontSize = 11;
-            app.report_Violation.BackgroundColor = [1 1 1];
-            app.report_Violation.Layout.Row = 7;
-            app.report_Violation.Layout.Column = 3;
-            app.report_Violation.Value = 'Comercialização';
+            % Create report_FiscalizaRefresh
+            app.report_FiscalizaRefresh = uiimage(app.report_Tab3Grid);
+            app.report_FiscalizaRefresh.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
+            app.report_FiscalizaRefresh.Tooltip = {'Atualiza informações da inspeção'};
+            app.report_FiscalizaRefresh.Layout.Row = 1;
+            app.report_FiscalizaRefresh.Layout.Column = 2;
+            app.report_FiscalizaRefresh.VerticalAlignment = 'bottom';
+            app.report_FiscalizaRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18.png');
 
-            % Create report_NotesLabel
-            app.report_NotesLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_NotesLabel.VerticalAlignment = 'bottom';
-            app.report_NotesLabel.FontSize = 10;
-            app.report_NotesLabel.Layout.Row = 8;
-            app.report_NotesLabel.Layout.Column = [1 3];
-            app.report_NotesLabel.Text = 'Informações adicionais:';
+            % Create report_FiscalizaPanel
+            app.report_FiscalizaPanel = uipanel(app.report_Tab3Grid);
+            app.report_FiscalizaPanel.AutoResizeChildren = 'off';
+            app.report_FiscalizaPanel.Layout.Row = 2;
+            app.report_FiscalizaPanel.Layout.Column = [1 2];
 
-            % Create report_Notes
-            app.report_Notes = uitextarea(app.report_EditableInfoGrid);
-            app.report_Notes.ValueChangingFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.report_Notes.FontSize = 11;
-            app.report_Notes.Layout.Row = [9 10];
-            app.report_Notes.Layout.Column = [1 5];
+            % Create report_FiscalizaGrid
+            app.report_FiscalizaGrid = uigridlayout(app.report_FiscalizaPanel);
+            app.report_FiscalizaGrid.ColumnWidth = {'1x'};
+            app.report_FiscalizaGrid.RowHeight = {'1x'};
+            app.report_FiscalizaGrid.BackgroundColor = [1 1 1];
 
-            % Create report_EditOrAddButton
-            app.report_EditOrAddButton = uiimage(app.report_EditableInfoGrid);
-            app.report_EditOrAddButton.ImageClickedFcn = createCallbackFcn(app, @report_EditOrAddButtonImageClicked, true);
-            app.report_EditOrAddButton.Enable = 'off';
-            app.report_EditOrAddButton.Layout.Row = 10;
-            app.report_EditOrAddButton.Layout.Column = [6 7];
-            app.report_EditOrAddButton.VerticalAlignment = 'bottom';
-            app.report_EditOrAddButton.ImageSource = 'NewFile_36.png';
-
-            % Create ImportadorEditFieldLabel
-            app.ImportadorEditFieldLabel = uilabel(app.report_EditableInfoGrid);
-            app.ImportadorEditFieldLabel.VerticalAlignment = 'bottom';
-            app.ImportadorEditFieldLabel.FontSize = 10;
-            app.ImportadorEditFieldLabel.Layout.Row = 4;
-            app.ImportadorEditFieldLabel.Layout.Column = 1;
-            app.ImportadorEditFieldLabel.Text = 'Importador:';
-
-            % Create ImportadorEditField
-            app.ImportadorEditField = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.ImportadorEditField.ValueChangingFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.ImportadorEditField.FontSize = 11;
-            app.ImportadorEditField.Layout.Row = 5;
-            app.ImportadorEditField.Layout.Column = [1 5];
-
-            % Create report_CorrigibleLabel
-            app.report_CorrigibleLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_CorrigibleLabel.VerticalAlignment = 'bottom';
-            app.report_CorrigibleLabel.FontSize = 10;
-            app.report_CorrigibleLabel.Layout.Row = 6;
-            app.report_CorrigibleLabel.Layout.Column = 5;
-            app.report_CorrigibleLabel.Text = 'Sanável?';
-
-            % Create report_Corrigible
-            app.report_Corrigible = uidropdown(app.report_EditableInfoGrid);
-            app.report_Corrigible.Items = {'Sim', 'Não'};
-            app.report_Corrigible.ValueChangedFcn = createCallbackFcn(app, @report_EnablingEditOrAddImage, true);
-            app.report_Corrigible.FontSize = 11;
-            app.report_Corrigible.BackgroundColor = [1 1 1];
-            app.report_Corrigible.Layout.Row = 7;
-            app.report_Corrigible.Layout.Column = 5;
-            app.report_Corrigible.Value = 'Não';
-
-            % Create report_ToolbarEditOrAdd
-            app.report_ToolbarEditOrAdd = uiimage(app.report_Tab1Grid);
-            app.report_ToolbarEditOrAdd.ImageClickedFcn = createCallbackFcn(app, @report_ToolbarEditOrAddImageClicked, true);
-            app.report_ToolbarEditOrAdd.Tooltip = {'Edita produto selecionado, ou adiciona não homologado'};
-            app.report_ToolbarEditOrAdd.Layout.Row = [1 2];
-            app.report_ToolbarEditOrAdd.Layout.Column = 2;
-            app.report_ToolbarEditOrAdd.VerticalAlignment = 'bottom';
-            app.report_ToolbarEditOrAdd.ImageSource = 'Edit_18x18Gray.png';
-
-            % Create report_Tab2
-            app.report_Tab2 = uitab(app.report_ControlTabGroup);
-            app.report_Tab2.AutoResizeChildren = 'off';
+            % Create report_FiscalizaIcon
+            app.report_FiscalizaIcon = uiimage(app.report_FiscalizaGrid);
+            app.report_FiscalizaIcon.Tag = 'FiscalizaPlaceHolder';
+            app.report_FiscalizaIcon.Enable = 'off';
+            app.report_FiscalizaIcon.Layout.Row = 1;
+            app.report_FiscalizaIcon.Layout.Column = 1;
+            app.report_FiscalizaIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Redmine_512.png');
 
             % Create report_Tab2Grid
-            app.report_Tab2Grid = uigridlayout(app.report_Tab2);
-            app.report_Tab2Grid.ColumnWidth = {'1x', 16};
-            app.report_Tab2Grid.RowHeight = {22, 5, 88, 5, 22, 5, '1x', 1};
+            app.report_Tab2Grid = uigridlayout(app.GridLayout6);
+            app.report_Tab2Grid.ColumnWidth = {'1x', 16, 16, 16};
+            app.report_Tab2Grid.RowHeight = {22, 47, 22, '1x'};
             app.report_Tab2Grid.ColumnSpacing = 5;
-            app.report_Tab2Grid.RowSpacing = 0;
+            app.report_Tab2Grid.RowSpacing = 5;
             app.report_Tab2Grid.Padding = [0 0 0 0];
+            app.report_Tab2Grid.Layout.Row = 2;
+            app.report_Tab2Grid.Layout.Column = 1;
             app.report_Tab2Grid.BackgroundColor = [1 1 1];
 
             % Create report_ProjectLabel
@@ -4464,79 +3724,26 @@ end
             app.report_ProjectLabel.FontSize = 10;
             app.report_ProjectLabel.Layout.Row = 1;
             app.report_ProjectLabel.Layout.Column = 1;
-            app.report_ProjectLabel.Text = 'PROJETO';
-
-            % Create report_ProjectPanel
-            app.report_ProjectPanel = uipanel(app.report_Tab2Grid);
-            app.report_ProjectPanel.AutoResizeChildren = 'off';
-            app.report_ProjectPanel.Layout.Row = 3;
-            app.report_ProjectPanel.Layout.Column = [1 2];
-
-            % Create report_ProjectGrid
-            app.report_ProjectGrid = uigridlayout(app.report_ProjectPanel);
-            app.report_ProjectGrid.ColumnWidth = {'1x', 20, 20, 20};
-            app.report_ProjectGrid.RowHeight = {17, 44};
-            app.report_ProjectGrid.ColumnSpacing = 5;
-            app.report_ProjectGrid.RowSpacing = 5;
-            app.report_ProjectGrid.BackgroundColor = [1 1 1];
-
-            % Create report_ProjectNameLabel
-            app.report_ProjectNameLabel = uilabel(app.report_ProjectGrid);
-            app.report_ProjectNameLabel.VerticalAlignment = 'bottom';
-            app.report_ProjectNameLabel.FontSize = 10;
-            app.report_ProjectNameLabel.Layout.Row = 1;
-            app.report_ProjectNameLabel.Layout.Column = 1;
-            app.report_ProjectNameLabel.Text = 'Arquivo:';
-
-            % Create report_ProjectNew
-            app.report_ProjectNew = uiimage(app.report_ProjectGrid);
-            app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
-            app.report_ProjectNew.Tooltip = {'Cria novo projeto'};
-            app.report_ProjectNew.Layout.Row = 1;
-            app.report_ProjectNew.Layout.Column = 2;
-            app.report_ProjectNew.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AddFiles_36.png');
-
-            % Create report_ProjectOpen
-            app.report_ProjectOpen = uiimage(app.report_ProjectGrid);
-            app.report_ProjectOpen.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
-            app.report_ProjectOpen.Tooltip = {'Abre projeto'};
-            app.report_ProjectOpen.Layout.Row = 1;
-            app.report_ProjectOpen.Layout.Column = 3;
-            app.report_ProjectOpen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
-
-            % Create report_ProjectSave
-            app.report_ProjectSave = uiimage(app.report_ProjectGrid);
-            app.report_ProjectSave.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
-            app.report_ProjectSave.Tooltip = {'Salva projeto'};
-            app.report_ProjectSave.Layout.Row = 1;
-            app.report_ProjectSave.Layout.Column = 4;
-            app.report_ProjectSave.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SaveFile_36.png');
-
-            % Create report_ProjectName
-            app.report_ProjectName = uitextarea(app.report_ProjectGrid);
-            app.report_ProjectName.Editable = 'off';
-            app.report_ProjectName.FontSize = 11;
-            app.report_ProjectName.Layout.Row = 2;
-            app.report_ProjectName.Layout.Column = [1 4];
+            app.report_ProjectLabel.Text = 'ARQUIVO';
 
             % Create report_IssuePanelLabel
             app.report_IssuePanelLabel = uilabel(app.report_Tab2Grid);
             app.report_IssuePanelLabel.VerticalAlignment = 'bottom';
             app.report_IssuePanelLabel.FontSize = 10;
-            app.report_IssuePanelLabel.Layout.Row = 5;
+            app.report_IssuePanelLabel.Layout.Row = 3;
             app.report_IssuePanelLabel.Layout.Column = 1;
             app.report_IssuePanelLabel.Text = 'ATIVIDADE DE INSPEÇÃO';
 
             % Create report_IssuePanel
             app.report_IssuePanel = uipanel(app.report_Tab2Grid);
             app.report_IssuePanel.AutoResizeChildren = 'off';
-            app.report_IssuePanel.Layout.Row = 7;
-            app.report_IssuePanel.Layout.Column = [1 2];
+            app.report_IssuePanel.Layout.Row = 4;
+            app.report_IssuePanel.Layout.Column = [1 4];
 
             % Create report_IssueGrid
             app.report_IssueGrid = uigridlayout(app.report_IssuePanel);
-            app.report_IssueGrid.ColumnWidth = {110, '1x'};
-            app.report_IssueGrid.RowHeight = {17, 22, 17, 110, 17, '1x'};
+            app.report_IssueGrid.ColumnWidth = {90, '1x', 16, 64, 16};
+            app.report_IssueGrid.RowHeight = {17, 22, 17, 22, 17, 110};
             app.report_IssueGrid.RowSpacing = 5;
             app.report_IssueGrid.Padding = [10 10 10 5];
             app.report_IssueGrid.BackgroundColor = [1 1 1];
@@ -4567,14 +3774,14 @@ end
             app.report_EntityPanelLabel = uilabel(app.report_IssueGrid);
             app.report_EntityPanelLabel.VerticalAlignment = 'bottom';
             app.report_EntityPanelLabel.FontSize = 10;
-            app.report_EntityPanelLabel.Layout.Row = 3;
+            app.report_EntityPanelLabel.Layout.Row = 5;
             app.report_EntityPanelLabel.Layout.Column = 1;
-            app.report_EntityPanelLabel.Text = 'Fiscalizada';
+            app.report_EntityPanelLabel.Text = 'Fiscalizada:';
 
             % Create report_EntityPanel
             app.report_EntityPanel = uipanel(app.report_IssueGrid);
-            app.report_EntityPanel.Layout.Row = 4;
-            app.report_EntityPanel.Layout.Column = [1 2];
+            app.report_EntityPanel.Layout.Row = 6;
+            app.report_EntityPanel.Layout.Column = [1 5];
 
             % Create report_EntityGrid
             app.report_EntityGrid = uigridlayout(app.report_EntityPanel);
@@ -4644,237 +3851,173 @@ end
             app.Image.VerticalAlignment = 'bottom';
             app.Image.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Info_36.png');
 
-            % Create report_DocumentLabel
-            app.report_DocumentLabel = uilabel(app.report_IssueGrid);
-            app.report_DocumentLabel.VerticalAlignment = 'bottom';
-            app.report_DocumentLabel.FontSize = 10;
-            app.report_DocumentLabel.Layout.Row = 5;
-            app.report_DocumentLabel.Layout.Column = 1;
-            app.report_DocumentLabel.Text = 'Documento';
-
-            % Create report_DocumentPanel
-            app.report_DocumentPanel = uipanel(app.report_IssueGrid);
-            app.report_DocumentPanel.AutoResizeChildren = 'off';
-            app.report_DocumentPanel.Layout.Row = 6;
-            app.report_DocumentPanel.Layout.Column = [1 2];
-
-            % Create report_DocumentGrid
-            app.report_DocumentGrid = uigridlayout(app.report_DocumentPanel);
-            app.report_DocumentGrid.ColumnWidth = {'1x', 110};
-            app.report_DocumentGrid.RowHeight = {17, 22};
-            app.report_DocumentGrid.RowSpacing = 5;
-            app.report_DocumentGrid.Padding = [10 10 10 5];
-            app.report_DocumentGrid.BackgroundColor = [1 1 1];
-
-            % Create report_ModelNameLabel
-            app.report_ModelNameLabel = uilabel(app.report_DocumentGrid);
-            app.report_ModelNameLabel.VerticalAlignment = 'bottom';
-            app.report_ModelNameLabel.WordWrap = 'on';
-            app.report_ModelNameLabel.FontSize = 10;
-            app.report_ModelNameLabel.Layout.Row = 1;
-            app.report_ModelNameLabel.Layout.Column = 1;
-            app.report_ModelNameLabel.Text = 'Modelo:';
-
             % Create report_ModelName
-            app.report_ModelName = uidropdown(app.report_DocumentGrid);
+            app.report_ModelName = uidropdown(app.report_IssueGrid);
             app.report_ModelName.Items = {};
             app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
             app.report_ModelName.FontSize = 11;
             app.report_ModelName.BackgroundColor = [1 1 1];
-            app.report_ModelName.Layout.Row = 2;
-            app.report_ModelName.Layout.Column = 1;
+            app.report_ModelName.Layout.Row = 4;
+            app.report_ModelName.Layout.Column = [1 3];
             app.report_ModelName.Value = {};
 
+            % Create report_ModelNameLabel
+            app.report_ModelNameLabel = uilabel(app.report_IssueGrid);
+            app.report_ModelNameLabel.VerticalAlignment = 'bottom';
+            app.report_ModelNameLabel.WordWrap = 'on';
+            app.report_ModelNameLabel.FontSize = 10;
+            app.report_ModelNameLabel.Layout.Row = 3;
+            app.report_ModelNameLabel.Layout.Column = [1 2];
+            app.report_ModelNameLabel.Text = 'Modelo do relatório:';
+
             % Create report_VersionLabel
-            app.report_VersionLabel = uilabel(app.report_DocumentGrid);
+            app.report_VersionLabel = uilabel(app.report_IssueGrid);
             app.report_VersionLabel.VerticalAlignment = 'bottom';
             app.report_VersionLabel.WordWrap = 'on';
             app.report_VersionLabel.FontSize = 10;
-            app.report_VersionLabel.Layout.Row = 1;
-            app.report_VersionLabel.Layout.Column = 2;
+            app.report_VersionLabel.Layout.Row = 3;
+            app.report_VersionLabel.Layout.Column = 4;
             app.report_VersionLabel.Text = 'Versão:';
 
             % Create report_Version
-            app.report_Version = uidropdown(app.report_DocumentGrid);
+            app.report_Version = uidropdown(app.report_IssueGrid);
             app.report_Version.Items = {'Preliminar', 'Definitiva'};
             app.report_Version.FontSize = 11;
             app.report_Version.BackgroundColor = [1 1 1];
-            app.report_Version.Layout.Row = 2;
-            app.report_Version.Layout.Column = 2;
+            app.report_Version.Layout.Row = 4;
+            app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
-            % Create report_ProjectWarnIcon
-            app.report_ProjectWarnIcon = uiimage(app.report_Tab2Grid);
-            app.report_ProjectWarnIcon.Visible = 'off';
-            app.report_ProjectWarnIcon.Tooltip = {'Pendente salvar projeto'};
-            app.report_ProjectWarnIcon.Layout.Row = [1 2];
-            app.report_ProjectWarnIcon.Layout.Column = 2;
-            app.report_ProjectWarnIcon.VerticalAlignment = 'bottom';
-            app.report_ProjectWarnIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Warn_18.png');
+            % Create Image4
+            app.Image4 = uiimage(app.report_IssueGrid);
+            app.Image4.Layout.Row = 3;
+            app.Image4.Layout.Column = 3;
+            app.Image4.ImageSource = fullfile(pathToMLAPP, 'Icons', 'attach_32.png');
 
-            % Create report_Tab3
-            app.report_Tab3 = uitab(app.report_ControlTabGroup);
+            % Create report_ProjectNew
+            app.report_ProjectNew = uiimage(app.report_Tab2Grid);
+            app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
+            app.report_ProjectNew.Tooltip = {'Cria novo projeto'};
+            app.report_ProjectNew.Layout.Row = 1;
+            app.report_ProjectNew.Layout.Column = 2;
+            app.report_ProjectNew.VerticalAlignment = 'bottom';
+            app.report_ProjectNew.ImageSource = fullfile(pathToMLAPP, 'Icons', 'AddFiles_36.png');
 
-            % Create report_Tab3Grid
-            app.report_Tab3Grid = uigridlayout(app.report_Tab3);
-            app.report_Tab3Grid.ColumnWidth = {'1x', 16};
-            app.report_Tab3Grid.RowHeight = {22, 5, '1x', 1};
-            app.report_Tab3Grid.ColumnSpacing = 5;
-            app.report_Tab3Grid.RowSpacing = 0;
-            app.report_Tab3Grid.Padding = [0 0 0 0];
-            app.report_Tab3Grid.BackgroundColor = [1 1 1];
+            % Create report_ProjectOpen
+            app.report_ProjectOpen = uiimage(app.report_Tab2Grid);
+            app.report_ProjectOpen.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
+            app.report_ProjectOpen.Tooltip = {'Abre projeto'};
+            app.report_ProjectOpen.Layout.Row = 1;
+            app.report_ProjectOpen.Layout.Column = 3;
+            app.report_ProjectOpen.VerticalAlignment = 'bottom';
+            app.report_ProjectOpen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'OpenFile_36x36.png');
 
-            % Create report_Fiscaliza_PanelLabel
-            app.report_Fiscaliza_PanelLabel = uilabel(app.report_Tab3Grid);
-            app.report_Fiscaliza_PanelLabel.VerticalAlignment = 'bottom';
-            app.report_Fiscaliza_PanelLabel.FontSize = 10;
-            app.report_Fiscaliza_PanelLabel.Layout.Row = 1;
-            app.report_Fiscaliza_PanelLabel.Layout.Column = 1;
-            app.report_Fiscaliza_PanelLabel.Text = 'API FISCALIZA';
+            % Create report_ProjectSave
+            app.report_ProjectSave = uiimage(app.report_Tab2Grid);
+            app.report_ProjectSave.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
+            app.report_ProjectSave.Tooltip = {'Salva projeto'};
+            app.report_ProjectSave.Layout.Row = 1;
+            app.report_ProjectSave.Layout.Column = 4;
+            app.report_ProjectSave.VerticalAlignment = 'bottom';
+            app.report_ProjectSave.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SaveFile_36.png');
 
-            % Create report_FiscalizaRefresh
-            app.report_FiscalizaRefresh = uiimage(app.report_Tab3Grid);
-            app.report_FiscalizaRefresh.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
-            app.report_FiscalizaRefresh.Tooltip = {'Atualiza informações da inspeção'};
-            app.report_FiscalizaRefresh.Layout.Row = [1 2];
-            app.report_FiscalizaRefresh.Layout.Column = 2;
-            app.report_FiscalizaRefresh.VerticalAlignment = 'bottom';
-            app.report_FiscalizaRefresh.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Refresh_18.png');
+            % Create report_ProjectName
+            app.report_ProjectName = uitextarea(app.report_Tab2Grid);
+            app.report_ProjectName.Editable = 'off';
+            app.report_ProjectName.FontSize = 11;
+            app.report_ProjectName.Layout.Row = 2;
+            app.report_ProjectName.Layout.Column = [1 4];
 
-            % Create report_FiscalizaPanel
-            app.report_FiscalizaPanel = uipanel(app.report_Tab3Grid);
-            app.report_FiscalizaPanel.AutoResizeChildren = 'off';
-            app.report_FiscalizaPanel.Layout.Row = 3;
-            app.report_FiscalizaPanel.Layout.Column = [1 2];
+            % Create GridLayout7
+            app.GridLayout7 = uigridlayout(app.Tab2_ReportGrid);
+            app.GridLayout7.ColumnWidth = {'1x', 16, 16};
+            app.GridLayout7.RowHeight = {1, 22, 5, 10, '1x'};
+            app.GridLayout7.ColumnSpacing = 2;
+            app.GridLayout7.RowSpacing = 4;
+            app.GridLayout7.Padding = [0 0 0 0];
+            app.GridLayout7.Layout.Row = 1;
+            app.GridLayout7.Layout.Column = 3;
+            app.GridLayout7.BackgroundColor = [1 1 1];
 
-            % Create report_FiscalizaGrid
-            app.report_FiscalizaGrid = uigridlayout(app.report_FiscalizaPanel);
-            app.report_FiscalizaGrid.ColumnWidth = {'1x'};
-            app.report_FiscalizaGrid.RowHeight = {'1x'};
-            app.report_FiscalizaGrid.BackgroundColor = [1 1 1];
+            % Create LISTADEPRODUTOSSOBANLISEButtonGroup
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup = uibuttongroup(app.GridLayout7);
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.SelectionChangedFcn = createCallbackFcn(app, @LISTADEPRODUTOSSOBANLISEButtonGroupSelectionChanged, true);
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.BorderType = 'none';
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.BackgroundColor = [1 1 1];
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Row = [2 4];
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Column = [1 3];
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.FontSize = 10;
 
-            % Create report_FiscalizaIcon
-            app.report_FiscalizaIcon = uiimage(app.report_FiscalizaGrid);
-            app.report_FiscalizaIcon.Tag = 'FiscalizaPlaceHolder';
-            app.report_FiscalizaIcon.Enable = 'off';
-            app.report_FiscalizaIcon.Layout.Row = 1;
-            app.report_FiscalizaIcon.Layout.Column = 1;
-            app.report_FiscalizaIcon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Redmine_512.png');
+            % Create FornecedorouusurioButton
+            app.FornecedorouusurioButton = uiradiobutton(app.LISTADEPRODUTOSSOBANLISEButtonGroup);
+            app.FornecedorouusurioButton.Text = 'Fornecedor ou usuário';
+            app.FornecedorouusurioButton.FontSize = 11;
+            app.FornecedorouusurioButton.Position = [1 1 133 23];
+            app.FornecedorouusurioButton.Value = true;
 
-            % Create report_ControlMenu
-            app.report_ControlMenu = uigridlayout(app.report_Control);
-            app.report_ControlMenu.ColumnWidth = {'1x', 22, 22};
-            app.report_ControlMenu.RowHeight = {'1x', 3};
-            app.report_ControlMenu.ColumnSpacing = 1;
-            app.report_ControlMenu.RowSpacing = 0;
-            app.report_ControlMenu.Padding = [0 0 0 0];
-            app.report_ControlMenu.Layout.Row = [1 2];
-            app.report_ControlMenu.Layout.Column = 1;
-            app.report_ControlMenu.BackgroundColor = [1 1 1];
+            % Create AduanaButton
+            app.AduanaButton = uiradiobutton(app.LISTADEPRODUTOSSOBANLISEButtonGroup);
+            app.AduanaButton.Text = 'Aduana';
+            app.AduanaButton.FontSize = 11;
+            app.AduanaButton.Position = [186 2 180 22];
 
-            % Create report_menuUnderline
-            app.report_menuUnderline = uiimage(app.report_ControlMenu);
-            app.report_menuUnderline.ScaleMethod = 'scaleup';
-            app.report_menuUnderline.Layout.Row = 2;
-            app.report_menuUnderline.Layout.Column = 1;
-            app.report_menuUnderline.HorizontalAlignment = 'right';
-            app.report_menuUnderline.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineH.png');
+            % Create report_nRows
+            app.report_nRows = uilabel(app.GridLayout7);
+            app.report_nRows.HorizontalAlignment = 'right';
+            app.report_nRows.VerticalAlignment = 'top';
+            app.report_nRows.FontColor = [0.502 0.502 0.502];
+            app.report_nRows.Layout.Row = 2;
+            app.report_nRows.Layout.Column = [1 3];
+            app.report_nRows.Interpreter = 'html';
+            app.report_nRows.Text = '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>';
 
-            % Create report_menuBtn1Grid
-            app.report_menuBtn1Grid = uigridlayout(app.report_ControlMenu);
-            app.report_menuBtn1Grid.ColumnWidth = {18, '1x'};
-            app.report_menuBtn1Grid.RowHeight = {'1x'};
-            app.report_menuBtn1Grid.ColumnSpacing = 3;
-            app.report_menuBtn1Grid.Padding = [2 0 0 0];
-            app.report_menuBtn1Grid.Layout.Row = 1;
-            app.report_menuBtn1Grid.Layout.Column = 1;
-            app.report_menuBtn1Grid.BackgroundColor = [0.9608 0.9608 0.9608];
+            % Create report_EditProduct
+            app.report_EditProduct = uiimage(app.GridLayout7);
+            app.report_EditProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.report_EditProduct.Enable = 'off';
+            app.report_EditProduct.Tooltip = {'Edita produto selecionado'};
+            app.report_EditProduct.Layout.Row = [3 4];
+            app.report_EditProduct.Layout.Column = 2;
+            app.report_EditProduct.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_36.png');
 
-            % Create report_menuBtn1Label
-            app.report_menuBtn1Label = uilabel(app.report_menuBtn1Grid);
-            app.report_menuBtn1Label.FontSize = 11;
-            app.report_menuBtn1Label.Layout.Row = 1;
-            app.report_menuBtn1Label.Layout.Column = 2;
-            app.report_menuBtn1Label.Text = 'ASPECTOS GERAIS';
+            % Create report_NewProduct
+            app.report_NewProduct = uiimage(app.GridLayout7);
+            app.report_NewProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.report_NewProduct.Tooltip = {'Adiciona produto à lista'};
+            app.report_NewProduct.Layout.Row = [3 4];
+            app.report_NewProduct.Layout.Column = 3;
+            app.report_NewProduct.VerticalAlignment = 'bottom';
+            app.report_NewProduct.ImageSource = fullfile(pathToMLAPP, 'Icons', 'NewFile_36.png');
 
-            % Create report_menuBtn1Icon
-            app.report_menuBtn1Icon = uiimage(app.report_menuBtn1Grid);
-            app.report_menuBtn1Icon.ScaleMethod = 'none';
-            app.report_menuBtn1Icon.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_TabControlButtonPushed, true);
-            app.report_menuBtn1Icon.Tag = '1';
-            app.report_menuBtn1Icon.Layout.Row = 1;
-            app.report_menuBtn1Icon.Layout.Column = [1 2];
-            app.report_menuBtn1Icon.HorizontalAlignment = 'left';
-            app.report_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Classification_18.png');
-
-            % Create report_menuBtn2Grid
-            app.report_menuBtn2Grid = uigridlayout(app.report_ControlMenu);
-            app.report_menuBtn2Grid.ColumnWidth = {18, 0};
-            app.report_menuBtn2Grid.RowHeight = {'1x'};
-            app.report_menuBtn2Grid.ColumnSpacing = 3;
-            app.report_menuBtn2Grid.Padding = [2 0 0 0];
-            app.report_menuBtn2Grid.Layout.Row = 1;
-            app.report_menuBtn2Grid.Layout.Column = 2;
-            app.report_menuBtn2Grid.BackgroundColor = [0.9608 0.9608 0.9608];
-
-            % Create report_menuBtn2Label
-            app.report_menuBtn2Label = uilabel(app.report_menuBtn2Grid);
-            app.report_menuBtn2Label.FontSize = 11;
-            app.report_menuBtn2Label.Layout.Row = 1;
-            app.report_menuBtn2Label.Layout.Column = 2;
-            app.report_menuBtn2Label.Text = 'PROJETO';
-
-            % Create report_menuBtn2Icon
-            app.report_menuBtn2Icon = uiimage(app.report_menuBtn2Grid);
-            app.report_menuBtn2Icon.ScaleMethod = 'none';
-            app.report_menuBtn2Icon.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_TabControlButtonPushed, true);
-            app.report_menuBtn2Icon.Tag = '2';
-            app.report_menuBtn2Icon.Layout.Row = 1;
-            app.report_menuBtn2Icon.Layout.Column = [1 2];
-            app.report_menuBtn2Icon.HorizontalAlignment = 'left';
-            app.report_menuBtn2Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Report_18x18.png');
-
-            % Create report_menuBtn3Grid
-            app.report_menuBtn3Grid = uigridlayout(app.report_ControlMenu);
-            app.report_menuBtn3Grid.ColumnWidth = {18, 0};
-            app.report_menuBtn3Grid.RowHeight = {'1x'};
-            app.report_menuBtn3Grid.ColumnSpacing = 3;
-            app.report_menuBtn3Grid.Padding = [2 0 0 0];
-            app.report_menuBtn3Grid.Layout.Row = 1;
-            app.report_menuBtn3Grid.Layout.Column = 3;
-            app.report_menuBtn3Grid.BackgroundColor = [0.9608 0.9608 0.9608];
-
-            % Create report_menuBtn3Label
-            app.report_menuBtn3Label = uilabel(app.report_menuBtn3Grid);
-            app.report_menuBtn3Label.FontSize = 11;
-            app.report_menuBtn3Label.Layout.Row = 1;
-            app.report_menuBtn3Label.Layout.Column = 2;
-            app.report_menuBtn3Label.Text = 'API FISCALIZA HOMOLOGAÇÃO';
-
-            % Create report_menuBtn3Icon
-            app.report_menuBtn3Icon = uiimage(app.report_menuBtn3Grid);
-            app.report_menuBtn3Icon.ScaleMethod = 'none';
-            app.report_menuBtn3Icon.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_TabControlButtonPushed, true);
-            app.report_menuBtn3Icon.Tag = '3';
-            app.report_menuBtn3Icon.Layout.Row = 1;
-            app.report_menuBtn3Icon.Layout.Column = [1 2];
-            app.report_menuBtn3Icon.HorizontalAlignment = 'left';
-            app.report_menuBtn3Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Redmine_18.png');
+            % Create report_Table
+            app.report_Table = uitable(app.GridLayout7);
+            app.report_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
+            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'QTD.|USO/VENDIDA'; 'QTD.|ESTOQUE'; 'QTD.|LACRADAS'; 'QTD.|APREENDIDAS'; 'QTD.|RETIDAS (RFB)'; 'INFRAÇÃO'};
+            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 58, 96, 90, 90, 90, 90, 90, 90};
+            app.report_Table.RowName = {};
+            app.report_Table.SelectionType = 'row';
+            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true];
+            app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
+            app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
+            app.report_Table.Layout.Row = 5;
+            app.report_Table.Layout.Column = [1 3];
+            app.report_Table.FontSize = 10;
 
             % Create Tab3_Config
             app.Tab3_Config = uitab(app.TabGroup);
             app.Tab3_Config.AutoResizeChildren = 'off';
 
-            % Create GridLayout5
-            app.GridLayout5 = uigridlayout(app.Tab3_Config);
-            app.GridLayout5.ColumnWidth = {'1x'};
-            app.GridLayout5.RowHeight = {'1x', 34};
-            app.GridLayout5.RowSpacing = 0;
-            app.GridLayout5.Padding = [0 0 0 26];
-            app.GridLayout5.BackgroundColor = [1 1 1];
+            % Create Tab3_ConfigGrid
+            app.Tab3_ConfigGrid = uigridlayout(app.Tab3_Config);
+            app.Tab3_ConfigGrid.ColumnWidth = {'1x'};
+            app.Tab3_ConfigGrid.RowHeight = {'1x', 34};
+            app.Tab3_ConfigGrid.RowSpacing = 0;
+            app.Tab3_ConfigGrid.Padding = [0 0 0 26];
+            app.Tab3_ConfigGrid.BackgroundColor = [1 1 1];
 
             % Create file_toolGrid_3
-            app.file_toolGrid_3 = uigridlayout(app.GridLayout5);
+            app.file_toolGrid_3 = uigridlayout(app.Tab3_ConfigGrid);
             app.file_toolGrid_3.ColumnWidth = {22, 22, 110, '1x', 110};
             app.file_toolGrid_3.RowHeight = {'1x', 17, '1x'};
             app.file_toolGrid_3.ColumnSpacing = 5;
@@ -4892,8 +4035,8 @@ end
             app.config_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowLeft_32.png');
 
             % Create config_mainGrid
-            app.config_mainGrid = uigridlayout(app.GridLayout5);
-            app.config_mainGrid.ColumnWidth = {330, '1x', '1x', '1x'};
+            app.config_mainGrid = uigridlayout(app.Tab3_ConfigGrid);
+            app.config_mainGrid.ColumnWidth = {315, '1x', '1x', '1x'};
             app.config_mainGrid.RowHeight = {'1x'};
             app.config_mainGrid.Padding = [5 5 5 0];
             app.config_mainGrid.Layout.Row = 1;
@@ -4903,9 +4046,8 @@ end
             % Create config_Control
             app.config_Control = uigridlayout(app.config_mainGrid);
             app.config_Control.ColumnWidth = {'1x'};
-            app.config_Control.RowHeight = {2, 24, 21, 5, '1x', 1};
-            app.config_Control.ColumnSpacing = 0;
-            app.config_Control.RowSpacing = 0;
+            app.config_Control.RowHeight = {22, '1x'};
+            app.config_Control.RowSpacing = 5;
             app.config_Control.Padding = [0 0 0 0];
             app.config_Control.Layout.Row = 1;
             app.config_Control.Layout.Column = 1;
@@ -4914,21 +4056,13 @@ end
             % Create config_ControlMenu
             app.config_ControlMenu = uigridlayout(app.config_Control);
             app.config_ControlMenu.ColumnWidth = {'1x'};
-            app.config_ControlMenu.RowHeight = {'1x', 3};
+            app.config_ControlMenu.RowHeight = {'1x'};
             app.config_ControlMenu.ColumnSpacing = 5;
             app.config_ControlMenu.RowSpacing = 0;
             app.config_ControlMenu.Padding = [0 0 0 0];
-            app.config_ControlMenu.Layout.Row = [1 2];
+            app.config_ControlMenu.Layout.Row = 1;
             app.config_ControlMenu.Layout.Column = 1;
             app.config_ControlMenu.BackgroundColor = [1 1 1];
-
-            % Create config_menuUnderline
-            app.config_menuUnderline = uiimage(app.config_ControlMenu);
-            app.config_menuUnderline.ScaleMethod = 'scaleup';
-            app.config_menuUnderline.Layout.Row = 2;
-            app.config_menuUnderline.Layout.Column = 1;
-            app.config_menuUnderline.HorizontalAlignment = 'right';
-            app.config_menuUnderline.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineH.png');
 
             % Create config_menuBtn1Grid
             app.config_menuBtn1Grid = uigridlayout(app.config_ControlMenu);
@@ -4938,7 +4072,7 @@ end
             app.config_menuBtn1Grid.Padding = [2 0 0 0];
             app.config_menuBtn1Grid.Layout.Row = 1;
             app.config_menuBtn1Grid.Layout.Column = 1;
-            app.config_menuBtn1Grid.BackgroundColor = [0.9608 0.9608 0.9608];
+            app.config_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
 
             % Create config_menuBtn1Label
             app.config_menuBtn1Label = uilabel(app.config_menuBtn1Grid);
@@ -4956,17 +4090,9 @@ end
             app.config_menuBtn1Icon.HorizontalAlignment = 'left';
             app.config_menuBtn1Icon.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Settings_18.png');
 
-            % Create config_Label
-            app.config_Label = uilabel(app.config_Control);
-            app.config_Label.VerticalAlignment = 'bottom';
-            app.config_Label.FontSize = 10;
-            app.config_Label.Layout.Row = 3;
-            app.config_Label.Layout.Column = 1;
-            app.config_Label.Text = 'PARÂMETROS A CONFIGURAR';
-
             % Create Panel
             app.Panel = uipanel(app.config_Control);
-            app.Panel.Layout.Row = 5;
+            app.Panel.Layout.Row = 2;
             app.Panel.Layout.Column = 1;
 
             % Create GridLayout2
@@ -5496,21 +4622,6 @@ end
             % Assign Checked Nodes
             app.config_ServicoInspecao.CheckedNodesChangedFcn = createCallbackFcn(app, @config_FiscalizaDefaultValueChanged, true);
 
-            % Create popupContainerGrid
-            app.popupContainerGrid = uigridlayout(app.GridLayout);
-            app.popupContainerGrid.ColumnWidth = {'1x', 880, '1x'};
-            app.popupContainerGrid.RowHeight = {'1x', 300, '1x'};
-            app.popupContainerGrid.Padding = [10 31 10 10];
-            app.popupContainerGrid.Layout.Row = 3;
-            app.popupContainerGrid.Layout.Column = 1;
-            app.popupContainerGrid.BackgroundColor = [1 1 1];
-
-            % Create SplashScreen
-            app.SplashScreen = uiimage(app.popupContainerGrid);
-            app.SplashScreen.Layout.Row = 2;
-            app.SplashScreen.Layout.Column = 2;
-            app.SplashScreen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
-
             % Create menu_Grid
             app.menu_Grid = uigridlayout(app.GridLayout);
             app.menu_Grid.ColumnWidth = {28, 28, 5, 28, '1x', 20, 20, 20, 20, 0, 0};
@@ -5597,13 +4708,13 @@ end
             app.AppInfo.Layout.Column = 9;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Dots_36x36W.png');
 
-            % Create menu_Separator2
-            app.menu_Separator2 = uiimage(app.menu_Grid);
-            app.menu_Separator2.ScaleMethod = 'fill';
-            app.menu_Separator2.Enable = 'off';
-            app.menu_Separator2.Layout.Row = [1 3];
-            app.menu_Separator2.Layout.Column = 3;
-            app.menu_Separator2.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineV_White.png');
+            % Create menu_Separator
+            app.menu_Separator = uiimage(app.menu_Grid);
+            app.menu_Separator.ScaleMethod = 'fill';
+            app.menu_Separator.Enable = 'off';
+            app.menu_Separator.Layout.Row = [1 3];
+            app.menu_Separator.Layout.Column = 3;
+            app.menu_Separator.ImageSource = fullfile(pathToMLAPP, 'Icons', 'LineV_White.png');
 
             % Create dockModule_Close
             app.dockModule_Close = uiimage(app.menu_Grid);
@@ -5623,6 +4734,30 @@ end
             app.dockModule_Undock.Layout.Column = 10;
             app.dockModule_Undock.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Undock_18White.png');
 
+            % Create popupContainerGrid
+            app.popupContainerGrid = uigridlayout(app.GridLayout);
+            app.popupContainerGrid.ColumnWidth = {'1x', 880, '1x'};
+            app.popupContainerGrid.RowHeight = {'1x', 90, 300, 90, '1x'};
+            app.popupContainerGrid.ColumnSpacing = 0;
+            app.popupContainerGrid.RowSpacing = 0;
+            app.popupContainerGrid.Padding = [13 10 0 0];
+            app.popupContainerGrid.Layout.Row = 3;
+            app.popupContainerGrid.Layout.Column = 1;
+            app.popupContainerGrid.BackgroundColor = [1 1 1];
+
+            % Create popupContainer
+            app.popupContainer = uipanel(app.popupContainerGrid);
+            app.popupContainer.Visible = 'off';
+            app.popupContainer.BackgroundColor = [1 1 1];
+            app.popupContainer.Layout.Row = [2 4];
+            app.popupContainer.Layout.Column = 2;
+
+            % Create SplashScreen
+            app.SplashScreen = uiimage(app.popupContainerGrid);
+            app.SplashScreen.Layout.Row = 3;
+            app.SplashScreen.Layout.Column = 2;
+            app.SplashScreen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
+
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);
 
@@ -5633,7 +4768,6 @@ end
             
             % Assign app.ContextMenu
             app.search_ListOfProducts.ContextMenu = app.ContextMenu;
-            app.search_SecundaryListOfFilters.ContextMenu = app.ContextMenu;
             app.report_Table.ContextMenu = app.ContextMenu;
 
             % Show the figure after all components are created

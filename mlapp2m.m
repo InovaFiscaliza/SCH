@@ -1,6 +1,8 @@
 function mlapp2m(MLAPPFiles, showDiffApp)
     arguments
-        MLAPPFiles  cell    = {'winSCH'}
+        MLAPPFiles  cell    = {'winSCH',          ...
+                               'dockFilterSetup', ...
+                               'dockProductInfo'}
         showDiffApp logical = false
     end
 

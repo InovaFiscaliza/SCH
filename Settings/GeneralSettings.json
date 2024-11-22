@@ -1,5 +1,10 @@
 {
-    "version": 0.87,
+    "version": 0.90,
+    "operationMode": {
+        "Debug": false,
+        "Dock": false,
+        "Simulation": false
+    },
     "computerName": {
         "deskopApp": "",
         "webServer": "WIMATLABPDIN01"
@@ -14,8 +19,6 @@
     },
     "fiscaliza": {
         "systemVersion": "HOM",
-        "lastHTMLDocFullPath": "",
-        "lastTableFullPath": "",
         "defaultValues": {
             "entidade_com_cadastro_stel": {
                 "value": "Não",
@@ -330,10 +333,12 @@
         "Outros"
     ],
     "typeOfViolation": [
+        "-1",
         "Comercialização",
         "Identificação homologação",
         "Uso"
     ],
     "defaultTypeOfProduct": "-1",
-    "defaultTypeOfViolation": "Comercialização"
+    "defaultTypeOfViolation": "Comercialização",
+    "ColumnNamesForSearching": "Modelo | Nome Comercial"
 }
