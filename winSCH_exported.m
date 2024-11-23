@@ -66,7 +66,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         Tab2_ReportGrid                 matlab.ui.container.GridLayout
         GridLayout7                     matlab.ui.container.GridLayout
         report_Table                    matlab.ui.control.Table
-        report_NewProduct               matlab.ui.control.Image
         report_EditProduct              matlab.ui.control.Image
         report_nRows                    matlab.ui.control.Label
         LISTADEPRODUTOSSOBANLISEButtonGroup  matlab.ui.container.ButtonGroup
@@ -550,7 +549,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 jsBackDoor_Customizations(app, 0)
                 jsBackDoor_Customizations(app, 1)
 
-                % Leitura do arquivo "GeneralSettings.json".
                 startup_ConfigFileRead(app)
                 startup_AppProperties(app)
                 startup_GUIComponents(app)
@@ -832,7 +830,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Inicialmente ajusta as dimensões do container.
             switch auxiliarApp
                 case 'FilterSetup'; screenWidth = 412; screenHeight = 464;
-                case 'ProductInfo'; screenWidth = 412; screenHeight = 464;
+                case 'ProductInfo'; screenWidth = 474; screenHeight = 588;
                 case 'AddFiles';    screenWidth = 880; screenHeight = 480;
             end
 
@@ -1194,9 +1192,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         function search_Table_InitialSelection(app, focusFlag)
             if isempty(app.search_Table.Data)
                 app.search_Table.Selection    = [];
+                app.search_FilterSetup.Enable = 0;
                 app.search_ExportTable.Enable = 0;
             else
                 app.search_Table.Selection    = 1;
+                app.search_FilterSetup.Enable = 1;
                 app.search_ExportTable.Enable = 1;
             end            
             search_Table_SelectionChanged(app)
@@ -1442,15 +1442,17 @@ classdef winSCH_exported < matlab.apps.AppBase
                                'Modelo',           ...
                                'Valor Unit. (R$)', ...
                                {'Qtd. uso/vendida', 'Qtd. estoque/aduana'}, ...
-                               {'Qtd. uso/vendida', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}};
+                               {'Qtd. uso/vendida', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ...
+                               {'Situação', 'Sanável?'}};
 
-            idx      = zeros(height(app.projectData.listOfProducts), 6, 'logical');
+            idx      = zeros(height(app.projectData.listOfProducts), 7, 'logical');
             idx(:,1) = string(app.projectData.listOfProducts.Tipo)       == "-1";
             idx(:,2) = string(app.projectData.listOfProducts.Fabricante) == "";
             idx(:,3) = string(app.projectData.listOfProducts.Modelo)     == "";
             idx(:,4) = app.projectData.listOfProducts.("Valor Unit. (R$)") <= 0;
             idx(:,5) = app.projectData.listOfProducts.("Qtd. uso/vendida") + app.projectData.listOfProducts.("Qtd. estoque/aduana") <= 0;
             idx(:,6) = sum(app.projectData.listOfProducts{:, {'Qtd. uso/vendida', 'Qtd. estoque/aduana'}}, 2) < sum(app.projectData.listOfProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);
+            idx(:,7) = (string(app.projectData.listOfProducts.("Situação")) == "Regular") & (string(app.projectData.listOfProducts.("Sanável?")) == "Não");
 
             listOfRows = find(any(idx, 2));
         end
@@ -1478,13 +1480,18 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function report_UpdatingTableData(app)
+        function columnIndex = report_ColumnIndex(app)
             switch app.LISTADEPRODUTOSSOBANLISEButtonGroup.SelectedObject
                 case app.FornecedorouusurioButton
                     columnIndex = [1, 4:15, 17];
                 case app.AduanaButton
                     columnIndex = [1, 4:7, 10, 12, 2:3, 16, 18];
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function report_UpdatingTableData(app)
+            columnIndex = report_ColumnIndex(app);
             app.report_Table.Data = app.projectData.listOfProducts(:, columnIndex);
         end
 
@@ -1860,6 +1867,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.GridLayout.RowHeight = {44, '1x'};
 
                 app.Tab1_SearchGrid.ColumnWidth(1:2) = {0,5};
+                app.Tab2_ReportGrid.ColumnWidth(4:5) = {5,0};
                 app.search_Tab1Grid.RowHeight(4:9)   = repmat({0}, 1, 6);
                 config_ButtonGroupSelectionChanged(app)
                 % </GUI>
@@ -2256,7 +2264,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                                '• O "Fabricante" e o "Modelo" não podem ter valores vazios;<br>' ...
                                '• O "Valor Unit. (R$)" não pode ser igual a zero;<br>' ...
                                '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser igual a zero;<br>' ...
-                               '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)".'];
+                               '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)".' ...
+                               '• A "Situação", quando Regular, não pode ter "Sanável?" igual a Não.'];
 
                 switch app.report_Version.Value
                     case 'Definitiva'
@@ -2302,6 +2311,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: report_ShowCells2Edit
         function report_ShowCells2EditClicked(app, event)
 
+            focus(app.jsBackDoor)
+
             if ~isempty(app.projectData.listOfProducts)
                 listOfRows = report_ListOfProductsCheck(app);
                 if isempty(listOfRows)
@@ -2324,8 +2335,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 % inserido esse estado p/ evitar cliques desnecessários.
                 app.report_ShowCells2Edit.Enable = 0;
             end
-            
-            focus(app.jsBackDoor)
 
         end
 
@@ -2355,7 +2364,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable);
                     misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, selectedRow(1), selected2showedHom)
-                end                
+                end
 
             else
                 htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
@@ -2378,7 +2387,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             % Grosseria! :)
-            app.projectData.listOfProducts(:, [1, 4:15]) = app.report_Table.Data;
+            columnIndex = report_ColumnIndex(app);
+            app.projectData.listOfProducts(:, columnIndex) = app.report_Table.Data;
             
             style2Apply = report_Table_Style2Apply(app);
             report_Table_AddStyle(app, style2Apply)
@@ -2984,10 +2994,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 90, 90, 'auto', 'auto', 'auto', 70};
             end
 
+            if strcmp(app.report_ShowCells2Edit.Tag, 'on')
+                report_Table_AddStyle(app, 'Icon+BackgroundColor')
+            end
+
         end
 
-        % Image clicked function: report_EditProduct, report_NewProduct, 
-        % ...and 1 other component
+        % Image clicked function: report_EditProduct, search_FilterSetup
         function search_FilterSetupClicked(app, event)
             
             switch event.Source
@@ -2995,10 +3008,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     menu_LayoutPopupApp(app, 'FilterSetup')
 
                 case app.report_EditProduct
-                    menu_LayoutPopupApp(app, 'ProductInfo', 'Edit')
-
-                case app.report_NewProduct
-                    menu_LayoutPopupApp(app, 'ProductInfo', 'New')
+                    menu_LayoutPopupApp(app, 'ProductInfo')
             end
 
         end
@@ -3095,6 +3105,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_FilterSetup = uiimage(app.file_toolGrid);
             app.search_FilterSetup.ScaleMethod = 'none';
             app.search_FilterSetup.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.search_FilterSetup.Enable = 'off';
             app.search_FilterSetup.Tooltip = {'Edita filtragem secundária'};
             app.search_FilterSetup.Layout.Row = [1 3];
             app.search_FilterSetup.Layout.Column = 2;
@@ -3456,7 +3467,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Tab2_ReportGrid
             app.Tab2_ReportGrid = uigridlayout(app.Tab2_Report);
-            app.Tab2_ReportGrid.ColumnWidth = {320, 10, '1x', 5, 320};
+            app.Tab2_ReportGrid.ColumnWidth = {320, 10, '1x', 10, 320};
             app.Tab2_ReportGrid.RowHeight = {'1x', 5, 34};
             app.Tab2_ReportGrid.ColumnSpacing = 0;
             app.Tab2_ReportGrid.RowSpacing = 0;
@@ -3523,7 +3534,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Panel2Visibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
             app.report_Panel2Visibility.Layout.Row = 2;
             app.report_Panel2Visibility.Layout.Column = 7;
-            app.report_Panel2Visibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowRight_32.png');
+            app.report_Panel2Visibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowLeft_32.png');
 
             % Create report_Tab1Grid
             app.report_Tab1Grid = uigridlayout(app.Tab2_ReportGrid);
@@ -3930,7 +3941,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create GridLayout7
             app.GridLayout7 = uigridlayout(app.Tab2_ReportGrid);
-            app.GridLayout7.ColumnWidth = {'1x', 16, 16};
+            app.GridLayout7.ColumnWidth = {'1x', 16};
             app.GridLayout7.RowHeight = {1, 22, 5, 10, '1x'};
             app.GridLayout7.ColumnSpacing = 2;
             app.GridLayout7.RowSpacing = 4;
@@ -3946,7 +3957,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.BackgroundColor = [1 1 1];
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Row = [2 4];
-            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Column = [1 3];
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Column = [1 2];
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.FontSize = 10;
 
             % Create FornecedorouusurioButton
@@ -3968,27 +3979,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_nRows.VerticalAlignment = 'top';
             app.report_nRows.FontColor = [0.502 0.502 0.502];
             app.report_nRows.Layout.Row = 2;
-            app.report_nRows.Layout.Column = [1 3];
+            app.report_nRows.Layout.Column = [1 2];
             app.report_nRows.Interpreter = 'html';
             app.report_nRows.Text = '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>';
 
             % Create report_EditProduct
             app.report_EditProduct = uiimage(app.GridLayout7);
             app.report_EditProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
-            app.report_EditProduct.Enable = 'off';
-            app.report_EditProduct.Tooltip = {'Edita produto selecionado'};
+            app.report_EditProduct.Tooltip = {'Edita lista de produtos'};
             app.report_EditProduct.Layout.Row = [3 4];
             app.report_EditProduct.Layout.Column = 2;
             app.report_EditProduct.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_36.png');
-
-            % Create report_NewProduct
-            app.report_NewProduct = uiimage(app.GridLayout7);
-            app.report_NewProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
-            app.report_NewProduct.Tooltip = {'Adiciona produto à lista'};
-            app.report_NewProduct.Layout.Row = [3 4];
-            app.report_NewProduct.Layout.Column = 3;
-            app.report_NewProduct.VerticalAlignment = 'bottom';
-            app.report_NewProduct.ImageSource = fullfile(pathToMLAPP, 'Icons', 'NewFile_36.png');
 
             % Create report_Table
             app.report_Table = uitable(app.GridLayout7);
@@ -4001,7 +4002,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
             app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
             app.report_Table.Layout.Row = 5;
-            app.report_Table.Layout.Column = [1 3];
+            app.report_Table.Layout.Column = [1 2];
             app.report_Table.FontSize = 10;
 
             % Create Tab3_Config
