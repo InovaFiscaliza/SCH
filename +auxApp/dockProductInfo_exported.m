@@ -2,52 +2,51 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        GridLayout                    matlab.ui.container.GridLayout
-        Document                      matlab.ui.container.GridLayout
-        report_NewProduct             matlab.ui.control.Image
-        Image_2                       matlab.ui.control.Image
-        Image                         matlab.ui.control.Image
-        report_nRows                  matlab.ui.control.Label
-        btnOK                         matlab.ui.control.Button
-        ParametersPanel               matlab.ui.container.Panel
-        report_EditableInfoGrid       matlab.ui.container.GridLayout
-        report_Violation_3            matlab.ui.control.DropDown
-        report_ViolationLabel_3       matlab.ui.control.Label
-        report_Violation              matlab.ui.control.DropDown
-        report_ViolationLabel         matlab.ui.control.Label
-        report_Situation              matlab.ui.control.DropDown
-        report_SituationLabel         matlab.ui.control.Label
-        report_IDAduanaLabel          matlab.ui.control.Label
-        report_IDAduana               matlab.ui.control.EditField
-        ImportadorEditField           matlab.ui.control.EditField
-        ImportadorEditFieldLabel      matlab.ui.control.Label
-        report_Violation_2            matlab.ui.control.DropDown
-        report_ViolationLabel_2       matlab.ui.control.Label
-        FabricanteEditField           matlab.ui.control.EditField
-        FabricanteEditFieldLabel      matlab.ui.control.Label
-        QtdretidasRFBEditField        matlab.ui.control.NumericEditField
-        QtdretidasRFBLabel            matlab.ui.control.Label
-        QtdapreendidasEditField       matlab.ui.control.NumericEditField
-        QtdapreendidasEditFieldLabel  matlab.ui.control.Label
-        QtdlacradasEditField          matlab.ui.control.NumericEditField
-        QtdlacradasEditFieldLabel     matlab.ui.control.Label
-        QtdestoqueaduanaEditField     matlab.ui.control.NumericEditField
-        QtdestoqueaduanaLabel         matlab.ui.control.Label
-        QtdusovendidaEditField        matlab.ui.control.NumericEditField
-        QtdusovendidaLabel            matlab.ui.control.Label
-        ValorunitrioREditField        matlab.ui.control.NumericEditField
-        ValorunitrioRLabel            matlab.ui.control.Label
-        EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox  matlab.ui.control.CheckBox
-        EvidenciadoUSOdoprodutoCheckBox  matlab.ui.control.CheckBox
-        EvidenciadoquesetratadeprodutoqueusaRFCheckBox  matlab.ui.control.CheckBox
-        FabricanteEditFieldLabel_2    matlab.ui.control.Label
-        FabricanteEditField_2         matlab.ui.control.EditField
-        report_Notes                  matlab.ui.control.TextArea
-        report_NotesLabel             matlab.ui.control.Label
-        report_nHom                   matlab.ui.control.EditField
-        report_nHomLabel              matlab.ui.control.Label
-        btnClose                      matlab.ui.control.Image
+        UIFigure                 matlab.ui.Figure
+        GridLayout               matlab.ui.container.GridLayout
+        Document                 matlab.ui.container.GridLayout
+        NextProduct              matlab.ui.control.Image
+        PreviousProduct          matlab.ui.control.Image
+        ParametersPanel          matlab.ui.container.Panel
+        report_EditableInfoGrid  matlab.ui.container.GridLayout
+        optNotes                 matlab.ui.control.TextArea
+        optNotesLabel            matlab.ui.control.Label
+        Corrigible               matlab.ui.control.DropDown
+        CorrigibleLabel          matlab.ui.control.Label
+        ViolationType            matlab.ui.control.DropDown
+        ViolationTypeLabel       matlab.ui.control.Label
+        Situation                matlab.ui.control.DropDown
+        SituationLabel           matlab.ui.control.Label
+        QtdRetida                matlab.ui.control.NumericEditField
+        QtdRetidaLabel           matlab.ui.control.Label
+        QtdApreendida            matlab.ui.control.NumericEditField
+        QtdApreendidaLabel       matlab.ui.control.Label
+        QtdLacrada               matlab.ui.control.NumericEditField
+        QtdLacradaLabel          matlab.ui.control.Label
+        QtdEstoque               matlab.ui.control.NumericEditField
+        QtdEstoqueLabel          matlab.ui.control.Label
+        QtdVendida               matlab.ui.control.NumericEditField
+        QtdVendidaLabel          matlab.ui.control.Label
+        UnitPrice                matlab.ui.control.NumericEditField
+        UnitPriceLabel           matlab.ui.control.Label
+        Interference             matlab.ui.control.CheckBox
+        InUse                    matlab.ui.control.CheckBox
+        RF                       matlab.ui.control.CheckBox
+        CodAduana                matlab.ui.control.EditField
+        CodAduanaLabel           matlab.ui.control.Label
+        Importador               matlab.ui.control.EditField
+        ImportadorLabel          matlab.ui.control.Label
+        Model                    matlab.ui.control.EditField
+        ModelLabel               matlab.ui.control.Label
+        Manufacturer             matlab.ui.control.EditField
+        ManufacturerLabel        matlab.ui.control.Label
+        Type                     matlab.ui.control.DropDown
+        TypeLabel                matlab.ui.control.Label
+        nHom                     matlab.ui.control.EditField
+        nHomLabel                matlab.ui.control.Label
+        Index                    matlab.ui.control.NumericEditField
+        IndexLabel               matlab.ui.control.Label
+        btnClose                 matlab.ui.control.Image
     end
 
     
@@ -57,62 +56,50 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         isDocked = true
 
         CallingApp
+        projectData
     end
     
     
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            % idxThread = app.CallingApp.play_PlotPanel.UserData.NodeData;
-            
-            % if ~isempty(selected2showedHom)
-            %     % Primeiro ajusta o painel com botões de rádio...
-            %     if ~strcmp(selected2showedHom, '-1')
-            %         app.report_productSituation1.Value = 1; % HOMOLOGADO
-            %     else
-            %         app.report_productSituation2.Value = 1; % NÃO HOMOLOGADO
-            %     end
-            %     set(app.report_productSituationPanel.Children, 'Enable', 0)
-            % 
-            %     % O título do painel e a imagem para confirmar alteração...
-            %     app.report_EditableInfoLabel.Text      = 'EDIÇÃO COMPLEMENTAR À DA TABELA';
-            %     app.report_EditOrAddButton.ImageSource = app.report_EditOrAddButton.UserData.iconOptions{1};
-            % 
-            %     % E depois as caixas de edição abaixo...
-            %     idx = selectedRow;
-            %     set(app.report_nHom, 'Enable', 0, 'Value', app.projectData.listOfProducts.("Homologação"){idx})
-            %     app.ImportadorEditField.Value = app.projectData.listOfProducts.("Importador"){idx};
-            %     app.report_IDAduana.Value   = app.projectData.listOfProducts.("Código aduaneiro"){idx};
-            %     app.report_Situation.Value  = app.projectData.listOfProducts.("Situação"){idx};
-            %     report_SituationValueChanged(app)
-            % 
-            %     app.report_Violation.Value  = app.projectData.listOfProducts.("Infração"){idx};
-            %     app.report_Corrigible.Value = app.projectData.listOfProducts.("Sanável?"){idx};
-            %     app.report_Notes.Value      = app.projectData.listOfProducts.("Informações adicionais"){idx};
-            % 
-            % else
-            %     app.report_productSituation2.Value = 1;
-            %     set(app.report_productSituationPanel.Children, 'Enable', 1)
-            %     report_productSituationPanelSelectionChanged(app)
-            % 
-            %     app.report_EditableInfoLabel.Text      = 'INCLUSÃO';
-            %     app.report_EditOrAddButton.ImageSource = app.report_EditOrAddButton.UserData.iconOptions{2};
-            % 
-            %     app.ImportadorEditField.Value = '';
-            %     app.report_IDAduana.Value = '';
-            % 
-            %     app.report_Situation.Value = 'Irregular';
-            %     report_SituationValueChanged(app)
-            % 
-            %     app.report_Violation.Value = app.General.defaultTypeOfViolation;
-            %     app.report_Corrigible.Value = 'Não';
-            %     app.report_Notes.Value     = '';
-            % end
+            app.Type.Items          = categories(app.projectData.listOfProducts.("Tipo"));
+            app.Situation.Items     = categories(app.projectData.listOfProducts.("Situação"));
+            app.ViolationType.Items = categories(app.projectData.listOfProducts.("Infração"));
+            app.Corrigible.Items    = categories(app.projectData.listOfProducts.("Sanável?"));
+
+            idx = app.CallingApp.report_Table.Selection;
+            updateForm(app, idx)
+        end
+
+        %-----------------------------------------------------------------%
+        function updateForm(app, idx)
+            app.Index.Value = idx;
+
+            app.nHom.Value          = app.projectData.listOfProducts.("Homologação"){idx};
+            app.Type.Value          = char(app.projectData.listOfProducts.("Tipo")(idx));
+            app.Manufacturer.Value  = app.projectData.listOfProducts.("Fabricante"){idx};
+            app.Model.Value         = app.projectData.listOfProducts.("Modelo"){idx};
+            app.Importador.Value    = app.projectData.listOfProducts.("Importador"){idx};
+            app.CodAduana.Value     = app.projectData.listOfProducts.("Código aduaneiro"){idx};
+            app.RF.Value            = app.projectData.listOfProducts.("RF?")(idx);
+            app.InUse.Value         = app.projectData.listOfProducts.("Em uso?")(idx);
+            app.Interference.Value  = app.projectData.listOfProducts.("Interferência?")(idx);
+            app.UnitPrice.Value     = app.projectData.listOfProducts.("Valor Unit. (R$)")(idx);
+            app.QtdVendida.Value    = double(app.projectData.listOfProducts.("Qtd. uso/vendida")(idx));
+            app.QtdEstoque.Value    = double(app.projectData.listOfProducts.("Qtd. estoque/aduana")(idx));
+            app.QtdLacrada.Value    = double(app.projectData.listOfProducts.("Qtd. lacradas")(idx));
+            app.QtdApreendida.Value = double(app.projectData.listOfProducts.("Qtd. apreendidas")(idx));
+            app.QtdRetida.Value     = double(app.projectData.listOfProducts.("Qtd. retidas (RFB)")(idx));
+            app.Situation.Value     = char(app.projectData.listOfProducts.("Situação")(idx));
+            app.ViolationType.Value = char(app.projectData.listOfProducts.("Infração")(idx));
+            app.Corrigible.Value    = char(app.projectData.listOfProducts.("Sanável?")(idx));
+            app.optNotes.Value      = app.projectData.listOfProducts.("Informações adicionais"){idx};
         end
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'REPORT:PRODUCTINFO', updateFlag, returnFlag)
+            appBackDoor(app.CallingApp, app, 'REPORT:PRODUCTINFO', updateFlag, returnFlag, app.Index.Value)
         end
     end
     
@@ -123,47 +110,71 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainapp)
             
-            app.CallingApp = mainapp;
-
+            app.CallingApp  = mainapp;
+            app.projectData = mainapp.projectData;
+            
             initialValues(app)
             
         end
 
-        % Close request function: UIFigure
+        % Callback function: UIFigure, btnClose
         function closeFcn(app, event)
             
+            CallingMainApp(app, false, false)
             delete(app)
             
         end
 
-        % Callback function: btnClose, btnOK
-        function ButtonPushed(app, event)
+        % Value changed function: CodAduana, Corrigible, Importador, 
+        % ...and 15 other components
+        function TypeValueChanged(app, event)
             
-            pushedButtonTag = event.Source.Tag;
-            switch pushedButtonTag
-                case 'OK'
-                    updateFlag = true;
-                case 'Close'
-                    updateFlag = false;
-            end
+            app.optNotes.Value = textFormatGUI.cellstr2TextField(app.optNotes.Value, '\n');
 
-            CallingMainApp(app, updateFlag, false)
-            closeFcn(app)
+            editedRow = {app.nHom.Value,          ...
+                         app.Importador.Value,    ...
+                         app.CodAduana.Value,     ...
+                         app.Type.Value,          ...
+                         app.Manufacturer.Value,  ...
+                         app.Model.Value,         ...                         
+                         app.RF.Value,            ...
+                         app.InUse.Value,         ...
+                         app.Interference.Value,  ...
+                         app.UnitPrice.Value,     ...
+                         app.QtdVendida.Value,    ...
+                         app.QtdEstoque.Value,    ...
+                         app.QtdLacrada.Value,    ...
+                         app.QtdApreendida.Value, ...
+                         app.QtdRetida.Value,     ...
+                         app.Situation.Value,     ...
+                         app.ViolationType.Value, ...
+                         app.Corrigible.Value,    ...
+                         app.optNotes.Value};
 
+            app.projectData.listOfProducts(app.Index.Value, :) = editedRow;
+            CallingMainApp(app, true, true)
+            
         end
 
-        % Value changed function: report_Situation
-        function report_SituationValueChanged(app, event)
+        % Image clicked function: NextProduct, PreviousProduct
+        function PreviousProductImageClicked(app, event)
             
-            selectedButton = app.report_productSituationPanel.SelectedObject;
-            
-            switch selectedButton
-                case app.report_productSituation1 % HOMOLOGADO
-                    set(app.report_nHom, 'Enable', 1, 'Value', '')
+            IndexMax = height(app.projectData.listOfProducts);
 
-                case app.report_productSituation2 % NÃO HOMOLOGADO
-                    set(app.report_nHom, 'Enable', 0, 'Value', '-1')
+            switch event.Source
+                case app.PreviousProduct
+                    idx = app.Index.Value - 1;
+                case app.NextProduct
+                    idx = app.Index.Value + 1;
             end
+
+            if idx < 1
+                idx = IndexMax;
+            elseif idx > IndexMax
+                idx = 1;
+            end
+
+            updateForm(app, idx)
 
         end
     end
@@ -210,7 +221,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             % Create btnClose
             app.btnClose = uiimage(app.GridLayout);
             app.btnClose.ScaleMethod = 'none';
-            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @ButtonPushed, true);
+            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @closeFcn, true);
             app.btnClose.Tag = 'Close';
             app.btnClose.Layout.Row = 1;
             app.btnClose.Layout.Column = 2;
@@ -218,8 +229,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {22, 22, '1x', 90};
-            app.Document.RowHeight = {22, '1x', 22};
+            app.Document.ColumnWidth = {22, 22, '1x'};
+            app.Document.RowHeight = {'1x', 22};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
             app.Document.Layout.Row = 2;
@@ -228,8 +239,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create ParametersPanel
             app.ParametersPanel = uipanel(app.Document);
-            app.ParametersPanel.Layout.Row = 2;
-            app.ParametersPanel.Layout.Column = [1 4];
+            app.ParametersPanel.Layout.Row = 1;
+            app.ParametersPanel.Layout.Column = [1 3];
 
             % Create report_EditableInfoGrid
             app.report_EditableInfoGrid = uigridlayout(app.ParametersPanel);
@@ -239,312 +250,335 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.report_EditableInfoGrid.Padding = [10 10 10 5];
             app.report_EditableInfoGrid.BackgroundColor = [1 1 1];
 
-            % Create report_nHomLabel
-            app.report_nHomLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_nHomLabel.VerticalAlignment = 'bottom';
-            app.report_nHomLabel.FontSize = 10;
-            app.report_nHomLabel.Layout.Row = 1;
-            app.report_nHomLabel.Layout.Column = [1 2];
-            app.report_nHomLabel.Text = 'Homologação:';
+            % Create IndexLabel
+            app.IndexLabel = uilabel(app.report_EditableInfoGrid);
+            app.IndexLabel.VerticalAlignment = 'bottom';
+            app.IndexLabel.FontSize = 10;
+            app.IndexLabel.Layout.Row = 1;
+            app.IndexLabel.Layout.Column = 1;
+            app.IndexLabel.Text = '#';
 
-            % Create report_nHom
-            app.report_nHom = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.report_nHom.CharacterLimits = [0 14];
-            app.report_nHom.FontSize = 11;
-            app.report_nHom.Enable = 'off';
-            app.report_nHom.Layout.Row = 2;
-            app.report_nHom.Layout.Column = [1 2];
-            app.report_nHom.Value = '-1';
+            % Create Index
+            app.Index = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.Index.Limits = [-1 Inf];
+            app.Index.RoundFractionalValues = 'on';
+            app.Index.ValueDisplayFormat = '%.0f';
+            app.Index.AllowEmpty = 'on';
+            app.Index.Editable = 'off';
+            app.Index.Layout.Row = 2;
+            app.Index.Layout.Column = 1;
+            app.Index.Value = [];
 
-            % Create report_NotesLabel
-            app.report_NotesLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_NotesLabel.VerticalAlignment = 'bottom';
-            app.report_NotesLabel.FontSize = 10;
-            app.report_NotesLabel.Layout.Row = 18;
-            app.report_NotesLabel.Layout.Column = [1 3];
-            app.report_NotesLabel.Text = 'Informações adicionais:';
+            % Create nHomLabel
+            app.nHomLabel = uilabel(app.report_EditableInfoGrid);
+            app.nHomLabel.VerticalAlignment = 'bottom';
+            app.nHomLabel.FontSize = 10;
+            app.nHomLabel.Layout.Row = 1;
+            app.nHomLabel.Layout.Column = [2 3];
+            app.nHomLabel.Text = 'Homologação:';
 
-            % Create report_Notes
-            app.report_Notes = uitextarea(app.report_EditableInfoGrid);
-            app.report_Notes.FontSize = 11;
-            app.report_Notes.Layout.Row = 19;
-            app.report_Notes.Layout.Column = [1 5];
+            % Create nHom
+            app.nHom = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.nHom.CharacterLimits = [0 14];
+            app.nHom.Editable = 'off';
+            app.nHom.FontSize = 11;
+            app.nHom.Layout.Row = 2;
+            app.nHom.Layout.Column = [2 3];
+            app.nHom.Value = '-1';
 
-            % Create FabricanteEditField_2
-            app.FabricanteEditField_2 = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.FabricanteEditField_2.FontSize = 11;
-            app.FabricanteEditField_2.Layout.Row = 4;
-            app.FabricanteEditField_2.Layout.Column = [4 5];
+            % Create TypeLabel
+            app.TypeLabel = uilabel(app.report_EditableInfoGrid);
+            app.TypeLabel.VerticalAlignment = 'bottom';
+            app.TypeLabel.FontSize = 10;
+            app.TypeLabel.Layout.Row = 1;
+            app.TypeLabel.Layout.Column = [4 5];
+            app.TypeLabel.Text = 'Tipo:';
 
-            % Create FabricanteEditFieldLabel_2
-            app.FabricanteEditFieldLabel_2 = uilabel(app.report_EditableInfoGrid);
-            app.FabricanteEditFieldLabel_2.VerticalAlignment = 'bottom';
-            app.FabricanteEditFieldLabel_2.FontSize = 10;
-            app.FabricanteEditFieldLabel_2.Layout.Row = 3;
-            app.FabricanteEditFieldLabel_2.Layout.Column = [4 5];
-            app.FabricanteEditFieldLabel_2.Text = 'Modelo:';
+            % Create Type
+            app.Type = uidropdown(app.report_EditableInfoGrid);
+            app.Type.Items = {};
+            app.Type.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Type.FontSize = 11;
+            app.Type.BackgroundColor = [1 1 1];
+            app.Type.Layout.Row = 2;
+            app.Type.Layout.Column = [4 5];
+            app.Type.Value = {};
 
-            % Create EvidenciadoquesetratadeprodutoqueusaRFCheckBox
-            app.EvidenciadoquesetratadeprodutoqueusaRFCheckBox = uicheckbox(app.report_EditableInfoGrid);
-            app.EvidenciadoquesetratadeprodutoqueusaRFCheckBox.Text = 'Evidenciado que se trata de produto que usa RF.';
-            app.EvidenciadoquesetratadeprodutoqueusaRFCheckBox.FontSize = 11;
-            app.EvidenciadoquesetratadeprodutoqueusaRFCheckBox.Layout.Row = 8;
-            app.EvidenciadoquesetratadeprodutoqueusaRFCheckBox.Layout.Column = [1 4];
+            % Create ManufacturerLabel
+            app.ManufacturerLabel = uilabel(app.report_EditableInfoGrid);
+            app.ManufacturerLabel.VerticalAlignment = 'bottom';
+            app.ManufacturerLabel.FontSize = 10;
+            app.ManufacturerLabel.Layout.Row = 3;
+            app.ManufacturerLabel.Layout.Column = [1 2];
+            app.ManufacturerLabel.Text = 'Fabricante:';
 
-            % Create EvidenciadoUSOdoprodutoCheckBox
-            app.EvidenciadoUSOdoprodutoCheckBox = uicheckbox(app.report_EditableInfoGrid);
-            app.EvidenciadoUSOdoprodutoCheckBox.Text = 'Evidenciado USO do produto.';
-            app.EvidenciadoUSOdoprodutoCheckBox.FontSize = 11;
-            app.EvidenciadoUSOdoprodutoCheckBox.Layout.Row = 9;
-            app.EvidenciadoUSOdoprodutoCheckBox.Layout.Column = [1 4];
+            % Create Manufacturer
+            app.Manufacturer = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.Manufacturer.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Manufacturer.FontSize = 11;
+            app.Manufacturer.Layout.Row = 4;
+            app.Manufacturer.Layout.Column = [1 3];
 
-            % Create EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox
-            app.EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox = uicheckbox(app.report_EditableInfoGrid);
-            app.EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox.Text = 'Evidenciada INTERFERÊNCIA decorrente do uso do produto.';
-            app.EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox.FontSize = 11;
-            app.EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox.Layout.Row = 10;
-            app.EvidenciadaINTERFERNCIAdecorrentedousodoprodutoCheckBox.Layout.Column = [1 4];
+            % Create ModelLabel
+            app.ModelLabel = uilabel(app.report_EditableInfoGrid);
+            app.ModelLabel.VerticalAlignment = 'bottom';
+            app.ModelLabel.FontSize = 10;
+            app.ModelLabel.Layout.Row = 3;
+            app.ModelLabel.Layout.Column = [4 5];
+            app.ModelLabel.Text = 'Modelo:';
 
-            % Create ValorunitrioRLabel
-            app.ValorunitrioRLabel = uilabel(app.report_EditableInfoGrid);
-            app.ValorunitrioRLabel.VerticalAlignment = 'bottom';
-            app.ValorunitrioRLabel.FontSize = 10;
-            app.ValorunitrioRLabel.Layout.Row = 12;
-            app.ValorunitrioRLabel.Layout.Column = 1;
-            app.ValorunitrioRLabel.Text = {'Valor unitário'; '(R$):'};
+            % Create Model
+            app.Model = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.Model.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Model.FontSize = 11;
+            app.Model.Layout.Row = 4;
+            app.Model.Layout.Column = [4 5];
 
-            % Create ValorunitrioREditField
-            app.ValorunitrioREditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.ValorunitrioREditField.ValueDisplayFormat = '%.2f';
-            app.ValorunitrioREditField.FontSize = 11;
-            app.ValorunitrioREditField.Layout.Row = 13;
-            app.ValorunitrioREditField.Layout.Column = 1;
+            % Create ImportadorLabel
+            app.ImportadorLabel = uilabel(app.report_EditableInfoGrid);
+            app.ImportadorLabel.VerticalAlignment = 'bottom';
+            app.ImportadorLabel.FontSize = 10;
+            app.ImportadorLabel.Layout.Row = 5;
+            app.ImportadorLabel.Layout.Column = [1 3];
+            app.ImportadorLabel.Text = 'Importador:';
 
-            % Create QtdusovendidaLabel
-            app.QtdusovendidaLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdusovendidaLabel.VerticalAlignment = 'bottom';
-            app.QtdusovendidaLabel.FontSize = 10;
-            app.QtdusovendidaLabel.Layout.Row = 14;
-            app.QtdusovendidaLabel.Layout.Column = 1;
-            app.QtdusovendidaLabel.Text = {'Qtd.'; 'uso/vendida:'};
+            % Create Importador
+            app.Importador = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.Importador.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Importador.FontSize = 11;
+            app.Importador.Layout.Row = 6;
+            app.Importador.Layout.Column = [1 3];
 
-            % Create QtdusovendidaEditField
-            app.QtdusovendidaEditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdusovendidaEditField.ValueDisplayFormat = '%.2f';
-            app.QtdusovendidaEditField.FontSize = 11;
-            app.QtdusovendidaEditField.Layout.Row = 15;
-            app.QtdusovendidaEditField.Layout.Column = 1;
+            % Create CodAduanaLabel
+            app.CodAduanaLabel = uilabel(app.report_EditableInfoGrid);
+            app.CodAduanaLabel.VerticalAlignment = 'bottom';
+            app.CodAduanaLabel.FontSize = 10;
+            app.CodAduanaLabel.Layout.Row = 5;
+            app.CodAduanaLabel.Layout.Column = [4 5];
+            app.CodAduanaLabel.Text = 'Código aduaneiro:';
 
-            % Create QtdestoqueaduanaLabel
-            app.QtdestoqueaduanaLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdestoqueaduanaLabel.VerticalAlignment = 'bottom';
-            app.QtdestoqueaduanaLabel.FontSize = 10;
-            app.QtdestoqueaduanaLabel.Layout.Row = 14;
-            app.QtdestoqueaduanaLabel.Layout.Column = 2;
-            app.QtdestoqueaduanaLabel.Text = {'Qtd.'; 'estoque/aduana:'};
+            % Create CodAduana
+            app.CodAduana = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.CodAduana.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.CodAduana.FontSize = 11;
+            app.CodAduana.Layout.Row = 6;
+            app.CodAduana.Layout.Column = [4 5];
 
-            % Create QtdestoqueaduanaEditField
-            app.QtdestoqueaduanaEditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdestoqueaduanaEditField.ValueDisplayFormat = '%.2f';
-            app.QtdestoqueaduanaEditField.FontSize = 11;
-            app.QtdestoqueaduanaEditField.Layout.Row = 15;
-            app.QtdestoqueaduanaEditField.Layout.Column = 2;
+            % Create RF
+            app.RF = uicheckbox(app.report_EditableInfoGrid);
+            app.RF.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.RF.Text = 'Evidenciado que se trata de produto que usa RF.';
+            app.RF.FontSize = 11;
+            app.RF.Layout.Row = 8;
+            app.RF.Layout.Column = [1 4];
 
-            % Create QtdlacradasEditFieldLabel
-            app.QtdlacradasEditFieldLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdlacradasEditFieldLabel.VerticalAlignment = 'bottom';
-            app.QtdlacradasEditFieldLabel.FontSize = 10;
-            app.QtdlacradasEditFieldLabel.Layout.Row = 14;
-            app.QtdlacradasEditFieldLabel.Layout.Column = 3;
-            app.QtdlacradasEditFieldLabel.Text = {'Qtd.'; 'lacradas:'};
+            % Create InUse
+            app.InUse = uicheckbox(app.report_EditableInfoGrid);
+            app.InUse.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.InUse.Text = 'Evidenciado USO do produto.';
+            app.InUse.FontSize = 11;
+            app.InUse.Layout.Row = 9;
+            app.InUse.Layout.Column = [1 4];
 
-            % Create QtdlacradasEditField
-            app.QtdlacradasEditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdlacradasEditField.ValueDisplayFormat = '%.2f';
-            app.QtdlacradasEditField.FontSize = 11;
-            app.QtdlacradasEditField.Layout.Row = 15;
-            app.QtdlacradasEditField.Layout.Column = 3;
+            % Create Interference
+            app.Interference = uicheckbox(app.report_EditableInfoGrid);
+            app.Interference.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Interference.Text = 'Evidenciada INTERFERÊNCIA decorrente do uso do produto.';
+            app.Interference.FontSize = 11;
+            app.Interference.Layout.Row = 10;
+            app.Interference.Layout.Column = [1 4];
 
-            % Create QtdapreendidasEditFieldLabel
-            app.QtdapreendidasEditFieldLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdapreendidasEditFieldLabel.VerticalAlignment = 'bottom';
-            app.QtdapreendidasEditFieldLabel.FontSize = 10;
-            app.QtdapreendidasEditFieldLabel.Layout.Row = 14;
-            app.QtdapreendidasEditFieldLabel.Layout.Column = 4;
-            app.QtdapreendidasEditFieldLabel.Text = {'Qtd.'; 'apreendidas:'};
+            % Create UnitPriceLabel
+            app.UnitPriceLabel = uilabel(app.report_EditableInfoGrid);
+            app.UnitPriceLabel.VerticalAlignment = 'bottom';
+            app.UnitPriceLabel.FontSize = 10;
+            app.UnitPriceLabel.Layout.Row = 12;
+            app.UnitPriceLabel.Layout.Column = 1;
+            app.UnitPriceLabel.Text = {'Valor unitário'; '(R$):'};
 
-            % Create QtdapreendidasEditField
-            app.QtdapreendidasEditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdapreendidasEditField.ValueDisplayFormat = '%.2f';
-            app.QtdapreendidasEditField.FontSize = 11;
-            app.QtdapreendidasEditField.Layout.Row = 15;
-            app.QtdapreendidasEditField.Layout.Column = 4;
+            % Create UnitPrice
+            app.UnitPrice = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.UnitPrice.Limits = [0 Inf];
+            app.UnitPrice.ValueDisplayFormat = '%.2f';
+            app.UnitPrice.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.UnitPrice.FontSize = 11;
+            app.UnitPrice.Layout.Row = 13;
+            app.UnitPrice.Layout.Column = 1;
 
-            % Create QtdretidasRFBLabel
-            app.QtdretidasRFBLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdretidasRFBLabel.VerticalAlignment = 'bottom';
-            app.QtdretidasRFBLabel.FontSize = 10;
-            app.QtdretidasRFBLabel.Layout.Row = 14;
-            app.QtdretidasRFBLabel.Layout.Column = 5;
-            app.QtdretidasRFBLabel.Text = {'Qtd.'; 'retidas (RFB):'};
+            % Create QtdVendidaLabel
+            app.QtdVendidaLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdVendidaLabel.VerticalAlignment = 'bottom';
+            app.QtdVendidaLabel.FontSize = 10;
+            app.QtdVendidaLabel.Layout.Row = 14;
+            app.QtdVendidaLabel.Layout.Column = 1;
+            app.QtdVendidaLabel.Text = {'Qtd.'; 'uso/vendida:'};
 
-            % Create QtdretidasRFBEditField
-            app.QtdretidasRFBEditField = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdretidasRFBEditField.ValueDisplayFormat = '%.2f';
-            app.QtdretidasRFBEditField.FontSize = 11;
-            app.QtdretidasRFBEditField.Layout.Row = 15;
-            app.QtdretidasRFBEditField.Layout.Column = 5;
+            % Create QtdVendida
+            app.QtdVendida = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdVendida.Limits = [0 Inf];
+            app.QtdVendida.RoundFractionalValues = 'on';
+            app.QtdVendida.ValueDisplayFormat = '%.0f';
+            app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdVendida.FontSize = 11;
+            app.QtdVendida.Layout.Row = 15;
+            app.QtdVendida.Layout.Column = 1;
 
-            % Create FabricanteEditFieldLabel
-            app.FabricanteEditFieldLabel = uilabel(app.report_EditableInfoGrid);
-            app.FabricanteEditFieldLabel.VerticalAlignment = 'bottom';
-            app.FabricanteEditFieldLabel.FontSize = 10;
-            app.FabricanteEditFieldLabel.Layout.Row = 3;
-            app.FabricanteEditFieldLabel.Layout.Column = [1 2];
-            app.FabricanteEditFieldLabel.Text = 'Fabricante:';
+            % Create QtdEstoqueLabel
+            app.QtdEstoqueLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdEstoqueLabel.VerticalAlignment = 'bottom';
+            app.QtdEstoqueLabel.FontSize = 10;
+            app.QtdEstoqueLabel.Layout.Row = 14;
+            app.QtdEstoqueLabel.Layout.Column = 2;
+            app.QtdEstoqueLabel.Text = {'Qtd.'; 'estoque/aduana:'};
 
-            % Create FabricanteEditField
-            app.FabricanteEditField = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.FabricanteEditField.FontSize = 11;
-            app.FabricanteEditField.Layout.Row = 4;
-            app.FabricanteEditField.Layout.Column = [1 3];
+            % Create QtdEstoque
+            app.QtdEstoque = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdEstoque.Limits = [0 Inf];
+            app.QtdEstoque.RoundFractionalValues = 'on';
+            app.QtdEstoque.ValueDisplayFormat = '%.0f';
+            app.QtdEstoque.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdEstoque.FontSize = 11;
+            app.QtdEstoque.Layout.Row = 15;
+            app.QtdEstoque.Layout.Column = 2;
 
-            % Create report_ViolationLabel_2
-            app.report_ViolationLabel_2 = uilabel(app.report_EditableInfoGrid);
-            app.report_ViolationLabel_2.VerticalAlignment = 'bottom';
-            app.report_ViolationLabel_2.FontSize = 10;
-            app.report_ViolationLabel_2.Layout.Row = 1;
-            app.report_ViolationLabel_2.Layout.Column = [3 5];
-            app.report_ViolationLabel_2.Text = 'Tipo:';
+            % Create QtdLacradaLabel
+            app.QtdLacradaLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdLacradaLabel.VerticalAlignment = 'bottom';
+            app.QtdLacradaLabel.FontSize = 10;
+            app.QtdLacradaLabel.Layout.Row = 14;
+            app.QtdLacradaLabel.Layout.Column = 3;
+            app.QtdLacradaLabel.Text = {'Qtd.'; 'lacradas:'};
 
-            % Create report_Violation_2
-            app.report_Violation_2 = uidropdown(app.report_EditableInfoGrid);
-            app.report_Violation_2.Items = {};
-            app.report_Violation_2.FontSize = 11;
-            app.report_Violation_2.BackgroundColor = [1 1 1];
-            app.report_Violation_2.Layout.Row = 2;
-            app.report_Violation_2.Layout.Column = [3 5];
-            app.report_Violation_2.Value = {};
+            % Create QtdLacrada
+            app.QtdLacrada = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdLacrada.Limits = [0 Inf];
+            app.QtdLacrada.RoundFractionalValues = 'on';
+            app.QtdLacrada.ValueDisplayFormat = '%.0f';
+            app.QtdLacrada.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdLacrada.FontSize = 11;
+            app.QtdLacrada.Layout.Row = 15;
+            app.QtdLacrada.Layout.Column = 3;
 
-            % Create ImportadorEditFieldLabel
-            app.ImportadorEditFieldLabel = uilabel(app.report_EditableInfoGrid);
-            app.ImportadorEditFieldLabel.VerticalAlignment = 'bottom';
-            app.ImportadorEditFieldLabel.FontSize = 10;
-            app.ImportadorEditFieldLabel.Layout.Row = 5;
-            app.ImportadorEditFieldLabel.Layout.Column = [1 3];
-            app.ImportadorEditFieldLabel.Text = 'Importador:';
+            % Create QtdApreendidaLabel
+            app.QtdApreendidaLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdApreendidaLabel.VerticalAlignment = 'bottom';
+            app.QtdApreendidaLabel.FontSize = 10;
+            app.QtdApreendidaLabel.Layout.Row = 14;
+            app.QtdApreendidaLabel.Layout.Column = 4;
+            app.QtdApreendidaLabel.Text = {'Qtd.'; 'apreendidas:'};
 
-            % Create ImportadorEditField
-            app.ImportadorEditField = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.ImportadorEditField.FontSize = 11;
-            app.ImportadorEditField.Layout.Row = 6;
-            app.ImportadorEditField.Layout.Column = [1 3];
+            % Create QtdApreendida
+            app.QtdApreendida = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdApreendida.Limits = [0 Inf];
+            app.QtdApreendida.RoundFractionalValues = 'on';
+            app.QtdApreendida.ValueDisplayFormat = '%.0f';
+            app.QtdApreendida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdApreendida.FontSize = 11;
+            app.QtdApreendida.Layout.Row = 15;
+            app.QtdApreendida.Layout.Column = 4;
 
-            % Create report_IDAduana
-            app.report_IDAduana = uieditfield(app.report_EditableInfoGrid, 'text');
-            app.report_IDAduana.FontSize = 11;
-            app.report_IDAduana.Layout.Row = 6;
-            app.report_IDAduana.Layout.Column = [4 5];
+            % Create QtdRetidaLabel
+            app.QtdRetidaLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdRetidaLabel.VerticalAlignment = 'bottom';
+            app.QtdRetidaLabel.FontSize = 10;
+            app.QtdRetidaLabel.Layout.Row = 14;
+            app.QtdRetidaLabel.Layout.Column = 5;
+            app.QtdRetidaLabel.Text = {'Qtd.'; 'retidas (RFB):'};
 
-            % Create report_IDAduanaLabel
-            app.report_IDAduanaLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_IDAduanaLabel.VerticalAlignment = 'bottom';
-            app.report_IDAduanaLabel.FontSize = 10;
-            app.report_IDAduanaLabel.Layout.Row = 5;
-            app.report_IDAduanaLabel.Layout.Column = [4 5];
-            app.report_IDAduanaLabel.Text = 'Código aduaneiro:';
+            % Create QtdRetida
+            app.QtdRetida = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdRetida.Limits = [0 Inf];
+            app.QtdRetida.RoundFractionalValues = 'on';
+            app.QtdRetida.ValueDisplayFormat = '%.0f';
+            app.QtdRetida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdRetida.FontSize = 11;
+            app.QtdRetida.Layout.Row = 15;
+            app.QtdRetida.Layout.Column = 5;
 
-            % Create report_SituationLabel
-            app.report_SituationLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_SituationLabel.VerticalAlignment = 'bottom';
-            app.report_SituationLabel.FontSize = 10;
-            app.report_SituationLabel.Layout.Row = 16;
-            app.report_SituationLabel.Layout.Column = 1;
-            app.report_SituationLabel.Text = 'Situação:';
+            % Create SituationLabel
+            app.SituationLabel = uilabel(app.report_EditableInfoGrid);
+            app.SituationLabel.VerticalAlignment = 'bottom';
+            app.SituationLabel.FontSize = 10;
+            app.SituationLabel.Layout.Row = 16;
+            app.SituationLabel.Layout.Column = 1;
+            app.SituationLabel.Text = 'Situação:';
 
-            % Create report_Situation
-            app.report_Situation = uidropdown(app.report_EditableInfoGrid);
-            app.report_Situation.Items = {'Irregular', 'Regular'};
-            app.report_Situation.ValueChangedFcn = createCallbackFcn(app, @report_SituationValueChanged, true);
-            app.report_Situation.FontSize = 11;
-            app.report_Situation.BackgroundColor = [1 1 1];
-            app.report_Situation.Layout.Row = 17;
-            app.report_Situation.Layout.Column = 1;
-            app.report_Situation.Value = 'Irregular';
+            % Create Situation
+            app.Situation = uidropdown(app.report_EditableInfoGrid);
+            app.Situation.Items = {'Irregular', 'Regular'};
+            app.Situation.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Situation.FontSize = 11;
+            app.Situation.BackgroundColor = [1 1 1];
+            app.Situation.Layout.Row = 17;
+            app.Situation.Layout.Column = 1;
+            app.Situation.Value = 'Irregular';
 
-            % Create report_ViolationLabel
-            app.report_ViolationLabel = uilabel(app.report_EditableInfoGrid);
-            app.report_ViolationLabel.VerticalAlignment = 'bottom';
-            app.report_ViolationLabel.FontSize = 10;
-            app.report_ViolationLabel.Layout.Row = 16;
-            app.report_ViolationLabel.Layout.Column = 2;
-            app.report_ViolationLabel.Text = 'Infração:';
+            % Create ViolationTypeLabel
+            app.ViolationTypeLabel = uilabel(app.report_EditableInfoGrid);
+            app.ViolationTypeLabel.VerticalAlignment = 'bottom';
+            app.ViolationTypeLabel.FontSize = 10;
+            app.ViolationTypeLabel.Layout.Row = 16;
+            app.ViolationTypeLabel.Layout.Column = 2;
+            app.ViolationTypeLabel.Text = 'Infração:';
 
-            % Create report_Violation
-            app.report_Violation = uidropdown(app.report_EditableInfoGrid);
-            app.report_Violation.Items = {'Comercialização', 'Identificação homologação', 'Uso'};
-            app.report_Violation.FontSize = 11;
-            app.report_Violation.BackgroundColor = [1 1 1];
-            app.report_Violation.Layout.Row = 17;
-            app.report_Violation.Layout.Column = [2 4];
-            app.report_Violation.Value = 'Comercialização';
+            % Create ViolationType
+            app.ViolationType = uidropdown(app.report_EditableInfoGrid);
+            app.ViolationType.Items = {'Comercialização', 'Identificação homologação', 'Uso'};
+            app.ViolationType.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.ViolationType.FontSize = 11;
+            app.ViolationType.BackgroundColor = [1 1 1];
+            app.ViolationType.Layout.Row = 17;
+            app.ViolationType.Layout.Column = [2 4];
+            app.ViolationType.Value = 'Comercialização';
 
-            % Create report_ViolationLabel_3
-            app.report_ViolationLabel_3 = uilabel(app.report_EditableInfoGrid);
-            app.report_ViolationLabel_3.VerticalAlignment = 'bottom';
-            app.report_ViolationLabel_3.FontSize = 10;
-            app.report_ViolationLabel_3.Layout.Row = 16;
-            app.report_ViolationLabel_3.Layout.Column = 5;
-            app.report_ViolationLabel_3.Text = 'Sanável?';
+            % Create CorrigibleLabel
+            app.CorrigibleLabel = uilabel(app.report_EditableInfoGrid);
+            app.CorrigibleLabel.VerticalAlignment = 'bottom';
+            app.CorrigibleLabel.FontSize = 10;
+            app.CorrigibleLabel.Layout.Row = 16;
+            app.CorrigibleLabel.Layout.Column = 5;
+            app.CorrigibleLabel.Text = 'Sanável?';
 
-            % Create report_Violation_3
-            app.report_Violation_3 = uidropdown(app.report_EditableInfoGrid);
-            app.report_Violation_3.Items = {'-1', 'Sim', 'Não'};
-            app.report_Violation_3.FontSize = 11;
-            app.report_Violation_3.BackgroundColor = [1 1 1];
-            app.report_Violation_3.Layout.Row = 17;
-            app.report_Violation_3.Layout.Column = 5;
-            app.report_Violation_3.Value = '-1';
+            % Create Corrigible
+            app.Corrigible = uidropdown(app.report_EditableInfoGrid);
+            app.Corrigible.Items = {'-1', 'Sim', 'Não'};
+            app.Corrigible.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.Corrigible.FontSize = 11;
+            app.Corrigible.BackgroundColor = [1 1 1];
+            app.Corrigible.Layout.Row = 17;
+            app.Corrigible.Layout.Column = 5;
+            app.Corrigible.Value = '-1';
 
-            % Create btnOK
-            app.btnOK = uibutton(app.Document, 'push');
-            app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @ButtonPushed, true);
-            app.btnOK.Tag = 'OK';
-            app.btnOK.IconAlignment = 'right';
-            app.btnOK.BackgroundColor = [0.9804 0.9804 0.9804];
-            app.btnOK.Enable = 'off';
-            app.btnOK.Layout.Row = 3;
-            app.btnOK.Layout.Column = 4;
-            app.btnOK.Text = 'OK';
+            % Create optNotesLabel
+            app.optNotesLabel = uilabel(app.report_EditableInfoGrid);
+            app.optNotesLabel.VerticalAlignment = 'bottom';
+            app.optNotesLabel.FontSize = 10;
+            app.optNotesLabel.Layout.Row = 18;
+            app.optNotesLabel.Layout.Column = [1 3];
+            app.optNotesLabel.Text = 'Informações adicionais:';
 
-            % Create report_nRows
-            app.report_nRows = uilabel(app.Document);
-            app.report_nRows.HorizontalAlignment = 'right';
-            app.report_nRows.FontColor = [0.502 0.502 0.502];
-            app.report_nRows.Layout.Row = 1;
-            app.report_nRows.Layout.Column = 4;
-            app.report_nRows.Interpreter = 'html';
-            app.report_nRows.Text = '1 de 5';
+            % Create optNotes
+            app.optNotes = uitextarea(app.report_EditableInfoGrid);
+            app.optNotes.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.optNotes.FontSize = 11;
+            app.optNotes.Layout.Row = 19;
+            app.optNotes.Layout.Column = [1 5];
 
-            % Create Image
-            app.Image = uiimage(app.Document);
-            app.Image.Layout.Row = 1;
-            app.Image.Layout.Column = 1;
-            app.Image.ImageSource = 'Previous_32.png';
+            % Create PreviousProduct
+            app.PreviousProduct = uiimage(app.Document);
+            app.PreviousProduct.ImageClickedFcn = createCallbackFcn(app, @PreviousProductImageClicked, true);
+            app.PreviousProduct.Tooltip = {'Navega para o produto anterior'};
+            app.PreviousProduct.Layout.Row = 2;
+            app.PreviousProduct.Layout.Column = 1;
+            app.PreviousProduct.ImageSource = 'Previous_32.png';
 
-            % Create Image_2
-            app.Image_2 = uiimage(app.Document);
-            app.Image_2.Layout.Row = 1;
-            app.Image_2.Layout.Column = 2;
-            app.Image_2.ImageSource = 'After_32.png';
-
-            % Create report_NewProduct
-            app.report_NewProduct = uiimage(app.Document);
-            app.report_NewProduct.Tooltip = {'Adiciona produto à lista'};
-            app.report_NewProduct.Layout.Row = 3;
-            app.report_NewProduct.Layout.Column = 1;
-            app.report_NewProduct.VerticalAlignment = 'bottom';
-            app.report_NewProduct.ImageSource = 'NewFile_36.png';
+            % Create NextProduct
+            app.NextProduct = uiimage(app.Document);
+            app.NextProduct.ImageClickedFcn = createCallbackFcn(app, @PreviousProductImageClicked, true);
+            app.NextProduct.Tooltip = {'Navega para o produto posterior'};
+            app.NextProduct.Layout.Row = 2;
+            app.NextProduct.Layout.Column = 2;
+            app.NextProduct.ImageSource = 'After_32.png';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

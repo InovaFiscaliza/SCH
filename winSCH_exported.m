@@ -65,6 +65,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         Tab2_Report                     matlab.ui.container.Tab
         Tab2_ReportGrid                 matlab.ui.container.GridLayout
         GridLayout7                     matlab.ui.container.GridLayout
+        Image5                          matlab.ui.control.Image
         report_Table                    matlab.ui.control.Table
         report_EditProduct              matlab.ui.control.Image
         report_nRows                    matlab.ui.control.Label
@@ -1364,66 +1365,30 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 switch srcMode
                     case 'search'
-                        if ~ismember(selectedHom2Add, app.projectData.listOfProducts.("Homologação"))
-                            newRow2Add = report_newRow2Add(app, selectedHom2Add);
-                            app.projectData.listOfProducts(end+1, [1:6,16:19]) = newRow2Add;
-                            app.projectData.listOfProducts = sortrows(app.projectData.listOfProducts, 'Homologação');
-                        end
+                        if ismember(selectedHom2Add, app.projectData.listOfProducts.("Homologação"))
+                            continue
+                        end                        
+                        newRow2Add = report_newRow2Add(app, selectedHom2Add);                        
 
-                    otherwise % 'report - addRow' | 'report - edit'
-                        Importador     = app.ImportadorEditField.Value;
-                        CodAduaneiro   = app.report_IDAduana.Value;                        
-                        Situacao       = app.report_Situation.Value;
-                        typeViolation  = app.report_Violation.Value;
-                        Sanavel        = app.report_Corrigible.Value;
-                        optionalNote   = strjoin(strtrim(app.report_Notes.Value), '\n');
-
-                        if strcmp(srcMode, 'report - addRow')
-                            switch selectedHom2Add
-                                case '-1'
-                                    newRow2Add = {'-1', Importador, CodAduaneiro, '-1', '', '', Situacao, typeViolation, Sanavel, optionalNote};
-
-                                otherwise
-                                    newRow2Add = report_newRow2Add(app, selectedHom2Add);
-                                    newRow2Add([2:3, 7:10]) = {Importador, CodAduaneiro, Situacao, typeViolation, Sanavel, optionalNote};
-                            end
-
-                            idx = height(app.projectData.listOfProducts) + 1;                            
-                            app.projectData.listOfProducts(idx, [1:6, 16:19]) = newRow2Add;
-                            app.projectData.listOfProducts = sortrows(app.projectData.listOfProducts, 'Homologação');
-
-                        else % 'report - edit'
-                            [~, ~, selectedRow] = misc_Table_SelectedRow(app, 'report');
-                            app.projectData.listOfProducts(selectedRow, [2:3, 16:19]) = {Importador, CodAduaneiro, Situacao, typeViolation, Sanavel, optionalNote};
-                        end
+                    otherwise % 'report - addRow'
+                        newRow2Add = {'-1', '', '', '-1', '', '', 'Irregular', '-1', '-1', ''};
                 end
+
+                app.projectData.listOfProducts(end+1, [1:6, 16:19]) = newRow2Add;
+                app.projectData.listOfProducts = sortrows(app.projectData.listOfProducts, 'Homologação');
             end
 
             % Atualizando a lista de produtos homologados sob análise (do 
             % modo SEARCH).
             report_ListOfHomProductsUpdating(app)
 
-            % Evidencia células que tiveram os seus valores editados...
-            if exist('selectedRow', 'var')
-                hComp = [app.report_IDAduana, app.report_Situation, app.report_Violation, app.report_Notes];
-                set(hComp, 'BackgroundColor', [0.75,0.75,0.75])
-                drawnow
-                pause(.3)
-            end
-
             % Atualizando a tabela e o número de linhas (do modo REPORT), nessa 
             % ordem. E depois forçando uma atualização dos paineis.
             report_UpdatingTable(app)
+            report_TableSelectionChanged(app)
 
             % Torna visível imagem de warning, caso aberto projeto.
             report_ProjectWarnImageVisibility(app)
-            
-            % Retira evidência às supracitadas células.
-            if exist('selectedRow', 'var')
-                set(hComp, 'BackgroundColor', [1,1,1])
-            end
-
-            report_TableSelectionChanged(app)
         end
 
 
@@ -1495,7 +1460,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Table.Data = app.projectData.listOfProducts(:, columnIndex);
         end
 
-
         %-----------------------------------------------------------------%
         function style2Apply = report_Table_Style2Apply(app)
             switch app.report_ShowCells2Edit.Tag
@@ -1505,7 +1469,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                     style2Apply = 'Icon+TemporaryBackgroundColor';
             end
         end
-
 
         %-----------------------------------------------------------------%
         function report_Table_AddStyle(app, styleType)
@@ -1538,13 +1501,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
         end
 
-
         %-----------------------------------------------------------------%
         function report_Table_AddStyle_Icon(app, listOfRows)
             s = class.Constants.configStyle6;
             addStyle(app.report_Table, s, "cell", [listOfRows, ones(numel(listOfRows), 1)])
         end
-
 
         %-----------------------------------------------------------------%
         function report_Table_AddStyle_BackgroundColor(app, idx, analyzedColumns, temporaryFlag)
@@ -1583,7 +1544,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
         end
-
 
         %-----------------------------------------------------------------%
         function newRow2Add = report_newRow2Add(app, selectedHom2Add)
@@ -1825,7 +1785,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     search_FilterSpecification(app)                                    
 
                                 case 'REPORT:PRODUCTINFO'
-                                    report_TreeBuilding(app)
+                                    selectedRow = varargin{3};
+
+                                    report_UpdatingTable(app)
+                                    if isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
+                                        app.report_ProductInfo.UserData.selectedRow = [];
+                                        report_TableSelectionChanged(app)
+                                    end                                    
+                                    report_ProjectWarnImageVisibility(app)
                             end
                         end
 
@@ -2366,9 +2333,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                     misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, selectedRow(1), selected2showedHom)
                 end
 
+                app.report_EditProduct.Enable = 1;
+
             else
                 htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
                 misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, [], '')
+                
+                app.report_EditProduct.Enable = 0;
             end
 
         end
@@ -2435,8 +2406,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                         return
                     end
 
-                    app.search_ListOfProducts.Items = {};
-                    app.projectData.listOfProducts(:,:)         = [];
+                    app.search_ListOfProducts.Items     = {};
+                    app.projectData.listOfProducts(:,:) = [];
                     
                     report_UpdatingTable(app)
                     report_TableSelectionChanged(app)
@@ -3008,6 +2979,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                     menu_LayoutPopupApp(app, 'FilterSetup')
 
                 case app.report_EditProduct
+                    % O botão não deve estar acessível, caso não exista linha 
+                    % selecionada. A condições abaixo é apenas uma forma de 
+                    % segurança, caso o MATLAB se atrapalhe na execução de 
+                    % vários comandos.
+                    if isempty(app.report_Table.Selection)
+                        app.report_Table.Selection = 1;
+                        report_TableSelectionChanged(app)
+                    end
+                    
                     menu_LayoutPopupApp(app, 'ProductInfo')
             end
 
@@ -3034,6 +3014,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.previousSearch = '';
             search_EntryPoint_InitialValue(app)
             search_SuggestionPanel_InitialValues(app)
+
+        end
+
+        % Image clicked function: Image5
+        function Image5Clicked(app, event)
+            
+            report_ListOfProductsAdd(app, 'report', {'-1'})
 
         end
     end
@@ -3941,7 +3928,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create GridLayout7
             app.GridLayout7 = uigridlayout(app.Tab2_ReportGrid);
-            app.GridLayout7.ColumnWidth = {'1x', 16};
+            app.GridLayout7.ColumnWidth = {'1x', 16, 16};
             app.GridLayout7.RowHeight = {1, 22, 5, 10, '1x'};
             app.GridLayout7.ColumnSpacing = 2;
             app.GridLayout7.RowSpacing = 4;
@@ -3957,7 +3944,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.BackgroundColor = [1 1 1];
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Row = [2 4];
-            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Column = [1 2];
+            app.LISTADEPRODUTOSSOBANLISEButtonGroup.Layout.Column = [1 3];
             app.LISTADEPRODUTOSSOBANLISEButtonGroup.FontSize = 10;
 
             % Create FornecedorouusurioButton
@@ -3979,16 +3966,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_nRows.VerticalAlignment = 'top';
             app.report_nRows.FontColor = [0.502 0.502 0.502];
             app.report_nRows.Layout.Row = 2;
-            app.report_nRows.Layout.Column = [1 2];
+            app.report_nRows.Layout.Column = [1 3];
             app.report_nRows.Interpreter = 'html';
             app.report_nRows.Text = '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>';
 
             % Create report_EditProduct
             app.report_EditProduct = uiimage(app.GridLayout7);
             app.report_EditProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.report_EditProduct.Enable = 'off';
             app.report_EditProduct.Tooltip = {'Edita lista de produtos'};
             app.report_EditProduct.Layout.Row = [3 4];
-            app.report_EditProduct.Layout.Column = 2;
+            app.report_EditProduct.Layout.Column = 3;
             app.report_EditProduct.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Edit_36.png');
 
             % Create report_Table
@@ -4002,8 +3990,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
             app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
             app.report_Table.Layout.Row = 5;
-            app.report_Table.Layout.Column = [1 2];
+            app.report_Table.Layout.Column = [1 3];
             app.report_Table.FontSize = 10;
+
+            % Create Image5
+            app.Image5 = uiimage(app.GridLayout7);
+            app.Image5.ImageClickedFcn = createCallbackFcn(app, @Image5Clicked, true);
+            app.Image5.Tooltip = {'Adiciona produto NÃO homologado à lista'};
+            app.Image5.Layout.Row = [3 4];
+            app.Image5.Layout.Column = 2;
+            app.Image5.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Forbidden_32Red.png');
 
             % Create Tab3_Config
             app.Tab3_Config = uitab(app.TabGroup);
