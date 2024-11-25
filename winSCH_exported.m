@@ -87,10 +87,10 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_ModelName                matlab.ui.control.DropDown
         report_EntityPanel              matlab.ui.container.Panel
         report_EntityGrid               matlab.ui.container.GridLayout
-        Image                           matlab.ui.control.Image
         report_EntityType               matlab.ui.control.DropDown
         report_EntityTypeLabel          matlab.ui.control.Label
         report_EntityID                 matlab.ui.control.EditField
+        report_EntityCheck              matlab.ui.control.Image
         report_EntityIDLabel            matlab.ui.control.Label
         report_Entity                   matlab.ui.control.EditField
         report_EntityLabel              matlab.ui.control.Label
@@ -2203,15 +2203,19 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msgWarning{end+1} = sprintf('• O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
             end
 
-            nEntity = strtrim(app.report_Entity.Value);
-            try
-                nCNPJ = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
-            catch
-                nCNPJ = '';
-            end
+            if ismember(app.report_EntityType.Value, {'Fornecedor', 'Usuário'})
+                nEntity = strtrim(app.report_Entity.Value);
+                try
+                    CNPJOrCPF = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
+                    set(app.report_EntityID, Value = CNPJOrCPF, UserData = CNPJOrCPF)
 
-            if isempty(nEntity) || isempty(nCNPJ) || isempty(app.report_EntityType.Value)
-                msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
+                catch
+                    CNPJOrCPF = '';
+                end
+    
+                if isempty(nEntity) || isempty(CNPJOrCPF) || isempty(app.report_EntityType.Value)
+                    msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
+                end
             end
 
             listOfRows = report_ListOfProductsCheck(app);
@@ -2417,6 +2421,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.report_Entity.Value      = '';
                     app.report_EntityID.Value    = '';
                     app.report_EntityType.Value  = '';
+                    report_EntityTypeValueChanged(app)
 
                     app.report_ProjectWarnIcon.Visible = 0;
 
@@ -2450,6 +2455,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             app.report_Entity.Value      = variables.entityName;
                             app.report_EntityID.Value    = variables.entityID;
                             app.report_EntityType.Value  = variables.entityType;
+                            report_EntityTypeValueChanged(app)
     
                             report_UpdatingTable(app)
                             report_TableSelectionChanged(app)
@@ -2504,7 +2510,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         % Value changed function: report_Entity, report_EntityID, 
-        % ...and 2 other components
+        % ...and 1 other component
         function report_ProjectWarnImageVisibility(app, event)
 
             if ~isempty(app.report_ProjectName.Value{1})
@@ -2513,7 +2519,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: Image
+        % Image clicked function: report_EntityCheck
         function report_EntityIDCheck(app, event)
             
             entityID = regexprep(app.report_EntityID.Value, '\D', '');
@@ -3021,6 +3027,25 @@ classdef winSCH_exported < matlab.apps.AppBase
         function Image5Clicked(app, event)
             
             report_ListOfProductsAdd(app, 'report', {'-1'})
+
+        end
+
+        % Value changed function: report_EntityType
+        function report_EntityTypeValueChanged(app, event)
+            
+            switch app.report_EntityType.Value
+                case {'Fornecedor', 'Usuário'}
+                    app.report_Entity.Enable      = 1;
+                    app.report_EntityID.Enable    = 1;
+                    app.report_EntityCheck.Enable = 1;
+                    
+                otherwise
+                    app.report_Entity.Enable      = 0;
+                    app.report_EntityID.Enable    = 0;
+                    app.report_EntityCheck.Enable = 0;
+            end
+
+            report_ProjectWarnImageVisibility(app)
 
         end
     end
@@ -3803,6 +3828,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Entity = uieditfield(app.report_EntityGrid, 'text');
             app.report_Entity.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
             app.report_Entity.FontSize = 11;
+            app.report_Entity.Enable = 'off';
             app.report_Entity.Layout.Row = 2;
             app.report_Entity.Layout.Column = [1 3];
 
@@ -3816,10 +3842,20 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_EntityIDLabel.Layout.Column = 1;
             app.report_EntityIDLabel.Text = 'CNPJ/CPF:';
 
+            % Create report_EntityCheck
+            app.report_EntityCheck = uiimage(app.report_EntityGrid);
+            app.report_EntityCheck.ImageClickedFcn = createCallbackFcn(app, @report_EntityIDCheck, true);
+            app.report_EntityCheck.Enable = 'off';
+            app.report_EntityCheck.Layout.Row = 3;
+            app.report_EntityCheck.Layout.Column = 2;
+            app.report_EntityCheck.VerticalAlignment = 'bottom';
+            app.report_EntityCheck.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Info_36.png');
+
             % Create report_EntityID
             app.report_EntityID = uieditfield(app.report_EntityGrid, 'text');
             app.report_EntityID.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
             app.report_EntityID.FontSize = 11;
+            app.report_EntityID.Enable = 'off';
             app.report_EntityID.Layout.Row = 4;
             app.report_EntityID.Layout.Column = [1 2];
 
@@ -3834,20 +3870,12 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create report_EntityType
             app.report_EntityType = uidropdown(app.report_EntityGrid);
             app.report_EntityType.Items = {'', 'Importador', 'Fornecedor', 'Usuário'};
-            app.report_EntityType.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
+            app.report_EntityType.ValueChangedFcn = createCallbackFcn(app, @report_EntityTypeValueChanged, true);
             app.report_EntityType.FontSize = 11;
             app.report_EntityType.BackgroundColor = [1 1 1];
             app.report_EntityType.Layout.Row = 4;
             app.report_EntityType.Layout.Column = 3;
             app.report_EntityType.Value = '';
-
-            % Create Image
-            app.Image = uiimage(app.report_EntityGrid);
-            app.Image.ImageClickedFcn = createCallbackFcn(app, @report_EntityIDCheck, true);
-            app.Image.Layout.Row = 3;
-            app.Image.Layout.Column = 2;
-            app.Image.VerticalAlignment = 'bottom';
-            app.Image.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Info_36.png');
 
             % Create report_ModelName
             app.report_ModelName = uidropdown(app.report_IssueGrid);

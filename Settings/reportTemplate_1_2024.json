@@ -14,26 +14,6 @@
                         "Text": "Atendimento à demanda de fiscalização cadastrada no Fiscaliza sob a <b>Atividade de Inspeção nº %.0f</b>.",
                         "Variable": "var_Issue"
                     }
-                },
-                {
-                    "Type": "List",
-                    "Data": [
-                        {
-                            "Editable": "false",
-                            "Text": "Fiscalizada: %s",
-                            "Variable": "var_EntityName"
-                        },
-                        {
-                            "Editable": "true",
-                            "Text": "CNPJ/CPF: %s",
-                            "Variable": "var_EntityID"
-                        },
-                        {
-                            "Editable": "false",
-                            "Text": "Tipo: %s",
-                            "Variable": "var_EntityType"
-                        }
-                    ]
                 }
             ]
         }
@@ -58,7 +38,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "Produtos testados e aprovados para uso no mercado brasileiro protegem os consumidores e a qualidade das comunicações, além de favorecerem um ambiente competitivo. Tais testes estão previstos nos procedimentos de Certificação e Homologação de produtos para telecomunicações e são requisitos obrigatórios para a comercialização desses produtos no Brasil. Veja por quê:",
+                        "Text": "Produtos testados e aprovados para uso no mercado brasileiro protegem os consumidores e garantem a qualidade das comunicações, além de promoverem um ambiente competitivo. Esses testes estão previstos nos procedimentos de Certificação e Homologação de produtos para telecomunicações e são requisitos obrigatórios para a comercialização no Brasil.",
                         "Variable": []
                     }
                 },
@@ -67,22 +47,17 @@
                     "Data": [
                         {
                             "Editable": "false",
-                            "Text": "SAÚDE, SEGURANÇA E ASSISTÊNCIA: produtos para telecomunicações com homologação da Anatel passam por testes que garantem níveis adequados de segurança elétrica e de emissões de radiofrequências, além de cumprirem outras exigências como a oferta de assistência técnica no País.",
+                            "Text": "SAÚDE, SEGURANÇA E ASSISTÊNCIA: Produtos para telecomunicações homologados pela Anatel passam por testes que garantem níveis adequados de segurança elétrica e emissões de radiofrequência, além de atenderem a exigências como a oferta de assistência técnica no país.",
                             "Variable": []
                         },
                         {
-                            "Editable": "true",
-                            "Text": "QUALIDADE: a padronização técnica dos equipamentos que operam no país favorece o controle eficaz do espectro de radiofrequências, assegurando a qualidade e a segurança das comunicações, em especial, dos serviços de emergência.",
+                            "Editable": "false",
+                            "Text": "QUALIDADE: A padronização técnica dos equipamentos que operam no Brasil favorece o controle eficaz do espectro de radiofrequências, assegurando a qualidade e a segurança das comunicações, especialmente em serviços de emergência.",
                             "Variable": []
                         },
                         {
-                            "Editable": "true",
-                            "Text": "COMPETIÇÃO: equipamentos homologados ajudam a promover um ambiente competitivo, justo e saudável, o que pode incentivar mais investimentos em pesquisa e desenvolvimento por parte dos fabricantes e fornecedores.",
-                            "Variable": []
-                        },
-                        {
-                            "Editable": "true",
-                            "Text": "Para acompanhar o mercado e assegurar a regularidade dos produtos, a Anatel atua segundo um planejamento anual que prioriza a fiscalização dos elementos centrais da cadeia de comercialização de produtos de telecomunicações, tais como fabricantes, importadores e distribuidores. As denúncias recebidas pela Agência são analisadas e tratadas de forma individualizada.",
+                            "Editable": "false",
+                            "Text": "COMPETIÇÃO: Equipamentos homologados ajudam a promover um ambiente competitivo, justo e saudável, incentivando investimentos em pesquisa e desenvolvimento por parte de fabricantes e fornecedores.",
                             "Variable": []
                         }
                     ]
@@ -91,7 +66,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "true",
-                        "Text": "Neste ano de 2024, o PACP foi formalizado por meio do Processo nº 53500.316500/2022-10.",
+                        "Text": "Neste ano de 2024, o PACP foi formalizado por meio do Processo nº 53542.000390/2024-32.",
                         "Variable": []
                     }
                 }
@@ -110,16 +85,12 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A captura de dados de monitoração é realizada pelos sensores que a Agência dispõe, em especial os receptores e analisadores de espectro. Os dados são armazenados em arquivos de diversos formatos - CRFS BIN, Argus CSV e appColeta BIN, por exemplo - e posteriormente transferidos para repositório central de dados de monitoração da Agência. Por fim, esses dados são pós processados, o que engloba a aferição da ocupação dos <i>bins</i>, a detecção e classificação de emissões e a geração de uma representação gráfica.",
-                        "Variable": []
-                    }
-                },
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "...",
-                        "Variable": []
+                        "Text": "A fiscalização foi realizada em <b>%s</b>, %s inscrito no CNPJ/CPF sob o nº <b>%s</b>, e consistiu na averiguação <i>in loco</i> de produtos para telecomunicações em posse do fiscalizado, os quais são destinados ao uso ou à comercialização.",
+                        "Variable": [
+                            "var_EntityName",
+                            "var_EntityType",                            
+                            "var_EntityID"                            
+                        ]
                     }
                 }
             ]
@@ -136,8 +107,8 @@
                 {
                     "Type": "ItemN2",
                     "Data": {
-                        "Editable": "true",
-                        "Text": "Na tabela apresentada a seguir constam os detalhes dos produtos para telecomunicações inspecionados...",
+                        "Editable": "false",
+                        "Text": "Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados.",
                         "Variable": []
                     }
                 },
@@ -147,7 +118,7 @@
                         "Origin": "FunctionEvaluation",
                         "Source": "tableFcn1",
                         "Columns": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-                        "Caption": "Legenda da tabela...",
+                        "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
                         "Settings": [
                             {
                                 "Editable": "false",
@@ -231,7 +202,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "Sumarizando esses dados em relação ao(s) tipo(s) de produto para telecomunicações inspecionados,",
+                        "Text": "Sumarizando esses dados em relação aos tipos dos produtos para telecomunicações inspecionados,",
                         "Variable": []
                     }
                 },
@@ -241,7 +212,7 @@
                         "Origin": "FunctionEvaluation",
                         "Source": "tableFcn2",
                         "Columns": [1, 2, 3, 4, 5, 6],
-                        "Caption": "Legenda da tabela...",
+                        "Caption": "Sumarização em relação aos tipos dos produtos para telecomunicações inspecionados.",
                         "Settings": [
                             {
                                 "Editable": "false",
@@ -289,7 +260,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "Sumarizando esses dados em relação à(s) infração(ões) evidenciada(s),",
+                        "Text": "Sumarizando esses dados em relação às infrações evidenciadas,",
                         "Variable": []
                     }
                 },
@@ -299,7 +270,7 @@
                         "Origin": "FunctionEvaluation",
                         "Source": "tableFcn2",
                         "Columns": [1, 2, 3, 4, 5, 6],
-                        "Caption": "Legenda da tabela...",
+                        "Caption": "Sumarização em relação às infrações evidenciadas.",
                         "Settings": [
                             {
                                 "Editable": "false",
@@ -350,7 +321,7 @@
         "Type": "ItemN1",
         "Recurrence": 0,
         "Data": {
-            "Editable": "true",
+            "Editable": "false",
             "Text": "CONCLUSÃO",
             "Variable": [],
             "Component": {

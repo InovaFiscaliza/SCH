@@ -1,7 +1,7 @@
 function Table = reportTable_type2(reportTable, configTable)
 
-    columnName  = configTable.Settings(1).ColumnName;
-    columnClass = class(reportTable.(columnName));
+    columnName   = configTable.Settings(1).ColumnName;
+    columnClass  = class(reportTable.(columnName));
     columnValues = reportTable.(columnName);
 
     if ismember(columnClass, {'string', 'categorical'})
