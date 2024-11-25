@@ -265,9 +265,13 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Index.ValueDisplayFormat = '%.0f';
             app.Index.AllowEmpty = 'on';
             app.Index.Editable = 'off';
+            app.Index.HorizontalAlignment = 'left';
+            app.Index.FontSize = 11;
+            app.Index.FontColor = [1 1 1];
+            app.Index.BackgroundColor = [0 0 0];
             app.Index.Layout.Row = 2;
             app.Index.Layout.Column = 1;
-            app.Index.Value = [];
+            app.Index.Value = 1;
 
             % Create nHomLabel
             app.nHomLabel = uilabel(app.report_EditableInfoGrid);

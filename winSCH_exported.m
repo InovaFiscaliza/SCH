@@ -599,7 +599,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.General.operationMode = app.General_I.operationMode;
                 app.General.fileFolder    = app.General_I.fileFolder;
 
-                app.config_Folder_userPath.Value = app.General.fileFolder.userPath;
                 app.config_Folder_tempPath.Value = app.General.fileFolder.tempPath;
 
                 % Diminui a opacidade do SplashScreen. Esse processo dura
@@ -2316,15 +2315,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if ~isempty(selectedHom)
                 updateFlag = false;
-
-                if ~strcmp(selectedHom, '-1')
-                    if ~ismember(showedHom, selectedHom)
-                        updateFlag = true;
-                    end                    
-                else
-                    if ~isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
-                        updateFlag = true;
-                    end
+                if ~ismember(showedHom, selectedHom) || ~isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
+                    updateFlag = true;
                 end
 
                 if updateFlag

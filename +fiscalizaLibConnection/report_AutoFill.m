@@ -30,10 +30,11 @@ function automaticData = report_Info2AutoFill(app)
     end
 
     try
-        [~, nCNPJ] = checkCNPJ(app.report_EntityID.Value, false);
+        CNPJOrCPF  = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
+        nCNPJOrCPF = regexprep(CNPJOrCPF, '\D', '');
         
-        automaticData.entidade_da_inspecao = {nCNPJ};
-        automaticData.cnpjcpf_da_entidade  = nCNPJ;
+        automaticData.entidade_da_inspecao = {nCNPJOrCPF};
+        automaticData.cnpjcpf_da_entidade  = nCNPJOrCPF;
     catch
     end
 
