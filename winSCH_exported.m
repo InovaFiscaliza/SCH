@@ -80,7 +80,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_ProjectNew               matlab.ui.control.Image
         report_IssuePanel               matlab.ui.container.Panel
         report_IssueGrid                matlab.ui.container.GridLayout
-        Image4                          matlab.ui.control.Image
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
         report_ModelNameLabel           matlab.ui.control.Label
@@ -472,7 +471,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
                     
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
                     sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
 
                 case 1 % SEARCH
@@ -607,12 +606,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 % iteração, 25 ms. E executa drawnow, forçando a renderização 
                 % em tela dos componentes.
                 sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
-                set(findobj(app.menu_Grid.Children, '-not', 'Type', 'uihtml'), 'Enable', 1)
-                app.menu_Separator.Enable = 0;
-                drawnow
 
                 % Força a exclusão do SplashScreen.
-                app.TabGroup.Visible = 1;
                 if isvalid(app.SplashScreen)
                     pause(1)
                     delete(app.SplashScreen)
@@ -839,7 +834,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Executa o app auxiliar, mas antes tenta configurar transparência
             % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
-            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65')
+            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
             inputArguments = [{app}, varargin];
             eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
             
@@ -3906,12 +3901,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Version.Layout.Column = [4 5];
             app.report_Version.Value = 'Preliminar';
 
-            % Create Image4
-            app.Image4 = uiimage(app.report_IssueGrid);
-            app.Image4.Layout.Row = 3;
-            app.Image4.Layout.Column = 3;
-            app.Image4.ImageSource = fullfile(pathToMLAPP, 'Icons', 'attach_32.png');
-
             % Create report_ProjectNew
             app.report_ProjectNew = uiimage(app.report_Tab2Grid);
             app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
@@ -4655,7 +4644,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.menu_Button1 = uibutton(app.menu_Grid, 'state');
             app.menu_Button1.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button1.Tag = '1';
-            app.menu_Button1.Enable = 'off';
             app.menu_Button1.Tooltip = {''};
             app.menu_Button1.Icon = fullfile(pathToMLAPP, 'Icons', 'Zoom_32Yellow.png');
             app.menu_Button1.IconAlignment = 'top';
@@ -4670,7 +4658,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.menu_Button2 = uibutton(app.menu_Grid, 'state');
             app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button2.Tag = '2';
-            app.menu_Button2.Enable = 'off';
             app.menu_Button2.Tooltip = {''};
             app.menu_Button2.Icon = fullfile(pathToMLAPP, 'Icons', 'Detection_32White.png');
             app.menu_Button2.IconAlignment = 'top';
@@ -4684,7 +4671,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.menu_Button3 = uibutton(app.menu_Grid, 'state');
             app.menu_Button3.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
             app.menu_Button3.Tag = '3';
-            app.menu_Button3.Enable = 'off';
             app.menu_Button3.Tooltip = {''};
             app.menu_Button3.Icon = fullfile(pathToMLAPP, 'Icons', 'Settings_36White.png');
             app.menu_Button3.IconAlignment = 'top';
@@ -4712,7 +4698,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create FigurePosition
             app.FigurePosition = uiimage(app.menu_Grid);
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @menu_auxiliarButtonPushed, true);
-            app.FigurePosition.Enable = 'off';
+            app.FigurePosition.Visible = 'off';
             app.FigurePosition.Layout.Row = 2;
             app.FigurePosition.Layout.Column = 8;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Layout1.png');
@@ -4720,7 +4706,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create AppInfo
             app.AppInfo = uiimage(app.menu_Grid);
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @menu_auxiliarButtonPushed, true);
-            app.AppInfo.Enable = 'off';
             app.AppInfo.Layout.Row = 2;
             app.AppInfo.Layout.Column = 9;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Dots_36x36W.png');
