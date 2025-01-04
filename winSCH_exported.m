@@ -406,7 +406,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
 
                 %---------------------------------------------------------%
-                case 'credentialDialog'
+                case 'customForm'
                     report_FiscalizaConnect(app, event.HTMLEventData, 'OpenConnection')
 
                 %---------------------------------------------------------%
@@ -1571,6 +1571,32 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % REPORT >> FISCALIZA
         %-----------------------------------------------------------------%
+        function report_FiscalizaStartup(app)
+            if isempty(app.fiscalizaObj) || ~strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
+                msgQuestion = sprintf('<p style="font-size:12px; text-align:justify;">Deseja obter informações da Inspeção nº %.0f?</p>', app.report_Issue.Value);
+                selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
+                                                                       'Options', {'   OK   ', 'CANCELAR'}, ...
+                                                                       'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
+                switch selection
+                    case '   OK   '
+                        if isempty(app.fiscalizaObj)
+                            dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
+                            dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
+                            sendEventToHTMLSource(app.jsBackDoor, "customForm", struct('UUID', char(matlab.lang.internal.uuid()), 'Fields', dialogBox))
+                        else
+                            report_FiscalizaConnect(app, [], 'GetIssue')
+                        end
+
+                    case 'CANCELAR'
+                        app.report_Issue.Value = str2double(app.fiscalizaObj.issueID);
+                end
+            end
+    
+            fiscalizaLibConnection.report_ToolbarStatus(app)
+            app.GridLayout6.RowHeight([2,4]) = {0, '1x'};
+        end
+
+        %-----------------------------------------------------------------%
         function report_FiscalizaConnect(app, credentials, connectionType)
             app.progressDialog.Visible = 'visible';
             try
@@ -2543,7 +2569,11 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             switch event.Source
                 case app.report_FiscalizaRefresh
-                    report_FiscalizaConnect(app, [], 'RefreshIssue')
+                    if isempty(app.fiscalizaObj) || ~strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
+                        report_FiscalizaStartup(app)
+                    else
+                        report_FiscalizaConnect(app, [], 'RefreshIssue')
+                    end
 
                 case app.tool_FiscalizaAutoFill
                     fiscalizaLibConnection.report_AutoFill(app)
@@ -2771,25 +2801,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                         appUtil.modalWindow(app.UIFigure, 'warning', 'Pendente inserir o número da Inspeção.');
                         return
                     end
-    
-                    if isempty(app.fiscalizaObj) || ~strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
-                        msgQuestion = sprintf('<p style="font-size:12px; text-align:justify;">Deseja obter informações da Inspeção nº %.0f?</p>', app.report_Issue.Value);
-                        selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
-                                                                               'Options', {'   OK   ', 'CANCELAR'}, ...
-                                                                               'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-                        if strcmp(selection, 'CANCELAR')
-                            return
-                        end
-        
-                        if isempty(app.fiscalizaObj)
-                            sendEventToHTMLSource(app.jsBackDoor, 'credentialDialog', struct('UUID', char(matlab.lang.internal.uuid())));
-                        else
-                            report_FiscalizaConnect(app, [], 'GetIssue')
-                        end
-                    end
-    
-                    fiscalizaLibConnection.report_ToolbarStatus(app)
-                    app.GridLayout6.RowHeight([2,4]) = {0, '1x'};
+
+                    report_FiscalizaStartup(app)
             end
 
         end
