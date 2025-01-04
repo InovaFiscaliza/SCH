@@ -1573,12 +1573,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function report_FiscalizaStartup(app)
             if isempty(app.fiscalizaObj) || ~strcmp(app.fiscalizaObj.issueID, num2str(app.report_Issue.Value))
-                msgQuestion = sprintf('<p style="font-size:12px; text-align:justify;">Deseja obter informações da Inspeção nº %.0f?</p>', app.report_Issue.Value);
-                selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
-                                                                       'Options', {'   OK   ', 'CANCELAR'}, ...
-                                                                       'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-                switch selection
-                    case '   OK   '
+                msgQuestion   = sprintf('Deseja obter informações da Inspeção nº %.0f?', app.report_Issue.Value);
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                
+                switch userSelection
+                    case 'Sim'
                         if isempty(app.fiscalizaObj)
                             dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
                             dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
@@ -1587,8 +1586,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                             report_FiscalizaConnect(app, [], 'GetIssue')
                         end
 
-                    case 'CANCELAR'
-                        app.report_Issue.Value = str2double(app.fiscalizaObj.issueID);
+                    case 'Não'
+                        if ~isempty(app.fiscalizaObj)
+                            app.report_Issue.Value = str2double(app.fiscalizaObj.issueID);
+                        end
                 end
             end
     
