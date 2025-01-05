@@ -641,9 +641,12 @@ classdef winSCH_exported < matlab.apps.AppBase
             % app.General
             [app.General_I, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder, {'Annotation.xlsx'});
             app.General_I.SCHDataInfo   = struct2table(app.General_I.SCHDataInfo);
+            app.General_I.ColumnNamesForSearching = 'Modelo | Nome Comercial';
+
             if ~isempty(msgWarning)
                 appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
             end
+
             app.General = app.General_I;
         end
 
@@ -697,7 +700,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.menu_Button3.UserData                 = struct('iconOptions', {{'Settings_36White.png',  'Settings_36Yellow.png'}},  'tabGroup', 3);
 
             app.search_ToolbarAnnotation.UserData     = struct('iconOptions', {{'Edit_18x18Gray.png',    'Edit_18x18Blue.png'}});
-            app.search_ToolbarWordCloud.UserData      = struct('iconOptions', {{'Cloud_32x32Gray.png',   'Cloud_32x32Blue.png'}});
+            app.search_ToolbarWordCloud.UserData      = struct('iconOptions', {{'Cloud_32x32Gray.png',   'Cloud_32x32Blue.png'}}, 'Value', false);
             app.search_ToolbarListOfProducts.UserData = struct('iconOptions', {{'Box_32x32Gray.png',     'Box_32x32Blue.png'}});
 
             % Inicialização da propriedade "UserData" da tabela.
@@ -2038,7 +2041,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     misc_SelectedHomPanel_InfoUpdate(app, 'search', htmlSource, selectedRow(1), selected2showedHom)
     
                     % Apresenta a nuvem de palavras apenas se visível...
-                    if app.search_Tab1Grid.RowHeight{8}
+                    if app.search_ToolbarWordCloud.UserData.Value
                         if search_WordCloud_CheckCache(app, selected2showedHom, relatedAnnotationTable)        
                             search_WordCloud_PlotUpdate(app, selectedRow(1), selected2showedHom, false);
                         end
@@ -2092,7 +2095,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     search_Panel_Visibility(app)
 
                 case app.search_ToolbarWordCloud
-                    if app.search_Tab1Grid.RowHeight{6}
+                    app.search_ToolbarWordCloud.UserData.Value = ~app.search_ToolbarWordCloud.UserData.Value;
+
+                    if ~app.search_ToolbarWordCloud.UserData.Value
                         app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{1};
                         app.search_Tab1Grid.RowHeight(6:7)        = {0,0};
 
