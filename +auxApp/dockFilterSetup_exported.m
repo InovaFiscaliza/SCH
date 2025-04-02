@@ -95,7 +95,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'SEARCH:FILTERSETUP', updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.CallingApp, app, 'SEARCH:FILTERSETUP', updateFlag, returnFlag)
         end
     end
     

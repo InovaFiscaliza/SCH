@@ -42,8 +42,6 @@ function [annotationTable, msgWarning] = Annotation(rootFolder, cloudFolder)
     end
 
     annotationTable = KeepOnlyValidRows(annotationTable);
-    annotationTable = KeepJustLastWordCloud(annotationTable);
-
 end
 
 
@@ -96,30 +94,5 @@ function annotationTable = KeepOnlyValidRows(annotationTable)
 
     idx = annotationTable.("Situação") ~= -1;
     annotationTable = annotationTable(idx, :);
-
-end
-
-
-%-----------------------------------------------------------------%
-function annotationTable = KeepJustLastWordCloud(annotationTable)
-
-    wordCloudLogical = strcmp(annotationTable.("Atributo"), 'WordCloud');
-    
-    if any(wordCloudLogical)
-        relatedTable = annotationTable(wordCloudLogical, :);
-
-        [uniqueSelectedHom, ~, uniqueSelectedHomIndex] = unique(relatedTable.("Homologação"), 'stable');
-        oldWordCloudUUID = {};
-        for ii = 1:numel(uniqueSelectedHom)
-            idx1 = find(uniqueSelectedHomIndex == ii);
-
-            if numel(idx1) > 1
-                oldWordCloudUUID = [oldWordCloudUUID; relatedTable.ID(idx1(1:end-1))];
-            end
-        end
-
-        idx2 = ismember(annotationTable.ID, oldWordCloudUUID);
-        annotationTable(idx2,:) = [];
-    end
 
 end

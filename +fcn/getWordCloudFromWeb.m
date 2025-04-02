@@ -1,6 +1,9 @@
 function [wordCloudTable, wordCloudInfo] = getWordCloudFromWeb(word2Search, nMaxWords)
 
     response  = ws.Google.customSearchEngine(word2Search);
+    if ~isfield(response, 'items')
+        error('Google:ServerDidNotAnswerRequest', 'ServerDidNotAnswerRequest')
+    end
     
     itemClass = class(response.items);
     switch itemClass
@@ -38,13 +41,9 @@ function [wordCloudTable, wordCloudInfo] = getWordCloudFromWeb(word2Search, nMax
     wordCloudTable.Word = regexprep(wordCloudTable.Word, cellfun(@(x) sprintf('\\<%s\\>', x), referenceWordCloud.editedWord, 'UniformOutput', false), referenceWordCloud.Word);
 
     wordCloudJSON = jsonEncode(wordCloudTable);
-    wordCloudInfo = jsonencode(struct('metaData', struct('Version', 1,                     ...
-                                                         'Source',  'GOOGLE',              ...
-                                                         'Mode',    'API',                 ...
-                                                         'Fields',  {{'Name', 'Snippet'}}, ...
-                                                         'nWords',  nMaxWords),            ...
-                                      'searchedWord', words2Search,                        ...
-                                      'cloudOfWords', wordCloudJSON));
+    % Ideia aqui é criar um "JSON-Like" formato que possua espaços entre as
+    % chaves e os seus valores.
+    wordCloudInfo = sprintf('{"metaData": {"Version": 1, "Source": "GOOGLE", "Mode": "API", "Fields": ["Name", "Snnipet"], "nWords": %d}, "searchedWord": "%s", "cloudOfWords": "%s"}', nMaxWords, word2Search, wordCloudJSON);
 end
 
 

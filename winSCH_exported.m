@@ -202,6 +202,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         file_toolGrid_3                 matlab.ui.container.GridLayout
         config_PanelVisibility          matlab.ui.control.Image
         ContextMenu                     matlab.ui.container.ContextMenu
+        ContextMenu_EditFcn             matlab.ui.container.Menu
         ContextMenu_DeleteFcn           matlab.ui.container.Menu
     end
 
@@ -432,8 +433,70 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        % function ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
-        % end
+        function ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
+            try
+                switch class(callingApp)
+                    case {'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ... % SEARCH:FILTERSETUP
+                          'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported'}     % REPORT:PRODUCTINFO
+                        
+                        % Esse ramo do switch trata chamados de módulos auxiliares dos 
+                        % modos "SEARCH" e "REPORT". Algumas das funcionalidades 
+                        % desses módulos requerem atualização do SCH:
+                        % (a) SEARCH: atualização da filtragem, impactando na tabela com
+                        %     resultado de busca e o seu painel.
+                        % (b) REPORT: atualização da tabela com a lista de produtos sob
+                        %     análise e o seu painel.
+
+                        % O flag "updateFlag" provê essa atualização, e o flag "returnFlag" 
+                        % evita que o módulo seja "fechado" (por meio da invisibilidade do 
+                        % app.popupContainerGrid).
+
+                        updateFlag = varargin{1};
+                        returnFlag = varargin{2};
+
+                        if updateFlag
+                            switch operationType
+                                case 'SEARCH:FILTERSETUP'
+                                    search_Filtering_secundaryFilter(app)
+                                    search_FilterSpecification(app)                                    
+
+                                case 'REPORT:EditInfo'
+                                    selectedRow = varargin{3};
+
+                                    report_UpdatingTable(app)
+                                    if isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
+                                        app.report_ProductInfo.UserData.selectedRow = [];
+                                        report_TableSelectionChanged(app)
+                                    end                                    
+                                    report_ProjectWarnImageVisibility(app)
+
+                                case 'REPORT:UITableSelectionChanged'
+                                    selectedRow = varargin{3};
+
+                                    app.report_Table.Selection = selectedRow;
+                                    report_TableSelectionChanged(app)
+                            end
+                        end
+
+                        if returnFlag
+                            return
+                        end
+                        
+                        app.popupContainerGrid.Visible = 0;
+    
+                    otherwise
+                        error('UnexpectedCall')
+                end
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);            
+            end
+
+            % Caso um app auxiliar esteja em modo DOCK, o progressDialog do
+            % app auxiliar coincide com o do SCH. Força-se, portanto, a condição 
+            % abaixo para evitar possível bloqueio da tela.
+            app.progressDialog.Visible = 'hidden';
+        end
     end
 
 
@@ -557,50 +620,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 % Inicia módulo de operação paralelo...
                 parpoolCheck()
-
-                % Para criação de arquivos temporários, cria-se uma pasta da 
-                % sessão.
-                tempDir = tempname;
-                mkdir(tempDir)
-                app.General_I.fileFolder.tempPath = tempDir;
-
-                switch app.executionMode
-                    case 'webApp'
-                        % Força a exclusão do SplashScreen do MATLAB WebDesigner.
-                        sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
-
-                        % Bloqueia a troca do gerador do WordCloud, restringindo à biblioteca 
-                        % em JS D3.
-                        app.config_WordCloudAlgorithm.Enable = 0;
-    
-                        % Webapp também não suporta outras janelas, de forma que os 
-                        % módulos auxiliares devem ser abertos na própria janela
-                        % do appAnalise.
-                        app.dockModule_Undock.Visible     = 0;
-
-                        app.General_I.operationMode.Debug = false;
-                        app.General_I.operationMode.Dock  = true;
-                        
-                        % A pasta do usuário não é configurável, mas obtida por 
-                        % meio de chamada a uiputfile. 
-                        app.General_I.fileFolder.userPath = tempDir;
-    
-                    otherwise    
-                        % Resgata a pasta de trabalho do usuário (configurável).
-                        userPaths = appUtil.UserPaths(app.General_I.fileFolder.userPath);
-                        app.General_I.fileFolder.userPath = userPaths{end};
-
-                        switch app.executionMode
-                            case 'desktopStandaloneApp'
-                                app.General_I.operationMode.Debug = false;
-                            case 'MATLABEnvironment'
-                                app.General_I.operationMode.Debug = true;
-                        end
-                end
-                app.General.operationMode = app.General_I.operationMode;
-                app.General.fileFolder    = app.General_I.fileFolder;
-
-                app.config_Folder_tempPath.Value = app.General.fileFolder.tempPath;
 
                 % Diminui a opacidade do SplashScreen. Esse processo dura
                 % cerca de 1250 ms. São 50 iterações em que em cada uma 
@@ -750,7 +769,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.General.fileFolder.userPath = userPaths{end};
             end
 
-            % FOLDERS
+            % FOLDERS (SHAREPOINT+PYTHON+TEMP)
             DataHub_GET  = app.General.fileFolder.DataHub_GET;
             DataHub_POST = app.General.fileFolder.DataHub_POST;
             if isfolder(DataHub_GET)
@@ -762,7 +781,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
             config_DataHubWarningLamp(app)
 
-            % Painel "CONFIG >> PYTHON"
             pythonPath = app.General.fileFolder.pythonPath;
             if isfile(pythonPath)
                 try
@@ -772,6 +790,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                     appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
                 end
             end
+
+            app.config_Folder_tempPath.Value = app.General.fileFolder.tempPath;
 
             % TABLE VISIBLE COLUMNS (TREE)
             allColumns      = search_Table_ColumnInfo(app, 'allColumns');
@@ -1375,7 +1395,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 catch ME
                     app.progressDialog.Visible = 'hidden';
-                    appUtil.modalWindow(app.UIFigure, 'warning', ME.message);
+                    appUtil.modalWindow(app.UIFigure, 'warning', ME.identifier);
 
                     status = false;                    
                     return
@@ -1835,71 +1855,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
         end
     end
-
-
-    methods (Access = public)
-        %-----------------------------------------------------------------%
-        % AUXILIAR FUNCTIONS TO OTHERS APPS OR EXTERNAL FUNCTIONS
-        %-----------------------------------------------------------------%
-        function appBackDoor(app, callingApp, operationType, varargin)
-            try
-                switch class(callingApp)
-                    case {'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ... % SEARCH:FILTERSETUP
-                          'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported'}     % REPORT:PRODUCTINFO
-                        
-                        % Esse ramo do switch trata chamados de módulos auxiliares dos 
-                        % modos "SEARCH" e "REPORT". Algumas das funcionalidades 
-                        % desses módulos requerem atualização do SCH:
-                        % (a) SEARCH: atualização da filtragem, impactando na tabela com
-                        %     resultado de busca e o seu painel.
-                        % (b) REPORT: atualização da tabela com a lista de produtos sob
-                        %     análise e o seu painel.
-
-                        % O flag "updateFlag" provê essa atualização, e o flag "returnFlag" 
-                        % evita que o módulo seja "fechado" (por meio da invisibilidade do 
-                        % app.popupContainerGrid).
-
-                        updateFlag = varargin{1};
-                        returnFlag = varargin{2};
-
-                        if updateFlag
-                            switch operationType
-                                case 'SEARCH:FILTERSETUP'
-                                    search_Filtering_secundaryFilter(app)
-                                    search_FilterSpecification(app)                                    
-
-                                case 'REPORT:PRODUCTINFO'
-                                    selectedRow = varargin{3};
-
-                                    report_UpdatingTable(app)
-                                    if isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
-                                        app.report_ProductInfo.UserData.selectedRow = [];
-                                        report_TableSelectionChanged(app)
-                                    end                                    
-                                    report_ProjectWarnImageVisibility(app)
-                            end
-                        end
-
-                        if returnFlag
-                            return
-                        end
-                        
-                        app.popupContainerGrid.Visible = 0;
-    
-                    otherwise
-                        error('UnexpectedCall')
-                end
-
-            catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);            
-            end
-
-            % Caso um app auxiliar esteja em modo DOCK, o progressDialog do
-            % app auxiliar coincide com o do SCH. Força-se, portanto, a condição 
-            % abaixo para evitar possível bloqueio da tela.
-            app.progressDialog.Visible = 'hidden';
-        end
-    end
     
 
     % Callbacks that handle component events
@@ -1937,7 +1892,10 @@ classdef winSCH_exported < matlab.apps.AppBase
         function closeFcn(app, event)
 
             % Especificidade "winSCH":
-            writeFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
+            try
+                writeFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
+            catch
+            end
 
             % Aspectos gerais (carregar em todos os apps):
             appUtil.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
@@ -2010,7 +1968,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case app.AppInfo
                     if isempty(app.AppInfo.Tag)
                         app.progressDialog.Visible = 'visible';
-                        app.AppInfo.Tag = fcn.htmlCode_appInfo(app.General, app.rootFolder, app.executionMode, app.rawDataTable, app.releasedData, app.cacheData);
+                        app.AppInfo.Tag = fcn.htmlCode_appInfo(app.General, app.rootFolder, app.executionMode, app.rawDataTable, app.releasedData, app.cacheData, app.annotationTable);
                         app.progressDialog.Visible = 'hidden';
                     end
 
@@ -2057,7 +2015,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function search_Table_SelectionChanged(app, event)
             
             [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app, 'search');
-
+            
             if ~isempty(selectedHom)
                 if ~ismember(showedHom, selectedHom)
                     % Escolhe o primeiro registro da lista de homologações selecionadas
@@ -2071,7 +2029,17 @@ classdef winSCH_exported < matlab.apps.AppBase
                     % Apresenta a nuvem de palavras apenas se visível...
                     if app.search_ToolbarWordCloud.UserData.Value
                         if search_WordCloud_CheckCache(app, selected2showedHom, relatedAnnotationTable)        
-                            search_WordCloud_PlotUpdate(app, selectedRow(1), selected2showedHom, false);
+                            status = search_WordCloud_PlotUpdate(app, selectedRow(1), selected2showedHom, false);
+                            if ~status
+                                if ~isempty(app.wordCloudObj.Table)
+                                    app.wordCloudObj.Table = [];
+                                end
+                            end
+                        end
+
+                    else
+                        if ~isempty(app.wordCloudObj.Table)
+                            app.wordCloudObj.Table = [];
                         end
                     end
     
@@ -2217,15 +2185,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                                            'Quais os registros devem ser adicionados à lista de produtos sob análise?</p>'], showedHom, strjoin("• " + string(selectedHom), '\n'));
                     
                     selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',                           ...
-                                                                           'Options', {' PAINEL ', ' TABELA ', 'CANCELAR'}, ...
+                                                                           'Options', {' Painel ', ' Tabela ', 'Cancelar'}, ...
                                                                            'DefaultOption', 1, 'CancelOption', 3, 'Icon', 'question');
         
                     switch selection
-                        case ' PAINEL '
+                        case ' Painel '
                             listOfHom2Add = {showedHom};
-                        case ' TABELA '
+                        case ' Tabela '
                             listOfHom2Add = selectedHom;
-                        case 'CANCELAR'
+                        otherwise % 'Cancelar'
                             return
                     end
 
@@ -2304,10 +2272,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                         msgQuestion = sprintf(['<p style="font-size: 12px; text-align: justify;">Foi(ram) identificado(s) a(s) pendência(s):\n%s\n\n' ...
                                                '<b>Continuar mesmo assim?</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
                         selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',     ...
-                                                                               'Options', {'SIM', 'NÃO'}, ...
+                                                                               'Options', {'Sim', 'Não'}, ...
                                                                                'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
             
-                        if strcmp(selection, 'NÃO')
+                        if strcmp(selection, 'Não')
                             return
                         end
                 end
@@ -2384,13 +2352,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                     misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, selectedRow(1), selected2showedHom)
                 end
 
-                app.report_EditProduct.Enable = 1;
+                app.report_EditProduct.Enable  = 1;
+                app.ContextMenu_EditFcn.Enable = 1;
 
             else
                 htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
                 misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, [], '')
                 
-                app.report_EditProduct.Enable = 0;
+                app.report_EditProduct.Enable  = 0;
+                app.ContextMenu_EditFcn.Enable = 0;
             end
 
         end
@@ -2451,9 +2421,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     msgQuestion = '<p style="font-size:12px; text-align:justify;">Deseja excluir a lista de produtos sob análise, iniciando um novo projeto?</p>';
                     selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
-                                                                           'Options', {'   OK   ', 'CANCELAR'}, ...
+                                                                           'Options', {'   OK   ', 'Cancelar'}, ...
                                                                            'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-                    if strcmp(selection, 'CANCELAR')
+                    if strcmp(selection, 'Cancelar')
                         return
                     end
 
@@ -2479,9 +2449,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     if ~isempty(app.projectData.listOfProducts)
                         msgQuestion = '<p style="font-size:12px; text-align:justify;">Ao abrir um projeto, a lista de produtos sob análise será sobrescrita. Confirma a operação?</p>';
                         selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',               ...
-                                                                               'Options', {'   OK   ', 'CANCELAR'}, ...
+                                                                               'Options', {'   OK   ', 'Cancelar'}, ...
                                                                                'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
-                        if strcmp(selection, 'CANCELAR')
+                        if strcmp(selection, 'Cancelar')
                             return
                         end
                     end
@@ -3011,14 +2981,15 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: report_EditProduct, search_FilterSetup
+        % Callback function: ContextMenu_EditFcn, report_EditProduct, 
+        % ...and 1 other component
         function search_FilterSetupClicked(app, event)
             
             switch event.Source
                 case app.search_FilterSetup
                     menu_LayoutPopupApp(app, 'FilterSetup')
 
-                case app.report_EditProduct
+                case {app.report_EditProduct, app.ContextMenu_EditFcn}
                     % O botão não deve estar acessível, caso não exista linha 
                     % selecionada. A condições abaixo é apenas uma forma de 
                     % segurança, caso o MATLAB se atrapalhe na execução de 
@@ -3097,7 +3068,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Position = [93 93 1244 660];
-            app.UIFigure.Name = 'SCH R2024a';
+            app.UIFigure.Name = 'SCH';
             app.UIFigure.Icon = fullfile(pathToMLAPP, 'Icons', 'icon_48.png');
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
             app.UIFigure.WindowButtonDownFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
@@ -4810,9 +4781,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);
 
+            % Create ContextMenu_EditFcn
+            app.ContextMenu_EditFcn = uimenu(app.ContextMenu);
+            app.ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.ContextMenu_EditFcn.Text = 'Editar';
+
             % Create ContextMenu_DeleteFcn
             app.ContextMenu_DeleteFcn = uimenu(app.ContextMenu);
             app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @ContextMenu_DeleteFcnSelected, true);
+            app.ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
+            app.ContextMenu_DeleteFcn.Separator = 'on';
             app.ContextMenu_DeleteFcn.Text = 'Excluir';
             
             % Assign app.ContextMenu

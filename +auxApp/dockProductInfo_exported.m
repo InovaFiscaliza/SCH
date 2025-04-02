@@ -74,7 +74,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateForm(app, idx)
-            app.Index.Value = idx;
+            app.Index.Value         = idx;
 
             app.nHom.Value          = app.projectData.listOfProducts.("Homologação"){idx};
             app.Type.Value          = char(app.projectData.listOfProducts.("Tipo")(idx));
@@ -98,8 +98,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function CallingMainApp(app, updateFlag, returnFlag)
-            appBackDoor(app.CallingApp, app, 'REPORT:PRODUCTINFO', updateFlag, returnFlag, app.Index.Value)
+        function CallingMainApp(app, operationType, updateFlag, returnFlag, idxSelectedRow)
+            ipcMainMatlabCallsHandler(app.CallingApp, app, operationType, updateFlag, returnFlag, idxSelectedRow)
         end
     end
     
@@ -120,7 +120,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         % Callback function: UIFigure, btnClose
         function closeFcn(app, event)
             
-            CallingMainApp(app, false, false)
+            CallingMainApp(app, 'REPORT:closeFcn', false, false, [])
             delete(app)
             
         end
@@ -152,29 +152,30 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                          app.optNotes.Value};
 
             app.projectData.listOfProducts(app.Index.Value, :) = editedRow;
-            CallingMainApp(app, true, true)
+            CallingMainApp(app, 'REPORT:EditInfo', true, true, app.Index.Value)
             
         end
 
         % Image clicked function: NextProduct, PreviousProduct
         function PreviousProductImageClicked(app, event)
             
-            IndexMax = height(app.projectData.listOfProducts);
+            idxMaxRow = height(app.projectData.listOfProducts);
 
             switch event.Source
                 case app.PreviousProduct
-                    idx = app.Index.Value - 1;
+                    idxNewRowSelection = app.Index.Value - 1;
                 case app.NextProduct
-                    idx = app.Index.Value + 1;
+                    idxNewRowSelection = app.Index.Value + 1;
             end
 
-            if idx < 1
-                idx = IndexMax;
-            elseif idx > IndexMax
-                idx = 1;
+            if idxNewRowSelection < 1
+                idxNewRowSelection = idxMaxRow;
+            elseif idxNewRowSelection > idxMaxRow
+                idxNewRowSelection = 1;
             end
 
-            updateForm(app, idx)
+            CallingMainApp(app, 'REPORT:UITableSelectionChanged', true, true, idxNewRowSelection)
+            updateForm(app, idxNewRowSelection)
 
         end
     end

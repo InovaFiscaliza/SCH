@@ -1,4 +1,4 @@
-function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDataTable, releasedData, cacheData)
+function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDataTable, releasedData, cacheData, annotationTable)
 
     appName       = class.Constants.appName;
     appVersion    = fcn.envVersion(rootFolder);
@@ -21,7 +21,8 @@ function appInfo = htmlCode_appInfo(appGeneral, rootFolder, executionMode, rawDa
     dataStruct    = struct('group', 'COMPUTADOR',            'value', struct('Machine', appVersion.Machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
     dataStruct(2) = struct('group', upper(appName),          'value', appVersion.(appName));
     dataStruct(3) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
-    dataStruct(4) = struct('group', 'MATLAB',                'value', appVersion.Matlab);
+    dataStruct(4) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
+    dataStruct(5) = struct('group', 'MATLAB',                'value', appVersion.Matlab);
 
     appInfo = sprintf(['<p style="font-size: 12px; text-align:justify;">O repositório das '   ...
                        'ferramentas desenvolvidas no Escritório de inovação da SFI pode ser ' ...
