@@ -212,7 +212,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         General
         General_I
+
         rootFolder
+        entryPointFolder
 
         % Essa propriedade registra o tipo de execução da aplicação, podendo
         % ser: 'built-in', 'desktopApp' ou 'webApp'.
@@ -223,12 +225,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos 
         % componentes essenciais da GUI (especificados em "createComponents"), 
         % mostrando a GUI para o usuário o mais rápido possível.
-        timerObj_startup
+        timerObj
 
         % O MATLAB não renderiza alguns dos componentes de abas (do TabGroup) 
         % não visíveis. E a customização de componentes, usando a lib ccTools, 
         % somente é possível após a sua renderização. Controla-se a aplicação 
         % da customizaçao por meio dessa propriedade jsBackDoorFlag.
+        tabGroupController
         jsBackDoorFlag = {true, ...
                           true, ...
                           true};
@@ -243,7 +246,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         fiscalizaObj
 
         %-----------------------------------------------------------------%
-        % PROPRIEDADES ESPECÍFICAS
+        % ESPECIFICIDADES
         %-----------------------------------------------------------------%
         projectData
 
@@ -260,17 +263,18 @@ classdef winSCH_exported < matlab.apps.AppBase
     end
 
 
-    methods (Access = private)
+    methods
         %-----------------------------------------------------------------%
-        % JSBACKDOOR
+        % COMUNICAÇÃO ENTRE PROCESSOS:
+        % • ipcMainJSEventsHandler
+        %   Eventos recebidos do objeto app.jsBackDoor por meio de chamada 
+        %   ao método "sendEventToMATLAB" do objeto "htmlComponent" (no JS).
+        %
+        % • ipcMainMatlabCallsHandler
+        %   Eventos recebidos dos apps secundários.
         %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = appUtil.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)jsBackDoor_Listener(app, evt);
-        end
+        function ipcMainJSEventsHandler(app, event)
 
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Listener(app, event)
             % Foi adicionado o evento JS-keydown das teclas ["ArrowUp", "ArrowDown", "Enter", "Escape"]
             % aos componentes app.search_entryPoint (matlab.ui.control.EditField) e app.search_Suggestions
             % (matlab.ui.control.ListBox) usando o JS-backdoor app.jsBackDoor (matlab.ui.control.HTML).
@@ -298,7 +302,7 @@ classdef winSCH_exported < matlab.apps.AppBase
     
             % Quando altero o conteúdo de app.search_entryPoint, sem alterar o seu foco, será executado 
             % o evento "ValueChangingFcn". Se pressiono a tecla "Enter", será executada essa função 
-            % (jsBackDoor_Listener) antes de atualizar a propriedade "Value" do app.search_entryPoint.
+            % (ipcMainJSEventsHandler) antes de atualizar a propriedade "Value" do app.search_entryPoint.
     
             % Por conta disso, é essencial inserir waitfor(app.search_entryPoint, 'Value')
             % Isso é conseguido alterando o objeto em foco, de app.search_entryPoint para app.jsBackDoor
@@ -306,6 +310,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % app.search_entryPoint.Value = app.search_entryPoint.ChangingValue
 
             switch event.HTMLEventName
+                % MAINAPP
                 case 'app.search_entryPoint'
                     focus(app.jsBackDoor)
 
@@ -358,7 +363,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                             end
                     end
 
-                %---------------------------------------------------------%
                 case 'app.search_Suggestions'
                     switch event.HTMLEventData
                         case 'ArrowDown'
@@ -405,11 +409,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                             set(app.search_Suggestions, Visible=0, Value={})
                     end
 
-                %---------------------------------------------------------%
-                case 'customForm'
-                    report_FiscalizaConnect(app, event.HTMLEventData, 'OpenConnection')
-
-                %---------------------------------------------------------%
+                % JSBACKDOOR (compCustomization.js)
+                % "BackgroundColorTurnedInvisible" | "customForm" | "getURL" | "getNavigatorBasicInformation"
                 case 'BackgroundColorTurnedInvisible'
                     switch event.HTMLEventData
                         case 'SplashScreen'
@@ -418,10 +419,31 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 app.popupContainerGrid.Visible = 0;
                             end
                         otherwise
-                            % ...
+                                error('UnexpectedEvent')
                     end
+
+                case 'customForm'
+                    report_FiscalizaConnect(app, event.HTMLEventData, 'OpenConnection')
+
+                otherwise
+                        error('UnexpectedEvent')
             end
             drawnow
+        end
+
+        %-----------------------------------------------------------------%
+        % function ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
+        % end
+    end
+
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % JSBACKDOOR
+        %-----------------------------------------------------------------%
+        function jsBackDoor_Initialization(app)
+            app.jsBackDoor.HTMLSource           = appUtil.jsBackDoorHTMLSource();
+            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcMainJSEventsHandler(app, evt);
         end
 
         %-----------------------------------------------------------------%
@@ -442,22 +464,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                     % Cria um ProgressDialog...
                     app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
 
-                    % .mw-default-header-cell {
-                    %    font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;       /* UITABLE TABLE HEADER                                      */ 
-                    % }
-                    %
-                    % .mw-theme-light {
-                    %    --mw-backgroundColor-dataWidget-selected: rgb(180 222 255 / 45%); /* UITABLE BACKGROUND SELECTED CELL (WITHOUT FOCUS)          */
-                    %    --mw-backgroundColor-selected: rgb(180 222 255 / 45%);            /* UILISTBOX BACKGROUND SELECTED CELL (WITHOUT FOCUS)        */
-                    %    --mw-backgroundColor-selectedFocus: rgb(180 222 255 / 45%);       /* UILISTBOX BACKGROUND SELECTED CELL                        */
-                    %    --mw-borderColor-focus: #7d7d7d;                                  /* UIBUTTON, UITABLE, UILISTBOX, UIIMAGE BORDER COLOR        */
-                    %    --mw-borderColor-primary: var(--mw-color-gray600);                /* UIBUTTON, UITABLE, UILISTBOX BORDER COLOR (WITHOUT FOCUS) */
-                    % }
-                    %
-                    % TABGROUP: 
-                    % (a) Background: --mw-backgroundColor-tab e --mw-backgroundColor-primary
-                    % (b) Border: --tabButton-border-color e --tabContainer-border-color
-
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        'body',                           ...
                                                                                            'classAttributes', ['--tabButton-border-color: #fff;' ...
                                                                                                                '--tabContainer-border-color: #fff;']));
@@ -471,8 +477,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                     sendEventToHTMLSource(app.jsBackDoor, 'htmlClassCustomization', struct('className',        '.mw-default-header-cell', ...
                                                                                            'classAttributes',  'font-size: 10px; white-space: pre-wrap; margin-bottom: 5px;'));
                     
-                    ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
                     sendEventToHTMLSource(app.jsBackDoor, "panelDialog", struct('componentDataTag', struct(app.popupContainer).Controller.ViewModel.Id)) 
+                    ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')                    
 
                 case 1 % SEARCH
                     if any(app.jsBackDoorFlag{tabIndex})
@@ -511,23 +517,20 @@ classdef winSCH_exported < matlab.apps.AppBase
     
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function startup_timerCreation(app)            
-            % A criação desse timer tem como objetivo garantir uma renderização 
-            % mais rápida dos componentes principais da GUI, possibilitando a 
-            % visualização da sua tela inicial pelo usuário. Trata-se de aspecto 
-            % essencial quando o app é compilado como webapp.
-
-            app.timerObj_startup = timer("ExecutionMode", "fixedSpacing", ...
-                                         "StartDelay",    1.5,            ...
-                                         "Period",        .1,             ...
-                                         "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj_startup)
+        % INICIALIZAÇÃO DO APP
+        %-----------------------------------------------------------------%
+        function startup_timerCreation(app)
+            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
+            start(app.timerObj)
         end
 
         %-----------------------------------------------------------------%
         function startup_timerFcn(app)
             if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
-                stop(app.timerObj_startup)
+                stop(app.timerObj)
                 drawnow
 
                 app.executionMode = appUtil.ExecutionMode(app.UIFigure);
@@ -540,16 +543,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
 
-                appName        = class.Constants.appName;
                 MFilePath      = fileparts(mfilename('fullpath'));
-                app.rootFolder = appUtil.RootFolder(appName, MFilePath);
+                app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
                 
                 % Customiza as aspectos estéticos de alguns dos componentes da GUI 
                 % (diretamente em JS).
                 jsBackDoor_Customizations(app, 0)
                 jsBackDoor_Customizations(app, 1)
 
-                startup_ConfigFileRead(app)
+                startup_ConfigFileRead(app, MFilePath)
                 startup_AppProperties(app)
                 startup_GUIComponents(app)
 
@@ -606,46 +608,65 @@ classdef winSCH_exported < matlab.apps.AppBase
                 % iteração, 25 ms. E executa drawnow, forçando a renderização 
                 % em tela dos componentes.
                 sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
+                drawnow
 
                 % Força a exclusão do SplashScreen.
                 if isvalid(app.SplashScreen)
                     pause(1)
                     delete(app.SplashScreen)
-                    app.popupContainerGrid.Visible = 0;
                 end
+                app.popupContainerGrid.Visible = 0;
             end
         end        
 
         %-----------------------------------------------------------------%
-        function startup_ConfigFileRead(app)
-            % Verifica se a pasta de configuração já foi criada e se lá tem 
-            % o arquivo de configuração "GeneralSettings.json".
-            %
-            % Compara-se a versão dos arquivos hospedados nas pastas local e 
-            % de configuração.
-            % - Local:  fullfile(ctfroot, 'Settings')
-            % - Config: fullfile(getenv('PROGRAMDATA'), 'ANATEL', 'SCH') (Windows)
-            %
-            % Caso o arquivo hospedado na pasta local possua uma versão mais 
-            % recente, substitui-se o hospedado na pasta de configuração,
-            % mantendo, contudo, os mapeamentos de pastas (usuário, Python,
-            % DataHub_GETm DataHub_POST etc).
-            %
-            % Isso é especialmente importante para os webapps, cujo arquivo
-            % executado pelo MATLAB WEBSERVER não é um executável, com seu
-            % conjunto de subpastas e arquivos de suporte, mas um CTF.
-            %
-            % Logo, qualquer alteração num arquivo relacionado a um CTF será 
-            % perdida quando for encerrada a sessão do webapp.
-
-            % app.General
+        function startup_ConfigFileRead(app, MFilePath)
+            % "GeneralSettings.json"
             [app.General_I, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder, {'Annotation.xlsx'});
-            app.General_I.SCHDataInfo   = struct2table(app.General_I.SCHDataInfo);
-            app.General_I.ColumnNamesForSearching = 'Modelo | Nome Comercial';
-
             if ~isempty(msgWarning)
                 appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
             end
+
+            % Para criação de arquivos temporários, cria-se uma pasta da 
+            % sessão.
+            tempDir = tempname;
+            mkdir(tempDir)
+            app.General_I.fileFolder.tempPath  = tempDir;
+            app.General_I.fileFolder.MFilePath = MFilePath;
+
+            switch app.executionMode
+                case 'webApp'
+                    % Força a exclusão do SplashScreen do MATLAB WebDesigner.
+                    sendEventToHTMLSource(app.jsBackDoor, "delProgressDialog");
+
+                    % Webapp também não suporta outras janelas, de forma que os 
+                    % módulos auxiliares devem ser abertos na própria janela
+                    % do appAnalise.
+                    app.dockModule_Undock.Visible     = 0;
+
+                    app.General_I.operationMode.Debug = false;
+                    app.General_I.operationMode.Dock  = true;
+                    
+                    % A pasta do usuário não é configurável, mas obtida por 
+                    % meio de chamada a uiputfile. 
+                    app.General_I.fileFolder.userPath = tempDir;
+
+                otherwise    
+                    % Resgata a pasta de trabalho do usuário (configurável).
+                    userPaths = appUtil.UserPaths(app.General_I.fileFolder.userPath);
+                    app.General_I.fileFolder.userPath = userPaths{end};
+
+                    switch app.executionMode
+                        case 'desktopStandaloneApp'
+                            app.General_I.operationMode.Debug = false;
+                        case 'MATLABEnvironment'
+                            app.General_I.operationMode.Debug = true;
+                    end
+            end
+
+            % Especificidades...
+            app.General_I.SCHDataInfo   = struct2table(app.General_I.SCHDataInfo);
+            app.General_I.ColumnNamesForSearching = 'Modelo | Nome Comercial';
 
             app.General = app.General_I;
         end
@@ -693,12 +714,15 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
+            % Cria o objeto que conecta o TabGroup com o GraphicMenu.
+            app.tabGroupController = tabGroupGraphicMenu(app.menu_Grid, app.TabGroup, app.progressDialog, @app.jsBackDoor_Customizations, @app.menu_LayoutControl);
+
+            addComponent(app.tabGroupController, "Built-in", "", app.menu_Button1, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "Built-in", "", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), matlab.graphics.GraphicsPlaceholder, 2)
+            addComponent(app.tabGroupController, "Built-in", "", app.menu_Button3, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  matlab.graphics.GraphicsPlaceholder, 3)
+
             % Salva na propriedade "UserData" as opções de ícone e o índice 
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.menu_Button1.UserData                 = struct('iconOptions', {{'Zoom_32White.png',      'Zoom_32Yellow.png'}},      'tabGroup', 1);
-            app.menu_Button2.UserData                 = struct('iconOptions', {{'Detection_32White.png', 'Detection_32Yellow.png'}}, 'tabGroup', 2);
-            app.menu_Button3.UserData                 = struct('iconOptions', {{'Settings_36White.png',  'Settings_36Yellow.png'}},  'tabGroup', 3);
-
             app.search_ToolbarAnnotation.UserData     = struct('iconOptions', {{'Edit_18x18Gray.png',    'Edit_18x18Blue.png'}});
             app.search_ToolbarWordCloud.UserData      = struct('iconOptions', {{'Cloud_32x32Gray.png',   'Cloud_32x32Blue.png'}}, 'Value', false);
             app.search_ToolbarListOfProducts.UserData = struct('iconOptions', {{'Box_32x32Gray.png',     'Box_32x32Blue.png'}});
@@ -776,6 +800,42 @@ classdef winSCH_exported < matlab.apps.AppBase
             config_FiscalizaDefaultValues(app)
 
             config_ButtonGroupSelectionChanged(app)
+        end
+    end
+
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % TABGROUPCONTROLLER
+        %-----------------------------------------------------------------%
+        % function hAuxApp = auxAppHandle(app, auxAppName)
+        %     arguments
+        %         app
+        %         auxAppName string {mustBeMember(auxAppName, ["DRIVETEST", "SIGNALANALYSIS", "RFDATAHUB", "CONFIG"])}
+        %     end
+        % 
+        %     hAuxApp = app.tabGroupController.Components.appHandle{app.tabGroupController.Components.Tag == auxAppName};
+        % end
+
+        %-----------------------------------------------------------------%
+        function inputArguments = auxAppInputArguments(app, auxAppName)
+            arguments
+                app
+                auxAppName char {mustBeMember(auxAppName, {'SEARCH', 'REPORT', 'CONFIG'})}
+            end
+            
+            % [auxAppIsOpen, ...
+            %  auxAppHandle] = checkStatusModule(app.tabGroupController, auxAppName);
+
+            inputArguments = {app};
+
+            % switch auxAppName
+            %     case 'SEARCH'
+            % 
+            %     case 'REPORT'
+            % 
+            %     case 'CONFIG'
+            % end
         end
 
         %-----------------------------------------------------------------%
@@ -1027,9 +1087,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function search_EntryPoint_CheckIfNeedsUpdate(app)
-            % Conforme exposto nos comentários da função "jsBackDoor_Listener", quando altero o conteúdo 
+            % Conforme exposto nos comentários da função "ipcMainJSEventsHandler", quando altero o conteúdo 
             % de app.search_entryPoint, sem alterar o seu foco, será executado o evento "ValueChangingFcn". 
-            % Se pressiono a tecla "Enter", será executada a função "jsBackDoor_Listener" antes de atualizar 
+            % Se pressiono a tecla "Enter", será executada a função "ipcMainJSEventsHandler" antes de atualizar 
             % a propriedade "Value" do app.search_entryPoint.
 
             % Por conta disso, é essencial inserir WAITFOR. O problema é que eventualmente o MATLAB
@@ -1876,25 +1936,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            % BASE DE ANOTAÇÕES
+            % Especificidade "winSCH":
             writeFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
-    
-            % TIMER
-            h = timerfindall;
-            if ~isempty(h)
-                stop(h); delete(h); clear h
-            end
 
-            % PROGRESS DIALOG
-            delete(app.progressDialog)
-
-            % MATLAB RUNTIME
-            % Ao fechar um webapp, o MATLAB WebServer demora uns 10 segundos para
-            % fechar o Runtime que suportava a sessão do webapp. Dessa forma, a 
-            % liberação do recurso, que ocorre com a inicialização de uma nova 
-            % sessão do Runtime, fica comprometida.
-            appUtil.killingMATLABRuntime(app.executionMode)
-
+            % Aspectos gerais (carregar em todos os apps):
+            appUtil.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
             delete(app)
             
         end
@@ -1928,7 +1974,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         waitfor(app.search_Suggestions, 'Value')
                     end
 
-                    jsBackDoor_Listener(app, struct('HTMLEventName', 'app.search_Suggestions', 'HTMLEventData', 'Enter'))
+                    ipcMainJSEventsHandler(app, struct('HTMLEventName', 'app.search_Suggestions', 'HTMLEventData', 'Enter'))
 
                 otherwise
                     set(app.search_Suggestions, Visible=0, Value={})
@@ -1942,32 +1988,14 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Value changed function: menu_Button1, menu_Button2, menu_Button3
         function menu_mainButtonPushed(app, event)
             
-            clickedButton = event.Source;
-
-            if event.PreviousValue
-                clickedButton.Value = true;
-                return
-            end
+            clickedButton  = event.Source;
+            auxAppName     = clickedButton.Tag;
+            inputArguments = auxAppInputArguments(app, auxAppName);
+            openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, inputArguments{:})
 
             if ~app.TabGroup.Visible
                 app.TabGroup.Visible = 1;
             end
-
-            tabIndex      = clickedButton.UserData.tabGroup;
-          % tabIndex      = str2double(clickedButton.Tag);
-
-            nonClickedButtons = findobj(app.menu_Grid, 'Type', 'uistatebutton', '-not', 'Tag', clickedButton.Tag);
-            arrayfun(@(x) set(x, 'Value', 0, 'Icon', x.UserData.iconOptions{1}), nonClickedButtons)
-            set(clickedButton, 'Icon', clickedButton.UserData.iconOptions{2})
-            
-            app.TabGroup.SelectedTab = app.TabGroup.Children(tabIndex);
-            drawnow
-
-            % A customização somente pode tem efeito se os componentes
-            % já tiverem sido renderizados no HTML. Por essa razão, inclui-se 
-            % um drawnow após a mudança da aba.
-            jsBackDoor_Customizations(app, tabIndex)
-            menu_LayoutControl(app, tabIndex)
 
         end
 
@@ -2007,10 +2035,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             value2Search = textAnalysis.preProcessedData(app.search_entryPoint.Value);
 
             if app.config_SearchModeTokenSuggestion.Value
-                words2Search = app.search_Suggestions.Items;                
+                words2Search = app.search_Suggestions.Items;
                 if ~isempty(words2Search)
                     search_Filtering_primaryFilter(app, words2Search)
-                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', words2Search);
+                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
                     search_FilterSpecification(app)
                 end
 
@@ -2018,7 +2046,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 words2Search = textAnalysis.preProcessedData(strsplit(app.search_entryPoint.Value, ','));
                 if ~isempty(words2Search)
                     search_Filtering_primaryFilter(app, words2Search)
-                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', words2Search);
+                    app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
                     search_FilterSpecification(app)
                 end
             end
@@ -2097,15 +2125,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case app.search_ToolbarWordCloud
                     app.search_ToolbarWordCloud.UserData.Value = ~app.search_ToolbarWordCloud.UserData.Value;
 
-                    if ~app.search_ToolbarWordCloud.UserData.Value
-                        app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{1};
-                        app.search_Tab1Grid.RowHeight(6:7)        = {0,0};
-
-                        if ~app.search_Tab1Grid.RowHeight{5}
-                            app.search_Tab1Grid.RowHeight(4)      = {0};
-                        end
-
-                    else
+                    if app.search_ToolbarWordCloud.UserData.Value
                         % O "drawnow nocallbacks" aqui é ESSENCIAL porque o
                         % MATLAB precisa renderizar em tela o container do
                         % WordCloud (um objeto uihtml).
@@ -2119,6 +2139,14 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                         if search_WordCloud_CheckCache(app, showedHom, relatedAnnotationTable)
                             search_WordCloud_PlotUpdate(app, selectedRow, showedHom, false);
+                        end
+
+                    else
+                        app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{1};
+                        app.search_Tab1Grid.RowHeight(6:7)        = {0,0};
+
+                        if ~app.search_Tab1Grid.RowHeight{5}
+                            app.search_Tab1Grid.RowHeight(4)      = {0};
                         end
                     end
 
@@ -4662,7 +4690,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create menu_Button1
             app.menu_Button1 = uibutton(app.menu_Grid, 'state');
             app.menu_Button1.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button1.Tag = '1';
+            app.menu_Button1.Tag = 'SEARCH';
             app.menu_Button1.Tooltip = {''};
             app.menu_Button1.Icon = fullfile(pathToMLAPP, 'Icons', 'Zoom_32Yellow.png');
             app.menu_Button1.IconAlignment = 'top';
@@ -4676,7 +4704,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create menu_Button2
             app.menu_Button2 = uibutton(app.menu_Grid, 'state');
             app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button2.Tag = '2';
+            app.menu_Button2.Tag = 'REPORT';
             app.menu_Button2.Tooltip = {''};
             app.menu_Button2.Icon = fullfile(pathToMLAPP, 'Icons', 'Detection_32White.png');
             app.menu_Button2.IconAlignment = 'top';
@@ -4689,7 +4717,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create menu_Button3
             app.menu_Button3 = uibutton(app.menu_Grid, 'state');
             app.menu_Button3.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button3.Tag = '3';
+            app.menu_Button3.Tag = 'CONFIG';
             app.menu_Button3.Tooltip = {''};
             app.menu_Button3.Icon = fullfile(pathToMLAPP, 'Icons', 'Settings_36White.png');
             app.menu_Button3.IconAlignment = 'top';

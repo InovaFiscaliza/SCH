@@ -1,16 +1,14 @@
 function [wordCloudTable, wordCloudInfo] = getWordCloudFromWeb(word2Search, nMaxWords)
 
-    VERSION = 1;
-    SOURCE  = 'GOOGLE';
-    MODE    = 'HTTP';
-    FIELDS  = 'Textual content of tag <a>';
-    URL     = 'https://www.google.com/search?q=%s';
-    TAG     = 'A';
-
-    webURL      = sprintf(URL, word2Search);
-    webContent  = webread(webURL);
-
-    listOfWords = fcn.extractHTMLText(webContent, TAG);
+    response  = ws.Google.customSearchEngine(word2Search);
+    
+    itemClass = class(response.items);
+    switch itemClass
+        case 'cell'
+            listOfWords = cellfun(@(x) horzcat(x.title, x.snippet), response.items, 'UniformOutput', false);
+        case 'struct'
+            listOfWords = [{response.items.title}, {response.items.snippet}];
+    end
     
     referenceWordCloud  = wordCloudCounts(listOfWords);
     referenceWordCloud  = convertvars(referenceWordCloud, "Word", 'cellstr');
@@ -34,39 +32,31 @@ function [wordCloudTable, wordCloudInfo] = getWordCloudFromWeb(word2Search, nMax
     % documents           = removeShortWords(documents, 1);
 
     bag                 = bagOfWords(documents);
-    bag                 = bag.removeWords(textAnalysis.stopWords);
+    bag                 = bag.removeWords([cellstr(stopWords('Language', 'en')), textAnalysis.stopWords]); % Inglês e Português
 
     wordCloudTable      = topkwords(bag, nMaxWords);
     wordCloudTable.Word = regexprep(wordCloudTable.Word, cellfun(@(x) sprintf('\\<%s\\>', x), referenceWordCloud.editedWord, 'UniformOutput', false), referenceWordCloud.Word);
 
     wordCloudJSON = jsonEncode(wordCloudTable);
-    wordCloudInfo = sprintf(['{"metaData": {'          ...
-                                '"Version": %d, '      ...
-                                '"Source": "%s", '     ...
-                                '"Mode": "%s", '       ...
-                                '"Fields": ["%s"], '   ...
-                                '"nWords": %d '        ...
-                              '},'                     ...
-                              '"searchedWord": "%s", ' ...
-                              '"cloudOfWords": "%s"'   ...
-                             '}'], VERSION, SOURCE, MODE, FIELDS, nMaxWords, word2Search, wordCloudJSON);
-
+    wordCloudInfo = jsonencode(struct('metaData', struct('Version', 1,                     ...
+                                                         'Source',  'GOOGLE',              ...
+                                                         'Mode',    'API',                 ...
+                                                         'Fields',  {{'Name', 'Snippet'}}, ...
+                                                         'nWords',  nMaxWords),            ...
+                                      'searchedWord', words2Search,                        ...
+                                      'cloudOfWords', wordCloudJSON));
 end
 
 
 %-------------------------------------------------------------------------%
 function wordCloudJSON = jsonEncode(wordCloudTable)
-
     wordCloudJSON = "{";    
-    
     for ii = 1:height(wordCloudTable)
         wordCloudJSON = wordCloudJSON + "\""" + wordCloudTable.Word(ii) + "\"": " + string(wordCloudTable.Count(ii));
         
         if ii < height(wordCloudTable)
             wordCloudJSON = wordCloudJSON + ", ";
         end
-    end
-    
+    end    
     wordCloudJSON = wordCloudJSON + "}";
-
 end

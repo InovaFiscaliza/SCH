@@ -23,7 +23,6 @@
       <file>${PROJECT_ROOT}\winSCH.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
-      <file>C:\SupportPackages</file>
       <file>${PROJECT_ROOT}\+auxApp</file>
       <file>${PROJECT_ROOT}\+class</file>
       <file>${PROJECT_ROOT}\+fcn</file>
@@ -35,6 +34,8 @@
       <file>${PROJECT_ROOT}\DataBase</file>
       <file>${PROJECT_ROOT}\Icons</file>
       <file>${PROJECT_ROOT}\Settings</file>
+      <file>D:\SupportPackages\src\Anatel</file>
+      <file>D:\SupportPackages\src\General</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />

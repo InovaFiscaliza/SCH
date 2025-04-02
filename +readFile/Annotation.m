@@ -12,7 +12,17 @@ function [annotationTable, msgWarning] = Annotation(rootFolder, cloudFolder)
 
     try
         if ~isempty(cloudFolder) && isfile(cloudFilePath)
-            annotationTable = readtable(cloudFilePath, 'VariableNamingRule', 'preserve');
+            annotationTable = readtable(cloudFilePath, 'VariableNamingRule', 'preserve', 'UseExcel', false);
+
+            % Validações p/ lidar com possíveis erros inseridos na consolidação 
+            % dos dados de anotação das diversas fontes.
+            if ~isequal(annotationTable.Properties.VariableNames, class.Constants.annotationTableColumns)
+                annotationTable = annotationTable(:, class.Constants.annotationTableColumns);
+            end
+
+            if ~isnumeric(annotationTable.("Situação"))
+                annotationTable.("Situação") = str2double(annotationTable.("Situação"));
+            end
 
             % A coluna "Situação" controla os registros que serão submetidos 
             % ao repositório do Sharepoint (POST). De forma geral, ao fechar 
@@ -60,12 +70,9 @@ function annotationTable = EmptyTable()
     % Por enquanto, não estará habilitada a exclusão do registro. E
     % a edição estará limitada ao atributo "WordCloud".
 
-  % columnNames     = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'};
-    columnNames     = class.Constants.annotationTableColumns;
-
     annotationTable = table('Size', [0, 8],                                        ...
                             'VariableTypes', [repmat({'cell'}, 1, 7), {'double'}], ...
-                            'VariableNames', columnNames);
+                            'VariableNames', class.Constants.annotationTableColumns);
 
 end
 
@@ -73,7 +80,7 @@ end
 %-------------------------------------------------------------------------%
 function annotationTable = MergeTables(annotationTable, externalFilePath)
 
-    externalFileContent = readtable(externalFilePath, 'VariableNamingRule', 'preserve');
+    externalFileContent = readtable(externalFilePath, 'VariableNamingRule', 'preserve', 'UseExcel', false);
     if ~isempty(externalFileContent)
         idx = ~ismember(externalFileContent.ID, annotationTable.ID) & (externalFileContent.("Situação") ~= -1);
         externalFileNewRows = externalFileContent(idx, :);
