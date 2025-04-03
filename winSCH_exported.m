@@ -86,13 +86,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_ModelName                matlab.ui.control.DropDown
         report_EntityPanel              matlab.ui.container.Panel
         report_EntityGrid               matlab.ui.container.GridLayout
-        report_EntityType               matlab.ui.control.DropDown
-        report_EntityTypeLabel          matlab.ui.control.Label
+        report_Entity                   matlab.ui.control.EditField
+        report_EntityLabel              matlab.ui.control.Label
         report_EntityID                 matlab.ui.control.EditField
         report_EntityCheck              matlab.ui.control.Image
         report_EntityIDLabel            matlab.ui.control.Label
-        report_Entity                   matlab.ui.control.EditField
-        report_EntityLabel              matlab.ui.control.Label
+        report_EntityType               matlab.ui.control.DropDown
+        report_EntityTypeLabel          matlab.ui.control.Label
         report_EntityPanelLabel         matlab.ui.control.Label
         report_Issue                    matlab.ui.control.NumericEditField
         report_IssueLabel               matlab.ui.control.Label
@@ -201,9 +201,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         config_menuBtn1Label            matlab.ui.control.Label
         file_toolGrid_3                 matlab.ui.container.GridLayout
         config_PanelVisibility          matlab.ui.control.Image
-        ContextMenu                     matlab.ui.container.ContextMenu
-        ContextMenu_EditFcn             matlab.ui.container.Menu
-        ContextMenu_DeleteFcn           matlab.ui.container.Menu
+        report_ContextMenu              matlab.ui.container.ContextMenu
+        report_ContextMenu_EditFcn      matlab.ui.container.Menu
+        report_ContextMenu_DeleteFcn    matlab.ui.container.Menu
+        search_ContextMenu              matlab.ui.container.ContextMenu
+        search_ContextMenu_DeleteFcn    matlab.ui.container.Menu
     end
 
     
@@ -1816,6 +1818,19 @@ classdef winSCH_exported < matlab.apps.AppBase
 
 
         %-----------------------------------------------------------------%
+        function layout_CNPJOrCPF(app, status)
+            if status
+                backgroundColor = [1,1,1];
+                fontColor       = [0,0,0];
+            else
+                backgroundColor = [1,0,0];
+                fontColor       = [1,1,1];
+            end
+            set(app.report_EntityID, 'BackgroundColor', backgroundColor, 'FontColor', fontColor)
+        end
+
+
+        %-----------------------------------------------------------------%
         function config_DataHubWarningLamp(app)
             DataHub_GET  = app.General.fileFolder.DataHub_GET;
             DataHub_POST = app.General.fileFolder.DataHub_POST;
@@ -2225,19 +2240,20 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msgWarning{end+1} = sprintf('• O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
             end
 
-            if ismember(app.report_EntityType.Value, {'Fornecedor', 'Usuário'})
-                nEntity = strtrim(app.report_Entity.Value);
-                try
-                    CNPJOrCPF = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
-                    set(app.report_EntityID, Value = CNPJOrCPF, UserData = CNPJOrCPF)
-
-                catch
-                    CNPJOrCPF = '';
-                end
-    
-                if isempty(nEntity) || isempty(CNPJOrCPF) || isempty(app.report_EntityType.Value)
+            switch app.report_EntityType.Value
+                case ''
                     msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
-                end
+                case {'Fornecedor', 'Usuário'}
+                    nEntity = strtrim(app.report_Entity.Value);
+                    try
+                        CNPJOrCPF = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
+                    catch
+                        CNPJOrCPF = [];
+                    end
+        
+                    if isempty(nEntity) || isempty(CNPJOrCPF)
+                        msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
+                    end
             end
 
             listOfRows = report_ListOfProductsCheck(app);
@@ -2352,15 +2368,17 @@ classdef winSCH_exported < matlab.apps.AppBase
                     misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, selectedRow(1), selected2showedHom)
                 end
 
-                app.report_EditProduct.Enable  = 1;
-                app.ContextMenu_EditFcn.Enable = 1;
+                app.report_EditProduct.Enable    = 1;
+                app.report_ContextMenu_EditFcn.Enable   = 1;
+                app.report_ContextMenu_DeleteFcn.Enable = 1;
 
             else
                 htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
                 misc_SelectedHomPanel_InfoUpdate(app, 'report', htmlSource, [], '')
                 
-                app.report_EditProduct.Enable  = 0;
-                app.ContextMenu_EditFcn.Enable = 0;
+                app.report_EditProduct.Enable    = 0;
+                app.report_ContextMenu_EditFcn.Enable   = 0;
+                app.report_ContextMenu_DeleteFcn.Enable = 0;
             end
 
         end
@@ -2368,12 +2386,33 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Cell edit callback: report_Table
         function report_TableCellEdit(app, event)
             
+            % BUG "MATLAB R2024a Update 7":
+            % Ao clicar no dropdown (colunas categóricas) e clicar fora do
+            % painel (do dropdown) ou selecionar o valor já selecionado, o
+            % MATLAB dispara esse callback. A primeira validação evita fazer 
+            % atualizações desnessárias.
             if isequal(event.PreviousData, event.NewData)
                 return
 
-            elseif isnumeric(event.NewData) 
-                if (event.NewData < 0) || isnan(event.NewData)
-                    event.Source.Data{event.Indices(1), event.Indices(2)} = event.PreviousData;
+            elseif isnumeric(event.NewData) && ((event.NewData < 0) || isnan(event.NewData))
+                event.Source.Data{event.Indices(1), event.Indices(2)} = event.PreviousData;
+                return
+
+            % Outro comportamento inesperado é a possibilidade de editar as
+            % categorias das colunas categóricas. Para evitar isso, afere-se
+            % se o nome valor é membro da lista de valores esperados.
+            else
+                editedGUIColumn = event.Source.ColumnName{event.Indices(2)};
+
+                if (strcmpi(editedGUIColumn, 'TIPO')     && ~ismember(event.NewData, app.General.typeOfProduct))   || ...
+                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, {'Irregular', 'Regular'}))    || ...
+                   (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.General.typeOfViolation)) || ...                   
+                   (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-1', 'Sim', 'Não'}))
+
+                    columnNames      = app.projectData.listOfProducts.Properties.VariableNames;
+                    editedRealColumn = columnNames{find(strcmpi(editedGUIColumn, columnNames), 1)};
+                    
+                    app.report_Table.Data.(editedRealColumn) = app.projectData.listOfProducts.(editedRealColumn);
                     return
                 end
             end
@@ -2526,8 +2565,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             
         end
 
-        % Value changed function: report_Entity, report_EntityID, 
-        % ...and 1 other component
+        % Value changed function: report_Entity, report_Issue
         function report_ProjectWarnImageVisibility(app, event)
 
             if ~isempty(app.report_ProjectName.Value{1})
@@ -2545,22 +2583,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                 return
             end
 
-            if ~isempty(app.report_EntityID.UserData) && isequal(regexprep(app.report_EntityID.UserData.cnpj, '\D', ''), entityID)
-                CNPJ = app.report_EntityID.UserData;
-                app.report_EntityID.Value = CNPJ.cnpj;
-                appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJ, "PrettyPrint", true));
-
-            else
-                try                
-                    CNPJ = checkCNPJOrCPF(app.report_EntityID.Value, 'PublicAPI');
-    
-                    set(app.report_EntityID, Value = CNPJ.cnpj, UserData = CNPJ)
-                    appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJ, "PrettyPrint", true));
-                
-                catch ME
-                    app.report_EntityID.UserData = [];
-                    appUtil.modalWindow(app.UIFigure, 'error', ME.message);
-                end
+            try
+                % Pesquisa restrita ao CNPJ.
+                CNPJInfo = checkCNPJOrCPF(app.report_EntityID.Value, 'PublicAPI');
+                appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJInfo, "PrettyPrint", true));
+            
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
             end
 
         end
@@ -2857,8 +2886,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: ContextMenu_DeleteFcn
-        function ContextMenu_DeleteFcnSelected(app, event)
+        % Menu selected function: report_ContextMenu_DeleteFcn, 
+        % ...and 1 other component
+        function report_ContextMenu_DeleteFcnSelected(app, event)
             
             selectedTableIndex = [];
             selectedProduct    = {};
@@ -2981,7 +3011,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: ContextMenu_EditFcn, report_EditProduct, 
+        % Callback function: report_ContextMenu_EditFcn,
+        % report_EditProduct, 
         % ...and 1 other component
         function search_FilterSetupClicked(app, event)
             
@@ -2989,14 +3020,25 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case app.search_FilterSetup
                     menu_LayoutPopupApp(app, 'FilterSetup')
 
-                case {app.report_EditProduct, app.ContextMenu_EditFcn}
-                    % O botão não deve estar acessível, caso não exista linha 
-                    % selecionada. A condições abaixo é apenas uma forma de 
-                    % segurança, caso o MATLAB se atrapalhe na execução de 
-                    % vários comandos.
-                    if isempty(app.report_Table.Selection)
+                case {app.report_EditProduct, app.report_ContextMenu_EditFcn}
+                    % Por alguma razão desconhecida, inseri algumas validações 
+                    % aqui! :)
+                    % Enfim... a possibilidade de editar um registro não deve
+                    % existir toda vez que a tabela esteja vazia ou que não 
+                    % esteja selecionada uma linha.
+                    selectedRow = app.report_Table.Selection;
+
+                    if isempty(selectedRow) 
+                        if isempty(app.report_Table.Data)
+                            app.report_EditProduct.Enable  = 0;
+                            app.report_ContextMenu_EditFcn.Enable = 0;
+                            return
+                        end
+
                         app.report_Table.Selection = 1;
                         report_TableSelectionChanged(app)
+                    elseif ~isscalar(selectedRow)
+                        app.report_Table.Selection = app.report_Table.Selection(1);
                     end
                     
                     menu_LayoutPopupApp(app, 'ProductInfo')
@@ -3048,6 +3090,32 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.report_Entity.Enable      = 0;
                     app.report_EntityID.Enable    = 0;
                     app.report_EntityCheck.Enable = 0;
+            end
+
+            report_ProjectWarnImageVisibility(app)
+
+        end
+
+        % Value changed function: search_ListOfProducts
+        function search_ListOfProductsValueChanged(app, event)
+            
+            selectedElements = app.search_ListOfProducts.Value;
+            app.search_ContextMenu_DeleteFcn.Enable = ~isempty(selectedElements);
+            
+        end
+
+        % Value changed function: report_EntityID
+        function report_EntityIDValueChanged(app, event)
+            
+            try
+                CNPJOrCPF = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
+                set(app.report_EntityID, 'Value', CNPJOrCPF, 'UserData', CNPJOrCPF)
+                layout_CNPJOrCPF(app, true)
+            
+            catch ME
+                app.report_EntityID.UserData = [];
+                layout_CNPJOrCPF(app, false)
+
             end
 
             report_ProjectWarnImageVisibility(app)
@@ -3344,6 +3412,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ListOfProducts = uilistbox(app.search_Tab1Grid);
             app.search_ListOfProducts.Items = {};
             app.search_ListOfProducts.Multiselect = 'on';
+            app.search_ListOfProducts.ValueChangedFcn = createCallbackFcn(app, @search_ListOfProductsValueChanged, true);
             app.search_ListOfProducts.FontSize = 11;
             app.search_ListOfProducts.Layout.Row = 9;
             app.search_ListOfProducts.Layout.Column = [1 4];
@@ -3813,63 +3882,18 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create report_EntityGrid
             app.report_EntityGrid = uigridlayout(app.report_EntityPanel);
-            app.report_EntityGrid.ColumnWidth = {'1x', 16, 110};
+            app.report_EntityGrid.ColumnWidth = {'1x', '1x', 16};
             app.report_EntityGrid.RowHeight = {17, 22, 17, 22};
             app.report_EntityGrid.RowSpacing = 5;
             app.report_EntityGrid.Padding = [10 10 10 5];
             app.report_EntityGrid.BackgroundColor = [1 1 1];
 
-            % Create report_EntityLabel
-            app.report_EntityLabel = uilabel(app.report_EntityGrid);
-            app.report_EntityLabel.VerticalAlignment = 'bottom';
-            app.report_EntityLabel.WordWrap = 'on';
-            app.report_EntityLabel.FontSize = 10;
-            app.report_EntityLabel.FontColor = [0.149 0.149 0.149];
-            app.report_EntityLabel.Layout.Row = 1;
-            app.report_EntityLabel.Layout.Column = 1;
-            app.report_EntityLabel.Text = 'Nome:';
-
-            % Create report_Entity
-            app.report_Entity = uieditfield(app.report_EntityGrid, 'text');
-            app.report_Entity.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
-            app.report_Entity.FontSize = 11;
-            app.report_Entity.Enable = 'off';
-            app.report_Entity.Layout.Row = 2;
-            app.report_Entity.Layout.Column = [1 3];
-
-            % Create report_EntityIDLabel
-            app.report_EntityIDLabel = uilabel(app.report_EntityGrid);
-            app.report_EntityIDLabel.VerticalAlignment = 'bottom';
-            app.report_EntityIDLabel.WordWrap = 'on';
-            app.report_EntityIDLabel.FontSize = 10;
-            app.report_EntityIDLabel.FontColor = [0.149 0.149 0.149];
-            app.report_EntityIDLabel.Layout.Row = 3;
-            app.report_EntityIDLabel.Layout.Column = 1;
-            app.report_EntityIDLabel.Text = 'CNPJ/CPF:';
-
-            % Create report_EntityCheck
-            app.report_EntityCheck = uiimage(app.report_EntityGrid);
-            app.report_EntityCheck.ImageClickedFcn = createCallbackFcn(app, @report_EntityIDCheck, true);
-            app.report_EntityCheck.Enable = 'off';
-            app.report_EntityCheck.Layout.Row = 3;
-            app.report_EntityCheck.Layout.Column = 2;
-            app.report_EntityCheck.VerticalAlignment = 'bottom';
-            app.report_EntityCheck.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Info_36.png');
-
-            % Create report_EntityID
-            app.report_EntityID = uieditfield(app.report_EntityGrid, 'text');
-            app.report_EntityID.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
-            app.report_EntityID.FontSize = 11;
-            app.report_EntityID.Enable = 'off';
-            app.report_EntityID.Layout.Row = 4;
-            app.report_EntityID.Layout.Column = [1 2];
-
             % Create report_EntityTypeLabel
             app.report_EntityTypeLabel = uilabel(app.report_EntityGrid);
             app.report_EntityTypeLabel.VerticalAlignment = 'bottom';
             app.report_EntityTypeLabel.FontSize = 10;
-            app.report_EntityTypeLabel.Layout.Row = 3;
-            app.report_EntityTypeLabel.Layout.Column = 3;
+            app.report_EntityTypeLabel.Layout.Row = 1;
+            app.report_EntityTypeLabel.Layout.Column = 1;
             app.report_EntityTypeLabel.Text = 'Tipo:';
 
             % Create report_EntityType
@@ -3878,9 +3902,54 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_EntityType.ValueChangedFcn = createCallbackFcn(app, @report_EntityTypeValueChanged, true);
             app.report_EntityType.FontSize = 11;
             app.report_EntityType.BackgroundColor = [1 1 1];
-            app.report_EntityType.Layout.Row = 4;
-            app.report_EntityType.Layout.Column = 3;
+            app.report_EntityType.Layout.Row = 2;
+            app.report_EntityType.Layout.Column = 1;
             app.report_EntityType.Value = '';
+
+            % Create report_EntityIDLabel
+            app.report_EntityIDLabel = uilabel(app.report_EntityGrid);
+            app.report_EntityIDLabel.VerticalAlignment = 'bottom';
+            app.report_EntityIDLabel.WordWrap = 'on';
+            app.report_EntityIDLabel.FontSize = 10;
+            app.report_EntityIDLabel.FontColor = [0.149 0.149 0.149];
+            app.report_EntityIDLabel.Layout.Row = 1;
+            app.report_EntityIDLabel.Layout.Column = 2;
+            app.report_EntityIDLabel.Text = 'CNPJ/CPF:';
+
+            % Create report_EntityCheck
+            app.report_EntityCheck = uiimage(app.report_EntityGrid);
+            app.report_EntityCheck.ImageClickedFcn = createCallbackFcn(app, @report_EntityIDCheck, true);
+            app.report_EntityCheck.Enable = 'off';
+            app.report_EntityCheck.Layout.Row = 1;
+            app.report_EntityCheck.Layout.Column = 3;
+            app.report_EntityCheck.VerticalAlignment = 'bottom';
+            app.report_EntityCheck.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Info_36.png');
+
+            % Create report_EntityID
+            app.report_EntityID = uieditfield(app.report_EntityGrid, 'text');
+            app.report_EntityID.ValueChangedFcn = createCallbackFcn(app, @report_EntityIDValueChanged, true);
+            app.report_EntityID.FontSize = 11;
+            app.report_EntityID.Enable = 'off';
+            app.report_EntityID.Layout.Row = 2;
+            app.report_EntityID.Layout.Column = [2 3];
+
+            % Create report_EntityLabel
+            app.report_EntityLabel = uilabel(app.report_EntityGrid);
+            app.report_EntityLabel.VerticalAlignment = 'bottom';
+            app.report_EntityLabel.WordWrap = 'on';
+            app.report_EntityLabel.FontSize = 10;
+            app.report_EntityLabel.FontColor = [0.149 0.149 0.149];
+            app.report_EntityLabel.Layout.Row = 3;
+            app.report_EntityLabel.Layout.Column = 1;
+            app.report_EntityLabel.Text = 'Nome:';
+
+            % Create report_Entity
+            app.report_Entity = uieditfield(app.report_EntityGrid, 'text');
+            app.report_Entity.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
+            app.report_Entity.FontSize = 11;
+            app.report_Entity.Enable = 'off';
+            app.report_Entity.Layout.Row = 4;
+            app.report_Entity.Layout.Column = [1 3];
 
             % Create report_ModelName
             app.report_ModelName = uidropdown(app.report_IssueGrid);
@@ -4778,24 +4847,38 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SplashScreen.Layout.Column = 2;
             app.SplashScreen.ImageSource = fullfile(pathToMLAPP, 'Icons', 'SplashScreen.gif');
 
-            % Create ContextMenu
-            app.ContextMenu = uicontextmenu(app.UIFigure);
+            % Create report_ContextMenu
+            app.report_ContextMenu = uicontextmenu(app.UIFigure);
 
-            % Create ContextMenu_EditFcn
-            app.ContextMenu_EditFcn = uimenu(app.ContextMenu);
-            app.ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
-            app.ContextMenu_EditFcn.Text = 'Editar';
+            % Create report_ContextMenu_EditFcn
+            app.report_ContextMenu_EditFcn = uimenu(app.report_ContextMenu);
+            app.report_ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.report_ContextMenu_EditFcn.Enable = 'off';
+            app.report_ContextMenu_EditFcn.Text = 'Editar';
 
-            % Create ContextMenu_DeleteFcn
-            app.ContextMenu_DeleteFcn = uimenu(app.ContextMenu);
-            app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @ContextMenu_DeleteFcnSelected, true);
-            app.ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
-            app.ContextMenu_DeleteFcn.Separator = 'on';
-            app.ContextMenu_DeleteFcn.Text = 'Excluir';
+            % Create report_ContextMenu_DeleteFcn
+            app.report_ContextMenu_DeleteFcn = uimenu(app.report_ContextMenu);
+            app.report_ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_DeleteFcnSelected, true);
+            app.report_ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
+            app.report_ContextMenu_DeleteFcn.Enable = 'off';
+            app.report_ContextMenu_DeleteFcn.Separator = 'on';
+            app.report_ContextMenu_DeleteFcn.Text = 'Excluir';
             
-            % Assign app.ContextMenu
-            app.search_ListOfProducts.ContextMenu = app.ContextMenu;
-            app.report_Table.ContextMenu = app.ContextMenu;
+            % Assign app.report_ContextMenu
+            app.report_Table.ContextMenu = app.report_ContextMenu;
+
+            % Create search_ContextMenu
+            app.search_ContextMenu = uicontextmenu(app.UIFigure);
+
+            % Create search_ContextMenu_DeleteFcn
+            app.search_ContextMenu_DeleteFcn = uimenu(app.search_ContextMenu);
+            app.search_ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_DeleteFcnSelected, true);
+            app.search_ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
+            app.search_ContextMenu_DeleteFcn.Enable = 'off';
+            app.search_ContextMenu_DeleteFcn.Text = 'Excluir';
+            
+            % Assign app.search_ContextMenu
+            app.search_ListOfProducts.ContextMenu = app.search_ContextMenu;
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
