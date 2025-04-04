@@ -129,8 +129,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         % ...and 15 other components
         function TypeValueChanged(app, event)
             
-            app.optNotes.Value = textFormatGUI.cellstr2TextField(app.optNotes.Value, '\n');
-
+            userNote  = textFormatGUI.cellstr2TextField(app.optNotes.Value, '\n');
             editedRow = {app.nHom.Value,          ...
                          app.Importador.Value,    ...
                          app.CodAduana.Value,     ...
@@ -149,7 +148,9 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                          app.Situation.Value,     ...
                          app.ViolationType.Value, ...
                          app.Corrigible.Value,    ...
-                         app.optNotes.Value};
+                         userNote};
+            
+            app.optNotes.Value = userNote;
 
             app.projectData.listOfProducts(app.Index.Value, :) = editedRow;
             CallingMainApp(app, 'REPORT:EditInfo', true, true, app.Index.Value)

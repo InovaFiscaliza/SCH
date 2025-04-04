@@ -708,7 +708,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 if ~isfolder(DataHub_GET)
                     error('Pendente mapear a pasta "SCH" do repositório "DataHub - GET".')
                 elseif isfolder(DataHub_GET) && ~isfile(SCHDataFullFile)
-                    error('Apesar de mapeada a pasta "SCH" do repositório "DataHub - GET", não foi encontrado o arquivo %s. Favor relatar isso ao Escritório de inovação da SFI.', SCHDataFileName)
+                    error('Apesar de mapeada a pasta "SCH" do repositório "DataHub - GET", não foi encontrado o arquivo %s. Favor verificar se a pasta foi mapeada corretamente e, persistindo o erro, relatar isso ao Escritório de inovação da SFI.', SCHDataFileName)
                 end
                 startup_ReadSCHDataFile(app, SCHDataFullFile)
                 
@@ -2642,12 +2642,15 @@ classdef winSCH_exported < matlab.apps.AppBase
             if selectedFolder
                 switch event.Source
                     case app.config_Folder_DataHubGETButton
-                        appName  = class.Constants.appName;
-                        repoName = 'DataHub - GET';
-
                         if strcmp(app.General.fileFolder.DataHub_GET, selectedFolder) 
                             return
-                        elseif all(cellfun(@(x) contains(selectedFolder, x), {repoName, appName}))
+                        else
+                            selectedFolderFiles = dir(selectedFolder);
+                            if ~ismember('.sch_get', {selectedFolderFiles.name})
+                                appUtil.modalWindow(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - GET", do SCH.');
+                                return
+                            end
+
                             app.progressDialog.Visible = 'visible';
 
                             app.config_Folder_DataHubGET.Value = selectedFolder;
@@ -2657,23 +2660,22 @@ classdef winSCH_exported < matlab.apps.AppBase
                             app.AppInfo.Tag = '';
     
                             config_DataHubWarningLamp(app)
-                        else
-                            appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
                         end
 
                     case app.config_Folder_DataHubPOSTButton
-                        appName  = class.Constants.appName;
-                        repoName = 'DataHub - POST';
-
                         if strcmp(app.General.fileFolder.DataHub_POST, selectedFolder) 
                             return
-                        elseif all(cellfun(@(x) contains(selectedFolder, x), {repoName, appName}))
+                        else
+                            selectedFolderFiles = dir(selectedFolder);
+                            if ~ismember('.sch_post', {selectedFolderFiles.name})
+                                appUtil.modalWindow(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - POST", do SCH.');
+                                return
+                            end
+
                             app.config_Folder_DataHubPOST.Value = selectedFolder;
                             app.General.fileFolder.DataHub_POST = selectedFolder;
     
                             config_DataHubWarningLamp(app)
-                        else
-                            appUtil.modalWindow(app.UIFigure, 'error', sprintf('Não identificado se tratar da pasta "%s" do repositório "%s".', appName, repoName));
                         end
 
                     case app.config_Folder_userPathButton
