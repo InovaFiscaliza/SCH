@@ -200,6 +200,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         config_menuBtn1Icon             matlab.ui.control.Image
         config_menuBtn1Label            matlab.ui.control.Label
         file_toolGrid_3                 matlab.ui.container.GridLayout
+        config_ExportTable              matlab.ui.control.Image
         config_PanelVisibility          matlab.ui.control.Image
         report_ContextMenu              matlab.ui.container.ContextMenu
         report_ContextMenu_EditFcn      matlab.ui.container.Menu
@@ -604,7 +605,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                         % ...
                     otherwise
                         % Configura o tamanho mínimo da janela.
-                        app.FigurePosition.Visible = 1;
+                        app.FigurePosition.Enable        = 'on';
+                        app.menu_Grid.ColumnWidth{end-3} = 20;
                         appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
                 end
 
@@ -1837,8 +1839,10 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if isfolder(DataHub_GET) && isfolder(DataHub_POST)
                 app.DataHubLamp.Visible = 0;
+                set(app.config_ExportTable, 'Visible', 1, 'Enable', 1)
             else
                 app.DataHubLamp.Visible = 1;
+                set(app.config_ExportTable, 'Visible', 0, 'Enable', 0)
             end
         end
 
@@ -2969,7 +2973,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: search_ExportTable
+        % Image clicked function: config_ExportTable, search_ExportTable
         function search_ExportTableClicked(app, event)
             
                 nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
@@ -2982,8 +2986,16 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.progressDialog.Visible = 'visible';
 
                 try
-                    idxSCH = app.search_Table.UserData.secundaryIndex;
-                    writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
+                    switch event.Source
+                        case app.search_ExportTable
+                            idxSCH = app.search_Table.UserData.secundaryIndex;
+                            writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
+
+                        case app.config_ExportTable
+                            copyfile(fullfile(app.General.fileFolder.DataHub_GET, replace(app.General.fileName.SCHData, '.mat', '.xlsx')), fileFullPath, 'f')
+                            ccTools.fcn.OperationSystem('openFile', fileFullPath)
+                    end                    
+
                 catch ME
                     appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
                 end
@@ -3139,7 +3151,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.UIFigure.AutoResizeChildren = 'off';
             app.UIFigure.Position = [93 93 1244 660];
             app.UIFigure.Name = 'SCH';
-            app.UIFigure.Icon = fullfile(pathToMLAPP, 'Icons', 'icon_48.png');
+            app.UIFigure.Icon = fullfile(pathToMLAPP, 'Icons', 'icon_32.png');
             app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
             app.UIFigure.WindowButtonDownFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
 
@@ -4129,6 +4141,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.config_PanelVisibility.Layout.Column = 1;
             app.config_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'Icons', 'ArrowLeft_32.png');
 
+            % Create config_ExportTable
+            app.config_ExportTable = uiimage(app.file_toolGrid_3);
+            app.config_ExportTable.ImageClickedFcn = createCallbackFcn(app, @search_ExportTableClicked, true);
+            app.config_ExportTable.Enable = 'off';
+            app.config_ExportTable.Visible = 'off';
+            app.config_ExportTable.Tooltip = {'Abre cópia de base dados no Excel'};
+            app.config_ExportTable.Layout.Row = 2;
+            app.config_ExportTable.Layout.Column = 2;
+            app.config_ExportTable.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Sheet_32.png');
+
             % Create config_mainGrid
             app.config_mainGrid = uigridlayout(app.Tab3_ConfigGrid);
             app.config_mainGrid.ColumnWidth = {315, '1x', '1x', '1x'};
@@ -4719,7 +4741,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create menu_Grid
             app.menu_Grid = uigridlayout(app.GridLayout);
-            app.menu_Grid.ColumnWidth = {28, 28, 5, 28, '1x', 20, 20, 20, 20, 0, 0};
+            app.menu_Grid.ColumnWidth = {28, 28, 5, 28, '1x', 20, 20, 0, 20, 0, 0};
             app.menu_Grid.RowHeight = {7, '1x', 7};
             app.menu_Grid.ColumnSpacing = 5;
             app.menu_Grid.RowSpacing = 0;
@@ -4787,7 +4809,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create FigurePosition
             app.FigurePosition = uiimage(app.menu_Grid);
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @menu_auxiliarButtonPushed, true);
-            app.FigurePosition.Visible = 'off';
+            app.FigurePosition.Enable = 'off';
             app.FigurePosition.Layout.Row = 2;
             app.FigurePosition.Layout.Column = 8;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'Icons', 'Layout1.png');
