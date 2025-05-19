@@ -1,3 +1,7 @@
+# List of folder to ignore:
+deploy/desktop/
+deploy/webapp/
+
 # Autosave files
 *.asv
 *.m~
