@@ -1,14 +1,14 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="2602588289" file="D:\InovaFiscaliza\SCH\SCH_desktopCompiler.prj" location="D:\InovaFiscaliza\SCH" name="SCH_desktopCompiler" preferred-package-location="C:\InovaFiscaliza\SCH\winSCH_desktopCompiler\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="2602588289" file="D:\InovaFiscaliza\SCH\deploy\desktop.prj" location="D:\InovaFiscaliza\SCH\deploy" name="desktop" preferred-package-location="C:\InovaFiscaliza\SCH\winSCH_desktopCompiler\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>SCH</param.appname>
-    <param.icon>${PROJECT_ROOT}\SCH_desktopCompiler_resources\icon.ico</param.icon>
+    <param.icon>${PROJECT_ROOT}\desktop_resources\icon.ico</param.icon>
     <param.icons>
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_48.png</file>
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_32.png</file>
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_24.png</file>
       <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_16.png</file>
     </param.icons>
-    <param.version>0.91.0</param.version>
+    <param.version>1.00.0</param.version>
     <param.authnamewatermark>Escritório de inovação da SFI</param.authnamewatermark>
     <param.email />
     <param.company>ANATEL</param.company>
@@ -21,10 +21,10 @@
     <param.logo />
     <param.install.notes />
     <param.target.install.notes />
-    <param.intermediate>${PROJECT_ROOT}\SCH_desktopCompiler\for_testing</param.intermediate>
-    <param.files.only>${PROJECT_ROOT}\SCH_desktopCompiler\for_redistribution_files_only</param.files.only>
-    <param.output>${PROJECT_ROOT}\SCH_desktopCompiler\for_redistribution</param.output>
-    <param.logdir>${PROJECT_ROOT}\SCH_desktopCompiler</param.logdir>
+    <param.intermediate>${PROJECT_ROOT}\desktop\for_testing</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}\desktop\for_redistribution_files_only</param.files.only>
+    <param.output>${PROJECT_ROOT}\desktop\for_redistribution</param.output>
+    <param.logdir>${PROJECT_ROOT}\desktop</param.logdir>
     <param.enable.clean.build>false</param.enable.clean.build>
     <param.user.defined.mcr.options />
     <param.target.type>subtarget.standalone</param.target.type>
@@ -76,31 +76,28 @@
       <param.example />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}\winSCH.mlapp</file>
+      <file>D:\InovaFiscaliza\SCH\src\winSCH.mlapp</file>
     </fileset.main>
     <fileset.resources>
-      <file>${PROJECT_ROOT}\+auxApp</file>
-      <file>${PROJECT_ROOT}\+class</file>
-      <file>${PROJECT_ROOT}\+fcn</file>
-      <file>${PROJECT_ROOT}\+fiscalizaLibConnection</file>
-      <file>${PROJECT_ROOT}\+readFile</file>
-      <file>${PROJECT_ROOT}\+reportLibConnection</file>
-      <file>${PROJECT_ROOT}\+suggestion</file>
-      <file>${PROJECT_ROOT}\+writeFile</file>
-      <file>${PROJECT_ROOT}\Icons</file>
+      <file>D:\InovaFiscaliza\SCH\src\+auxApp</file>
+      <file>D:\InovaFiscaliza\SCH\src\+class</file>
+      <file>D:\InovaFiscaliza\SCH\src\+readFile</file>
+      <file>D:\InovaFiscaliza\SCH\src\+reportLibConnection</file>
+      <file>D:\InovaFiscaliza\SCH\src\+suggestion</file>
+      <file>D:\InovaFiscaliza\SCH\src\+util</file>
+      <file>D:\InovaFiscaliza\SCH\src\+writeFile</file>
+      <file>D:\InovaFiscaliza\SCH\src\resources</file>
       <file>D:\SupportPackages\src\Anatel</file>
       <file>D:\SupportPackages\src\General</file>
     </fileset.resources>
     <fileset.package>
-      <file>${PROJECT_ROOT}\DataBase</file>
-      <file>${PROJECT_ROOT}\Icons</file>
-      <file>${PROJECT_ROOT}\Settings</file>
+      <file>D:\InovaFiscaliza\SCH\src\config</file>
     </fileset.package>
     <fileset.depfun />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\SCH_desktopCompiler\for_testing" name="splash.png" optional="false">D:\InovaFiscaliza\SCH\SCH_desktopCompiler\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\SCH_desktopCompiler\for_testing" name="SCH.exe" optional="false">D:\InovaFiscaliza\SCH\SCH_desktopCompiler\for_testing\SCH.exe</file>
-      <file location="${PROJECT_ROOT}\SCH_desktopCompiler\for_testing" name="readme.txt" optional="true">D:\InovaFiscaliza\SCH\SCH_desktopCompiler\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="splash.png" optional="false">D:\InovaFiscaliza\SCH\deploy\desktop\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="SCH.exe" optional="false">D:\InovaFiscaliza\SCH\deploy\desktop\for_testing\SCH.exe</file>
+      <file location="${PROJECT_ROOT}\desktop\for_testing" name="readme.txt" optional="true">D:\InovaFiscaliza\SCH\deploy\desktop\for_testing\readme.txt</file>
     </build-deliverables>
     <workflow />
     <matlab>

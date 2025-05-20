@@ -1,11 +1,11 @@
 <deployment-project plugin="plugin.webdeploy" plugin-version="1.0">
-  <configuration file="D:\InovaFiscaliza\SCH\SCH_webappCompiler.prj" location="D:\InovaFiscaliza\SCH" name="SCH_webappCompiler" target="target.webdeploy" target-name="Web App Compiler">
+  <configuration file="D:\InovaFiscaliza\SCH\deploy\webapp.prj" location="D:\InovaFiscaliza\SCH\deploy" name="webapp" target="target.webdeploy" target-name="Web App Compiler">
     <param.appname>SCH</param.appname>
-    <param.intermediate>${PROJECT_ROOT}\SCH_webappCompiler</param.intermediate>
-    <param.files.only>${PROJECT_ROOT}\SCH_webappCompiler</param.files.only>
+    <param.intermediate>${PROJECT_ROOT}\webapp</param.intermediate>
+    <param.files.only>${PROJECT_ROOT}\webapp</param.files.only>
     <param.output>C:\ProgramData\MathWorks\webapps\R2024a\apps</param.output>
     <param.checkbox>true</param.checkbox>
-    <param.logdir>${PROJECT_ROOT}\SCH_webappCompiler</param.logdir>
+    <param.logdir>${PROJECT_ROOT}\webapp</param.logdir>
     <param.target.type>subtarget.web.app</param.target.type>
     <param.user.defined.mcr.options />
     <param.support.packages />
@@ -18,27 +18,25 @@
       <param.support.packages />
     </unset>
     <fileset.web.main>
-      <file>${PROJECT_ROOT}\winSCH.mlapp</file>
+      <file>D:\InovaFiscaliza\SCH\src\winSCH.mlapp</file>
     </fileset.web.main>
     <fileset.resources>
-      <file>${PROJECT_ROOT}\+auxApp</file>
-      <file>${PROJECT_ROOT}\+class</file>
-      <file>${PROJECT_ROOT}\+fcn</file>
-      <file>${PROJECT_ROOT}\+fiscalizaLibConnection</file>
-      <file>${PROJECT_ROOT}\+readFile</file>
-      <file>${PROJECT_ROOT}\+reportLibConnection</file>
-      <file>${PROJECT_ROOT}\+suggestion</file>
-      <file>${PROJECT_ROOT}\+writeFile</file>
-      <file>${PROJECT_ROOT}\DataBase</file>
-      <file>${PROJECT_ROOT}\Icons</file>
-      <file>${PROJECT_ROOT}\Settings</file>
+      <file>D:\InovaFiscaliza\SCH\src\+auxApp</file>
+      <file>D:\InovaFiscaliza\SCH\src\+class</file>
+      <file>D:\InovaFiscaliza\SCH\src\+readFile</file>
+      <file>D:\InovaFiscaliza\SCH\src\+reportLibConnection</file>
+      <file>D:\InovaFiscaliza\SCH\src\+suggestion</file>
+      <file>D:\InovaFiscaliza\SCH\src\+util</file>
+      <file>D:\InovaFiscaliza\SCH\src\+writeFile</file>
+      <file>D:\InovaFiscaliza\SCH\src\config</file>
+      <file>D:\InovaFiscaliza\SCH\src\resources</file>
       <file>D:\SupportPackages\src\Anatel</file>
       <file>D:\SupportPackages\src\General</file>
     </fileset.resources>
     <fileset.depfun />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\SCH_webappCompiler" name="SCH.ctf" optional="false">D:\InovaFiscaliza\SCH\SCH_webappCompiler\SCH.ctf</file>
+      <file location="${PROJECT_ROOT}\webapp" name="SCH.ctf" optional="false">D:\InovaFiscaliza\SCH\deploy\webapp\SCH.ctf</file>
     </build-deliverables>
     <workflow />
     <matlab>

@@ -667,7 +667,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.General_I.search.cacheColumns = 'Modelo | Nome Comercial';
 
             app.General = app.General_I;
-            app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir);
+            app.General.AppVersion = util.getAppVersion('app', app.rootFolder, MFilePath, tempDir);
         end
 
         %-----------------------------------------------------------------%
@@ -747,7 +747,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
             app.General.fileFolder.userPath = userPaths{end};
-            
+
             search_EntryPoint_Layout(app)
             DataHubWarningLamp(app)
         end

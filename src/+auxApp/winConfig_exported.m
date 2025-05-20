@@ -575,7 +575,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.progressDialog.Visible = 'visible';
         
                     try
-                        copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, replace(app.mainApp.General.fileName.SCHData, '.mat', '.xlsx')), fileFullPath, 'f')
+                        copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, replace(app.mainApp.General.search.dataSources.main, '.mat', '.xlsx')), fileFullPath, 'f')
                         ccTools.fcn.OperationSystem('openFile', fileFullPath)        
                     catch ME
                         appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
