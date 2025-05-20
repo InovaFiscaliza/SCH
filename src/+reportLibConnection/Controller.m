@@ -34,12 +34,12 @@ classdef (Abstract) Controller
 
             docIndex   = find(strcmp({modelFileContent.Name}, app.report_ModelName.Value), 1);
             docType    = modelFileContent(docIndex).DocumentType;
-            docScript  = jsondecode(fileread(fullfile(appDataFolder, modelFileContent(docIndex).File)));            
+            docScript  = jsondecode(fileread(fullfile(appDataFolder, 'ReportTemplates', modelFileContent(docIndex).File)));            
             docVersion = reportLibConnection.Controller.docVersion(app.report_Version.Value);
             
             % reportInfo
             reportInfo = struct('App',      app,                                         ...
-                                'Version',  fcn.envVersion(app.rootFolder, 'reportLib', app.rawDataTable, app.releasedData), ...
+                                'Version',  util.envVersion(app.rootFolder, 'reportLib', app.rawDataTable, app.releasedData), ...
                                 'Path',     struct('rootFolder',     app.rootFolder,     ...
                                                    'appConnection',  projectFolder,      ...
                                                    'appDataFolder',  appDataFolder),     ...
@@ -67,7 +67,7 @@ classdef (Abstract) Controller
             % Documentos:
             switch docVersion
                 case 'preview'; tempFullPath = tempname;
-                case 'final';   tempFullPath = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'Report', app.report_Issue.Value);
+                case 'final';   tempFullPath = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'Report', app.report_Issue.Value);
             end
             HTMLDocFullPath = [tempFullPath '.html'];
             CSVDocFullPath  = [tempFullPath '.csv'];

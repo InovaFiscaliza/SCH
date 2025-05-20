@@ -269,9 +269,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         end
 
                                     case 'Enter'
-                                        search_EntryPoint_ImageClicked(app)
-
-                                        pause(.050)
+                                        drawnow
+                                        search_EntryPoint_ImageClicked(app)                                        
                                         set(app.search_Suggestions, Visible=0, Value={})
                                 end
                             end
@@ -360,12 +359,56 @@ classdef winSCH_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "CONFIG", app.General)
+
                             case 'checkDataHubLampStatus'
                                 DataHubWarningLamp(app)
+
                             case 'openDevTools'
                                 dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
                                 dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
                                 sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'openDevTools', 'Fields', dialogBox))
+
+                            case 'searchModeChanged'
+                                switch app.General.search.mode
+                                    case 'tokens'
+                                        app.search_Document.ColumnWidth = {412, '1x'};
+                    
+                                    otherwise
+                                        app.search_Document.ColumnWidth = {'1x', 0};
+                    
+                                        app.previousSearch   = '';
+                                        app.previousItemData = 0;                                        
+                                        set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
+                                end                    
+                                search_EntryPoint_InitialValue(app)
+
+                            case 'wordCloudAlgorithmChanged'
+                                if ~isempty(app.wordCloudObj)
+                                    if ~strcmp(app.wordCloudObj.Algorithm, app.General.search.wordCloud.algorithm)
+                                        delete(app.wordCloudObj.Chart.Parent)
+                                        clear('app.wordCloudObj.Chart.Parent')
+                    
+                                        app.wordCloudObj = wordCloud(app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
+                                        app.search_WordCloudPanel.Tag = '';
+
+                                        app.search_ProductInfo.UserData.selectedRow = [];
+                                        app.search_ProductInfo.UserData.showedHom   = '';
+                    
+                                        search_Table_SelectionChanged(app)
+                                    end
+                                end
+
+                            case 'searchVisibleColumnsChanged'
+                                [columnNames, columnWidth] = search_Table_ColumnNames(app);
+                                set(app.search_Table, 'ColumnName', upper(columnNames), 'ColumnWidth', columnWidth)
+                    
+                                if ~isempty(app.search_Table.Data)
+                                    if (numel(columnNames) ~= width(app.search_Table.Data)) || any(~ismember(app.search_Table.ColumnName, upper(columnNames)))
+                                        secundaryIndex = app.search_Table.UserData.secundaryIndex;
+                                        app.search_Table.Data = app.rawDataTable(secundaryIndex, columnNames);
+                                    end
+                                end
+
                             otherwise
                                 error('UnexpectedCall')
                         end
@@ -659,7 +702,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 startup_ReadSCHDataFile(app, SCHDataFullFile)
 
             catch ME
-                SCHDataFullFile = fullfile(app.rootFolder, 'DataBase', SCHDataFileName);
+                SCHDataFullFile = fullfile(app.rootFolder, 'config', 'DataBase', SCHDataFileName);
                 startup_ReadSCHDataFile(app, SCHDataFullFile)
 
                 msgWarning = ME.message;
@@ -1053,7 +1096,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function search_EntryPoint_InitialValue(app)
-            app.search_entryPoint.Value = '';
+            set(app.search_entryPoint, 'Value', '', 'FontColor', [0,0,0])
             app.search_entryPointImage.Enable = 0;
         end
 
@@ -1093,7 +1136,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 fontColor = [0,0,0];
             end
             app.search_entryPoint.FontColor = fontColor;
-            drawnow
+            %drawnow
         end
 
 
@@ -1197,7 +1240,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
 
         %-----------------------------------------------------------------%
-        function [columnNames, columnWidth] = search_Table_ColumnNames(app)
+        function [columnNames, columnWidths] = search_Table_ColumnNames(app)
             checkedNodes = search_Table_ColumnInfo(app, 'visibleColumns');
             staticColums = search_Table_ColumnInfo(app, 'staticColumns');
             columnNames  = unique([staticColums; checkedNodes], 'stable');
@@ -1205,12 +1248,12 @@ classdef winSCH_exported < matlab.apps.AppBase
             allColumns   = search_Table_ColumnInfo(app, 'allColumns');
             widthColumns = search_Table_ColumnInfo(app, 'allColumnsWidths');
 
-            columnWidth  = {};
+            columnWidths = {};
             for ii = 1:numel(columnNames)
-                columnName      = columnNames{ii};
-                columnIndex     = find(strcmp(allColumns, columnName), 1);
+                columnName       = columnNames{ii};
+                columnIndex      = find(strcmp(allColumns, columnName), 1);
 
-                columnWidth{ii} = widthColumns{columnIndex};
+                columnWidths{ii} = widthColumns{columnIndex};
             end
         end
 
@@ -1888,7 +1931,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.search_ToolbarAnnotation.Enable     = 1;
                     app.search_ToolbarListOfProducts.Enable = 1;
                     app.search_ToolbarWordCloud.Enable      = 1;
-                    app.search_WordCloudRefresh.Enable      = 1;
                 end
 
             else
@@ -1903,7 +1945,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.search_ToolbarAnnotation.Enable     = 0;
                 app.search_ToolbarWordCloud.Enable      = 0;
                 app.search_ToolbarListOfProducts.Enable = 0;
-                app.search_WordCloudRefresh.Enable      = 0;
             end
 
         end
@@ -1934,9 +1975,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                         % O "drawnow nocallbacks" aqui é ESSENCIAL porque o
                         % MATLAB precisa renderizar em tela o container do
                         % WordCloud (um objeto uihtml).
-                        app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{2};
-                        app.search_Tab1Grid.RowHeight([4,6,7]) = {22,121,22};
-                        drawnow nocallbacks
+                        app.search_ToolbarWordCloud.ImageSource = app.search_ToolbarWordCloud.UserData.iconOptions{2};
+                        app.search_Tab1Grid.RowHeight([4,6,7])  = {22,121,22};
+                        app.search_WordCloudRefresh.Visible     = 1;
+                        drawnow
 
                         selectedRow = app.search_ProductInfo.UserData.selectedRow;
                         showedHom   = app.search_ProductInfo.UserData.showedHom;
@@ -1947,11 +1989,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                         end
 
                     else
-                        app.search_ToolbarWordCloud.ImageSource   = app.search_ToolbarWordCloud.UserData.iconOptions{1};
-                        app.search_Tab1Grid.RowHeight(6:7)        = {0,0};
+                        app.search_ToolbarWordCloud.ImageSource = app.search_ToolbarWordCloud.UserData.iconOptions{1};
+                        app.search_Tab1Grid.RowHeight(6:7)      = {0,0};
+                        app.search_WordCloudRefresh.Visible     = 0;
 
                         if ~app.search_Tab1Grid.RowHeight{5}
-                            app.search_Tab1Grid.RowHeight(4)      = {0};
+                            app.search_Tab1Grid.RowHeight(4)    = {0};
                         end
                     end
 
@@ -2213,9 +2256,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                 editedGUIColumn = event.Source.ColumnName{event.Indices(2)};
 
                 if (strcmpi(editedGUIColumn, 'TIPO')     && ~ismember(event.NewData, app.General.ui.typeOfProduct.options))   || ...
-                        (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, {'Irregular', 'Regular'}))    || ...
-                        (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.General.ui.typeOfViolation)) || ...
-                        (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-1', 'Sim', 'Não'}))
+                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, {'Irregular', 'Regular'}))               || ...
+                   (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.General.ui.typeOfViolation.options)) || ...
+                   (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-1', 'Sim', 'Não'}))
 
                     columnNames      = app.projectData.listOfProducts.Properties.VariableNames;
                     editedRealColumn = columnNames{find(strcmpi(editedGUIColumn, columnNames), 1)};
@@ -2289,8 +2332,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     app.report_ProjectWarnIcon.Visible = 0;
 
-                    fiscalizaLibConnection.report_ResetGUI(app)
-
                     %---------------------------------------------------------%
                 case app.report_ProjectOpen
                     if ~isempty(app.projectData.listOfProducts)
@@ -2345,7 +2386,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     if ~isempty(app.report_ProjectName.Value{1})
                         defaultFilename = app.report_ProjectName.Value{1};
                     else
-                        defaultFilename = class.Constants.DefaultFileName(app.config_Folder_userPath.Value, 'SCH', app.report_Issue.Value);
+                        defaultFilename = class.Constants.DefaultFileName(app.General.fileFolder.userPath, 'SCH', app.report_Issue.Value);
                     end
 
                     [fileName, filePath] = uiputfile({'*.mat', 'SCH (*.mat)'}, '', defaultFilename);
@@ -2464,7 +2505,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.Tab1_SearchGrid.ColumnWidth(1:2)    = {0,5};
                     else
                         app.search_leftPanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.Tab1_SearchGrid.ColumnWidth(1:2)    = {320,10};
+                        app.Tab1_SearchGrid.ColumnWidth(1:2)    = {325,10};
                     end
 
                 case app.report_leftPanelVisibility
@@ -2473,7 +2514,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.Tab2_ReportGrid.ColumnWidth(1:2)    = {0,5};
                     else
                         app.report_leftPanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.Tab2_ReportGrid.ColumnWidth(1:2)    = {320,10};
+                        app.Tab2_ReportGrid.ColumnWidth(1:2)    = {325,10};
                     end
 
                 case app.report_rightPanelVisibility
@@ -2482,7 +2523,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.Tab2_ReportGrid.ColumnWidth(4:5)    = {5,0};
                     else
                         app.report_rightPanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.Tab2_ReportGrid.ColumnWidth(4:5)    = {10,320};
+                        app.Tab2_ReportGrid.ColumnWidth(4:5)    = {10,325};
                     end
             end
 
@@ -2541,16 +2582,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'visible';
 
             try
-                switch event.Source
-                    case app.search_ExportTable
-                        idxSCH = app.search_Table.UserData.secundaryIndex;
-                        writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
-
-                    case app.config_ExportTable
-                        copyfile(fullfile(app.General.fileFolder.DataHub_GET, replace(app.General.fileName.SCHData, '.mat', '.xlsx')), fileFullPath, 'f')
-                        ccTools.fcn.OperationSystem('openFile', fileFullPath)
-                end
-
+                idxSCH = app.search_Table.UserData.secundaryIndex;
+                writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
             catch ME
                 appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
             end
@@ -2752,7 +2785,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Tab1_SearchGrid
             app.Tab1_SearchGrid = uigridlayout(app.Tab1_Search);
-            app.Tab1_SearchGrid.ColumnWidth = {320, 10, '1x', 5};
+            app.Tab1_SearchGrid.ColumnWidth = {325, 10, '1x', 5};
             app.Tab1_SearchGrid.RowHeight = {'1x', 34};
             app.Tab1_SearchGrid.ColumnSpacing = 0;
             app.Tab1_SearchGrid.RowSpacing = 5;
@@ -2838,7 +2871,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create search_Tab1Grid
             app.search_Tab1Grid = uigridlayout(app.Tab1_SearchGrid);
-            app.search_Tab1Grid.ColumnWidth = {18, '1x', 18, 18, 18};
+            app.search_Tab1Grid.ColumnWidth = {'1x', 18, 18, 18};
             app.search_Tab1Grid.RowHeight = {22, 22, '1x', 0, 0, 0, 0, 0, 0};
             app.search_Tab1Grid.ColumnSpacing = 2;
             app.search_Tab1Grid.RowSpacing = 5;
@@ -2852,7 +2885,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfoLabel.VerticalAlignment = 'bottom';
             app.search_ProductInfoLabel.FontSize = 10;
             app.search_ProductInfoLabel.Layout.Row = 2;
-            app.search_ProductInfoLabel.Layout.Column = [1 2];
+            app.search_ProductInfoLabel.Layout.Column = 1;
             app.search_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
 
             % Create search_ToolbarWordCloud
@@ -2861,7 +2894,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarWordCloud.Enable = 'off';
             app.search_ToolbarWordCloud.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
             app.search_ToolbarWordCloud.Layout.Row = 2;
-            app.search_ToolbarWordCloud.Layout.Column = 4;
+            app.search_ToolbarWordCloud.Layout.Column = 3;
             app.search_ToolbarWordCloud.VerticalAlignment = 'bottom';
             app.search_ToolbarWordCloud.ImageSource = 'Cloud_32x32Gray.png';
 
@@ -2871,7 +2904,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarListOfProducts.Enable = 'off';
             app.search_ToolbarListOfProducts.Tooltip = {'Lista de produtos homologados sob análise'};
             app.search_ToolbarListOfProducts.Layout.Row = 2;
-            app.search_ToolbarListOfProducts.Layout.Column = 5;
+            app.search_ToolbarListOfProducts.Layout.Column = 4;
             app.search_ToolbarListOfProducts.VerticalAlignment = 'bottom';
             app.search_ToolbarListOfProducts.ImageSource = 'Box_32x32Gray.png';
 
@@ -2880,14 +2913,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_AnnotationPanelLabel.VerticalAlignment = 'bottom';
             app.search_AnnotationPanelLabel.FontSize = 10;
             app.search_AnnotationPanelLabel.Layout.Row = 4;
-            app.search_AnnotationPanelLabel.Layout.Column = [1 3];
+            app.search_AnnotationPanelLabel.Layout.Column = [1 2];
             app.search_AnnotationPanelLabel.Text = 'ANOTAÇÃO';
 
             % Create search_AnnotationPanel
             app.search_AnnotationPanel = uipanel(app.search_Tab1Grid);
             app.search_AnnotationPanel.AutoResizeChildren = 'off';
             app.search_AnnotationPanel.Layout.Row = 5;
-            app.search_AnnotationPanel.Layout.Column = [1 5];
+            app.search_AnnotationPanel.Layout.Column = [1 4];
 
             % Create search_AnnotationGrid
             app.search_AnnotationGrid = uigridlayout(app.search_AnnotationPanel);
@@ -2942,14 +2975,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_WordCloudPanel.AutoResizeChildren = 'off';
             app.search_WordCloudPanel.BackgroundColor = [1 1 1];
             app.search_WordCloudPanel.Layout.Row = [6 7];
-            app.search_WordCloudPanel.Layout.Column = [1 5];
+            app.search_WordCloudPanel.Layout.Column = [1 4];
 
             % Create search_WordCloudRefresh
             app.search_WordCloudRefresh = uiimage(app.search_Tab1Grid);
             app.search_WordCloudRefresh.ImageClickedFcn = createCallbackFcn(app, @search_WordCloud_RefreshImageClicked, true);
-            app.search_WordCloudRefresh.Enable = 'off';
-            app.search_WordCloudRefresh.Layout.Row = 7;
-            app.search_WordCloudRefresh.Layout.Column = 1;
+            app.search_WordCloudRefresh.Visible = 'off';
+            app.search_WordCloudRefresh.Tooltip = {'Nova consulta à API do Google'};
+            app.search_WordCloudRefresh.Layout.Row = 4;
+            app.search_WordCloudRefresh.Layout.Column = 4;
+            app.search_WordCloudRefresh.VerticalAlignment = 'bottom';
             app.search_WordCloudRefresh.ImageSource = 'Refresh_18.png';
 
             % Create search_ListOfProductsLabel
@@ -2957,14 +2992,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ListOfProductsLabel.VerticalAlignment = 'bottom';
             app.search_ListOfProductsLabel.FontSize = 10;
             app.search_ListOfProductsLabel.Layout.Row = 8;
-            app.search_ListOfProductsLabel.Layout.Column = [1 4];
+            app.search_ListOfProductsLabel.Layout.Column = [1 3];
             app.search_ListOfProductsLabel.Text = 'LISTA DE PRODUTOS HOMOLOGADOS SOB ANÁLISE';
 
             % Create search_ListOfProductsAdd
             app.search_ListOfProductsAdd = uiimage(app.search_Tab1Grid);
             app.search_ListOfProductsAdd.ImageClickedFcn = createCallbackFcn(app, @search_Report_ListOfProductsAddImageClicked, true);
             app.search_ListOfProductsAdd.Layout.Row = 8;
-            app.search_ListOfProductsAdd.Layout.Column = 5;
+            app.search_ListOfProductsAdd.Layout.Column = 4;
             app.search_ListOfProductsAdd.VerticalAlignment = 'bottom';
             app.search_ListOfProductsAdd.ImageSource = 'Sum_36.png';
 
@@ -2975,7 +3010,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ListOfProducts.ValueChangedFcn = createCallbackFcn(app, @search_ListOfProductsValueChanged, true);
             app.search_ListOfProducts.FontSize = 11;
             app.search_ListOfProducts.Layout.Row = 9;
-            app.search_ListOfProducts.Layout.Column = [1 5];
+            app.search_ListOfProducts.Layout.Column = [1 4];
             app.search_ListOfProducts.Value = {};
 
             % Create search_ToolbarAnnotation
@@ -2985,7 +3020,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarAnnotation.Enable = 'off';
             app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
             app.search_ToolbarAnnotation.Layout.Row = 2;
-            app.search_ToolbarAnnotation.Layout.Column = 3;
+            app.search_ToolbarAnnotation.Layout.Column = 2;
             app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
             app.search_ToolbarAnnotation.ImageSource = 'Edit_18x18Gray.png';
 
@@ -2996,7 +3031,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_menuBtn1Grid.ColumnSpacing = 3;
             app.search_menuBtn1Grid.Padding = [2 0 0 0];
             app.search_menuBtn1Grid.Layout.Row = 1;
-            app.search_menuBtn1Grid.Layout.Column = [1 5];
+            app.search_menuBtn1Grid.Layout.Column = [1 4];
             app.search_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
 
             % Create search_menuBtn1Label
@@ -3019,7 +3054,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfoImage = uiimage(app.search_Tab1Grid);
             app.search_ProductInfoImage.ScaleMethod = 'none';
             app.search_ProductInfoImage.Layout.Row = 3;
-            app.search_ProductInfoImage.Layout.Column = [1 5];
+            app.search_ProductInfoImage.Layout.Column = [1 4];
             app.search_ProductInfoImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'warning.svg');
 
             % Create search_ProductInfo
@@ -3028,14 +3063,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfo.WordWrap = 'on';
             app.search_ProductInfo.FontSize = 11;
             app.search_ProductInfo.Layout.Row = 3;
-            app.search_ProductInfo.Layout.Column = [1 5];
+            app.search_ProductInfo.Layout.Column = [1 4];
             app.search_ProductInfo.Interpreter = 'html';
             app.search_ProductInfo.Text = '';
 
             % Create search_Document
             app.search_Document = uigridlayout(app.Tab1_SearchGrid);
             app.search_Document.ColumnWidth = {412, '1x'};
-            app.search_Document.RowHeight = {35, 1, 5, 54, 329, '1x', 1};
+            app.search_Document.RowHeight = {35, 1, 5, 54, 342, '1x', 1};
             app.search_Document.ColumnSpacing = 5;
             app.search_Document.RowSpacing = 0;
             app.search_Document.Padding = [0 0 0 0];
@@ -3130,7 +3165,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Tab2_ReportGrid
             app.Tab2_ReportGrid = uigridlayout(app.Tab2_Report);
-            app.Tab2_ReportGrid.ColumnWidth = {320, 10, '1x', 10, 320};
+            app.Tab2_ReportGrid.ColumnWidth = {325, 10, '1x', 10, 325};
             app.Tab2_ReportGrid.RowHeight = {'1x', 5, 34};
             app.Tab2_ReportGrid.ColumnSpacing = 0;
             app.Tab2_ReportGrid.RowSpacing = 0;

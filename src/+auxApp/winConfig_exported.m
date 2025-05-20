@@ -9,7 +9,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_SearchModePanel          matlab.ui.container.ButtonGroup
         config_SearchModeListOfWords    matlab.ui.control.RadioButton
         config_SearchModeTokenSuggestion  matlab.ui.control.RadioButton
-        Image2                          matlab.ui.control.Image
+        config_SearchModeDefaultParameters  matlab.ui.control.Image
         config_SelectedTableColumns     matlab.ui.container.CheckBoxTree
         config_SelectedTableColumnsLabel  matlab.ui.control.Label
         config_MiscelaneousPanel2       matlab.ui.container.Panel
@@ -56,7 +56,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         menu_ButtonIcon                 matlab.ui.control.Image
         menu_ButtonLabel                matlab.ui.control.Label
         toolGrid                        matlab.ui.container.GridLayout
-        config_ExportTable              matlab.ui.control.Image
+        exportTable                     matlab.ui.control.Image
         openDevTools                    matlab.ui.control.Image
     end
 
@@ -230,41 +230,35 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.Value    = app.mainApp.General.search.wordCloud.column;
 
             % VISIBILIDADE DE COLUNAS
-            allColumns      = search_Table_ColumnInfo(app, 'allColumns');
-            staticColumns   = search_Table_ColumnInfo(app, 'staticColumns');
+            columnCheckedList = matlab.ui.container.TreeNode.empty;
+            columnStaticList  = matlab.ui.container.TreeNode.empty;
 
-            [~, sortIndex]  = sort(lower(allColumns));
-            GUIAllColumns   = allColumns(sortIndex);
-
-            listOfTreeNodes = cellfun(@(x) uitreenode(app.config_SelectedTableColumns, 'Text', x), GUIAllColumns);
-            isStaticColumn  = ismember(GUIAllColumns, staticColumns);
-
-            app.config_SelectedTableColumns.CheckedNodes = listOfTreeNodes(isStaticColumn);
-            addStyle(app.config_SelectedTableColumns, class.Constants.configStyle5, 'node', listOfTreeNodes(isStaticColumn))
-        end
-
-            %-----------------------------------------------------------------%
-        function [columnNames, columnWidth] = search_Table_ColumnNames(app)
-            checkedNodes = search_Table_ColumnInfo(app, 'visibleColumns');
-            staticColums = search_Table_ColumnInfo(app, 'staticColumns');
-            columnNames  = unique([staticColums; checkedNodes], 'stable');
-
-            allColumns   = search_Table_ColumnInfo(app, 'allColumns');
-            widthColumns = search_Table_ColumnInfo(app, 'allColumnsWidths');
-
-            columnWidth  = {};
-            for ii = 1:numel(columnNames)
-                columnName      = columnNames{ii};
-                columnIndex     = find(strcmp(allColumns, columnName), 1);
-
-                columnWidth{ii} = widthColumns{columnIndex};
+            if ~isempty(app.config_SelectedTableColumns.Children)
+                delete(app.config_SelectedTableColumns.Children)
             end
+
+            for ii = 1:height(app.mainApp.General.ui.SCHData)
+                columnName     = app.mainApp.General.ui.SCHData.name{ii};
+                columnVisible  = app.mainApp.General.ui.SCHData.visible(ii);
+                columnPosition = app.mainApp.General.ui.SCHData.columnPosition(ii);
+
+                treeNode       = uitreenode(app.config_SelectedTableColumns, 'Text', columnName);
+                if columnPosition % static
+                    columnStaticList(end+1)  = treeNode;
+                end
+
+                if columnVisible % visible
+                    columnCheckedList(end+1) = treeNode;
+                end
+            end
+
+            app.config_SelectedTableColumns.CheckedNodes = columnCheckedList;
+            addStyle(app.config_SelectedTableColumns, class.Constants.configStyle5, 'node', columnStaticList)
         end
 
         %-----------------------------------------------------------------%
         function Folder_updatePanel(app)
             % Na versão webapp, a configuração das pastas não é habilitada.
-
             if ~strcmp(app.mainApp.executionMode, 'webApp')
                 app.btnFolder.Enable      = 1;
 
@@ -323,7 +317,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.rootFolder = mainApp.rootFolder;
 
             if app.isDocked
-                app.GridLayout.Padding(4) = 19;
+                app.GridLayout.Padding(4) = 21;
                 app.jsBackDoor = mainApp.jsBackDoor;
                 startup_Controller(app)
             else
@@ -377,9 +371,125 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             app.mainApp.General_I.openGL        = app.mainApp.General.openGL;
             app.mainApp.General_I.operationMode = app.mainApp.General.operationMode;
-
             saveGeneralSettings(app)
 
+        end
+
+        % Image clicked function: config_SearchModeDefaultParameters
+        function Analysis_DefaultParametersClicked(app, event)
+            
+            % Lê a versão de "GeneralSettings.json" que vem junto ao
+            % projeto (e não a versão armazenada em "ProgramData").
+            projectFolder      = appUtil.Path(class.Constants.appName, app.rootFolder);
+            projectFilePath    = fullfile(projectFolder, 'GeneralSettings.json');
+
+            projectFileContent = jsondecode(fileread(projectFilePath));
+            projectFileContent.ui.SCHData = struct2table(projectFileContent.ui.SCHData);
+
+            if isequal(app.mainApp.General.search, projectFileContent.search) && isequal(app.mainApp.General.ui, projectFileContent.ui)
+                msgWarning = 'Configurações atuais já coincidem com as iniciais.';
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                return
+
+            else
+                ipcEventName = {};
+                if ~isequal(app.mainApp.General.search.mode, projectFileContent.search.mode)
+                    ipcEventName{end+1} = 'searchModeChanged';
+                end
+
+                if ~isequal(app.mainApp.General.search.wordCloud.algorithm, projectFileContent.search.wordCloud.algorithm)
+                    ipcEventName{end+1} = 'wordCloudAlgorithmChanged';
+                end
+
+                if ~isequal(app.mainApp.General.ui.SCHData, projectFileContent.ui.SCHData)
+                    ipcEventName{end+1} = 'searchVisibleColumnsChanged';
+                end
+
+                app.mainApp.General.search   = projectFileContent.search;
+                app.mainApp.General.ui       = projectFileContent.ui;
+                
+                app.mainApp.General_I.search = app.mainApp.General.search;
+                app.mainApp.General_I.ui     = app.mainApp.General.ui;                
+                saveGeneralSettings(app)
+
+                for ii = 1:numel(ipcEventName)
+                    ipcMainMatlabCallsHandler(app.mainApp, app, ipcEventName{ii})
+                end
+                Analysis_updatePanel(app)
+            end
+
+        end
+
+        % Callback function: config_SearchModePanel, 
+        % ...and 5 other components
+        function Analysis_ParameterValueChanged(app, event)
+
+            ipcEventName = '';
+
+            switch event.Source
+                case app.config_SearchModePanel
+                    ipcEventName = 'searchModeChanged';
+
+                    switch app.config_SearchModePanel.SelectedObject
+                        case app.config_SearchModeTokenSuggestion
+                            app.mainApp.General.search.mode     = 'tokens';
+                            app.mainApp.General.search.function = 'strcmp';
+                        case app.config_SearchModeListOfWords
+                            app.mainApp.General.search.mode     = 'words';
+                            app.mainApp.General.search.function = 'contains';
+                    end
+
+                case app.config_nMinCharacters
+                    app.mainApp.General.search.minCharacters = app.config_nMinCharacters.Value;
+
+                case app.config_nMinWords
+                    app.mainApp.General.search.minDisplayedTokens = str2double(app.config_nMinWords.Value);
+
+                case app.config_WordCloudAlgorithm
+                    ipcEventName = 'wordCloudAlgorithmChanged';
+                    app.mainApp.General.search.wordCloud.algorithm = app.config_WordCloudAlgorithm.Value;
+
+                case app.config_WordCloudColumn
+                    app.mainApp.General.search.wordCloud.column = app.config_WordCloudColumn.Value;
+
+                case app.config_SelectedTableColumns
+                    ipcEventName = 'searchVisibleColumnsChanged';
+
+                    % Inicialmente, certifica-se de que as colunas estáticas 
+                    % se mantém selecionadas.
+                    if ~isempty(app.config_SelectedTableColumns.CheckedNodes)
+                        checkedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
+                    else
+                        checkedColumns = {};
+                    end
+        
+                    staticColumns = search_Table_ColumnInfo(app, 'staticColumns');
+                    staticColumns(ismember(staticColumns, checkedColumns)) = [];
+                    
+                    if ~isempty(staticColumns)
+                        for ii = 1:numel(staticColumns)
+                            staticColumnName = staticColumns{ii};
+                            staticTreeNodes  = findobj(app.config_SelectedTableColumns, 'Text', staticColumnName);
+                            
+                            app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; staticTreeNodes];
+                        end
+                    end
+
+                    % E depois atualiza "GeneralSettings.json"...
+                    finalCheckedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
+                    for jj = 1:height(app.mainApp.General.ui.SCHData)
+                        app.mainApp.General.ui.SCHData.visible(jj) = ismember(app.mainApp.General.ui.SCHData.name{jj}, finalCheckedColumns);
+                    end
+            end
+
+            app.mainApp.General_I.search = app.mainApp.General.search;
+            app.mainApp.General_I.ui     = app.mainApp.General.ui;
+            saveGeneralSettings(app)
+
+            if ~isempty(ipcEventName)
+                ipcMainMatlabCallsHandler(app.mainApp, app, ipcEventName)
+            end
+            
         end
 
         % Image clicked function: DataHubGETButton, DataHubPOSTButton, 
@@ -444,46 +554,37 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 app.mainApp.General_I.fileFolder = app.mainApp.General.fileFolder;
                 saveGeneralSettings(app)
+                
                 Folder_updatePanel(app)
             end
 
         end
 
-        % Image clicked function: openDevTools
-        function openDevToolsClicked(app, event)
+        % Image clicked function: exportTable, openDevTools
+        function ToolbarButtonPushed(app, event)
             
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'openDevTools')
+            switch event.Source
+                case app.exportTable
+                    nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
+                    defaultName   = class.Constants.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
+                    fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                    if isempty(fileFullPath)
+                        return
+                    end
+        
+                    app.progressDialog.Visible = 'visible';
+        
+                    try
+                        copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, replace(app.mainApp.General.fileName.SCHData, '.mat', '.xlsx')), fileFullPath, 'f')
+                        ccTools.fcn.OperationSystem('openFile', fileFullPath)        
+                    catch ME
+                        appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+                    end
+        
+                    app.progressDialog.Visible = 'hidden';
 
-        end
-
-        % Callback function: config_SelectedTableColumns
-        function config_SelectedTableColumnsCheckedNodesChanged(app, event)
-
-            if ~isempty(app.config_SelectedTableColumns.CheckedNodes)
-                checkedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text}';
-            else
-                checkedColumns = {};
-            end
-
-            staticColumns  = search_Table_ColumnInfo(app, 'staticColumns');
-            staticColumns(ismember(staticColumns, checkedColumns)) = [];
-            
-            if ~isempty(staticColumns)
-                for ii = 1:numel(staticColumns)
-                    staticColumnName = staticColumns{ii};
-                    staticTreeNodes  = findobj(app.config_SelectedTableColumns, 'Text', staticColumnName);
-                    
-                    app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; staticTreeNodes];
-                end
-            end
-            [columnNames, columnWidth] = search_Table_ColumnNames(app);
-            set(app.search_Table, 'ColumnName', upper(columnNames), 'ColumnWidth', columnWidth)
-
-            if ~isempty(app.search_Table.Data)
-                if (numel(columnNames) ~= width(app.search_Table.Data)) || any(~ismember(app.search_Table.ColumnName, upper(columnNames)))
-                    secundaryIndex = app.search_Table.UserData.secundaryIndex;
-                    app.search_Table.Data = app.rawDataTable(secundaryIndex, columnNames);
-                end
+                case app.openDevTools
+                    ipcMainMatlabCallsHandler(app.mainApp, app, 'openDevTools')
             end
 
         end
@@ -525,7 +626,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {5, 320, 10, 0, '1x', 0, 5};
+            app.GridLayout.ColumnWidth = {5, 320, 10, '1x', 0, 0, 5};
             app.GridLayout.RowHeight = {5, 22, 5, 100, '1x', 5, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -546,20 +647,19 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create openDevTools
             app.openDevTools = uiimage(app.toolGrid);
             app.openDevTools.ScaleMethod = 'none';
-            app.openDevTools.ImageClickedFcn = createCallbackFcn(app, @openDevToolsClicked, true);
+            app.openDevTools.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
             app.openDevTools.Tooltip = {'DevTools'};
             app.openDevTools.Layout.Row = 2;
             app.openDevTools.Layout.Column = 3;
             app.openDevTools.ImageSource = 'Debug_18.png';
 
-            % Create config_ExportTable
-            app.config_ExportTable = uiimage(app.toolGrid);
-            app.config_ExportTable.Enable = 'off';
-            app.config_ExportTable.Visible = 'off';
-            app.config_ExportTable.Tooltip = {'Abre cópia de base dados no Excel'};
-            app.config_ExportTable.Layout.Row = 2;
-            app.config_ExportTable.Layout.Column = 1;
-            app.config_ExportTable.ImageSource = 'Sheet_32.png';
+            % Create exportTable
+            app.exportTable = uiimage(app.toolGrid);
+            app.exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
+            app.exportTable.Tooltip = {'Abre cópia de base dados no Excel'};
+            app.exportTable.Layout.Row = 2;
+            app.exportTable.Layout.Column = 1;
+            app.exportTable.ImageSource = 'Sheet_32.png';
 
             % Create menu_ButtonGrid
             app.menu_ButtonGrid = uigridlayout(app.GridLayout);
@@ -844,6 +944,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_nMinCharacters.Limits = [2 4];
             app.config_nMinCharacters.RoundFractionalValues = 'on';
             app.config_nMinCharacters.ValueDisplayFormat = '%d';
+            app.config_nMinCharacters.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinCharacters.FontSize = 11;
             app.config_nMinCharacters.Layout.Row = 2;
             app.config_nMinCharacters.Layout.Column = 1;
@@ -862,6 +963,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create config_nMinWords
             app.config_nMinWords = uidropdown(app.config_MiscelaneousGrid1);
             app.config_nMinWords.Items = {'20', '50', '100'};
+            app.config_nMinWords.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinWords.FontSize = 11;
             app.config_nMinWords.BackgroundColor = [1 1 1];
             app.config_nMinWords.Layout.Row = 2;
@@ -902,6 +1004,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create config_WordCloudAlgorithm
             app.config_WordCloudAlgorithm = uidropdown(app.config_MiscelaneousGrid2);
             app.config_WordCloudAlgorithm.Items = {'D3.js', 'MATLAB built-in'};
+            app.config_WordCloudAlgorithm.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_WordCloudAlgorithm.FontSize = 11;
             app.config_WordCloudAlgorithm.BackgroundColor = [1 1 1];
             app.config_WordCloudAlgorithm.Layout.Row = 2;
@@ -920,6 +1023,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create config_WordCloudColumn
             app.config_WordCloudColumn = uidropdown(app.config_MiscelaneousGrid2);
             app.config_WordCloudColumn.Items = {'Modelo', 'Nome Comercial'};
+            app.config_WordCloudColumn.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_WordCloudColumn.FontSize = 11;
             app.config_WordCloudColumn.BackgroundColor = [1 1 1];
             app.config_WordCloudColumn.Layout.Row = 2;
@@ -941,26 +1045,28 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SelectedTableColumns.Layout.Column = [1 2];
 
             % Assign Checked Nodes
-            app.config_SelectedTableColumns.CheckedNodesChangedFcn = createCallbackFcn(app, @config_SelectedTableColumnsCheckedNodesChanged, true);
+            app.config_SelectedTableColumns.CheckedNodesChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
 
-            % Create Image2
-            app.Image2 = uiimage(app.config_Option2Grid);
-            app.Image2.ScaleMethod = 'none';
-            app.Image2.Layout.Row = 13;
-            app.Image2.Layout.Column = 2;
-            app.Image2.VerticalAlignment = 'bottom';
-            app.Image2.ImageSource = 'Refresh_18.png';
+            % Create config_SearchModeDefaultParameters
+            app.config_SearchModeDefaultParameters = uiimage(app.config_Option2Grid);
+            app.config_SearchModeDefaultParameters.ScaleMethod = 'none';
+            app.config_SearchModeDefaultParameters.ImageClickedFcn = createCallbackFcn(app, @Analysis_DefaultParametersClicked, true);
+            app.config_SearchModeDefaultParameters.Tooltip = {'Volta à configuração inicial'};
+            app.config_SearchModeDefaultParameters.Layout.Row = 1;
+            app.config_SearchModeDefaultParameters.Layout.Column = 2;
+            app.config_SearchModeDefaultParameters.VerticalAlignment = 'bottom';
+            app.config_SearchModeDefaultParameters.ImageSource = 'Refresh_18.png';
 
             % Create config_SearchModePanel
             app.config_SearchModePanel = uibuttongroup(app.config_Option2Grid);
             app.config_SearchModePanel.AutoResizeChildren = 'off';
+            app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_SearchModePanel.BackgroundColor = [1 1 1];
             app.config_SearchModePanel.Layout.Row = 3;
             app.config_SearchModePanel.Layout.Column = [1 2];
 
             % Create config_SearchModeTokenSuggestion
             app.config_SearchModeTokenSuggestion = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeTokenSuggestion.Tag = 'strcmp';
             app.config_SearchModeTokenSuggestion.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à palavra que está sendo escrita, sugerindo <i>tokens</i> relacionados.</p>';
             app.config_SearchModeTokenSuggestion.WordWrap = 'on';
             app.config_SearchModeTokenSuggestion.FontSize = 11;
@@ -970,7 +1076,6 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_SearchModeListOfWords
             app.config_SearchModeListOfWords = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeListOfWords.Tag = 'contains';
             app.config_SearchModeListOfWords.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à uma lista de palavras separadas por vírgulas. Não há sugestão de <i>tokens</i> relacionados.</p>';
             app.config_SearchModeListOfWords.WordWrap = 'on';
             app.config_SearchModeListOfWords.FontSize = 11;

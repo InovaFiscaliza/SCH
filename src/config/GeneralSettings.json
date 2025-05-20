@@ -1,5 +1,5 @@
 {
-    "version": 1.05,
+    "version": 1.07,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -35,7 +35,7 @@
         "minDisplayedTokens": 20,
         "cacheColumns": "Modelo | Nome Comercial",
         "wordCloud": {
-            "algorithm": "MATLAB built-in",
+            "algorithm": "D3.js",
             "column": "Modelo"
         }
     },
