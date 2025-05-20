@@ -34,6 +34,9 @@ classdef (Abstract) Constants
 
         report_TableColumns2CSV   = {'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', ...
                                      'Qtd. uso/vendida', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração', 'Sanável?'}
+
+        report_validTableColumns  = {'homologacao', 'importador', 'codigoAduaneiro', 'tipo', 'fabricante', 'modelo', 'rf', 'emUso', 'interferencia', 'valorUnitario', ...
+                                     'quantidadeUsoOuVendida', 'quantidadeEstoqueOuAduana', 'quantidadeLacradas', 'quantidadeApreendidas', 'quantidadeRetidas', 'situacao', 'infracao', 'sanavel'}
     end
 
     

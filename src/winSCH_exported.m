@@ -2152,21 +2152,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             app.progressDialog.Visible = 'visible';
+
             try
-                [HTMLDocFullPath, CSVDocFullPath] = reportLibConnection.Controller.Run(app, true);
-
-                switch app.report_Version.Value
-                    case 'Definitiva'
-                        app.projectData.generatedFiles.lastHTMLDocFullPath = HTMLDocFullPath;
-                        app.projectData.generatedFiles.lastTableFullPath   = CSVDocFullPath;
-
-                    case 'Preliminar'
-                        app.projectData.generatedFiles = [];
-                end
-
+                reportLibConnection.Controller.Run(app)
             catch ME
                 appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
             end
+            
             app.progressDialog.Visible = 'hidden';
 
         end
@@ -2304,6 +2296,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function report_ProjectToolbarImageClicked(app, event)
 
             switch event.Source
+                %---------------------------------------------------------%
                 case app.report_ProjectNew
                     if isempty(app.projectData.listOfProducts)
                         appUtil.modalWindow(app.UIFigure, 'warning', 'Operação aplicável apenas quando a lista de produtos a analisar não está vazia.');
@@ -2320,20 +2313,25 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     app.search_ListOfProducts.Items     = {};
                     app.projectData.listOfProducts(:,:) = [];
+                    app.projectData.generatedFiles      = [];
 
                     report_UpdatingTable(app)
                     report_TableSelectionChanged(app)
 
+                    % Atualizando os componentes da GUI...
                     app.report_ProjectName.Value = '';
                     app.report_Issue.Value       = -1;
                     app.report_Entity.Value      = '';
+                    
                     app.report_EntityID.Value    = '';
+                    layout_CNPJOrCPF(app, true)
+                    
                     app.report_EntityType.Value  = '';
                     report_EntityTypeValueChanged(app)
 
                     app.report_ProjectWarnIcon.Visible = 0;
 
-                    %---------------------------------------------------------%
+                %---------------------------------------------------------%
                 case app.report_ProjectOpen
                     if ~isempty(app.projectData.listOfProducts)
                         msgQuestion = '<p style="font-size:12px; text-align:justify;">Ao abrir um projeto, a lista de produtos sob análise será sobrescrita. Confirma a operação?</p>';
@@ -2352,32 +2350,62 @@ classdef winSCH_exported < matlab.apps.AppBase
                         fileFullPath = fullfile(filePath, fileName);
 
                         try
-                            [~, ~, variables, ~]         = readFile.MAT(fileFullPath);
-                            app.projectData.listOfProducts           = variables.listOfProducts;
+                            [~, ~, variables, ~]           = readFile.MAT(fileFullPath);
+                            app.projectData.listOfProducts = variables.listOfProducts;
+                            app.projectData.generatedFiles = [];
 
                             % Atualizando os componentes da GUI...
-                            app.report_ProjectName.Value = fileFullPath;
-                            app.report_Issue.Value       = variables.projectIssue;
-                            app.report_Entity.Value      = variables.entityName;
-                            app.report_EntityID.Value    = variables.entityID;
-                            app.report_EntityType.Value  = variables.entityType;
+                            app.report_ProjectName.Value   = fileFullPath;
+                            app.report_Issue.Value         = variables.projectIssue;
+                            app.report_Entity.Value        = variables.entityName;
+                            
+                            app.report_EntityID.Value      = variables.entityID;
+                            layout_CNPJOrCPF(app, true)
+                            report_EntityIDValueChanged(app)
+
+                            app.report_EntityType.Value    = variables.entityType;
                             report_EntityTypeValueChanged(app)
 
                             report_UpdatingTable(app)
                             report_TableSelectionChanged(app)
 
                             report_ListOfHomProductsUpdating(app)
-                            app.report_ProjectWarnIcon.Visible = 0;
+                            
+                            if isfield(variables, 'reportModel') && ismember(variables.reportModel, app.report_ModelName.Items)
+                                app.report_ModelName.Value = variables.reportModel;
+                                report_ModelNameValueChanged(app)
+                            end
+
+                            if isfield(variables, 'generatedZIPFile') && isfile(variables.generatedZIPFile)
+                                try
+                                    unzipFiles = unzip(variables.generatedZIPFile, app.General.fileFolder.tempPath);
+                                    for ii = 1:numel(unzipFiles)
+                                        [~, ~, unzipFileExt] = fileparts(unzipFiles{ii});
+    
+                                        switch lower(unzipFileExt)
+                                            case '.html'
+                                                app.projectData.generatedFiles.lastHTMLDocFullPath = unzipFiles{ii};
+                                            case '.json'
+                                                app.projectData.generatedFiles.lastTableFullPath   = unzipFiles{ii};
+                                        end
+                                    end
+                                    
+                                    app.projectData.generatedFiles.lastZIPFullPath = variables.generatedZIPFile;
+                                catch 
+                                end
+                            end
 
                             app.General.fileFolder.lastVisited = filePath;
                             appUtil.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General, app.executionMode)
+
+                            app.report_ProjectWarnIcon.Visible = 0;
 
                         catch ME
                             appUtil.modalWindow(app.UIFigure, 'error', ME.message);
                         end
                     end
 
-                    %---------------------------------------------------------%
+                %---------------------------------------------------------%
                 case app.report_ProjectSave
                     if isempty(app.projectData.listOfProducts)
                         appUtil.modalWindow(app.UIFigure, 'warning', 'Operação aplicável apenas quando a lista de produtos a analisar não está vazia.');
@@ -2394,12 +2422,19 @@ classdef winSCH_exported < matlab.apps.AppBase
                     figure(app.UIFigure)
 
                     if fileName
-                        variables = struct('listOfProducts', app.projectData.listOfProducts,           ...
-                            'projectName',    fullfile(filePath, fileName), ...
-                            'projectIssue',   app.report_Issue.Value,       ...
-                            'entityName',     app.report_Entity.Value,      ...
-                            'entityID',       app.report_EntityID.Value,    ...
-                            'entityType',     app.report_EntityType.Value);
+                        generateZIPFile = '';
+                        if ~isempty(app.projectData.generatedFiles) && isfield(app.projectData.generatedFiles, 'lastZIPFullPath') && isfile(app.projectData.generatedFiles.lastZIPFullPath)
+                            generateZIPFile = app.projectData.generatedFiles.lastZIPFullPath;
+                        end
+
+                        variables = struct('listOfProducts',   app.projectData.listOfProducts, ...
+                                           'projectName',      fullfile(filePath, fileName),   ...
+                                           'projectIssue',     app.report_Issue.Value,         ...
+                                           'reportModel',      app.report_ModelName.Value,     ...
+                                           'entityName',       app.report_Entity.Value,        ...
+                                           'entityID',         app.report_EntityID.Value,      ...
+                                           'entityType',       app.report_EntityType.Value,    ...
+                                           'generatedZIPFile', generateZIPFile);
                         userData  = [];
 
                         msgError  = writeFile.MAT(fullfile(filePath, fileName), 'ProjectData', 'SCH', variables, userData);
@@ -2449,7 +2484,10 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % <VALIDATION>
             msg = '';
-            if ~report_checkEFiscalizaIssueId(app)
+
+            if isempty(app.projectData.listOfProducts)
+                msg = 'Operação aplicável apenas quando a lista de produtos a analisar não está vazia.';
+            elseif ~report_checkEFiscalizaIssueId(app)
                 msg = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
             elseif isempty(app.projectData.generatedFiles) || isempty(app.projectData.generatedFiles.lastHTMLDocFullPath)
                 msg = 'A versão definitiva do relatório ainda não foi gerada.';

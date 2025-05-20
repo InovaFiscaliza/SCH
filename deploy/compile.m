@@ -55,17 +55,17 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     preCompile()
 
     % Atualiza base de dados, caso necessário.
-    RFDataHubOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'RFDataHub.mat');
-    RFDataHubEditedFile   = fullfile(fullfile(ccTools.fcn.OperationSystem('programData'), 'ANATEL', appName), 'DataBase', 'RFDataHub.mat');
-    if isfile(RFDataHubEditedFile)
-        load(RFDataHubOriginalFile, 'RFDataHub_info')
-        originalReleaseDate = datetime(RFDataHub_info.ReleaseDate, 'InputFormat', 'dd/MM/yyyy HH:mm:ss');
+    SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData.mat');
+    SCHDataEditedFile   = "D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData.mat";
+    if isfile(SCHDataEditedFile)
+        load(SCHDataOriginalFile, 'releasedData')
+        originalReleaseDate = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
 
-        load(RFDataHubEditedFile, 'RFDataHub_info')
-        editedReleaseDate   = datetime(RFDataHub_info.ReleaseDate, 'InputFormat', 'dd/MM/yyyy HH:mm:ss');
+        load(SCHDataEditedFile, 'releasedData')
+        editedReleaseDate   = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
 
         if editedReleaseDate > originalReleaseDate
-            copyfile(RFDataHubEditedFile, RFDataHubOriginalFile, 'f');
+            copyfile(SCHDataEditedFile, SCHDataOriginalFile, 'f');
         end
     end
 

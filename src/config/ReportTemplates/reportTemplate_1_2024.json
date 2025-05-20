@@ -184,7 +184,7 @@
                                 "Editable": "false",
                                 "ColumnName": "Infração",
                                 "Precision": "%s",
-                                "Width": "auto"
+                                "Width": "130px"
                             },
                             {
                                 "Editable": "false",

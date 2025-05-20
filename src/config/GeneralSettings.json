@@ -1,5 +1,5 @@
 {
-    "version": 1.07,
+    "version": 1.10,
     "operationMode": {
         "Debug": false,
         "Dock": false,
@@ -52,6 +52,7 @@
                 "Carregadores de Baterias",
                 "Celulares",
                 "Decodificador de sinal para SeAC",
+                "Drone",
                 "Equipamento de Radiação Restrita",
                 "Equipamento de Rede de Dados",
                 "Equipamento óptico",
