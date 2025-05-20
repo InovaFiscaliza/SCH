@@ -109,10 +109,10 @@ classdef (Abstract) HtmlTextGenerator
                                                                                                                                        value,                                   ...
                                                                                                                                        relatedAnnotationTable.("Usuário"){ii},  ...
                                                                                                                                        relatedAnnotationTable.("DataHora"){ii});
-                    end                    
-                    Anotacoes     = strjoin(Anotacoes, '');
+                    end
+
                     if isempty(Anotacoes)
-                        Anotacoes = '•&thinsp;-1';
+                        Anotacoes = {'•&thinsp;-1'};
                     end
 
                     dataStruct    = struct('group', 'Data de emissão:',      'value', DataEmissao);
@@ -123,7 +123,7 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(6) = struct('group', 'Tipo:',                 'value', {Tipo});
                     dataStruct(7) = struct('group', 'Modelo:',               'value', {Modelo});
                     dataStruct(8) = struct('group', 'Nome Comercial:',       'value', {NomeComercial});
-                    dataStruct(9) = struct('group', 'Anotações:',            'value', Anotacoes);
+                    dataStruct(9) = struct('group', 'Anotações:',            'value', {Anotacoes});
         
                 case 'ProdutoNãoHomologado'
                     listOfProducts = varargin{2};

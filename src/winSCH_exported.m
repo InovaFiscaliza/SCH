@@ -369,18 +369,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'openDevTools', 'Fields', dialogBox))
 
                             case 'searchModeChanged'
-                                switch app.General.search.mode
-                                    case 'tokens'
-                                        app.search_Document.ColumnWidth = {412, '1x'};
-                    
-                                    otherwise
-                                        app.search_Document.ColumnWidth = {'1x', 0};
-                    
-                                        app.previousSearch   = '';
-                                        app.previousItemData = 0;                                        
-                                        set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
-                                end                    
-                                search_EntryPoint_InitialValue(app)
+                                search_EntryPoint_Layout(app)
 
                             case 'wordCloudAlgorithmChanged'
                                 if ~isempty(app.wordCloudObj)
@@ -758,8 +747,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             userPaths = appUtil.UserPaths(app.General.fileFolder.userPath);
             app.General.fileFolder.userPath = userPaths{end};
-
-            % RELATÓRIO
+            
+            search_EntryPoint_Layout(app)
             DataHubWarningLamp(app)
         end
 
@@ -1081,25 +1070,37 @@ classdef winSCH_exported < matlab.apps.AppBase
             search_Table_AddStyle(app)
         end
 
-
         %-----------------------------------------------------------------%
         function listOfColumns = search_Filtering_PrimaryTableColumns(app)
             listOfColumns  = app.General.search.cacheColumns;
         end
-
 
         %-----------------------------------------------------------------%
         function search_SuggestionPanel_InitialValues(app)
             set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
         end
 
+        %-----------------------------------------------------------------%
+        function search_EntryPoint_Layout(app)
+            switch app.General.search.mode
+                case 'tokens'
+                    app.search_Document.ColumnWidth = {412, '1x'};
+    
+                otherwise
+                    app.search_Document.ColumnWidth = {'1x', 0};
+    
+                    app.previousSearch   = '';
+                    app.previousItemData = 0;                                        
+                    set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
+            end
+            search_EntryPoint_InitialValue(app)
+        end
 
         %-----------------------------------------------------------------%
         function search_EntryPoint_InitialValue(app)
             set(app.search_entryPoint, 'Value', '', 'FontColor', [0,0,0])
             app.search_entryPointImage.Enable = 0;
         end
-
 
         %-----------------------------------------------------------------%
         function search_EntryPoint_CheckIfNeedsUpdate(app)
