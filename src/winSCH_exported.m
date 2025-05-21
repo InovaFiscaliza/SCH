@@ -31,16 +31,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_entryPoint               matlab.ui.control.EditField
         search_Table                    matlab.ui.control.Table
         search_Tab1Grid                 matlab.ui.container.GridLayout
-        search_ProductInfo              matlab.ui.control.Label
-        search_ProductInfoImage         matlab.ui.control.Image
-        search_menuBtn1Grid             matlab.ui.container.GridLayout
-        search_menuBtn1Icon             matlab.ui.control.Image
-        search_menuBtn1Label            matlab.ui.control.Label
-        search_ToolbarAnnotation        matlab.ui.control.Image
         search_ListOfProducts           matlab.ui.control.ListBox
         search_ListOfProductsAdd        matlab.ui.control.Image
         search_ListOfProductsLabel      matlab.ui.control.Label
-        search_WordCloudRefresh         matlab.ui.control.Image
         search_WordCloudPanel           matlab.ui.container.Panel
         search_AnnotationPanel          matlab.ui.container.Panel
         search_AnnotationGrid           matlab.ui.container.GridLayout
@@ -49,10 +42,17 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_AnnotationValueLabel     matlab.ui.control.Label
         search_AnnotationAttribute      matlab.ui.control.DropDown
         search_AnnotationAttributeLabel  matlab.ui.control.Label
+        search_WordCloudRefresh         matlab.ui.control.Image
         search_AnnotationPanelLabel     matlab.ui.control.Label
+        search_ProductInfo              matlab.ui.control.Label
+        search_ProductInfoImage         matlab.ui.control.Image
         search_ToolbarListOfProducts    matlab.ui.control.Image
         search_ToolbarWordCloud         matlab.ui.control.Image
+        search_ToolbarAnnotation        matlab.ui.control.Image
         search_ProductInfoLabel         matlab.ui.control.Label
+        search_menuBtn1Grid             matlab.ui.container.GridLayout
+        search_menuBtn1Icon             matlab.ui.control.Image
+        search_menuBtn1Label            matlab.ui.control.Label
         search_toolGrid                 matlab.ui.container.GridLayout
         search_OrientationProduct       matlab.ui.control.Button
         search_OrientationEntity        matlab.ui.control.Button
@@ -322,6 +322,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                             set(app.search_Suggestions, Visible=0, Value={})
                     end
 
+                case 'app.search_ListOfProducts'
+                    report_ContextMenu_DeleteFcnSelected(app, struct('ContextObject', app.search_ListOfProducts))
+
                 case 'BackgroundColorTurnedInvisible'
                     switch event.HTMLEventData
                         case 'SplashScreen'
@@ -359,6 +362,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "CONFIG", app.General)
+
+                            case 'updateDataHubGetFolder'
+                                app.progressDialog.Visible = 'visible';
+
+                                startup_mainVariables(app)
+                                app.AppInfo.Tag = '';
+
+                                app.progressDialog.Visible = 'hidden';
 
                             case 'checkDataHubLampStatus'
                                 DataHubWarningLamp(app)
@@ -505,19 +516,21 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 app.popupContainer,              ...
                                 app.search_Suggestions,          ...
                                 app.search_ProductInfo,          ... % ui.TextView
-                                app.search_ProductInfoImage      ... % ui.TextView (Background image)
-                                };
+                                app.search_ProductInfoImage,     ... % ui.TextView (Background image)
+                                app.search_ListOfProducts        ...
+                            };
 
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                                                                             ...
-                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 1, 'style',    struct('borderWidth', '0px')),                                                                                         ...
-                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'generation', 0, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                                                  ...
-                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'generation', 0, 'style',    struct('borderRadius', '5px', 'boxShadow', '0 2px 5px 1px #a6a6a6')),                                                  ...
-                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'generation', 1, 'style',    struct('borderRadius', '5px', 'borderColor', '#bfbfbf')),                                                              ...
-                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 2, 'listener', struct('componentName', 'app.search_entryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
-                                    struct('appName', appName, 'dataTag', elDataTag{4}, 'generation', 1, 'listener', struct('componentName', 'app.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
-                                    });
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {                                                                                                                                                ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 1, 'style',    struct('borderWidth', '0px')),                                                                                            ...
+                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'generation', 0, 'style',    struct('backgroundColor', 'rgba(255,255,255,0.65)')),                                                                     ...
+                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'generation', 0, 'style',    struct('borderRadius', '5px', 'boxShadow', '0 2px 5px 1px #a6a6a6')),                                                     ...
+                                    struct('appName', appName, 'dataTag', elDataTag{3}, 'generation', 1, 'style',    struct('borderRadius', '5px', 'borderColor', '#bfbfbf')),                                                                 ...
+                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 2, 'listener', struct('componentName', 'app.search_entryPoint',     'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{4}, 'generation', 1, 'listener', struct('componentName', 'app.search_Suggestions',    'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
+                                    struct('appName', appName, 'dataTag', elDataTag{7}, 'generation', 1, 'listener', struct('componentName', 'app.search_ListOfProducts', 'keyEvents', {{'Delete', 'Backspace'}})),                            ...
+                                });
 
                                 ui.TextView.startup(app.jsBackDoor, elToModify{5}, appName);
                                 ui.TextView.startup(app.jsBackDoor, elToModify{6}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
@@ -586,6 +599,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % versão executável (neste caso, o ctfroot indicará o local do .MLAPP).
             MFilePath = fileparts(mfilename('fullpath'));
             app.rootFolder = appUtil.RootFolder(class.Constants.appName, MFilePath);
+            tempDir = tempname;
+            mkdir(tempDir)
 
             % Customizações...
             jsBackDoor_Customizations(app, 0)
@@ -594,12 +609,16 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Inicia operações de gerar tela inicial, customizar componentes e
             % de ler informações constantes em arquivos externos, aplicando-as.
-            startup_ConfigFileRead(app, MFilePath)
+            startup_ConfigFileRead(app, MFilePath, tempDir)
             startup_AppProperties(app)
             startup_GUIComponents(app)
 
             % Inicia módulo de operação paralelo...
             parpoolCheck()
+
+            % Registra informações sobre o app e a máquina virtual em execução,
+            % inclusive com o número de workers habilitado. 
+            app.General.AppVersion = util.getAppVersion('app', app.rootFolder, MFilePath, tempDir);
 
             % Diminui a opacidade do SplashScreen. Esse processo dura
             % cerca de 1250 ms. São 50 iterações em que em cada uma
@@ -618,7 +637,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_ConfigFileRead(app, MFilePath)
+        function startup_ConfigFileRead(app, MFilePath, tempDir)
             % "GeneralSettings.json"
             [app.General_I, msgWarning] = appUtil.generalSettingsLoad(class.Constants.appName, app.rootFolder, {'Annotation.xlsx'});
             if ~isempty(msgWarning)
@@ -627,8 +646,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Para criação de arquivos temporários, cria-se uma pasta da
             % sessão.
-            tempDir = tempname;
-            mkdir(tempDir)
             app.General_I.fileFolder.tempPath  = tempDir;
             app.General_I.fileFolder.MFilePath = MFilePath;
 
@@ -667,7 +684,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.General_I.search.cacheColumns = 'Modelo | Nome Comercial';
 
             app.General = app.General_I;
-            app.General.AppVersion = util.getAppVersion('app', app.rootFolder, MFilePath, tempDir);
         end
 
         %-----------------------------------------------------------------%
@@ -684,9 +700,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             try
                 if ~isfolder(DataHub_GET)
-                    error('Pendente mapear a pasta "SCH" do repositório "DataHub - GET".')
+                    error('Pendente mapear os repositórios "DataHub - GET" e "DataHub - POST".')
                 elseif isfolder(DataHub_GET) && ~isfile(SCHDataFullFile)
-                    error('Apesar de mapeada a pasta "SCH" do repositório "DataHub - GET", não foi encontrado o arquivo %s. Favor verificar se a pasta foi mapeada corretamente e, persistindo o erro, relatar isso ao Escritório de inovação da SFI.', SCHDataFileName)
+                    error('Apesar de mapeado o repositório "DataHub - GET", não foi encontrado o arquivo %s. Favor verificar se a pasta foi mapeada corretamente e, persistindo o erro, relatar isso ao Escritório de inovação da SFI.', SCHDataFileName)
                 end
                 startup_ReadSCHDataFile(app, SCHDataFullFile)
 
@@ -2083,7 +2099,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: report_ReportGeneration
         function report_ReportGenerationImageClicked(app, event)
 
-            % VALIDAÇÕES
+            % <VALIDATION>
             if isempty(app.projectData.listOfProducts)
                 appUtil.modalWindow(app.UIFigure, 'warning', 'A lista de produtos sob análise está vazia!');
                 return
@@ -2115,43 +2131,57 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(listOfRows), ', '));
             end
 
-            if ~isempty(msgWarning)
-                msgInfo     = ['____________<br>VALIDAÇÕES<br>(a) Em relação à <b>INSPEÇÃO</b>:<br>'  ...
-                    '• O número deve ser válido (inteiro, positivo e finito).<br>' ...
-                    '(b) Em relação à qualificação da <b>FISCALIZADA</b>:<br>'  ...
-                    '• O nome deve ser preenchido;<br>' ...
-                    '• O número do CPF/CNPJ deve ser válido; e<br>' ...
-                    '• O tipo não pode ser vazio.<br>' ...
-                    '(c) Em relação à <b>TABELA</b> com a lista de produtos sob análise:<br>'  ...
-                    '• O "Tipo" não pode ter valor igual a -1;<br>' ...
-                    '• O "Fabricante" e o "Modelo" não podem ter valores vazios;<br>' ...
-                    '• O "Valor Unit. (R$)" não pode ser igual a zero;<br>' ...
-                    '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser igual a zero;<br>' ...
-                    '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)".' ...
-                    '• A "Situação", quando Regular, não pode ter "Sanável?" igual a Não.'];
+            if isempty(msgWarning)
+                switch app.report_Version.Value
+                    case 'Definitiva'
+                        msgQuestion   = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', app.report_Issue.Value);
+                        userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        if userSelection == "Não"
+                            return
+                        end
+                        
+                    case 'Preliminar'
+                        % ...
+                end
+
+            else
+                msgInfo = ['____________<br>VALIDAÇÕES<br>(a) Em relação à <b>INSPEÇÃO</b>:<br>'                   ...
+                           '• O número deve ser válido (inteiro, positivo e finito).<br>'                          ...
+                           '(b) Em relação à qualificação da <b>FISCALIZADA</b>:<br>'                              ...
+                           '• O nome deve ser preenchido;<br>'                                                     ...
+                           '• O número do CPF/CNPJ deve ser válido; e<br>'                                         ...
+                           '• O tipo não pode ser vazio.<br>'                                                      ...
+                           '(c) Em relação à <b>TABELA</b> com a lista de produtos sob análise:<br>'               ...
+                           '• O "Tipo" não pode ter valor igual a -1;<br>'                                         ...
+                           '• O "Fabricante" e o "Modelo" não podem ter valores vazios;<br>'                       ...
+                           '• O "Valor Unit. (R$)" não pode ser igual a zero;<br>'                                 ...
+                           '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser igual a zero;<br>' ...
+                           '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)".' ...
+                           '• A "Situação", quando Regular, não pode ter "Sanável?" igual a Não.'];
 
                 switch app.report_Version.Value
                     case 'Definitiva'
                         msgInfo     = sprintf(['<p style="font-size: 12px; text-align: justify;">Foi(ram) identificado(s) a(s) pendência(s):\n%s\n\n' ...
-                            '<b>Essas pendências precisam ser resolvidas antes de ser gerada a versão "Definitiva" do relatório.</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
+                                               '<b>Essas pendências precisam ser resolvidas antes de ser gerada a versão "Definitiva" do relatório.</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
                         appUtil.modalWindow(app.UIFigure, 'warning', msgInfo);
                         return
 
 
                     case 'Preliminar'
                         msgQuestion = sprintf(['<p style="font-size: 12px; text-align: justify;">Foi(ram) identificado(s) a(s) pendência(s):\n%s\n\n' ...
-                            '<b>Continuar mesmo assim?</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
+                                               '<b>Continuar mesmo assim?</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
                         selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',     ...
-                            'Options', {'Sim', 'Não'}, ...
-                            'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
+                                                                               'Options', {'Sim', 'Não'}, ...
+                                                                               'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
 
                         if strcmp(selection, 'Não')
                             return
                         end
                 end
             end
+            % </VALIDATION>
 
-            app.progressDialog.Visible = 'visible';
+            dlg = appUtil.modalWindow(app.UIFigure, 'progressdlg', '<font style="font-size: 11px;">Em andamento...</font>');
 
             try
                 reportLibConnection.Controller.Run(app)
@@ -2159,7 +2189,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
             end
             
-            app.progressDialog.Visible = 'hidden';
+            delete(dlg)
 
         end
 
@@ -2919,6 +2949,32 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Tab1Grid.Layout.Column = 1;
             app.search_Tab1Grid.BackgroundColor = [1 1 1];
 
+            % Create search_menuBtn1Grid
+            app.search_menuBtn1Grid = uigridlayout(app.search_Tab1Grid);
+            app.search_menuBtn1Grid.ColumnWidth = {18, '1x'};
+            app.search_menuBtn1Grid.RowHeight = {'1x'};
+            app.search_menuBtn1Grid.ColumnSpacing = 3;
+            app.search_menuBtn1Grid.Padding = [2 0 0 0];
+            app.search_menuBtn1Grid.Layout.Row = 1;
+            app.search_menuBtn1Grid.Layout.Column = [1 4];
+            app.search_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
+
+            % Create search_menuBtn1Label
+            app.search_menuBtn1Label = uilabel(app.search_menuBtn1Grid);
+            app.search_menuBtn1Label.FontSize = 11;
+            app.search_menuBtn1Label.Layout.Row = 1;
+            app.search_menuBtn1Label.Layout.Column = 2;
+            app.search_menuBtn1Label.Text = 'DADOS';
+
+            % Create search_menuBtn1Icon
+            app.search_menuBtn1Icon = uiimage(app.search_menuBtn1Grid);
+            app.search_menuBtn1Icon.ScaleMethod = 'none';
+            app.search_menuBtn1Icon.Tag = '1';
+            app.search_menuBtn1Icon.Layout.Row = 1;
+            app.search_menuBtn1Icon.Layout.Column = 1;
+            app.search_menuBtn1Icon.HorizontalAlignment = 'left';
+            app.search_menuBtn1Icon.ImageSource = 'Classification_18.png';
+
             % Create search_ProductInfoLabel
             app.search_ProductInfoLabel = uilabel(app.search_Tab1Grid);
             app.search_ProductInfoLabel.VerticalAlignment = 'bottom';
@@ -2926,6 +2982,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfoLabel.Layout.Row = 2;
             app.search_ProductInfoLabel.Layout.Column = 1;
             app.search_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
+
+            % Create search_ToolbarAnnotation
+            app.search_ToolbarAnnotation = uiimage(app.search_Tab1Grid);
+            app.search_ToolbarAnnotation.ScaleMethod = 'none';
+            app.search_ToolbarAnnotation.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
+            app.search_ToolbarAnnotation.Enable = 'off';
+            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
+            app.search_ToolbarAnnotation.Layout.Row = 2;
+            app.search_ToolbarAnnotation.Layout.Column = 2;
+            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
+            app.search_ToolbarAnnotation.ImageSource = 'Edit_18x18Gray.png';
 
             % Create search_ToolbarWordCloud
             app.search_ToolbarWordCloud = uiimage(app.search_Tab1Grid);
@@ -2947,6 +3014,23 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarListOfProducts.VerticalAlignment = 'bottom';
             app.search_ToolbarListOfProducts.ImageSource = 'Box_32x32Gray.png';
 
+            % Create search_ProductInfoImage
+            app.search_ProductInfoImage = uiimage(app.search_Tab1Grid);
+            app.search_ProductInfoImage.ScaleMethod = 'none';
+            app.search_ProductInfoImage.Layout.Row = 3;
+            app.search_ProductInfoImage.Layout.Column = [1 4];
+            app.search_ProductInfoImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'warning.svg');
+
+            % Create search_ProductInfo
+            app.search_ProductInfo = uilabel(app.search_Tab1Grid);
+            app.search_ProductInfo.VerticalAlignment = 'top';
+            app.search_ProductInfo.WordWrap = 'on';
+            app.search_ProductInfo.FontSize = 11;
+            app.search_ProductInfo.Layout.Row = 3;
+            app.search_ProductInfo.Layout.Column = [1 4];
+            app.search_ProductInfo.Interpreter = 'html';
+            app.search_ProductInfo.Text = '';
+
             % Create search_AnnotationPanelLabel
             app.search_AnnotationPanelLabel = uilabel(app.search_Tab1Grid);
             app.search_AnnotationPanelLabel.VerticalAlignment = 'bottom';
@@ -2954,6 +3038,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_AnnotationPanelLabel.Layout.Row = 4;
             app.search_AnnotationPanelLabel.Layout.Column = [1 2];
             app.search_AnnotationPanelLabel.Text = 'ANOTAÇÃO';
+
+            % Create search_WordCloudRefresh
+            app.search_WordCloudRefresh = uiimage(app.search_Tab1Grid);
+            app.search_WordCloudRefresh.ImageClickedFcn = createCallbackFcn(app, @search_WordCloud_RefreshImageClicked, true);
+            app.search_WordCloudRefresh.Visible = 'off';
+            app.search_WordCloudRefresh.Tooltip = {'Nova consulta à API do Google'};
+            app.search_WordCloudRefresh.Layout.Row = 4;
+            app.search_WordCloudRefresh.Layout.Column = 4;
+            app.search_WordCloudRefresh.VerticalAlignment = 'bottom';
+            app.search_WordCloudRefresh.ImageSource = 'Refresh_18.png';
 
             % Create search_AnnotationPanel
             app.search_AnnotationPanel = uipanel(app.search_Tab1Grid);
@@ -3016,16 +3110,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_WordCloudPanel.Layout.Row = [6 7];
             app.search_WordCloudPanel.Layout.Column = [1 4];
 
-            % Create search_WordCloudRefresh
-            app.search_WordCloudRefresh = uiimage(app.search_Tab1Grid);
-            app.search_WordCloudRefresh.ImageClickedFcn = createCallbackFcn(app, @search_WordCloud_RefreshImageClicked, true);
-            app.search_WordCloudRefresh.Visible = 'off';
-            app.search_WordCloudRefresh.Tooltip = {'Nova consulta à API do Google'};
-            app.search_WordCloudRefresh.Layout.Row = 4;
-            app.search_WordCloudRefresh.Layout.Column = 4;
-            app.search_WordCloudRefresh.VerticalAlignment = 'bottom';
-            app.search_WordCloudRefresh.ImageSource = 'Refresh_18.png';
-
             % Create search_ListOfProductsLabel
             app.search_ListOfProductsLabel = uilabel(app.search_Tab1Grid);
             app.search_ListOfProductsLabel.VerticalAlignment = 'bottom';
@@ -3051,60 +3135,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ListOfProducts.Layout.Row = 9;
             app.search_ListOfProducts.Layout.Column = [1 4];
             app.search_ListOfProducts.Value = {};
-
-            % Create search_ToolbarAnnotation
-            app.search_ToolbarAnnotation = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarAnnotation.ScaleMethod = 'none';
-            app.search_ToolbarAnnotation.ImageClickedFcn = createCallbackFcn(app, @search_Panel_ToolbarButtonClicked, true);
-            app.search_ToolbarAnnotation.Enable = 'off';
-            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
-            app.search_ToolbarAnnotation.Layout.Row = 2;
-            app.search_ToolbarAnnotation.Layout.Column = 2;
-            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
-            app.search_ToolbarAnnotation.ImageSource = 'Edit_18x18Gray.png';
-
-            % Create search_menuBtn1Grid
-            app.search_menuBtn1Grid = uigridlayout(app.search_Tab1Grid);
-            app.search_menuBtn1Grid.ColumnWidth = {18, '1x'};
-            app.search_menuBtn1Grid.RowHeight = {'1x'};
-            app.search_menuBtn1Grid.ColumnSpacing = 3;
-            app.search_menuBtn1Grid.Padding = [2 0 0 0];
-            app.search_menuBtn1Grid.Layout.Row = 1;
-            app.search_menuBtn1Grid.Layout.Column = [1 4];
-            app.search_menuBtn1Grid.BackgroundColor = [0.749 0.749 0.749];
-
-            % Create search_menuBtn1Label
-            app.search_menuBtn1Label = uilabel(app.search_menuBtn1Grid);
-            app.search_menuBtn1Label.FontSize = 11;
-            app.search_menuBtn1Label.Layout.Row = 1;
-            app.search_menuBtn1Label.Layout.Column = 2;
-            app.search_menuBtn1Label.Text = 'DADOS';
-
-            % Create search_menuBtn1Icon
-            app.search_menuBtn1Icon = uiimage(app.search_menuBtn1Grid);
-            app.search_menuBtn1Icon.ScaleMethod = 'none';
-            app.search_menuBtn1Icon.Tag = '1';
-            app.search_menuBtn1Icon.Layout.Row = 1;
-            app.search_menuBtn1Icon.Layout.Column = 1;
-            app.search_menuBtn1Icon.HorizontalAlignment = 'left';
-            app.search_menuBtn1Icon.ImageSource = 'Classification_18.png';
-
-            % Create search_ProductInfoImage
-            app.search_ProductInfoImage = uiimage(app.search_Tab1Grid);
-            app.search_ProductInfoImage.ScaleMethod = 'none';
-            app.search_ProductInfoImage.Layout.Row = 3;
-            app.search_ProductInfoImage.Layout.Column = [1 4];
-            app.search_ProductInfoImage.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'warning.svg');
-
-            % Create search_ProductInfo
-            app.search_ProductInfo = uilabel(app.search_Tab1Grid);
-            app.search_ProductInfo.VerticalAlignment = 'top';
-            app.search_ProductInfo.WordWrap = 'on';
-            app.search_ProductInfo.FontSize = 11;
-            app.search_ProductInfo.Layout.Row = 3;
-            app.search_ProductInfo.Layout.Column = [1 4];
-            app.search_ProductInfo.Interpreter = 'html';
-            app.search_ProductInfo.Text = '';
 
             % Create search_Document
             app.search_Document = uigridlayout(app.Tab1_SearchGrid);
