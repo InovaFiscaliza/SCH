@@ -3,10 +3,10 @@
     <param.appname>SCH</param.appname>
     <param.icon>${PROJECT_ROOT}\desktop_resources\icon.ico</param.icon>
     <param.icons>
-      <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_48.png</file>
-      <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_32.png</file>
-      <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_24.png</file>
-      <file>${PROJECT_ROOT}\winSCH_desktopCompiler_resources\icon_16.png</file>
+      <file>${PROJECT_ROOT}\desktop_resources\icon_48.png</file>
+      <file>${PROJECT_ROOT}\desktop_resources\icon_32.png</file>
+      <file>${PROJECT_ROOT}\desktop_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\desktop_resources\icon_16.png</file>
     </param.icons>
     <param.version>1.00.0</param.version>
     <param.authnamewatermark>Escritório de inovação da SFI</param.authnamewatermark>
