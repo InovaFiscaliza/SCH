@@ -1,5 +1,5 @@
 {
-    "version": 1.11,
+    "version": 1.51,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -40,39 +40,7 @@
         }
     },
     "ui": {
-        "typeOfProduct": {
-            "default": "-1",
-            "options": [
-                "-1",
-                "Antena",
-                "Baterias",
-                "Bloqueador de sinal (Jammer)",
-                "Cabo Metálico",
-                "Cabo Óptico",
-                "Carregadores de Baterias",
-                "Celulares",
-                "Decodificador de sinal para SeAC",
-                "Drone",
-                "Equipamento de Radiação Restrita",
-                "Equipamento de Rede de Dados",
-                "Equipamento óptico",
-                "Reforçador de sinal",
-                "SmartTV Box",
-                "Transmissor Radiodifusão",
-                "Transceptor RF",
-                "Outros"
-            ]
-        },
-        "typeOfViolation": {
-            "default": "Comercialização",
-            "options": [
-                "-1",
-                "Comercialização",
-                "Identificação homologação",
-                "Uso"
-            ]
-        },
-        "SCHData": [
+        "searchTable": [
             {
                 "name": "Data da Homologação",
                 "type": "datetime",
@@ -225,7 +193,273 @@
                 "columnPosition": 0,
                 "columnWidth": 55
             }
-        ]
+        ],
+        "reportTable": {
+            "vendorView": {
+                "name": [
+                    "Homologação",
+                    "Tipo",
+                    "Fabricante",
+                    "Modelo",
+                    "RF?",
+                    "Em uso?",
+                    "Interferência?",
+                    "Valor Unit. (R$)",
+                    "Fonte do valor",
+                    "Qtd. vendida",
+                    "Qtd. uso",
+                    "Qtd. estoque/aduana",
+                    "Qtd. anunciada",
+                    "Qtd. lacradas",
+                    "Qtd. apreendidas",
+                    "Qtd. retidas (RFB)",
+                    "Infração"
+                ],
+                "label": [
+                    "HOMOLOGAÇÃO",
+                    "TIPO",
+                    "FABRICANTE",
+                    "MODELO",
+                    "RF?",
+                    "EM USO?",
+                    "INTERFERÊNCIA?",
+                    "VALOR|UNITÁRIO (R$)",
+                    "FONTE|VALOR",
+                    "QTD.|VENDIDA",
+                    "QTD.|EM USO",
+                    "QTD.|ESTOQUE",
+                    "QTD.|ANUNCIADA",
+                    "QTD.|LACRADA",
+                    "QTD.|APREENDIDA",
+                    "QTD.|RETIDA (RFB)",
+                    "INFRAÇÃO"
+                ],
+                "columnWidth": [
+                    110,
+                    "auto",
+                    "auto",
+                    "auto",
+                    42,
+                    42,
+                    96,
+                    90,
+                    "auto",
+                    90,
+                    90,
+                    90,
+                    90,
+                    90,
+                    90,
+                    90,
+                    "auto"
+                ]
+            },
+            "customsView": {
+                "name": [
+                    "Homologação",
+                    "Tipo",
+                    "Fabricante",
+                    "Modelo",
+                    "RF?",
+                    "Importador",
+                    "Código aduaneiro",
+                    "Valor Unit. (R$)",
+                    "Fonte do valor",
+                    "Qtd. estoque/aduana",
+                    "Qtd. retidas (RFB)",
+                    "Situação",
+                    "Sanável?"
+                ],
+                "label": [
+                    "HOMOLOGAÇÃO",
+                    "TIPO",
+                    "FABRICANTE",
+                    "MODELO",
+                    "RF?",
+                    "IMPORTADOR",
+                    "CÓDIGO|ADUANEIRO",
+                    "VALOR|UNITÁRIO (R$)",
+                    "FONTE|VALOR",
+                    "QTD.|ADUANA",
+                    "QTD.|RETIDA (RFB)",
+                    "SITUAÇÃO",
+                    "SANÁVEL?"
+                ],
+                "columnWidth": [
+                    110,
+                    "auto",
+                    "auto",
+                    "auto",
+                    42,
+                    "auto",
+                    "auto",
+                    90,
+                    "auto",
+                    90,
+                    90,
+                    "auto",
+                    70
+                ]
+            },
+            "exportedFiles": {
+                "sharepoint": {
+                    "name": [
+                        "Homologação",
+                        "Importador",
+                        "Código aduaneiro",
+                        "Tipo",
+                        "Fabricante",
+                        "Modelo",                            
+                        "RF?",
+                        "Em uso?",
+                        "Interferência?",
+                        "Valor Unit. (R$)",
+                        "Fonte do valor",
+                        "Qtd. uso",
+                        "Qtd. vendida",                        
+                        "Qtd. estoque/aduana",
+                        "Qtd. anunciada",
+                        "Qtd. lacradas",
+                        "Qtd. apreendidas",
+                        "Qtd. retidas (RFB)",
+                        "Situação",
+                        "Infração",
+                        "Sanável?",
+                        "Informações adicionais"
+                    ],
+                    "label": [
+                        "homologacao", 
+                        "importador", 
+                        "codigoAduaneiro", 
+                        "tipo", 
+                        "fabricante", 
+                        "modelo", 
+                        "rf", 
+                        "emUso", 
+                        "interferencia", 
+                        "valorUnitario",
+                        "fonteValor",
+                        "quantidadeUso", 
+                        "quantidadeVendida", 
+                        "quantidadeEstoqueOuAduana", 
+                        "quatidadeAnunciada", 
+                        "quantidadeLacradas", 
+                        "quantidadeApreendidas", 
+                        "quantidadeRetidas", 
+                        "situacao", 
+                        "infracao", 
+                        "sanavel", 
+                        "informacoesAdicionais"
+                    ]
+                },
+                "eFiscaliza": {
+                    "Columns": [
+                        "Tipo",
+                        "Modelo",
+                        "Fabricante",
+                        "Fonte do valor",
+                        "RF?",
+                        "Em uso?",
+                        "Qtd. vistoriadas",
+                        "Qtd. apreendidas",
+                        "Qtd. lacradas",
+                        "Qtd. retidas (RFB)",
+                        "Valor Unit. (R$)",
+                        "Qtd. vendida",
+                        "Qtd. uso",
+                        "Qtd. estoque/aduana",
+                        "Mercadoria retida (R$)",
+                        "Mercadoria vendida (R$)",
+                        "Interferência?"
+                    ],
+                    "Settings": [
+                        {
+                            "ColumnName": "TIPO_EQUIPAMENTO"
+                        },
+                        {
+                            "ColumnName": "MODELO_EQUIPAMENTO"
+                        },
+                        {
+                            "ColumnName": "FABRICANTE_EQUIPAMENTO"
+                        },
+                        {
+                            "ColumnName": "INFO_ADICIONAIS"
+                        },
+                        {
+                            "ColumnName": "USA_RF?"
+                        },
+                        {
+                            "ColumnName": "EQUIPAMENTO_EM_USO?"
+                        },
+                        {
+                            "ColumnName": "UNIDADE_VISTORIADAS"
+                        },
+                        {
+                            "ColumnName": "UNIDADES_APREENDIDAS"
+                        },
+                        {
+                            "ColumnName": "UNIDADES_LACRADAS"
+                        },
+                        {
+                            "ColumnName": "UNIDADES_RETIDAS"
+                        },
+                        {
+                            "ColumnName": "VALOR_UNITARIO"
+                        },
+                        {
+                            "ColumnName": "QTDE_EQUIP_VENDIDOS"
+                        },
+                        {
+                            "ColumnName": "QTDE_EQUIP_USO"
+                        },
+                        {
+                            "ColumnName": "QTDE_EQUIP_ESTOQUE"
+                        },
+                        {
+                            "ColumnName": "VALOR_ESTIMADO_TOTAL"
+                        },
+                        {
+                            "ColumnName": "VALOR_COMERCIALIZADO"
+                        },
+                        {
+                            "ColumnName": "CAUSOU_INTERFERENCIA?"
+                        }
+                    ]
+                }
+            }
+        },
+        "typeOfProduct": {
+            "default": "-1",
+            "options": [
+                "-1",
+                "Antena",
+                "Baterias",
+                "Bloqueador de sinal (Jammer)",
+                "Cabo Metálico",
+                "Cabo Óptico",
+                "Carregadores de Baterias",
+                "Celulares",
+                "Decodificador de sinal para SeAC",
+                "Drone",
+                "Equipamento de Radiação Restrita",
+                "Equipamento de Rede de Dados",
+                "Equipamento óptico",
+                "Reforçador de sinal",
+                "SmartTV Box",
+                "Transmissor Radiodifusão",
+                "Transceptor RF",
+                "Outros"
+            ]
+        },
+        "typeOfViolation": {
+            "default": "Comercialização",
+            "options": [
+                "-1",
+                "Comercialização",
+                "Identificação homologação",
+                "Uso"
+            ]
+        }
     },
     "eFiscaliza": {
         "internal": {
