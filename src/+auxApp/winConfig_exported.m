@@ -258,22 +258,25 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function Folder_updatePanel(app)
+            DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
+            if isfolder(DataHub_GET)
+                app.exportTable.Enable = 'on';
+            end
+
             % Na versão webapp, a configuração das pastas não é habilitada.
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.btnFolder.Enable       = 1;
+                app.btnFolder.Enable      = 1;
 
-                DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
                 if isfolder(DataHub_GET)
-                    app.DataHubGET.Value   = DataHub_GET;
-                    app.exportTable.Enable = 'on';
+                    app.DataHubGET.Value  = DataHub_GET;
                 end
 
                 DataHub_POST = app.mainApp.General.fileFolder.DataHub_POST;    
                 if isfolder(DataHub_POST)
-                    app.DataHubPOST.Value  = DataHub_POST;
+                    app.DataHubPOST.Value = DataHub_POST;
                 end
 
-                app.userPath.Value         = app.mainApp.General.fileFolder.userPath;
+                app.userPath.Value        = app.mainApp.General.fileFolder.userPath;
             end
         end
 
