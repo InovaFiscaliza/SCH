@@ -1,8 +1,19 @@
-function outputTable = tableProducts(listOfProducts, configTable)
+function outputTable = tableProducts(listOfProducts, configTable, legalSituation)
+
+    arguments
+        listOfProducts table
+        configTable    struct
+        legalSituation string {mustBeMember(legalSituation, ["any", "Irregular", "Regular"])} = "any"
+    end
 
     % A tabela "listOfProducts" possui mais de vinte colunas - 'Homologação', 
     % 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?',
     % 'Valor Unit. (R$)', 'Fonte do valor', 'Qtd. uso', 'Qtd. vendida' etc.
+
+    if ismember(legalSituation, ["Irregular", "Regular"])
+        idx = string(listOfProducts.("Situação")) == legalSituation;
+        listOfProducts = listOfProducts(idx, :);
+    end
 
     % Na presente função, criam-se cinco colunas calculadas:
     % - "#" 

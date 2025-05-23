@@ -1,6 +1,6 @@
 [
     {
-        "Name": "Aduana  (apoio à RFB)",
+        "Name": "Aduana",
         "File": "Aduana.json",
         "DocumentType": "Relatório de Atividades",
         "Description": "Trata-se de documento que pode ser gerado em fiscalização realizada na aduana, em apoio à Receita Federal do Brasil.",
@@ -11,7 +11,7 @@
     },
     {
         "Name": "Fornecedor/Usuário",
-        "File": "Fornecedor-Usuário (Tabelas CODI+Complementar).json",
+        "File": "Fornecedor-Usuário.json",
         "DocumentType": "Relatório de Atividades",
         "Description": "Trata-se de documento que pode ser gerado em fiscalização realizada em distribuidor ou usuário de produtos para telecomunicações.",
         "Author": "Eric Magalhães Delgado",

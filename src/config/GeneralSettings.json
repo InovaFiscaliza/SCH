@@ -1,5 +1,5 @@
 {
-    "version": 1.51,
+    "version": 1.69,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -213,6 +213,7 @@
                     "Qtd. lacradas",
                     "Qtd. apreendidas",
                     "Qtd. retidas (RFB)",
+                    "Situação",
                     "Infração"
                 ],
                 "label": [
@@ -232,6 +233,7 @@
                     "QTD.|LACRADA",
                     "QTD.|APREENDIDA",
                     "QTD.|RETIDA (RFB)",
+                    "SITUAÇÃO",
                     "INFRAÇÃO"
                 ],
                 "columnWidth": [
@@ -251,6 +253,7 @@
                     90,
                     90,
                     90,
+                    "auto",
                     "auto"
                 ]
             },
@@ -268,6 +271,7 @@
                     "Qtd. estoque/aduana",
                     "Qtd. retidas (RFB)",
                     "Situação",
+                    "Infração",
                     "Sanável?"
                 ],
                 "label": [
@@ -283,6 +287,7 @@
                     "QTD.|ADUANA",
                     "QTD.|RETIDA (RFB)",
                     "SITUAÇÃO",
+                    "INFRAÇÃO",
                     "SANÁVEL?"
                 ],
                 "columnWidth": [
@@ -297,6 +302,7 @@
                     "auto",
                     90,
                     90,
+                    "auto",
                     "auto",
                     70
                 ]
@@ -451,12 +457,21 @@
                 "Outros"
             ]
         },
+        "typeOfSituation": {
+            "default": "-1",
+            "options": [
+                "-1",
+                "Regular",
+                "Irregular"
+            ]
+        },
         "typeOfViolation": {
-            "default": "Comercialização",
+            "default": "-1",
             "options": [
                 "-1",
                 "Comercialização",
                 "Identificação homologação",
+                "Importação",
                 "Uso"
             ]
         }

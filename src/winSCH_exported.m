@@ -112,7 +112,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_rightPanelVisibility     matlab.ui.control.Image
         report_FiscalizaUpdate          matlab.ui.control.Image
         report_ReportGeneration         matlab.ui.control.Image
-        report_ShowCells2Edit           matlab.ui.control.Image
         report_leftPanelVisibility      matlab.ui.control.Image
         Tab3_Config                     matlab.ui.container.Tab
         report_ContextMenu              matlab.ui.container.ContextMenu
@@ -548,6 +547,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
                             end
 
+                            report_syncTableAndGui(app, 'tableViewChanged')
                             app.report_ModelName.Items = [{''}, {reportLibConnection.Controller.Read(app.rootFolder).Name}];
 
                         otherwise
@@ -688,7 +688,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
-            app.projectData = projectLib(app, app.General.ui.typeOfProduct.options, app.General.ui.typeOfViolation.options);
+            app.projectData = projectLib(app, app.General.ui.typeOfProduct.options, app.General.ui.typeOfSituation.options, app.General.ui.typeOfViolation.options);
             startup_mainVariables(app)
         end
 
@@ -1461,9 +1461,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                         newRow2Add = report_newRow2Add(app, selectedHom2Add);
 
                     otherwise % 'report - addRow'
-                        typeOfProduct   = app.General.ui.typeOfViolation.default;
+                        typeOfProduct   = app.General.ui.typeOfProduct.default;
+                        typeOfSituation = app.General.ui.typeOfSituation.default;
                         typeOfViolation = app.General.ui.typeOfViolation.default;
-                        newRow2Add = {'-1', '', '', typeOfProduct, '', '', '', 'Irregular', typeOfViolation, '-1', ''};
+                        newRow2Add = {'-1', '', '', typeOfProduct, '', '', '', typeOfSituation, typeOfViolation, '-1', ''};
                 end
 
                 app.projectData.listOfProducts(end+1, columnList) = newRow2Add;
@@ -1493,25 +1494,43 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function [listOfRows, idx, analyzedColumns] = report_ListOfProductsCheck(app)
-            % Condições para que o registro seja considerado incompleto...
-            analyzedColumns = {'Tipo',             ...
-                               'Fabricante',       ...
-                               'Modelo',           ...
-                               'Valor Unit. (R$)', ...
-                               'Fonte do valor',   ...
-                               {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}, ...
-                               {'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ...
-                               {'Situação', 'Sanável?'}};
+            % É nessa função que são feitas as validações nos valores das 
+            % células da tabela. Se algum valor não passar numa validação,
+            % então não poderá ser gerada a versão definitiva do relatório
+            % e a célula ficará destacada em vermelho.
 
-            idx      = zeros(height(app.projectData.listOfProducts), 7, 'logical');
-            idx(:,1) = string(app.projectData.listOfProducts.("Tipo"))           == "-1";
-            idx(:,2) = string(app.projectData.listOfProducts.("Fabricante"))     == "";
-            idx(:,3) = string(app.projectData.listOfProducts.("Modelo"))         == "";
-            idx(:,4) = app.projectData.listOfProducts.("Valor Unit. (R$)")       <= 0;
-            idx(:,5) = string(app.projectData.listOfProducts.("Fonte do valor")) == "";
-            idx(:,6) = app.projectData.listOfProducts.("Qtd. uso") + app.projectData.listOfProducts.("Qtd. vendida") + app.projectData.listOfProducts.("Qtd. estoque/aduana") + app.projectData.listOfProducts.("Qtd. anunciada") <= 0;
-            idx(:,7) = sum(app.projectData.listOfProducts{:, {'Qtd. uso', 'Qtd. estoque/aduana'}}, 2) < sum(app.projectData.listOfProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);
-            idx(:,8) = (string(app.projectData.listOfProducts.("Situação")) == "Regular") & (string(app.projectData.listOfProducts.("Sanável?")) == "Não");
+            analyzedColumns = {                                                                                 ...
+                'Tipo',                                                                                         ... #1
+                'Fabricante',                                                                                   ... #2
+                'Modelo',                                                                                       ... #3
+                'Valor Unit. (R$)',                                                                             ... #4
+                {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'},                          ... #5
+                {'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ... #6
+                'Situação',                                                                                     ... #7
+                {'Situação', 'Infração'}                                                                        ... #8
+                {'Situação', 'Valor Unit. (R$)'},                                                               ... #9
+                {'Situação', 'Fonte do valor'},                                                                 ... #10
+                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'},                        ... #11
+            };
+
+            idx      = zeros(height(app.projectData.listOfProducts), 11, 'logical');
+
+            idx(:, 1) = string(app.projectData.listOfProducts.("Tipo")) == "-1";
+            idx(:, 2) = string(app.projectData.listOfProducts.("Fabricante")) == "";
+            idx(:, 3) = string(app.projectData.listOfProducts.("Modelo")) == "";
+            idx(:, 4) = app.projectData.listOfProducts.("Valor Unit. (R$)") < 0;
+            idx(:, 5) = app.projectData.listOfProducts.("Qtd. uso")            + ...
+                        app.projectData.listOfProducts.("Qtd. vendida")        + ...
+                        app.projectData.listOfProducts.("Qtd. estoque/aduana") + ...
+                        app.projectData.listOfProducts.("Qtd. anunciada") <= 0;
+            idx(:, 6) = sum(app.projectData.listOfProducts{:, {'Qtd. uso', 'Qtd. estoque/aduana'}}, 2) < ...
+                        sum(app.projectData.listOfProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);            
+            idx(:, 7) =   string(app.projectData.listOfProducts.("Situação")) == "-1";
+            idx(:, 8) = ((string(app.projectData.listOfProducts.("Situação")) == "Regular")   & (string(app.projectData.listOfProducts.("Infração")) ~= "-1")) | ...
+                        ((string(app.projectData.listOfProducts.("Situação")) == "Irregular") & (string(app.projectData.listOfProducts.("Infração")) == "-1"));
+            idx(:, 9) =  (string(app.projectData.listOfProducts.("Situação")) == "Irregular") & (app.projectData.listOfProducts.("Valor Unit. (R$)") <= 0);
+            idx(:,10) =  (string(app.projectData.listOfProducts.("Situação")) == "Irregular") & (string(app.projectData.listOfProducts.("Fonte do valor")) == "");
+            idx(:,11) =  (string(app.projectData.listOfProducts.("Situação")) == "Regular")   & (sum(app.projectData.listOfProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2) > 0);
 
             listOfRows = find(any(idx, 2));
         end
@@ -1525,14 +1544,9 @@ classdef winSCH_exported < matlab.apps.AppBase
             misc_Table_NumberOfRows(app, 'report')
 
             if ~isempty(app.projectData.listOfProducts)
-                app.report_ShowCells2Edit.Enable = 1;
-
-                style2Apply = report_Table_Style2Apply(app);
-                report_Table_AddStyle(app, style2Apply)
-
+                report_Table_AddStyle(app, 'Icon+BackgroundColor')
             else
                 removeStyle(app.report_Table)
-                set(app.report_ShowCells2Edit, 'Enable', 0, 'Tag', 'off')
             end
 
             report_ModelNameValueChanged(app)
@@ -1562,19 +1576,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                           'ColumnName',  app.General.ui.reportTable.(viewType).label',   ...
                                           'ColumnWidth', app.General.ui.reportTable.(viewType).columnWidth')
 
-                    if strcmp(app.report_ShowCells2Edit.Tag, 'on')
-                        report_Table_AddStyle(app, 'Icon+BackgroundColor')
-                    end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function style2Apply = report_Table_Style2Apply(app)
-            switch app.report_ShowCells2Edit.Tag
-                case 'on'
-                    style2Apply = 'Icon+BackgroundColor';
-                case 'off'
-                    style2Apply = 'Icon+TemporaryBackgroundColor';
+                    report_Table_AddStyle(app, 'Icon+BackgroundColor')
             end
         end
 
@@ -1658,10 +1660,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             selectedHomRawTableIndex = find(strcmp(app.rawDataTable.("Homologação"), selectedHom2Add));
             relatedSCHTable = app.rawDataTable(selectedHomRawTableIndex, :);
             
-            typeOfProduct   = app.General.ui.typeOfViolation.default;
+            typeOfProduct   = app.General.ui.typeOfProduct.default;
+            typeOfSituation = app.General.ui.typeOfSituation.default;
             typeOfViolation = app.General.ui.typeOfViolation.default;
-            Fabricante      = upper(char(relatedSCHTable.("Fabricante")(1)));
-            
+
+            Fabricante      = upper(char(relatedSCHTable.("Fabricante")(1)));            
             modelValue      = unique([relatedSCHTable.("Modelo")(1), relatedSCHTable.("Nome Comercial")(1)]);
             modelValue(cellfun(@(x) isempty(x), modelValue)) = [];
             if isempty(modelValue)
@@ -1677,7 +1680,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
 
-            newRow2Add = {selectedHom2Add, '', '', typeOfProduct, Fabricante, modelValue{1}, '', 'Irregular', typeOfViolation, '-1', optionalNote};
+            newRow2Add = {selectedHom2Add, '', '', typeOfProduct, Fabricante, modelValue{1}, '', typeOfSituation, typeOfViolation, '-1', optionalNote};
         end
 
 
@@ -2171,19 +2174,22 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
 
             else
-                msgInfo = ['____________<br>VALIDAÇÕES<br>(a) Em relação à <b>INSPEÇÃO</b>:<br>'                   ...
-                           '• O número deve ser válido (inteiro, positivo e finito).<br>'                          ...
+                msgInfo = ['____________<br>VALIDAÇÕES<br>(a) Em relação à <b>ATIVIDADE DE INSPEÇÃO</b>:<br>'      ...
+                           '• O número deve ser válido (inteiro, positivo e finito).<br><br>'                      ...
                            '(b) Em relação à qualificação da <b>FISCALIZADA</b>:<br>'                              ...
-                           '• O nome deve ser preenchido;<br>'                                                     ...
-                           '• O número do CPF/CNPJ deve ser válido; e<br>'                                         ...
-                           '• O tipo não pode ser vazio.<br>'                                                      ...
+                           '• O tipo não pode ser vazio;<br>'                                                      ...
+                           '• O nome deve ser preenchido; e<br>'                                                   ...
+                           '• O número do CPF/CNPJ deve ser válido.<br><br>'                                       ...
                            '(c) Em relação à <b>TABELA</b> com a lista de produtos sob análise:<br>'               ...
                            '• O "Tipo" não pode ter valor igual a -1;<br>'                                         ...
                            '• O "Fabricante" e o "Modelo" não podem ter valores vazios;<br>'                       ...
-                           '• O "Valor Unit. (R$)" não pode ser igual a zero;<br>'                                 ...
-                           '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser igual a zero;<br>' ...
-                           '• A soma de "Qtd. uso/vendida" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)".' ...
-                           '• A "Situação", quando Regular, não pode ter "Sanável?" igual a Não.'];
+                           '• O "Valor Unit. (R$)" não pode ser menor do que zero;<br>'                            ...
+                           '• A soma de "Qtd. uso", "Qtd. vendida", "Qtd. estoque/aduana" e "Qtd. anunciada" não pode ser menor ou igual a zero;<br>' ...
+                           '• A soma de "Qtd. uso" e "Qtd. estoque/aduana" não pode ser menor do que a soma de "Qtd. lacradas", "Qtd. apreendidas", Qtd. retidas (RFB)";<br>' ...
+                           '• A "Situação" não pode ser -1;<br>'                                                   ...
+                           '• A "Situação", quando Regular, não pode ter "Infração" diferente de -1;<br>'          ...
+                           '• A "Situação", quando Irregular, não pode ter "Infração" igual a -1; e<br>'           ...
+                           '• A "Situação", quando Irregular, não pode ter "Valor Unit. (R$)" menor ou igual a zero e "Fonte do valor" igual a vazia.'];
 
                 switch app.report_Version.Value
                     case 'Definitiva'
@@ -2195,7 +2201,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'Preliminar'
                         msgQuestion = sprintf(['<p style="font-size: 12px; text-align: justify;">Foi(ram) identificado(s) a(s) pendência(s):\n%s\n\n' ...
-                                               '<b>Continuar mesmo assim?</b><br><br><font style="color: gray; font-size: 11px;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
+                                               '<b>Continuar mesmo assim?</b><br><br><font style="color: gray;">%s</font></p>'], strjoin(msgWarning, '<br>'), msgInfo);
                         selection   = uiconfirm(app.UIFigure, msgQuestion, '', 'Interpreter', 'html',     ...
                                                                                'Options', {'Sim', 'Não'}, ...
                                                                                'DefaultOption', 1, 'CancelOption', 2, 'Icon', 'question');
@@ -2216,34 +2222,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
             
             delete(dlg)
-
-        end
-
-        % Image clicked function: report_ShowCells2Edit
-        function report_ShowCells2EditClicked(app, event)
-
-            if ~isempty(app.projectData.listOfProducts)
-                listOfRows = report_ListOfProductsCheck(app);
-                if isempty(listOfRows)
-                    appUtil.modalWindow(app.UIFigure, 'warning', 'Não foi identificada pendência na lista de produtos sob análise.');
-                    return
-                end
-
-                switch app.report_ShowCells2Edit.Tag
-                    case 'on'
-                        app.report_ShowCells2Edit.Tag = 'off';
-                        report_Table_AddStyle(app, 'Icon')
-
-                    case 'off'
-                        app.report_ShowCells2Edit.Tag = 'on';
-                        report_Table_AddStyle(app, 'BackgroundColor')
-                end
-
-            else
-                % Não evidenciei essa condição... mas, por precaução,
-                % inserido esse estado p/ evitar cliques desnecessários.
-                app.report_ShowCells2Edit.Enable = 0;
-            end
 
         end
 
@@ -2309,7 +2287,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 editedGUIColumn = event.Source.ColumnName{event.Indices(2)};
 
                 if (strcmpi(editedGUIColumn, 'TIPO')     && ~ismember(event.NewData, app.General.ui.typeOfProduct.options))   || ...
-                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, {'Irregular', 'Regular'}))               || ...
+                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, app.General.ui.typeOfSituation.options)) || ...
                    (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.General.ui.typeOfViolation.options)) || ...
                    (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-1', 'Sim', 'Não'}))
 
@@ -2321,10 +2299,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
 
-            report_syncTableAndGui(app, 'guiToDataSync')        
-
-            style2Apply = report_Table_Style2Apply(app);
-            report_Table_AddStyle(app, style2Apply)
+            report_syncTableAndGui(app, 'guiToDataSync')
+            report_Table_AddStyle(app, 'Icon+BackgroundColor')
 
             report_ProjectWarnImageVisibility(app)
 
@@ -2408,9 +2384,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                         fileFullPath = fullfile(filePath, fileName);
 
                         try
-                            [~, ~, variables, ~]           = readFile.MAT(fileFullPath);
-                            app.projectData.listOfProducts = variables.listOfProducts;
-                            app.projectData.generatedFiles = [];
+                            [~, ~, variables, ~] = readFile.MAT(fileFullPath);
+
+                            % A inicialização de app.projectData seguida da passagem apenas 
+                            % dos valores da tabela, ao invés de substituir a tabela, é a 
+                            % garantia de que as colunas categóricas continuarão a ser guiadas 
+                            % por aquilo que é definido em "GeneralSettings.json".
+                            
+                            Restart(app.projectData)
+                            app.projectData.listOfProducts(1:height(variables.listOfProducts), :) = variables.listOfProducts;
 
                             % Atualizando os componentes da GUI...
                             app.report_ProjectName.Value   = fileFullPath;
@@ -2462,6 +2444,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             app.report_ProjectWarnIcon.Visible = 0;
 
                         catch ME
+                            report_ProjectToolbarImageClicked(app, struct('Source', app.report_ProjectNew))
                             appUtil.modalWindow(app.UIFigure, 'error', ME.message);
                         end
                     end
@@ -3260,7 +3243,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create report_toolGrid
             app.report_toolGrid = uigridlayout(app.Tab2_ReportGrid);
-            app.report_toolGrid.ColumnWidth = {22, 22, '1x', 22, 22, 22};
+            app.report_toolGrid.ColumnWidth = {22, '1x', 22, 22, 22};
             app.report_toolGrid.RowHeight = {'1x', 17, '1x'};
             app.report_toolGrid.ColumnSpacing = 5;
             app.report_toolGrid.RowSpacing = 0;
@@ -3275,17 +3258,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_leftPanelVisibility.Layout.Column = 1;
             app.report_leftPanelVisibility.ImageSource = 'ArrowLeft_32.png';
 
-            % Create report_ShowCells2Edit
-            app.report_ShowCells2Edit = uiimage(app.report_toolGrid);
-            app.report_ShowCells2Edit.ScaleMethod = 'none';
-            app.report_ShowCells2Edit.ImageClickedFcn = createCallbackFcn(app, @report_ShowCells2EditClicked, true);
-            app.report_ShowCells2Edit.Tag = 'off';
-            app.report_ShowCells2Edit.Enable = 'off';
-            app.report_ShowCells2Edit.Tooltip = {'Destaca células pendentes de edição'};
-            app.report_ShowCells2Edit.Layout.Row = [2 3];
-            app.report_ShowCells2Edit.Layout.Column = 2;
-            app.report_ShowCells2Edit.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Warn_18.png');
-
             % Create report_ReportGeneration
             app.report_ReportGeneration = uiimage(app.report_toolGrid);
             app.report_ReportGeneration.ScaleMethod = 'none';
@@ -3293,7 +3265,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_ReportGeneration.Enable = 'off';
             app.report_ReportGeneration.Tooltip = {'Gera relatório'};
             app.report_ReportGeneration.Layout.Row = [1 3];
-            app.report_ReportGeneration.Layout.Column = 4;
+            app.report_ReportGeneration.Layout.Column = 3;
             app.report_ReportGeneration.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Publish_HTML_16.png');
 
             % Create report_FiscalizaUpdate
@@ -3301,14 +3273,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_FiscalizaUpdate.ImageClickedFcn = createCallbackFcn(app, @report_FiscalizaCallbacks, true);
             app.report_FiscalizaUpdate.Tooltip = {'Upload relatório'};
             app.report_FiscalizaUpdate.Layout.Row = 2;
-            app.report_FiscalizaUpdate.Layout.Column = 5;
+            app.report_FiscalizaUpdate.Layout.Column = 4;
             app.report_FiscalizaUpdate.ImageSource = 'Up_24.png';
 
             % Create report_rightPanelVisibility
             app.report_rightPanelVisibility = uiimage(app.report_toolGrid);
             app.report_rightPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
             app.report_rightPanelVisibility.Layout.Row = 2;
-            app.report_rightPanelVisibility.Layout.Column = 6;
+            app.report_rightPanelVisibility.Layout.Column = 5;
             app.report_rightPanelVisibility.ImageSource = 'ArrowLeft_32.png';
 
             % Create report_Tab1Grid
@@ -3430,11 +3402,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create report_Table
             app.report_Table = uitable(app.GridLayout7);
             app.report_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
-            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'INFRAÇÃO'};
-            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto'};
+            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
+            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
             app.report_Table.RowName = {};
             app.report_Table.SelectionType = 'row';
-            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true true true true];
+            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
             app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
             app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
             app.report_Table.Layout.Row = 5;
@@ -3498,7 +3470,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
             app.report_IssueLabel.Layout.Row = 1;
             app.report_IssueLabel.Layout.Column = 4;
-            app.report_IssueLabel.Text = 'Id:';
+            app.report_IssueLabel.Text = '# Id:';
 
             % Create report_Issue
             app.report_Issue = uieditfield(app.report_IssueGrid, 'numeric');
@@ -3514,13 +3486,13 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create report_ModelName
             app.report_ModelName = uidropdown(app.report_IssueGrid);
-            app.report_ModelName.Items = {};
+            app.report_ModelName.Items = {''};
             app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
             app.report_ModelName.FontSize = 11;
             app.report_ModelName.BackgroundColor = [1 1 1];
             app.report_ModelName.Layout.Row = 4;
             app.report_ModelName.Layout.Column = [1 3];
-            app.report_ModelName.Value = {};
+            app.report_ModelName.Value = '';
 
             % Create report_ModelNameLabel
             app.report_ModelNameLabel = uilabel(app.report_IssueGrid);

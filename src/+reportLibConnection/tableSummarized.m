@@ -1,12 +1,22 @@
-function outputTable = tableSummarized(listOfProducts, configTable)
+function outputTable = tableSummarized(listOfProducts, configTable, legalSituation)
 
-    % A tabela "listOfProducts" possui na presente data (21/05/2025) vinte
-    % e uma colunas, conforme exposto abaixo.
+    arguments
+        listOfProducts table
+        configTable    struct
+        legalSituation string {mustBeMember(legalSituation, ["any", "Irregular", "Regular"])} = "any"
+    end
 
-    % listOfProducts = table('Size',          [0, 21],                                                                                                                                                                                                                        ...
-    %                        'VariableTypes', {'cell', 'cell', 'cell', 'categorical', 'cell', 'cell', 'logical', 'logical', 'logical', 'double', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'categorical', 'categorical', 'categorical', 'cell'},  ...
-    %                        'VariableNames', {'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', 'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada', 'Qtd. lacradas', ... 
-    %                                          'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'});
+    % A tabela "listOfProducts" possui mais de vinte colunas - 'Homologação', 
+    % 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?',
+    % 'Valor Unit. (R$)', 'Fonte do valor', 'Qtd. uso', 'Qtd. vendida' etc.
+
+    if ismember(legalSituation, ["Irregular", "Regular"])
+        idx = string(listOfProducts.("Situação")) == legalSituation;
+        listOfProducts = listOfProducts(idx, :);
+    end
+
+    % Na presente função, sumariza-se "listOfProduts" em função dos valores
+    % de uma das suas colunas.
 
     columnName   = configTable.Settings(1).ColumnName;
     columnClass  = class(listOfProducts.(columnName));

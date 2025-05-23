@@ -101,22 +101,14 @@
         "Recurrence": 0,
         "Data": {
             "Editable": "false",
-            "Text": "RESULTADOS",
+            "Text": "PRODUTOS IRREGULARES",
             "Variable": [],
             "Component": [
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados.",
-                        "Variable": []
-                    }
-                },
                 {
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableProducts",
+                        "Source": "tableProducts_irregular",
                         "Columns": [
                             "#", 
                             "Homologação",
@@ -128,18 +120,10 @@
                             "Interferência?",
                             "Valor Unit. (R$)",
                             "Fonte do valor",
-                            "Qtd. vistoriadas",
                             "Qtd. vendida",
                             "Qtd. uso",
                             "Qtd. estoque/aduana",
-                            "Qtd. anunciada",
-                            "Qtd. lacradas",
-                            "Qtd. apreendidas",
-                            "Qtd. retidas (RFB)",
-                            "Mercadoria vendida (R$)",
-                            "Mercadoria retida (R$)",
-                            "Infração",
-                            "Informações adicionais"
+                            "Qtd. anunciada"
                         ],
                         "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
                         "Settings": [
@@ -198,16 +182,10 @@
                                 "Width": "70px"
                             },
                             {
-                                "Editable": "true",
+                                "Editable": "false",
                                 "ColumnName": "Fonte do valor",
                                 "Precision": "%s",
                                 "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Qtd.<br>vistoriada",
-                                "Precision": "%.0f",
-                                "Width": "60px"
                             },
                             {
                                 "Editable": "false",
@@ -232,6 +210,73 @@
                                 "ColumnName": "Qtd.<br>anunciada",
                                 "Precision": "%.0f",
                                 "Width": "60px"
+                            }
+                        ],
+                        "Intro": "{\"Type\":\"ItemN2\",\"Text\":\"Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados e classificados como irregulares.\"}",
+                        "Error": "{\"Type\":\"ItemN2\",\"Text\":\"Nenhum dos produtos para telecomunicações inspecionados foi classificado como irregular.\"}",
+                        "LineBreak": 0
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "Type": "ItemN1",
+        "Recurrence": 0,
+        "Data": {
+            "Editable": "false",
+            "Text": "PRODUTOS IRREGULARES - TABELAS AUXILIARES",
+            "Variable": [],
+            "Component": [
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableProducts_irregular",
+                        "Columns": [
+                            "#", 
+                            "Homologação",
+                            "Valor Unit. (R$)",
+                            "Qtd. vendida",
+                            "Mercadoria vendida (R$)",
+                            "Qtd. lacradas",
+                            "Qtd. apreendidas",
+                            "Qtd. retidas (RFB)",                            
+                            "Mercadoria retida (R$)",
+                            "Infração",
+                            "Informações adicionais"
+                        ],
+                        "Caption": "Informações complementares acerca dos produtos para telecomunicações inspecionados.",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Homologação",
+                                "Precision": "%s",
+                                "Width": "90px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Valor<br>unitário",
+                                "Precision": "R$ %.2f",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>vendida",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Estimativa<br>valor de mercado<br>(unidades vendidas)",
+                                "Precision": "R$ %.2f",
+                                "Width": "110px"
                             },
                             {
                                 "Editable": "false",
@@ -253,18 +298,12 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Estimativa<br>valor de mercado<br>(unidades vendidas)",
-                                "Precision": "R$ %.2f",
-                                "Width": "110px"
-                            },
-                            {
-                                "Editable": "false",
                                 "ColumnName": "Estimativa<br>valor de mercado<br>(unidades retidas)",
                                 "Precision": "R$ %.2f",
                                 "Width": "110px"
                             },
                             {
-                                "Editable": "true",
+                                "Editable": "false",
                                 "ColumnName": "Infração",
                                 "Precision": "%s",
                                 "Width": "auto"
@@ -276,24 +315,16 @@
                                 "Width": "auto"
                             }
                         ],
-                        "Intro": "",
-                        "Error": "",
+                        "Intro": "{\"Type\":\"ItemN2\",\"Text\":\"Em complemento, a próxima tabela traz dados adicionais, incluindo estimativas do valor de mercado das unidades comercializadas e das retiradas de circulação.\"}",
+                        "Error": "{\"Type\":\"ItemN2\",\"Text\":\"Nenhum dos produtos para telecomunicações inspecionados foi classificado como irregular.\"}",
                         "LineBreak": 1
-                    }
-                },
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "Sumarizando esses dados em relação aos tipos dos produtos para telecomunicações inspecionados,",
-                        "Variable": []
                     }
                 },
                 {
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableSummarized",
+                        "Source": "tableSummarized_irregular",
                         "Columns": [1, 2, 3, 4, 5, 6],
                         "Caption": "Sumarização em relação aos tipos dos produtos para telecomunicações inspecionados.",
                         "Settings": [
@@ -334,24 +365,16 @@
                                 "Width": "110px"
                             }
                         ],
-                        "Intro": "",
+                        "Intro": "{\"Type\":\"ItemN2\",\"Text\":\"Sumarizando esses dados em relação aos tipos dos produtos para telecomunicações inspecionados,\"}",
                         "Error": "",
                         "LineBreak": 1
-                    }
-                },
-                {
-                    "Type": "ItemN2",
-                    "Data": {
-                        "Editable": "false",
-                        "Text": "Sumarizando esses dados em relação às infrações evidenciadas,",
-                        "Variable": []
                     }
                 },
                 {
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableSummarized",
+                        "Source": "tableSummarized_irregular",
                         "Columns": [1, 2, 3, 4, 5, 6],
                         "Caption": "Sumarização em relação às infrações evidenciadas.",
                         "Settings": [
@@ -392,8 +415,132 @@
                                 "Width": "110px"
                             }
                         ],
-                        "Intro": "",
+                        "Intro": "{\"Type\":\"ItemN2\",\"Text\":\"Sumarizando esses dados em relação às infrações evidenciadas,\"}",
                         "Error": "",
+                        "LineBreak": 0
+                    }
+                }
+            ]
+        }
+    },
+    {
+        "Type": "ItemN1",
+        "Recurrence": 0,
+        "Data": {
+            "Editable": "false",
+            "Text": "PRODUTOS REGULARES",
+            "Variable": [],
+            "Component": [
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableProducts_regular",
+                        "Columns": [
+                            "#",
+                            "Homologação",
+                            "Tipo",
+                            "Fabricante",
+                            "Modelo",                            
+                            "RF?",
+                            "Em uso?",
+                            "Interferência?",
+                            "Valor Unit. (R$)",
+                            "Fonte do valor",
+                            "Qtd. vendida",
+                            "Qtd. uso",
+                            "Qtd. estoque/aduana",
+                            "Qtd. anunciada"
+                        ],
+                        "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Homologação",
+                                "Precision": "%s",
+                                "Width": "90px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Tipo",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Fabricante",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Modelo",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "RF?",
+                                "Precision": "%s",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Em uso?",
+                                "Precision": "%s",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Interferência?",
+                                "Precision": "%s",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Valor<br>unitário",
+                                "Precision": "R$ %.2f",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Fonte do valor",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>vendida",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>em uso",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>estoque",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>anunciada",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            }
+                        ],
+                        "Intro": "{\"Type\":\"ItemN3\",\"Text\":\"Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados e classificados como regulares.\"}",
+                        "Error": "{\"Type\":\"ItemN3\",\"Text\":\"Nenhum dos produtos para telecomunicações inspecionados foi classificado como regular.\"}",
                         "LineBreak": 0
                     }
                 }

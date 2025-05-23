@@ -27,10 +27,10 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         QtdAnunciadaLabel        matlab.ui.control.Label
         QtdEstoque               matlab.ui.control.NumericEditField
         QtdEstoqueLabel          matlab.ui.control.Label
-        QtdVendida               matlab.ui.control.NumericEditField
-        QtdVendidaLabel          matlab.ui.control.Label
         QtdUso                   matlab.ui.control.NumericEditField
         QtdUsoLabel              matlab.ui.control.Label
+        QtdVendida               matlab.ui.control.NumericEditField
+        QtdVendidaLabel          matlab.ui.control.Label
         UnitPriceSource          matlab.ui.control.EditField
         UnitPriceSourceLabel     matlab.ui.control.Label
         UnitPrice                matlab.ui.control.NumericEditField
@@ -465,30 +465,12 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.UnitPriceSource.Layout.Row = 12;
             app.UnitPriceSource.Layout.Column = [2 7];
 
-            % Create QtdUsoLabel
-            app.QtdUsoLabel = uilabel(app.report_EditableInfoGrid);
-            app.QtdUsoLabel.VerticalAlignment = 'bottom';
-            app.QtdUsoLabel.FontSize = 10;
-            app.QtdUsoLabel.Layout.Row = 13;
-            app.QtdUsoLabel.Layout.Column = 1;
-            app.QtdUsoLabel.Text = {'Qtd.'; 'em uso:'};
-
-            % Create QtdUso
-            app.QtdUso = uieditfield(app.report_EditableInfoGrid, 'numeric');
-            app.QtdUso.Limits = [0 Inf];
-            app.QtdUso.RoundFractionalValues = 'on';
-            app.QtdUso.ValueDisplayFormat = '%.0f';
-            app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
-            app.QtdUso.FontSize = 11;
-            app.QtdUso.Layout.Row = 14;
-            app.QtdUso.Layout.Column = 1;
-
             % Create QtdVendidaLabel
             app.QtdVendidaLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdVendidaLabel.VerticalAlignment = 'bottom';
             app.QtdVendidaLabel.FontSize = 10;
             app.QtdVendidaLabel.Layout.Row = 13;
-            app.QtdVendidaLabel.Layout.Column = 2;
+            app.QtdVendidaLabel.Layout.Column = 1;
             app.QtdVendidaLabel.Text = {'Qtd.'; 'vendida:'};
 
             % Create QtdVendida
@@ -499,7 +481,25 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdVendida.FontSize = 11;
             app.QtdVendida.Layout.Row = 14;
-            app.QtdVendida.Layout.Column = 2;
+            app.QtdVendida.Layout.Column = 1;
+
+            % Create QtdUsoLabel
+            app.QtdUsoLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdUsoLabel.VerticalAlignment = 'bottom';
+            app.QtdUsoLabel.FontSize = 10;
+            app.QtdUsoLabel.Layout.Row = 13;
+            app.QtdUsoLabel.Layout.Column = 2;
+            app.QtdUsoLabel.Text = {'Qtd.'; 'em uso:'};
+
+            % Create QtdUso
+            app.QtdUso = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdUso.Limits = [0 Inf];
+            app.QtdUso.RoundFractionalValues = 'on';
+            app.QtdUso.ValueDisplayFormat = '%.0f';
+            app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdUso.FontSize = 11;
+            app.QtdUso.Layout.Row = 14;
+            app.QtdUso.Layout.Column = 2;
 
             % Create QtdEstoqueLabel
             app.QtdEstoqueLabel = uilabel(app.report_EditableInfoGrid);
