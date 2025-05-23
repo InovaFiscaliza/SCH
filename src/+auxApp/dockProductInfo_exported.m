@@ -23,10 +23,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         QtdApreendidaLabel       matlab.ui.control.Label
         QtdLacrada               matlab.ui.control.NumericEditField
         QtdLacradaLabel          matlab.ui.control.Label
+        QtdAnunciada             matlab.ui.control.NumericEditField
+        QtdAnunciadaLabel        matlab.ui.control.Label
         QtdEstoque               matlab.ui.control.NumericEditField
         QtdEstoqueLabel          matlab.ui.control.Label
         QtdVendida               matlab.ui.control.NumericEditField
         QtdVendidaLabel          matlab.ui.control.Label
+        QtdUso                   matlab.ui.control.NumericEditField
+        QtdUsoLabel              matlab.ui.control.Label
+        UnitPriceSource          matlab.ui.control.EditField
+        UnitPriceSourceLabel     matlab.ui.control.Label
         UnitPrice                matlab.ui.control.NumericEditField
         UnitPriceLabel           matlab.ui.control.Label
         Interference             matlab.ui.control.CheckBox
@@ -55,7 +61,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
+        mainApp
         projectData
     end
     
@@ -68,38 +74,57 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.Items = categories(app.projectData.listOfProducts.("Infração"));
             app.Corrigible.Items    = categories(app.projectData.listOfProducts.("Sanável?"));
 
-            idx = app.CallingApp.report_Table.Selection;
+            idx = app.mainApp.report_Table.Selection;
             updateForm(app, idx)
+
+            % Customização de componentes, mas restrito ao modo "DOCK".
+            if app.UIFigure == app.mainApp.UIFigure
+                appName    = class(app);
+                elToModify = { app.optNotes };    
+                elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
+                if ~isempty(elDataTag)
+                    sendEventToHTMLSource(app.mainApp.jsBackDoor, 'initializeComponents', {                                            ...
+                        struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 2, 'style', struct('textAlign', 'justify')), ...
+                    });
+                end
+            end
         end
 
         %-----------------------------------------------------------------%
         function updateForm(app, idx)
-            app.Index.Value         = idx;
+            app.Index.Value           = idx;
 
-            app.nHom.Value          = app.projectData.listOfProducts.("Homologação"){idx};
-            app.Type.Value          = char(app.projectData.listOfProducts.("Tipo")(idx));
-            app.Manufacturer.Value  = app.projectData.listOfProducts.("Fabricante"){idx};
-            app.Model.Value         = app.projectData.listOfProducts.("Modelo"){idx};
-            app.Importador.Value    = app.projectData.listOfProducts.("Importador"){idx};
-            app.CodAduana.Value     = app.projectData.listOfProducts.("Código aduaneiro"){idx};
-            app.RF.Value            = app.projectData.listOfProducts.("RF?")(idx);
-            app.InUse.Value         = app.projectData.listOfProducts.("Em uso?")(idx);
-            app.Interference.Value  = app.projectData.listOfProducts.("Interferência?")(idx);
-            app.UnitPrice.Value     = app.projectData.listOfProducts.("Valor Unit. (R$)")(idx);
-            app.QtdVendida.Value    = double(app.projectData.listOfProducts.("Qtd. uso/vendida")(idx));
-            app.QtdEstoque.Value    = double(app.projectData.listOfProducts.("Qtd. estoque/aduana")(idx));
-            app.QtdLacrada.Value    = double(app.projectData.listOfProducts.("Qtd. lacradas")(idx));
-            app.QtdApreendida.Value = double(app.projectData.listOfProducts.("Qtd. apreendidas")(idx));
-            app.QtdRetida.Value     = double(app.projectData.listOfProducts.("Qtd. retidas (RFB)")(idx));
-            app.Situation.Value     = char(app.projectData.listOfProducts.("Situação")(idx));
-            app.ViolationType.Value = char(app.projectData.listOfProducts.("Infração")(idx));
-            app.Corrigible.Value    = char(app.projectData.listOfProducts.("Sanável?")(idx));
-            app.optNotes.Value      = app.projectData.listOfProducts.("Informações adicionais"){idx};
+            app.nHom.Value            = app.projectData.listOfProducts.("Homologação"){idx};
+            app.Type.Value            = char(app.projectData.listOfProducts.("Tipo")(idx));
+            app.Manufacturer.Value    = app.projectData.listOfProducts.("Fabricante"){idx};
+            app.Model.Value           = app.projectData.listOfProducts.("Modelo"){idx};
+            app.Importador.Value      = app.projectData.listOfProducts.("Importador"){idx};
+            app.CodAduana.Value       = app.projectData.listOfProducts.("Código aduaneiro"){idx};
+
+            app.RF.Value              = app.projectData.listOfProducts.("RF?")(idx);
+            app.InUse.Value           = app.projectData.listOfProducts.("Em uso?")(idx);
+            app.Interference.Value    = app.projectData.listOfProducts.("Interferência?")(idx);
+
+            app.UnitPrice.Value       = app.projectData.listOfProducts.("Valor Unit. (R$)")(idx);
+            app.UnitPriceSource.Value = app.projectData.listOfProducts.("Fonte do valor"){idx};
+            app.QtdUso.Value          = double(app.projectData.listOfProducts.("Qtd. uso")(idx));
+            app.QtdVendida.Value      = double(app.projectData.listOfProducts.("Qtd. vendida")(idx));
+            app.QtdEstoque.Value      = double(app.projectData.listOfProducts.("Qtd. estoque/aduana")(idx));
+            app.QtdAnunciada.Value    = double(app.projectData.listOfProducts.("Qtd. anunciada")(idx));
+
+            app.QtdLacrada.Value      = double(app.projectData.listOfProducts.("Qtd. lacradas")(idx));
+            app.QtdApreendida.Value   = double(app.projectData.listOfProducts.("Qtd. apreendidas")(idx));
+            app.QtdRetida.Value       = double(app.projectData.listOfProducts.("Qtd. retidas (RFB)")(idx));
+
+            app.Situation.Value       = char(app.projectData.listOfProducts.("Situação")(idx));
+            app.ViolationType.Value   = char(app.projectData.listOfProducts.("Infração")(idx));
+            app.Corrigible.Value      = char(app.projectData.listOfProducts.("Sanável?")(idx));
+            app.optNotes.Value        = app.projectData.listOfProducts.("Informações adicionais"){idx};
         end
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, operationType, updateFlag, returnFlag, idxSelectedRow)
-            ipcMainMatlabCallsHandler(app.CallingApp, app, operationType, updateFlag, returnFlag, idxSelectedRow)
+            ipcMainMatlabCallsHandler(app.mainApp, app, operationType, updateFlag, returnFlag, idxSelectedRow)
         end
     end
     
@@ -108,10 +133,10 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainApp)
             
-            app.CallingApp  = mainapp;
-            app.projectData = mainapp.projectData;
+            app.mainApp     = mainApp;
+            app.projectData = mainApp.projectData;
             
             initialValues(app)
             
@@ -126,31 +151,41 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         end
 
         % Value changed function: CodAduana, Corrigible, Importador, 
-        % ...and 15 other components
+        % ...and 18 other components
         function TypeValueChanged(app, event)
             
-            userNote  = textFormatGUI.cellstr2TextField(app.optNotes.Value, '\n');
-            editedRow = {app.nHom.Value,          ...
-                         app.Importador.Value,    ...
-                         app.CodAduana.Value,     ...
-                         app.Type.Value,          ...
-                         app.Manufacturer.Value,  ...
-                         app.Model.Value,         ...                         
-                         app.RF.Value,            ...
-                         app.InUse.Value,         ...
-                         app.Interference.Value,  ...
-                         app.UnitPrice.Value,     ...
-                         app.QtdVendida.Value,    ...
-                         app.QtdEstoque.Value,    ...
-                         app.QtdLacrada.Value,    ...
-                         app.QtdApreendida.Value, ...
-                         app.QtdRetida.Value,     ...
-                         app.Situation.Value,     ...
-                         app.ViolationType.Value, ...
-                         app.Corrigible.Value,    ...
-                         userNote};
-            
-            app.optNotes.Value = userNote;
+            % Trata dados textuais...
+            srcClass = class(event.Source);
+            switch srcClass
+                case 'matlab.ui.control.EditField'
+                    event.Source.Value = strtrim(event.Source.Value);
+                case 'matlab.ui.control.TextArea'
+                    event.Source.Value = textFormatGUI.cellstr2TextField(event.Source.Value, '\n');
+            end
+
+            % Atualiza tabela "listOfProducts":
+            editedRow = {app.nHom.Value,            ...
+                         app.Importador.Value,      ...
+                         app.CodAduana.Value,       ...
+                         app.Type.Value,            ...
+                         app.Manufacturer.Value,    ...
+                         app.Model.Value,           ...                         
+                         app.RF.Value,              ...
+                         app.InUse.Value,           ...
+                         app.Interference.Value,    ...
+                         app.UnitPrice.Value,       ...
+                         app.UnitPriceSource.Value, ...
+                         app.QtdUso.Value,          ...
+                         app.QtdVendida.Value,      ...
+                         app.QtdEstoque.Value,      ...
+                         app.QtdAnunciada.Value,    ...
+                         app.QtdLacrada.Value,      ...
+                         app.QtdApreendida.Value,   ...
+                         app.QtdRetida.Value,       ...
+                         app.Situation.Value,       ...
+                         app.ViolationType.Value,   ...
+                         app.Corrigible.Value,      ...
+                         app.optNotes.Value};
 
             app.projectData.listOfProducts(app.Index.Value, :) = editedRow;
             CallingMainApp(app, 'REPORT:EditInfo', true, true, app.Index.Value)
@@ -194,7 +229,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 474 588];
+                app.UIFigure.Position = [100 100 580 554];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_48.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -250,8 +285,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create report_EditableInfoGrid
             app.report_EditableInfoGrid = uigridlayout(app.ParametersPanel);
-            app.report_EditableInfoGrid.ColumnWidth = {'1x', '1x', '1x', '1x', '1x'};
-            app.report_EditableInfoGrid.RowHeight = {17, 22, 17, 22, 17, 22, 1, 22, 22, 22, 1, 26, 22, 26, 22, 17, 22, 17, '1x'};
+            app.report_EditableInfoGrid.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x'};
+            app.report_EditableInfoGrid.RowHeight = {17, 22, 17, 22, 17, 22, 1, 22, 22, 22, 17, 22, 26, 22, 17, 22, 17, '1x'};
             app.report_EditableInfoGrid.RowSpacing = 5;
             app.report_EditableInfoGrid.Padding = [10 10 10 5];
             app.report_EditableInfoGrid.BackgroundColor = [1 1 1];
@@ -311,7 +346,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Type.FontSize = 11;
             app.Type.BackgroundColor = [1 1 1];
             app.Type.Layout.Row = 2;
-            app.Type.Layout.Column = [4 5];
+            app.Type.Layout.Column = [4 7];
             app.Type.Value = {};
 
             % Create ManufacturerLabel
@@ -327,14 +362,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Manufacturer.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.Manufacturer.FontSize = 11;
             app.Manufacturer.Layout.Row = 4;
-            app.Manufacturer.Layout.Column = [1 3];
+            app.Manufacturer.Layout.Column = [1 5];
 
             % Create ModelLabel
             app.ModelLabel = uilabel(app.report_EditableInfoGrid);
             app.ModelLabel.VerticalAlignment = 'bottom';
             app.ModelLabel.FontSize = 10;
             app.ModelLabel.Layout.Row = 3;
-            app.ModelLabel.Layout.Column = [4 5];
+            app.ModelLabel.Layout.Column = 6;
             app.ModelLabel.Text = 'Modelo:';
 
             % Create Model
@@ -342,7 +377,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Model.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.Model.FontSize = 11;
             app.Model.Layout.Row = 4;
-            app.Model.Layout.Column = [4 5];
+            app.Model.Layout.Column = [6 7];
 
             % Create ImportadorLabel
             app.ImportadorLabel = uilabel(app.report_EditableInfoGrid);
@@ -357,14 +392,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Importador.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.Importador.FontSize = 11;
             app.Importador.Layout.Row = 6;
-            app.Importador.Layout.Column = [1 3];
+            app.Importador.Layout.Column = [1 5];
 
             % Create CodAduanaLabel
             app.CodAduanaLabel = uilabel(app.report_EditableInfoGrid);
             app.CodAduanaLabel.VerticalAlignment = 'bottom';
             app.CodAduanaLabel.FontSize = 10;
             app.CodAduanaLabel.Layout.Row = 5;
-            app.CodAduanaLabel.Layout.Column = [4 5];
+            app.CodAduanaLabel.Layout.Column = [6 7];
             app.CodAduanaLabel.Text = 'Código aduaneiro:';
 
             % Create CodAduana
@@ -372,7 +407,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.CodAduana.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.CodAduana.FontSize = 11;
             app.CodAduana.Layout.Row = 6;
-            app.CodAduana.Layout.Column = [4 5];
+            app.CodAduana.Layout.Column = [6 7];
 
             % Create RF
             app.RF = uicheckbox(app.report_EditableInfoGrid);
@@ -396,15 +431,15 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Interference.Text = 'Evidenciada INTERFERÊNCIA decorrente do uso do produto.';
             app.Interference.FontSize = 11;
             app.Interference.Layout.Row = 10;
-            app.Interference.Layout.Column = [1 4];
+            app.Interference.Layout.Column = [1 7];
 
             % Create UnitPriceLabel
             app.UnitPriceLabel = uilabel(app.report_EditableInfoGrid);
             app.UnitPriceLabel.VerticalAlignment = 'bottom';
             app.UnitPriceLabel.FontSize = 10;
-            app.UnitPriceLabel.Layout.Row = 12;
-            app.UnitPriceLabel.Layout.Column = 1;
-            app.UnitPriceLabel.Text = {'Valor unitário'; '(R$):'};
+            app.UnitPriceLabel.Layout.Row = 11;
+            app.UnitPriceLabel.Layout.Column = [1 2];
+            app.UnitPriceLabel.Text = 'Valor unit. (R$):';
 
             % Create UnitPrice
             app.UnitPrice = uieditfield(app.report_EditableInfoGrid, 'numeric');
@@ -412,16 +447,49 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.UnitPrice.ValueDisplayFormat = '%.2f';
             app.UnitPrice.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.UnitPrice.FontSize = 11;
-            app.UnitPrice.Layout.Row = 13;
+            app.UnitPrice.Layout.Row = 12;
             app.UnitPrice.Layout.Column = 1;
+
+            % Create UnitPriceSourceLabel
+            app.UnitPriceSourceLabel = uilabel(app.report_EditableInfoGrid);
+            app.UnitPriceSourceLabel.VerticalAlignment = 'bottom';
+            app.UnitPriceSourceLabel.FontSize = 10;
+            app.UnitPriceSourceLabel.Layout.Row = 11;
+            app.UnitPriceSourceLabel.Layout.Column = [2 4];
+            app.UnitPriceSourceLabel.Text = 'Fonte do valor:';
+
+            % Create UnitPriceSource
+            app.UnitPriceSource = uieditfield(app.report_EditableInfoGrid, 'text');
+            app.UnitPriceSource.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.UnitPriceSource.FontSize = 11;
+            app.UnitPriceSource.Layout.Row = 12;
+            app.UnitPriceSource.Layout.Column = [2 7];
+
+            % Create QtdUsoLabel
+            app.QtdUsoLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdUsoLabel.VerticalAlignment = 'bottom';
+            app.QtdUsoLabel.FontSize = 10;
+            app.QtdUsoLabel.Layout.Row = 13;
+            app.QtdUsoLabel.Layout.Column = 1;
+            app.QtdUsoLabel.Text = {'Qtd.'; 'em uso:'};
+
+            % Create QtdUso
+            app.QtdUso = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdUso.Limits = [0 Inf];
+            app.QtdUso.RoundFractionalValues = 'on';
+            app.QtdUso.ValueDisplayFormat = '%.0f';
+            app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdUso.FontSize = 11;
+            app.QtdUso.Layout.Row = 14;
+            app.QtdUso.Layout.Column = 1;
 
             % Create QtdVendidaLabel
             app.QtdVendidaLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdVendidaLabel.VerticalAlignment = 'bottom';
             app.QtdVendidaLabel.FontSize = 10;
-            app.QtdVendidaLabel.Layout.Row = 14;
-            app.QtdVendidaLabel.Layout.Column = 1;
-            app.QtdVendidaLabel.Text = {'Qtd.'; 'uso/vendida:'};
+            app.QtdVendidaLabel.Layout.Row = 13;
+            app.QtdVendidaLabel.Layout.Column = 2;
+            app.QtdVendidaLabel.Text = {'Qtd.'; 'vendida:'};
 
             % Create QtdVendida
             app.QtdVendida = uieditfield(app.report_EditableInfoGrid, 'numeric');
@@ -430,15 +498,15 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdVendida.ValueDisplayFormat = '%.0f';
             app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdVendida.FontSize = 11;
-            app.QtdVendida.Layout.Row = 15;
-            app.QtdVendida.Layout.Column = 1;
+            app.QtdVendida.Layout.Row = 14;
+            app.QtdVendida.Layout.Column = 2;
 
             % Create QtdEstoqueLabel
             app.QtdEstoqueLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdEstoqueLabel.VerticalAlignment = 'bottom';
             app.QtdEstoqueLabel.FontSize = 10;
-            app.QtdEstoqueLabel.Layout.Row = 14;
-            app.QtdEstoqueLabel.Layout.Column = 2;
+            app.QtdEstoqueLabel.Layout.Row = 13;
+            app.QtdEstoqueLabel.Layout.Column = [3 4];
             app.QtdEstoqueLabel.Text = {'Qtd.'; 'estoque/aduana:'};
 
             % Create QtdEstoque
@@ -448,16 +516,34 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdEstoque.ValueDisplayFormat = '%.0f';
             app.QtdEstoque.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdEstoque.FontSize = 11;
-            app.QtdEstoque.Layout.Row = 15;
-            app.QtdEstoque.Layout.Column = 2;
+            app.QtdEstoque.Layout.Row = 14;
+            app.QtdEstoque.Layout.Column = 3;
+
+            % Create QtdAnunciadaLabel
+            app.QtdAnunciadaLabel = uilabel(app.report_EditableInfoGrid);
+            app.QtdAnunciadaLabel.VerticalAlignment = 'bottom';
+            app.QtdAnunciadaLabel.FontSize = 10;
+            app.QtdAnunciadaLabel.Layout.Row = 13;
+            app.QtdAnunciadaLabel.Layout.Column = 4;
+            app.QtdAnunciadaLabel.Text = {'Qtd.'; 'anunciada:'};
+
+            % Create QtdAnunciada
+            app.QtdAnunciada = uieditfield(app.report_EditableInfoGrid, 'numeric');
+            app.QtdAnunciada.Limits = [0 Inf];
+            app.QtdAnunciada.RoundFractionalValues = 'on';
+            app.QtdAnunciada.ValueDisplayFormat = '%.0f';
+            app.QtdAnunciada.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
+            app.QtdAnunciada.FontSize = 11;
+            app.QtdAnunciada.Layout.Row = 14;
+            app.QtdAnunciada.Layout.Column = 4;
 
             % Create QtdLacradaLabel
             app.QtdLacradaLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdLacradaLabel.VerticalAlignment = 'bottom';
             app.QtdLacradaLabel.FontSize = 10;
-            app.QtdLacradaLabel.Layout.Row = 14;
-            app.QtdLacradaLabel.Layout.Column = 3;
-            app.QtdLacradaLabel.Text = {'Qtd.'; 'lacradas:'};
+            app.QtdLacradaLabel.Layout.Row = 13;
+            app.QtdLacradaLabel.Layout.Column = 5;
+            app.QtdLacradaLabel.Text = {'Qtd.'; 'lacrada:'};
 
             % Create QtdLacrada
             app.QtdLacrada = uieditfield(app.report_EditableInfoGrid, 'numeric');
@@ -466,16 +552,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdLacrada.ValueDisplayFormat = '%.0f';
             app.QtdLacrada.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdLacrada.FontSize = 11;
-            app.QtdLacrada.Layout.Row = 15;
-            app.QtdLacrada.Layout.Column = 3;
+            app.QtdLacrada.Layout.Row = 14;
+            app.QtdLacrada.Layout.Column = 5;
 
             % Create QtdApreendidaLabel
             app.QtdApreendidaLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdApreendidaLabel.VerticalAlignment = 'bottom';
             app.QtdApreendidaLabel.FontSize = 10;
-            app.QtdApreendidaLabel.Layout.Row = 14;
-            app.QtdApreendidaLabel.Layout.Column = 4;
-            app.QtdApreendidaLabel.Text = {'Qtd.'; 'apreendidas:'};
+            app.QtdApreendidaLabel.Layout.Row = 13;
+            app.QtdApreendidaLabel.Layout.Column = 6;
+            app.QtdApreendidaLabel.Text = {'Qtd.'; 'apreendida:'};
 
             % Create QtdApreendida
             app.QtdApreendida = uieditfield(app.report_EditableInfoGrid, 'numeric');
@@ -484,16 +570,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdApreendida.ValueDisplayFormat = '%.0f';
             app.QtdApreendida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdApreendida.FontSize = 11;
-            app.QtdApreendida.Layout.Row = 15;
-            app.QtdApreendida.Layout.Column = 4;
+            app.QtdApreendida.Layout.Row = 14;
+            app.QtdApreendida.Layout.Column = 6;
 
             % Create QtdRetidaLabel
             app.QtdRetidaLabel = uilabel(app.report_EditableInfoGrid);
             app.QtdRetidaLabel.VerticalAlignment = 'bottom';
             app.QtdRetidaLabel.FontSize = 10;
-            app.QtdRetidaLabel.Layout.Row = 14;
-            app.QtdRetidaLabel.Layout.Column = 5;
-            app.QtdRetidaLabel.Text = {'Qtd.'; 'retidas (RFB):'};
+            app.QtdRetidaLabel.Layout.Row = 13;
+            app.QtdRetidaLabel.Layout.Column = 7;
+            app.QtdRetidaLabel.Text = {'Qtd.'; 'retida (RFB):'};
 
             % Create QtdRetida
             app.QtdRetida = uieditfield(app.report_EditableInfoGrid, 'numeric');
@@ -502,14 +588,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdRetida.ValueDisplayFormat = '%.0f';
             app.QtdRetida.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.QtdRetida.FontSize = 11;
-            app.QtdRetida.Layout.Row = 15;
-            app.QtdRetida.Layout.Column = 5;
+            app.QtdRetida.Layout.Row = 14;
+            app.QtdRetida.Layout.Column = 7;
 
             % Create SituationLabel
             app.SituationLabel = uilabel(app.report_EditableInfoGrid);
             app.SituationLabel.VerticalAlignment = 'bottom';
             app.SituationLabel.FontSize = 10;
-            app.SituationLabel.Layout.Row = 16;
+            app.SituationLabel.Layout.Row = 15;
             app.SituationLabel.Layout.Column = 1;
             app.SituationLabel.Text = 'Situação:';
 
@@ -519,16 +605,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Situation.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.Situation.FontSize = 11;
             app.Situation.BackgroundColor = [1 1 1];
-            app.Situation.Layout.Row = 17;
-            app.Situation.Layout.Column = 1;
+            app.Situation.Layout.Row = 16;
+            app.Situation.Layout.Column = [1 2];
             app.Situation.Value = 'Irregular';
 
             % Create ViolationTypeLabel
             app.ViolationTypeLabel = uilabel(app.report_EditableInfoGrid);
             app.ViolationTypeLabel.VerticalAlignment = 'bottom';
             app.ViolationTypeLabel.FontSize = 10;
-            app.ViolationTypeLabel.Layout.Row = 16;
-            app.ViolationTypeLabel.Layout.Column = 2;
+            app.ViolationTypeLabel.Layout.Row = 15;
+            app.ViolationTypeLabel.Layout.Column = [3 6];
             app.ViolationTypeLabel.Text = 'Infração:';
 
             % Create ViolationType
@@ -537,16 +623,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.ViolationType.FontSize = 11;
             app.ViolationType.BackgroundColor = [1 1 1];
-            app.ViolationType.Layout.Row = 17;
-            app.ViolationType.Layout.Column = [2 4];
+            app.ViolationType.Layout.Row = 16;
+            app.ViolationType.Layout.Column = [3 6];
             app.ViolationType.Value = 'Comercialização';
 
             % Create CorrigibleLabel
             app.CorrigibleLabel = uilabel(app.report_EditableInfoGrid);
             app.CorrigibleLabel.VerticalAlignment = 'bottom';
             app.CorrigibleLabel.FontSize = 10;
-            app.CorrigibleLabel.Layout.Row = 16;
-            app.CorrigibleLabel.Layout.Column = 5;
+            app.CorrigibleLabel.Layout.Row = 15;
+            app.CorrigibleLabel.Layout.Column = 7;
             app.CorrigibleLabel.Text = 'Sanável?';
 
             % Create Corrigible
@@ -555,15 +641,15 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Corrigible.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.Corrigible.FontSize = 11;
             app.Corrigible.BackgroundColor = [1 1 1];
-            app.Corrigible.Layout.Row = 17;
-            app.Corrigible.Layout.Column = 5;
+            app.Corrigible.Layout.Row = 16;
+            app.Corrigible.Layout.Column = 7;
             app.Corrigible.Value = '-1';
 
             % Create optNotesLabel
             app.optNotesLabel = uilabel(app.report_EditableInfoGrid);
             app.optNotesLabel.VerticalAlignment = 'bottom';
             app.optNotesLabel.FontSize = 10;
-            app.optNotesLabel.Layout.Row = 18;
+            app.optNotesLabel.Layout.Row = 17;
             app.optNotesLabel.Layout.Column = [1 3];
             app.optNotesLabel.Text = 'Informações adicionais:';
 
@@ -571,8 +657,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.optNotes = uitextarea(app.report_EditableInfoGrid);
             app.optNotes.ValueChangedFcn = createCallbackFcn(app, @TypeValueChanged, true);
             app.optNotes.FontSize = 11;
-            app.optNotes.Layout.Row = 19;
-            app.optNotes.Layout.Column = [1 5];
+            app.optNotes.Layout.Row = 18;
+            app.optNotes.Layout.Column = [1 7];
 
             % Create PreviousProduct
             app.PreviousProduct = uiimage(app.Document);

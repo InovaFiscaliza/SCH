@@ -38,7 +38,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            allColumns      = app.General.ui.SCHData.name;
+            allColumns      = app.General.ui.searchTable.name;
             [~, sortIndex]  = sort(lower(allColumns));
             GUIAllColumns   = allColumns(sortIndex);
 
@@ -50,8 +50,8 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function filter = SecundaryFilterType(app, columnName)
-            index  = find(strcmp(app.General.ui.SCHData.name, columnName), 1);
-            filter = app.General.ui.SCHData.filter{index};
+            index  = find(strcmp(app.General.ui.searchTable.name, columnName), 1);
+            filter = app.General.ui.searchTable.filter{index};
         end
 
        %-----------------------------------------------------------------%
@@ -109,11 +109,11 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainapp)
+        function startupFcn(app, mainApp)
             
-            app.CallingApp   = mainapp;
-            app.General      = mainapp.General;
-            app.filteringObj = mainapp.filteringObj;
+            app.CallingApp   = mainApp;
+            app.General      = mainApp.General;
+            app.filteringObj = mainApp.filteringObj;
 
             initialValues(app)
             

@@ -85,7 +85,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A fiscalização foi realizada em <b>%s</b>, %s inscrito no CNPJ/CPF sob o nº <b>%s</b>, e consistiu na averiguação <i>in loco</i> de produtos para telecomunicações em posse do fiscalizado, os quais são destinados ao uso ou à comercialização.",
+                        "Text": "A fiscalização foi realizada em <b>%s</b>, %s inscrito no CNPJ/CPF sob o nº <b>%s</b>, com o objetivo de averiguar produtos para telecomunicações, bem como eventuais anúncios sob a responsabilidade do fiscalizado, destinados ao uso ou à comercialização.",
                         "Variable": [
                             "var_EntityName",
                             "var_EntityType",                            
@@ -116,8 +116,31 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableFcn1",
-                        "Columns": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+                        "Source": "tableProducts",
+                        "Columns": [
+                            "#", 
+                            "Homologação",
+                            "Tipo",
+                            "Fabricante",
+                            "Modelo",                            
+                            "RF?",
+                            "Em uso?",
+                            "Interferência?",
+                            "Valor Unit. (R$)",
+                            "Fonte do valor",
+                            "Qtd. vistoriadas",
+                            "Qtd. vendida",
+                            "Qtd. uso",
+                            "Qtd. estoque/aduana",
+                            "Qtd. anunciada",
+                            "Qtd. lacradas",
+                            "Qtd. apreendidas",
+                            "Qtd. retidas (RFB)",
+                            "Mercadoria vendida (R$)",
+                            "Mercadoria retida (R$)",
+                            "Infração",
+                            "Informações adicionais"
+                        ],
                         "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
                         "Settings": [
                             {
@@ -128,15 +151,39 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Produto",
+                                "ColumnName": "Homologação",
                                 "Precision": "%s",
-                                "Width": "280px"
+                                "Width": "90px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Tipo",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Fabricante",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Modelo",
+                                "Precision": "%s",
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "RF?",
                                 "Precision": "%s",
-                                "Width": "70px"
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Em uso?",
+                                "Precision": "%s",
+                                "Width": "60px"
                             },
                             {
                                 "Editable": "false",
@@ -151,43 +198,79 @@
                                 "Width": "70px"
                             },
                             {
+                                "Editable": "true",
+                                "ColumnName": "Fonte do valor",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
                                 "Editable": "false",
-                                "ColumnName": "Qtd.<br>uso/vendida",
+                                "ColumnName": "Qtd.<br>vistoriada",
                                 "Precision": "%.0f",
-                                "Width": "70px"
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>vendida",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>em uso",
+                                "Precision": "%.0f",
+                                "Width": "60px"
                             },
                             {
                                 "Editable": "false",
                                 "ColumnName": "Qtd.<br>estoque",
                                 "Precision": "%.0f",
-                                "Width": "70px"
+                                "Width": "60px"
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Qtd.<br>lacradas",
+                                "ColumnName": "Qtd.<br>anunciada",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>lacrada",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>apreendida",
+                                "Precision": "%.0f",
+                                "Width": "60px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>retida (RFB)",
                                 "Precision": "%.0f",
                                 "Width": "70px"
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Qtd.<br>apreendidas",
-                                "Precision": "%.0f",
-                                "Width": "70px"
+                                "ColumnName": "Estimativa<br>valor de mercado<br>(unidades vendidas)",
+                                "Precision": "R$ %.2f",
+                                "Width": "110px"
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Qtd.<br>retidas (RFB)",
-                                "Precision": "%.0f",
-                                "Width": "70px"
+                                "ColumnName": "Estimativa<br>valor de mercado<br>(unidades retidas)",
+                                "Precision": "R$ %.2f",
+                                "Width": "110px"
                             },
                             {
-                                "Editable": "false",
+                                "Editable": "true",
                                 "ColumnName": "Infração",
                                 "Precision": "%s",
-                                "Width": "130px"
+                                "Width": "auto"
                             },
                             {
-                                "Editable": "false",
+                                "Editable": "true",
                                 "ColumnName": "Informações adicionais<br>(opcional)",
                                 "Precision": "%s",
                                 "Width": "auto"
@@ -210,7 +293,7 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableFcn2",
+                        "Source": "tableSummarized",
                         "Columns": [1, 2, 3, 4, 5, 6],
                         "Caption": "Sumarização em relação aos tipos dos produtos para telecomunicações inspecionados.",
                         "Settings": [
@@ -235,7 +318,7 @@
                             {
                                 "Editable": "false",
                                 "ColumnName": "Valor médio<br>unitário<br>",
-                                "Precision": "R$ %.2f",
+                                "Precision": "%s",
                                 "Width": "110px"
                             },
                             {
@@ -268,7 +351,7 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableFcn2",
+                        "Source": "tableSummarized",
                         "Columns": [1, 2, 3, 4, 5, 6],
                         "Caption": "Sumarização em relação às infrações evidenciadas.",
                         "Settings": [
@@ -293,7 +376,7 @@
                             {
                                 "Editable": "false",
                                 "ColumnName": "Valor médio<br>unitário<br>",
-                                "Precision": "R$ %.2f",
+                                "Precision": "%s",
                                 "Width": "110px"
                             },
                             {

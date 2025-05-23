@@ -237,10 +237,10 @@ classdef winConfig_exported < matlab.apps.AppBase
                 delete(app.config_SelectedTableColumns.Children)
             end
 
-            for ii = 1:height(app.mainApp.General.ui.SCHData)
-                columnName     = app.mainApp.General.ui.SCHData.name{ii};
-                columnVisible  = app.mainApp.General.ui.SCHData.visible(ii);
-                columnPosition = app.mainApp.General.ui.SCHData.columnPosition(ii);
+            for ii = 1:height(app.mainApp.General.ui.searchTable)
+                columnName     = app.mainApp.General.ui.searchTable.name{ii};
+                columnVisible  = app.mainApp.General.ui.searchTable.visible(ii);
+                columnPosition = app.mainApp.General.ui.searchTable.columnPosition(ii);
 
                 treeNode       = uitreenode(app.config_SelectedTableColumns, 'Text', columnName);
                 if columnPosition % static
@@ -260,19 +260,20 @@ classdef winConfig_exported < matlab.apps.AppBase
         function Folder_updatePanel(app)
             % Na versão webapp, a configuração das pastas não é habilitada.
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.btnFolder.Enable      = 1;
+                app.btnFolder.Enable       = 1;
 
                 DataHub_GET  = app.mainApp.General.fileFolder.DataHub_GET;
                 if isfolder(DataHub_GET)
-                    app.DataHubGET.Value  = DataHub_GET;
+                    app.DataHubGET.Value   = DataHub_GET;
+                    app.exportTable.Enable = 'on';
                 end
 
                 DataHub_POST = app.mainApp.General.fileFolder.DataHub_POST;    
                 if isfolder(DataHub_POST)
-                    app.DataHubPOST.Value = DataHub_POST;
+                    app.DataHubPOST.Value  = DataHub_POST;
                 end
 
-                app.userPath.Value        = app.mainApp.General.fileFolder.userPath;
+                app.userPath.Value         = app.mainApp.General.fileFolder.userPath;
             end
         end
 
@@ -280,21 +281,21 @@ classdef winConfig_exported < matlab.apps.AppBase
         function columnInfo = search_Table_ColumnInfo(app, type)
             switch type
                 case 'staticColumns'
-                    staticLogical  = logical(app.mainApp.General.ui.SCHData.columnPosition);
-                    staticIndex    = app.mainApp.General.ui.SCHData.columnPosition(staticLogical);
+                    staticLogical  = logical(app.mainApp.General.ui.searchTable.columnPosition);
+                    staticIndex    = app.mainApp.General.ui.searchTable.columnPosition(staticLogical);
                     [~, idxOrder]  = sort(staticIndex);
-                    columnList     = app.mainApp.General.ui.SCHData.name(staticLogical);
+                    columnList     = app.mainApp.General.ui.searchTable.name(staticLogical);
                     columnInfo     = columnList(idxOrder);
 
                 case 'visibleColumns'
-                    visibleLogical = logical(app.mainApp.General.ui.SCHData.visible);
-                    columnInfo     = app.mainApp.General.ui.SCHData.name(visibleLogical);
+                    visibleLogical = logical(app.mainApp.General.ui.searchTable.visible);
+                    columnInfo     = app.mainApp.General.ui.searchTable.name(visibleLogical);
 
                 case 'allColumns'
-                    columnInfo     = app.mainApp.General.ui.SCHData.name;
+                    columnInfo     = app.mainApp.General.ui.searchTable.name;
 
                 case 'allColumnsWidths'
-                    columnInfo     = app.mainApp.General.ui.SCHData.columnWidth;
+                    columnInfo     = app.mainApp.General.ui.searchTable.columnWidth;
             end
         end
 
@@ -384,7 +385,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             projectFilePath    = fullfile(projectFolder, 'GeneralSettings.json');
 
             projectFileContent = jsondecode(fileread(projectFilePath));
-            projectFileContent.ui.SCHData = struct2table(projectFileContent.ui.SCHData);
+            projectFileContent.ui.searchTable = struct2table(projectFileContent.ui.searchTable);
 
             if isequal(app.mainApp.General.search, projectFileContent.search) && isequal(app.mainApp.General.ui, projectFileContent.ui)
                 msgWarning = 'Configurações atuais já coincidem com as iniciais.';
@@ -401,7 +402,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     ipcEventName{end+1} = 'wordCloudAlgorithmChanged';
                 end
 
-                if ~isequal(app.mainApp.General.ui.SCHData, projectFileContent.ui.SCHData)
+                if ~isequal(app.mainApp.General.ui.searchTable, projectFileContent.ui.searchTable)
                     ipcEventName{end+1} = 'searchVisibleColumnsChanged';
                 end
 
@@ -477,8 +478,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                     % E depois atualiza "GeneralSettings.json"...
                     finalCheckedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
-                    for jj = 1:height(app.mainApp.General.ui.SCHData)
-                        app.mainApp.General.ui.SCHData.visible(jj) = ismember(app.mainApp.General.ui.SCHData.name{jj}, finalCheckedColumns);
+                    for jj = 1:height(app.mainApp.General.ui.searchTable)
+                        app.mainApp.General.ui.searchTable.visible(jj) = ismember(app.mainApp.General.ui.searchTable.name{jj}, finalCheckedColumns);
                     end
             end
 
@@ -567,7 +568,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             switch event.Source
                 case app.exportTable
                     nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
-                    defaultName   = class.Constants.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
+                    defaultName   = appUtil.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
                     fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
                     if isempty(fileFullPath)
                         return
@@ -657,6 +658,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create exportTable
             app.exportTable = uiimage(app.toolGrid);
             app.exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
+            app.exportTable.Enable = 'off';
             app.exportTable.Tooltip = {'Abre cópia de base dados no Excel'};
             app.exportTable.Layout.Row = 2;
             app.exportTable.Layout.Column = 1;

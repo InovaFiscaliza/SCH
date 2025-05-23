@@ -154,8 +154,24 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableFcn3",
-                        "Columns": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        "Source": "tableProducts",
+                        "Columns": [
+                            "#", 
+                            "Homologação",
+                            "Tipo",
+                            "Fabricante",
+                            "Modelo",   
+                            "RF?",
+                            "Importador",
+                            "Código aduaneiro",
+                            "Valor Unit. (R$)",
+                            "Fonte do valor",
+                            "Qtd. estoque/aduana",
+                            "Qtd. retidas (RFB)",
+                            "Situação",
+                            "Sanável?",
+                            "Informações adicionais"
+                        ],
                         "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
                         "Settings": [
                             {
@@ -166,9 +182,27 @@
                             },
                             {
                                 "Editable": "false",
-                                "ColumnName": "Produto",
+                                "ColumnName": "Homologação",
                                 "Precision": "%s",
-                                "Width": "280px"
+                                "Width": "90px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Tipo",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Fabricante",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Modelo",
+                                "Precision": "%s",
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "false",
@@ -177,13 +211,13 @@
                                 "Width": "70px"
                             },
                             {
-                                "Editable": "false",
+                                "Editable": "true",
                                 "ColumnName": "Importador",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },
                             {
-                                "Editable": "false",
+                                "Editable": "true",
                                 "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
                                 "Width": "70px"
@@ -195,8 +229,20 @@
                                 "Width": "70px"
                             },
                             {
+                                "Editable": "true",
+                                "ColumnName": "Fonte do valor",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
                                 "Editable": "false",
                                 "ColumnName": "Qtd.<br>aduana",
+                                "Precision": "%.0f",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Qtd.<br>retida (RFB)",
                                 "Precision": "%.0f",
                                 "Width": "70px"
                             },
@@ -213,7 +259,7 @@
                                 "Width": "auto"
                             },
                             {
-                                "Editable": "false",
+                                "Editable": "true",
                                 "ColumnName": "Informações adicionais<br>(opcional)",
                                 "Precision": "%s",
                                 "Width": "auto"
