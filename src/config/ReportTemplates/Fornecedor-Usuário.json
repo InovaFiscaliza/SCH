@@ -445,8 +445,6 @@
                             "RF?",
                             "Em uso?",
                             "Interferência?",
-                            "Valor Unit. (R$)",
-                            "Fonte do valor",
                             "Qtd. vendida",
                             "Qtd. uso",
                             "Qtd. estoque/aduana",
@@ -501,18 +499,6 @@
                                 "ColumnName": "Interferência?",
                                 "Precision": "%s",
                                 "Width": "70px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Valor<br>unitário",
-                                "Precision": "R$ %.2f",
-                                "Width": "70px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Fonte do valor",
-                                "Precision": "%s",
-                                "Width": "auto"
                             },
                             {
                                 "Editable": "false",

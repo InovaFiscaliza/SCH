@@ -83,14 +83,16 @@ classdef winSCH_exported < matlab.apps.AppBase
         report_ProjectNew               matlab.ui.control.Image
         report_IssuePanel               matlab.ui.container.Panel
         report_IssueGrid                matlab.ui.container.GridLayout
-        report_system                   matlab.ui.control.DropDown
-        report_systemLabel              matlab.ui.control.Label
         report_Version                  matlab.ui.control.DropDown
         report_VersionLabel             matlab.ui.control.Label
-        report_ModelNameLabel           matlab.ui.control.Label
         report_ModelName                matlab.ui.control.DropDown
+        report_ModelNameLabel           matlab.ui.control.Label
+        report_Unit                     matlab.ui.control.DropDown
+        report_UnitLabel                matlab.ui.control.Label
         report_Issue                    matlab.ui.control.NumericEditField
         report_IssueLabel               matlab.ui.control.Label
+        report_system                   matlab.ui.control.DropDown
+        report_systemLabel              matlab.ui.control.Label
         report_IssuePanelLabel          matlab.ui.control.Label
         report_ProjectLabel             matlab.ui.control.Label
         GridLayout7                     matlab.ui.container.GridLayout
@@ -548,6 +550,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             end
 
                             report_syncTableAndGui(app, 'tableViewChanged')
+                            app.report_Unit.Items      = app.General.ui.unit.options;
                             app.report_ModelName.Items = [{''}, {reportLibConnection.Controller.Read(app.rootFolder).Name}];
 
                         otherwise
@@ -859,7 +862,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function report_uploadInfoController(app, credentials, operation)
             communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation);
-            if communicationStatus
+            if communicationStatus && strcmp(app.report_system.Value, 'eFiscaliza')
                 report_sendJSONFileToSharepoint(app)
             end
         end
@@ -884,12 +887,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                         end
 
                         issue    = struct('type', 'ATIVIDADE DE INSPEÇÃO', 'id', app.report_Issue.Value);
+                        unit     = app.report_Unit.Value;
                         fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;
                         docSpec  = app.General.eFiscaliza;
                         docSpec.originId = docSpec.internal.originId;
                         docSpec.typeId   = docSpec.internal.typeId;
 
-                        [status, msg] = run(app.eFiscalizaObj, env, operation, issue, docSpec, fileName);
+                        msg = run(app.eFiscalizaObj, env, operation, issue, unit, docSpec, fileName);
         
                     otherwise
                         error('Unexpected call')
@@ -900,7 +904,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
 
                 modalWindowIcon     = 'success';
-                modalWindowMessage  = sprintf('<b>%s</b>\n%s', status, msg);
+                modalWindowMessage  = msg;
                 communicationStatus = true;
 
             catch ME
@@ -2139,6 +2143,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msgWarning{end+1} = sprintf('• O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
             end
 
+            if isempty(app.report_Unit.Value)
+                msgWarning{end+1} = '• Unidade geradora do documento precisa ser selecionada.';
+            end
+
             switch app.report_EntityType.Value
                 case ''
                     msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
@@ -2397,8 +2405,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                             % Atualizando os componentes da GUI...
                             app.report_ProjectName.Value   = fileFullPath;
                             app.report_Issue.Value         = variables.projectIssue;
+                            if isfield(variables, 'projectUnit')
+                                app.report_Unit.Value      = variables.projectUnit;
+                            end
+
                             app.report_Entity.Value        = variables.entityName;
-                            
                             app.report_EntityID.Value      = variables.entityID;
                             layout_CNPJOrCPF(app, true)
                             
@@ -2474,6 +2485,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         variables = struct('listOfProducts',   app.projectData.listOfProducts, ...
                                            'projectName',      fullfile(filePath, fileName),   ...
                                            'projectIssue',     app.report_Issue.Value,         ...
+                                           'projectUnit',      app.report_Unit.Value,          ...
                                            'reportModel',      app.report_ModelName.Value,     ...
                                            'entityName',       app.report_Entity.Value,        ...
                                            'entityID',         app.report_EntityID.Value,      ...
@@ -2533,6 +2545,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msg = 'Operação aplicável apenas quando a lista de produtos a analisar não está vazia.';
             elseif ~report_checkEFiscalizaIssueId(app)
                 msg = sprintf('O número da inspeção "%.0f" é inválido.', app.report_Issue.Value);
+            elseif isempty(app.report_Unit.Value)
+                msg = 'Unidade geradora do documento precisa ser selecionada.';
             elseif isempty(app.projectData.generatedFiles) || isempty(app.projectData.generatedFiles.lastHTMLDocFullPath)
                 msg = 'A versão definitiva do relatório ainda não foi gerada.';
             elseif ~isfile(app.projectData.generatedFiles.lastHTMLDocFullPath)
@@ -3456,11 +3470,30 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create report_IssueGrid
             app.report_IssueGrid = uigridlayout(app.report_IssuePanel);
-            app.report_IssueGrid.ColumnWidth = {90, '1x', 16, 64, 16};
+            app.report_IssueGrid.ColumnWidth = {110, 84, 84};
             app.report_IssueGrid.RowHeight = {17, 22, 17, 22};
             app.report_IssueGrid.RowSpacing = 5;
             app.report_IssueGrid.Padding = [10 10 10 5];
             app.report_IssueGrid.BackgroundColor = [1 1 1];
+
+            % Create report_systemLabel
+            app.report_systemLabel = uilabel(app.report_IssueGrid);
+            app.report_systemLabel.VerticalAlignment = 'bottom';
+            app.report_systemLabel.WordWrap = 'on';
+            app.report_systemLabel.FontSize = 10;
+            app.report_systemLabel.FontColor = [0.149 0.149 0.149];
+            app.report_systemLabel.Layout.Row = 1;
+            app.report_systemLabel.Layout.Column = 1;
+            app.report_systemLabel.Text = 'Sistema:';
+
+            % Create report_system
+            app.report_system = uidropdown(app.report_IssueGrid);
+            app.report_system.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
+            app.report_system.FontSize = 11;
+            app.report_system.BackgroundColor = [1 1 1];
+            app.report_system.Layout.Row = 2;
+            app.report_system.Layout.Column = 1;
+            app.report_system.Value = 'eFiscaliza';
 
             % Create report_IssueLabel
             app.report_IssueLabel = uilabel(app.report_IssueGrid);
@@ -3469,7 +3502,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_IssueLabel.FontSize = 10;
             app.report_IssueLabel.FontColor = [0.149 0.149 0.149];
             app.report_IssueLabel.Layout.Row = 1;
-            app.report_IssueLabel.Layout.Column = 4;
+            app.report_IssueLabel.Layout.Column = 2;
             app.report_IssueLabel.Text = '# Id:';
 
             % Create report_Issue
@@ -3481,18 +3514,26 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Issue.FontSize = 11;
             app.report_Issue.FontColor = [0.149 0.149 0.149];
             app.report_Issue.Layout.Row = 2;
-            app.report_Issue.Layout.Column = [4 5];
+            app.report_Issue.Layout.Column = 2;
             app.report_Issue.Value = -1;
 
-            % Create report_ModelName
-            app.report_ModelName = uidropdown(app.report_IssueGrid);
-            app.report_ModelName.Items = {''};
-            app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
-            app.report_ModelName.FontSize = 11;
-            app.report_ModelName.BackgroundColor = [1 1 1];
-            app.report_ModelName.Layout.Row = 4;
-            app.report_ModelName.Layout.Column = [1 3];
-            app.report_ModelName.Value = '';
+            % Create report_UnitLabel
+            app.report_UnitLabel = uilabel(app.report_IssueGrid);
+            app.report_UnitLabel.VerticalAlignment = 'bottom';
+            app.report_UnitLabel.WordWrap = 'on';
+            app.report_UnitLabel.FontSize = 10;
+            app.report_UnitLabel.Layout.Row = 1;
+            app.report_UnitLabel.Layout.Column = 3;
+            app.report_UnitLabel.Text = 'Unidade:';
+
+            % Create report_Unit
+            app.report_Unit = uidropdown(app.report_IssueGrid);
+            app.report_Unit.Items = {};
+            app.report_Unit.FontSize = 11;
+            app.report_Unit.BackgroundColor = [1 1 1];
+            app.report_Unit.Layout.Row = 2;
+            app.report_Unit.Layout.Column = 3;
+            app.report_Unit.Value = {};
 
             % Create report_ModelNameLabel
             app.report_ModelNameLabel = uilabel(app.report_IssueGrid);
@@ -3503,13 +3544,23 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_ModelNameLabel.Layout.Column = [1 2];
             app.report_ModelNameLabel.Text = 'Modelo do relatório:';
 
+            % Create report_ModelName
+            app.report_ModelName = uidropdown(app.report_IssueGrid);
+            app.report_ModelName.Items = {''};
+            app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
+            app.report_ModelName.FontSize = 11;
+            app.report_ModelName.BackgroundColor = [1 1 1];
+            app.report_ModelName.Layout.Row = 4;
+            app.report_ModelName.Layout.Column = [1 2];
+            app.report_ModelName.Value = '';
+
             % Create report_VersionLabel
             app.report_VersionLabel = uilabel(app.report_IssueGrid);
             app.report_VersionLabel.VerticalAlignment = 'bottom';
             app.report_VersionLabel.WordWrap = 'on';
             app.report_VersionLabel.FontSize = 10;
             app.report_VersionLabel.Layout.Row = 3;
-            app.report_VersionLabel.Layout.Column = 4;
+            app.report_VersionLabel.Layout.Column = 3;
             app.report_VersionLabel.Text = 'Versão:';
 
             % Create report_Version
@@ -3518,27 +3569,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.report_Version.FontSize = 11;
             app.report_Version.BackgroundColor = [1 1 1];
             app.report_Version.Layout.Row = 4;
-            app.report_Version.Layout.Column = [4 5];
+            app.report_Version.Layout.Column = 3;
             app.report_Version.Value = 'Preliminar';
-
-            % Create report_systemLabel
-            app.report_systemLabel = uilabel(app.report_IssueGrid);
-            app.report_systemLabel.VerticalAlignment = 'bottom';
-            app.report_systemLabel.WordWrap = 'on';
-            app.report_systemLabel.FontSize = 10;
-            app.report_systemLabel.FontColor = [0.149 0.149 0.149];
-            app.report_systemLabel.Layout.Row = 1;
-            app.report_systemLabel.Layout.Column = [1 3];
-            app.report_systemLabel.Text = 'Sistema:';
-
-            % Create report_system
-            app.report_system = uidropdown(app.report_IssueGrid);
-            app.report_system.Items = {'eFiscaliza', 'eFiscaliza DS', 'eFiscaliza HM'};
-            app.report_system.FontSize = 11;
-            app.report_system.BackgroundColor = [1 1 1];
-            app.report_system.Layout.Row = 2;
-            app.report_system.Layout.Column = [1 3];
-            app.report_system.Value = 'eFiscaliza';
 
             % Create report_ProjectNew
             app.report_ProjectNew = uiimage(app.report_Tab2Grid);
