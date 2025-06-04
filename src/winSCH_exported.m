@@ -1831,13 +1831,28 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
+            if ~strcmp(app.executionMode, 'webApp')
+                projectName = char(app.report_ProjectName.Value);
+                if ~isempty(projectName) && app.report_ProjectWarnIcon.Visible
+                    msgQuestion = sprintf(['O projeto aberto - registrado no arquivo <b>"%s"</b> - foi alterado.\n\n' ...
+                                           'Deseja descartar essas alterações? Caso não, favor salvá-las.'], projectName);
+                else
+                    msgQuestion = 'Deseja fechar o aplicativo?';
+                end
+    
+                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                if userSelection == "Não"
+                    return
+                end
+            end
+
             % Especificidade "winSCH":
             try
                 writeFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             catch
             end
 
-            % Aspectos gerais (carregar em todos os apps):
+            % Aspectos gerais (comum em todos os apps):
             appUtil.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
             delete(app)
 
@@ -2506,7 +2521,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: report_Entity, report_Issue
+        % Value changed function: report_Entity, report_Issue, report_Unit
         function report_ProjectWarnImageVisibility(app, event)
 
             if ~isempty(app.report_ProjectName.Value{1})
@@ -3529,6 +3544,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create report_Unit
             app.report_Unit = uidropdown(app.report_IssueGrid);
             app.report_Unit.Items = {};
+            app.report_Unit.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
             app.report_Unit.FontSize = 11;
             app.report_Unit.BackgroundColor = [1 1 1];
             app.report_Unit.Layout.Row = 2;
