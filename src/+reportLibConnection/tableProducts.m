@@ -39,7 +39,16 @@ function outputTable = tableProducts(listOfProducts, configTable, legalSituation
 
         switch columnName
             case 'Informações adicionais'
-                listOfProducts.("Informações adicionais") = replace(listOfProducts.("Informações adicionais"), newline, '<br>');
+                for jj = 1:numel(listOfProducts.("Informações adicionais"))
+                    currentValue = listOfProducts.("Informações adicionais"){jj};
+
+                    if ~isempty(currentValue) && (ischar(currentValue) || (isstring(currentValue) && isscalar(currentValue)))
+                        listOfProducts.("Informações adicionais"){jj} = replace(currentValue, newline, '<br>');
+
+                    elseif iscellstr(currentValue)
+                        listOfProducts.("Informações adicionais"){jj} = replace(strjoin(currentValue, '<br>'), newline, '<br>');
+                    end
+                end
 
             otherwise
                 if islogical(listOfProducts.(columnName))

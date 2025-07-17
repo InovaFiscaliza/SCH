@@ -163,6 +163,11 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                     event.Source.Value = textFormatGUI.cellstr2TextField(event.Source.Value, '\n');
             end
 
+            optionalNotes = app.optNotes.Value;
+            if iscellstr(optionalNotes)
+                optionalNotes = strjoin(optionalNotes, '\n');
+            end
+
             % Atualiza tabela "listOfProducts":
             editedRow = {app.nHom.Value,            ...
                          app.Importador.Value,      ...
@@ -185,7 +190,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                          app.Situation.Value,       ...
                          app.ViolationType.Value,   ...
                          app.Corrigible.Value,      ...
-                         app.optNotes.Value};
+                         optionalNotes};
 
             app.projectData.listOfProducts(app.Index.Value, :) = editedRow;
             CallingMainApp(app, 'REPORT:EditInfo', true, true, app.Index.Value)

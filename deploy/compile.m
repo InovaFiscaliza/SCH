@@ -56,7 +56,7 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
 
     % Atualiza base de dados, caso necessário.
     SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData.mat');
-    SCHDataEditedFile   = "D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData.mat";
+    SCHDataEditedFile   = "C:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData.mat";
     if isfile(SCHDataEditedFile)
         load(SCHDataOriginalFile, 'releasedData')
         originalReleaseDate = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
