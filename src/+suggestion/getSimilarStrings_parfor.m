@@ -1,4 +1,4 @@
-function [similarStrings, idxFiltered, redFontFlag] = getSimilarStrings(cacheData, value2Search, listOfColumns, nMinValues)
+function [similarStrings, idxFiltered, redFontFlag] = getSimilarStrings_parfor(cacheData, value2Search, listOfColumns, nMinValues)
 
     persistent cacheStringList
     persistent cacheTokenList

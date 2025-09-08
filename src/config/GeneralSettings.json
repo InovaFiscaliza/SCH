@@ -1,5 +1,5 @@
 {
-    "version": 1.73,
+    "version": 1.74,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -7,8 +7,7 @@
         "DevTools": {
             "login": "admin",
             "password": "admin"
-        },
-        "FreeStorageThreshold": 4
+        }
     },
     "computerName": {
         "deskopApp": "",
