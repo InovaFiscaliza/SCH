@@ -9,15 +9,21 @@ function [rawTable, cacheData] = CacheCreation(rawTable, cacheColumns)
         uniqueTokens  = {};
 
         for jj = 1:numel(listOfColumns)
-            cacheColumn        = listOfColumns{jj};
-            [uniqueTempValues, ...
-                referenceData] = textAnalysis.preProcessedData(rawTable.(cacheColumn));
-            tokenizedDoc       = tokenizedDocument(uniqueTempValues);
+            cacheColumn     = listOfColumns{jj};
+            cacheColumnName = ['_', cacheColumn];
 
-            uniqueValues       = [uniqueValues; uniqueTempValues];
-            uniqueTokens       = [uniqueTokens; cellstr(tokenizedDoc.tokenDetails.Token)];
+            if ismember(cacheColumnName, rawTable.Properties.VariableNames)
+                continue
+            end
+
+            [uniqueTempValues, ...
+            referenceData] = textAnalysis.preProcessedData(rawTable.(cacheColumn));
+            tokenizedDoc   = tokenizedDocument(uniqueTempValues);
+
+            uniqueValues   = [uniqueValues; uniqueTempValues];
+            uniqueTokens   = [uniqueTokens; cellstr(tokenizedDoc.tokenDetails.Token)];
     
-            rawTable.(sprintf('_%s', cacheColumn)) = referenceData;
+            rawTable.(cacheColumnName) = referenceData;
         end
         uniqueValues  = unique(uniqueValues);
 
