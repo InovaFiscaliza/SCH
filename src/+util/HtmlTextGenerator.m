@@ -17,11 +17,12 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % SCH:INFO
         %-----------------------------------------------------------------%
-        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, rawDataTable, releasedData, cacheData, annotationTable, outputFormat)
+        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, renderCount, rawDataTable, releasedData, cacheData, annotationTable, outputFormat)
             arguments
                 appGeneral 
                 rootFolder 
                 executionMode 
+                renderCount
                 rawDataTable
                 releasedData
                 cacheData
@@ -45,14 +46,19 @@ classdef (Abstract) HtmlTextGenerator
                         appMode = 'deployServer';                    
                     end
             end
-        
-            dataStruct    = struct('group', 'COMPUTADOR', 'value', struct('Machine', appVersion.machine, 'Mode', sprintf('%s - %s', executionMode, appMode)));
-            dataStruct(2) = struct('group', appName,      'value', appVersion.(appName));
-            dataStruct(3) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
-            dataStruct(4) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
-            dataStruct(5) = struct('group', 'MATLAB',     'value', appVersion.matlab);
-        
-            freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Escritório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
+
+            dataStruct    = struct('group', 'COMPUTADOR',     'value', struct('Machine', rmfield(appVersion.machine, 'name'), 'Mode', sprintf('%s - %s', executionMode, appMode)));
+            dataStruct(2) = struct('group', 'MATLAB',         'value', rmfield(appVersion.matlab, 'name'));
+            if ~isempty(appVersion.browser)
+                dataStruct(3) = struct('group', 'NAVEGADOR',  'value', rmfield(appVersion.browser, 'name'));
+            end
+            dataStruct(end+1) = struct('group', 'RENDERIZAÇÕES','value', renderCount);
+            dataStruct(end+1) = struct('group', 'APLICATIVO', 'value', appVersion.application);
+
+            dataStruct(end+1) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
+            dataStruct(end+1) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
+
+            freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Laboratório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
             htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', freeInitialText, outputFormat);
         end
 
@@ -144,7 +150,7 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(3) = struct('group', 'Modelo:',     'value', Modelo);
             end
 
-            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 10px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
             htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText, 'textview', 'normal+gray');
             
             function htmlList = FindListOfValues(referenceTable, columnName)        

@@ -30,28 +30,18 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_entryPoint             matlab.ui.control.EditField
         search_Table                  matlab.ui.control.Table
         TabGroup_2                    matlab.ui.container.TabGroup
-        PRODUTOTab                    matlab.ui.container.Tab
+        PESQUISATab                   matlab.ui.container.Tab
         search_Tab1Grid               matlab.ui.container.GridLayout
-        search_ListOfProducts         matlab.ui.control.ListBox
-        search_ListOfProductsAdd      matlab.ui.control.Image
-        search_ListOfProductsLabel    matlab.ui.control.Label
         search_WordCloudPanel         matlab.ui.container.Panel
-        search_AnnotationPanel        matlab.ui.container.Panel
-        search_AnnotationGrid         matlab.ui.container.GridLayout
-        search_AnnotationPanelAdd     matlab.ui.control.Image
-        search_AnnotationValue        matlab.ui.control.TextArea
-        search_AnnotationValueLabel   matlab.ui.control.Label
-        search_AnnotationAttribute    matlab.ui.control.DropDown
-        search_AnnotationAttributeLabel  matlab.ui.control.Label
-        search_WordCloudRefresh       matlab.ui.control.Image
-        search_AnnotationPanelLabel   matlab.ui.control.Label
         search_ProductInfo            matlab.ui.control.Label
         search_ProductInfoImage       matlab.ui.control.Image
-        search_ToolbarListOfProducts  matlab.ui.control.Image
         search_ToolbarWordCloud       matlab.ui.control.Image
-        search_ToolbarAnnotation      matlab.ui.control.Image
         search_ProductInfoLabel       matlab.ui.control.Label
+        CONFIGTab                     matlab.ui.container.Tab
+        GridLayout2                   matlab.ui.container.GridLayout
         Toolbar                       matlab.ui.container.GridLayout
+        search_ToolbarAnnotation      matlab.ui.control.Image
+        search_ToolbarListOfProducts  matlab.ui.control.Image
         search_ExportTable            matlab.ui.control.Image
         search_FilterSetup            matlab.ui.control.Image
         search_leftPanelVisibility    matlab.ui.control.Image
@@ -68,7 +58,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         General_I
 
         rootFolder
-        entryPointFolder
 
         % Essa propriedade registra o tipo de execução da aplicação, podendo
         % ser: 'built-in', 'desktopApp' ou 'webApp'.
@@ -89,19 +78,20 @@ classdef winSCH_exported < matlab.apps.AppBase
         % apenas a sua visibilidade - e tornando desnecessário criá-la a
         % cada chamada (usando uiprogressdlg, por exemplo).
         progressDialog
+        popupContainer
 
         % Objeto que possibilita integração com o eFiscaliza.
         eFiscalizaObj
-        fiscalizaObj
 
         %-----------------------------------------------------------------%
-        % ESPECIFICIDADES
+        % PROPRIEDADES ESPECÍFICAS
         %-----------------------------------------------------------------%
         projectData
 
         rawDataTable
         releasedData
         cacheData
+        cacheColumns
 
         annotationTable
 
@@ -116,11 +106,20 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % COMUNICAÇÃO ENTRE PROCESSOS:
         % • ipcMainJSEventsHandler
-        %   Eventos recebidos do objeto app.jsBackDoor por meio de chamada
+        %   Eventos recebidos do objeto app.jsBackDoor por meio de chamada 
         %   ao método "sendEventToMATLAB" do objeto "htmlComponent" (no JS).
         %
         % • ipcMainMatlabCallsHandler
         %   Eventos recebidos dos apps secundários.
+        %
+        % • ipcMainMatlabCallAuxiliarApp
+        %   Reencaminha eventos recebidos aos apps secundários, viabilizando
+        %   comunicação entre apps secundários e, também, redirecionando os 
+        %   eventos JS quando o app secundário é executado em modo DOCK (e, 
+        %   por essa razão, usa o "jsBackDoor" do app principal).
+        %
+        % • ipcMainMatlabOpenPopupApp
+        %   Abre um app secundário como popup, no mainApp.
         %-----------------------------------------------------------------%
         function ipcMainJSEventsHandler(app, event)
             % Foi adicionado o evento JS-keydown das teclas ["ArrowUp", "ArrowDown", "Enter", "Escape"]
@@ -156,8 +155,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Isso é conseguido alterando o objeto em foco, de app.search_entryPoint para app.jsBackDoor
             % Ao fazer isso, o MATLAB "executa" a seguinte operação:
             % app.search_entryPoint.Value = app.search_entryPoint.ChangingValue
-            switch event.HTMLEventName
-                case 'renderer'
+            try
+                switch event.HTMLEventName
+                    % JSBACKDOOR (compCustomization.js)
+                    case 'renderer'
                         if ~app.renderCount
                             startup_Controller(app)
                         else
@@ -165,7 +166,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             % versão webapp, quando o navegador atualiza a
                             % página (decorrente de F5 ou CTRL+F5).
 
-                            closeModule(app.tabGroupController, ["SEARCH", "PRODUCTS", "CONFIG"], app.General)
+                            closeModule(app.tabGroupController, ["PRODUCTS", "CONFIG"], app.General)
 
                             if ~app.menu_Button1.Value
                                 app.menu_Button1.Value = true;                    
@@ -183,147 +184,161 @@ classdef winSCH_exported < matlab.apps.AppBase
                         end
                         
                         app.renderCount = app.renderCount+1;
+    
+                    case 'unload'
+                        closeFcn(app)
 
-                case 'unload'
-                    closeFcn(app)
-
-                case 'app.search_entryPoint'
-                    focus(app.jsBackDoor)
-
-                    switch event.HTMLEventData
-                        case {'Escape', 'Tab'}
-                            search_EntryPoint_CheckIfNeedsUpdate(app)
-                            if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
-                                search_EntryPoint_InitialValue(app)
-                            end
-
-                            if strcmp(event.HTMLEventData, 'Tab') && app.search_entryPointImage.Enable
-                                focus(app.search_entryPointImage)
-                            end
-
-                            pause(.050)
-                            set(app.search_Suggestions, Visible=0, Value={})
-
-                        otherwise
-                            search_EntryPoint_CheckIfNeedsUpdate(app)
-                            if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
-                                sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
-
-                            else
-                                switch event.HTMLEventData
-                                    case 'ArrowDown'
-                                        if strcmp(app.General.search.mode, 'tokens')
-                                            app.previousItemData = 1;
-
-                                            set(app.search_Suggestions, 'Visible', 1, 'Value', 1)
-                                            scroll(app.search_Suggestions, "top")
-                                            focus(app.search_Suggestions)
-                                        end
-
-                                    case 'ArrowUp'
-                                        if strcmp(app.General.search.mode, 'tokens')
-                                            nMaxValues = numel(app.search_Suggestions.Items);
-
-                                            app.previousItemData = nMaxValues;
-                                            set(app.search_Suggestions, 'Visible', 1, 'Value', nMaxValues)
-                                            scroll(app.search_Suggestions, "bottom")
-                                            focus(app.search_Suggestions)
-                                        end
-
-                                    case 'Enter'
-                                        drawnow
-                                        search_EntryPoint_ImageClicked(app)                                        
-                                        set(app.search_Suggestions, Visible=0, Value={})
+                    case 'BackgroundColorTurnedInvisible'
+                        switch event.HTMLEventData
+                            case 'SplashScreen'
+                                if isvalid(app.popupContainerGrid)
+                                    delete(app.popupContainerGrid)
                                 end
-                            end
-                    end
 
-                case 'app.search_Suggestions'
-                    switch event.HTMLEventData
-                        case 'ArrowDown'
-                            nMaxValues = numel(app.search_Suggestions.Items);
+                            otherwise
+                                error('UnexpectedEvent')
+                        end
+                    
+                    case 'customForm'
+                        switch event.HTMLEventData.uuid
+                            case 'eFiscalizaSignInPage'
+                                context = event.HTMLEventData.context;
+                                report_uploadInfoController(app, event.HTMLEventData, 'uploadDocument', context)
 
-                            if (app.previousItemData == nMaxValues) && (app.search_Suggestions.Value == nMaxValues)
-                                app.previousItemData = 0;
+                            case 'openDevTools'
+                                if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
+                                    webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
+                                    webWin.openDevTools();
+                                end
+                        end
 
+                    case 'getNavigatorBasicInformation'
+                        app.General.AppVersion.browser = event.HTMLEventData;
+    
+                    case 'mainApp.search_entryPoint'
+                        focus(app.jsBackDoor)
+    
+                        switch event.HTMLEventData
+                            case {'Escape', 'Tab'}
+                                search_EntryPoint_CheckIfNeedsUpdate(app)
+                                if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
+                                    search_EntryPoint_InitialValue(app)
+                                end
+    
+                                if strcmp(event.HTMLEventData, 'Tab') && app.search_entryPointImage.Enable
+                                    focus(app.search_entryPointImage)
+                                end
+    
+                                pause(.050)
                                 set(app.search_Suggestions, Visible=0, Value={})
-                                sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
-                            else
-                                if isnumeric(app.search_Suggestions.Value)
-                                    app.previousItemData = app.search_Suggestions.Value;
+    
+                            otherwise
+                                search_EntryPoint_CheckIfNeedsUpdate(app)
+                                if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
+                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
+    
                                 else
-                                    app.previousItemData = 0;
+                                    switch event.HTMLEventData
+                                        case 'ArrowDown'
+                                            if strcmp(app.General.search.mode, 'tokens')
+                                                app.previousItemData = 1;
+    
+                                                set(app.search_Suggestions, 'Visible', 1, 'Value', 1)
+                                                scroll(app.search_Suggestions, "top")
+                                                focus(app.search_Suggestions)
+                                            end
+    
+                                        case 'ArrowUp'
+                                            if strcmp(app.General.search.mode, 'tokens')
+                                                nMaxValues = numel(app.search_Suggestions.Items);
+    
+                                                app.previousItemData = nMaxValues;
+                                                set(app.search_Suggestions, 'Visible', 1, 'Value', nMaxValues)
+                                                scroll(app.search_Suggestions, "bottom")
+                                                focus(app.search_Suggestions)
+                                            end
+    
+                                        case 'Enter'
+                                            drawnow
+                                            search_EntryPoint_ImageClicked(app)                                        
+                                            set(app.search_Suggestions, Visible=0, Value={})
+                                    end
                                 end
-                            end
+                        end
+    
+                    case 'mainApp.search_Suggestions'
+                        switch event.HTMLEventData
+                            case 'ArrowDown'
+                                nMaxValues = numel(app.search_Suggestions.Items);
+    
+                                if (app.previousItemData == nMaxValues) && (app.search_Suggestions.Value == nMaxValues)
+                                    app.previousItemData = 0;
+    
+                                    set(app.search_Suggestions, Visible=0, Value={})
+                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
+                                else
+                                    if isnumeric(app.search_Suggestions.Value)
+                                        app.previousItemData = app.search_Suggestions.Value;
+                                    else
+                                        app.previousItemData = 0;
+                                    end
+                                end
+    
+                            case 'ArrowUp'
+                                if (app.previousItemData == 1) && (app.search_Suggestions.Value == 1)
+                                    app.previousItemData = 0;
+    
+                                    set(app.search_Suggestions, Visible=0, Value={})
+                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
+                                else
+                                    if isnumeric(app.search_Suggestions.Value)
+                                        app.previousItemData = app.search_Suggestions.Value;
+                                    else
+                                        app.previousItemData = 0;
+                                    end
+                                end
+    
+                            case {'Enter', 'Tab'}
+                                if isnumeric(app.search_Suggestions.Value)
+                                    eventValue = app.search_Suggestions.Items{app.search_Suggestions.Value};
+    
+                                    app.search_entryPoint.Value = eventValue;
+                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
+                                    app.search_Suggestions.Visible = "off";
+                                    drawnow
 
-                        case 'ArrowUp'
-                            if (app.previousItemData == 1) && (app.search_Suggestions.Value == 1)
-                                app.previousItemData = 0;
-
+                                    search_SuggestionAlgorithm(app, eventValue, false)
+                                end
+    
+                            case 'Escape'
                                 set(app.search_Suggestions, Visible=0, Value={})
-                                sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
-                            else
-                                if isnumeric(app.search_Suggestions.Value)
-                                    app.previousItemData = app.search_Suggestions.Value;
-                                else
-                                    app.previousItemData = 0;
-                                end
-                            end
+                        end
+    
+                    otherwise
+                        error('UnexpectedEvent')
+                end
+                drawnow
 
-                        case {'Enter', 'Tab'}
-                            if isnumeric(app.search_Suggestions.Value)
-                                eventValue = app.search_Suggestions.Items{app.search_Suggestions.Value};
-
-                                app.search_entryPoint.Value = eventValue;
-                                search_SuggestionAlgorithm(app, eventValue, false)
-                                
-                                sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
-                            end
-
-                        case 'Escape'
-                            set(app.search_Suggestions, Visible=0, Value={})
-                    end
-
-                case 'app.search_ListOfProducts'
-                    report_ContextMenu_DeleteFcnSelected(app, struct('ContextObject', app.search_ListOfProducts))
-
-                case 'BackgroundColorTurnedInvisible'
-                    switch event.HTMLEventData
-                        case 'SplashScreen'
-                            if isvalid(app.SplashScreen)
-                                delete(app.SplashScreen)
-                                app.popupContainerGrid.Visible = 0;
-                            end
-                        otherwise
-                            error('UnexpectedEvent')
-                    end
-
-                case 'customForm'
-                    switch event.HTMLEventData.uuid
-                        case 'eFiscalizaSignInPage'
-                            report_uploadInfoController(app, event.HTMLEventData, 'uploadDocument')
-                        case 'openDevTools'
-                            if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
-                                webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
-                                webWin.openDevTools();
-                            end
-                    end
-
-                otherwise
-                    error('UnexpectedEvent')
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
             end
-            drawnow
         end
 
         %-----------------------------------------------------------------%
-        function ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
+        function varargout = ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
+            varargout = {};
+
             try
                 switch class(callingApp)
-                    % CONFIG
+                    % auxApp.winConfig
                     case {'auxApp.winConfig', 'auxApp.winConfig_exported'}
                         switch operationType
                             case 'closeFcn'
                                 closeModule(app.tabGroupController, "CONFIG", app.General)
+
+                            case 'dockButtonPushed'
+                                auxAppTag = varargin{1};
+                                varargout{1} = auxAppInputArguments(app, auxAppTag);
 
                             case 'updateDataHubGetFolder'
                                 app.progressDialog.Visible = 'visible';
@@ -422,7 +437,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             return
                         end
 
-                        app.popupContainerGrid.Visible = 0;
+                        app.popupContainer.Parent.Visible = 0;
 
                     otherwise
                         error('UnexpectedCall')
@@ -436,6 +451,59 @@ classdef winSCH_exported < matlab.apps.AppBase
             % app auxiliar coincide com o do SCH. Força-se, portanto, a condição
             % abaixo para evitar possível bloqueio da tela.
             app.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function ipcMainMatlabCallAuxiliarApp(app, auxAppName, communicationType, varargin)
+            hAuxApp = auxAppHandle(app, auxAppName);
+
+            if ~isempty(hAuxApp)
+                switch communicationType
+                    case 'MATLAB'
+                        operationType = varargin{1};
+                        ipcSecundaryMatlabCallsHandler(hAuxApp, app, operationType, varargin{2:end});
+                    case 'JS'
+                        event = varargin{1};
+                        ipcSecundaryJSEventsHandler(hAuxApp, event)
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function ipcMainMatlabOpenPopupApp(app, callingApp, auxAppName, varargin)
+            arguments
+                app
+                callingApp
+                auxAppName char {mustBeMember(auxAppName, {'ReportLib', 'FilterSetup', 'ProductInfo'})}
+            end
+
+            arguments (Repeating)
+                varargin 
+            end
+
+            switch auxAppName
+                case 'ReportLib'
+                    screenWidth  = 460;
+                    screenHeight = 308;
+                case 'FilterSetup'
+                    screenWidth  = 412;
+                    screenHeight = 464;
+                case 'ProductInfo'
+                    screenWidth  = 580;
+                    screenHeight = 554;
+            end
+
+            ui.PopUpContainer(callingApp, class.Constants.appName, screenWidth, screenHeight)
+
+            % Executa o app auxiliar.
+            inputArguments = [{app, callingApp}, varargin];
+            
+            if app.General.operationMode.Debug
+                eval(sprintf('auxApp.dock%s(inputArguments{:})', auxAppName))
+            else
+                eval(sprintf('auxApp.dock%s_exported(callingApp.popupContainer, inputArguments{:})', auxAppName))
+                callingApp.popupContainer.Parent.Visible = 1;
+            end            
         end
     end
 
@@ -471,19 +539,47 @@ classdef winSCH_exported < matlab.apps.AppBase
                     customizationStatus(tabIndex) = true;
                     switch tabIndex
                         case 1 % SEARCH
-                            % ... MIGRAR TODAS AS CUSTOMIZAÇÕES P/ O
-                            % MAINAPP, QUE CITA O JSBACKDOOR DO APP
-                            % AUXILIAR (QUE PODE SER IGUAL AO DO MAINAPP,
-                            % OU NAO).
+                            elToModify = { ...
+                                app.popupContainerGrid, ...
+                                app.search_entryPoint, ...
+                                app.search_ProductInfo, ...                 % ui.TextView
+                                app.search_ProductInfoImage, ...            % ui.TextView (Background image)
+                                app.search_Suggestions ...
+                            };
+                            ui.CustomizationBase.getElementsDataTag(elToModify);
 
-                            % EVITA DUPLICAÇÕES DE CÓDIGO... CENTRALIZA
-                            % TUDO AQUI.
+                            appName = class(app);
+                            if isvalid(app.popupContainerGrid)
+                                try
+                                    sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'style', struct('backgroundColor', 'rgba(255,255,255,0.65)'))});
+                                catch
+                                end
+                            end
 
-                        case 2 % REPORT
-                            % ... MIGRAR TODAS AS CUSTOMIZAÇÕES P/ O
-                            % MAINAPP, QUE CITA O JSBACKDOOR DO APP
-                            % AUXILIAR (QUE PODE SER IGUAL AO DO MAINAPP,
-                            % OU NAO).
+                            try
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                                    struct('appName', appName, 'dataTag', elToModify{2}.UserData.id, 'generation', 1, 'style',    struct('borderWidth', '0')), ...
+                                    struct('appName', appName, 'dataTag', elToModify{2}.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.search_entryPoint', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                                });
+                            catch
+                            end
+
+                            try
+                                ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName);
+                            catch
+                            end
+
+                            try
+                                ui.TextView.startup(app.jsBackDoor, elToModify{4}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
+                            catch
+                            end
+                            
+                            try
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                                });
+                            catch
+                            end
 
                         otherwise
                             % Customização dos módulos que são renderizados
@@ -501,9 +597,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_timerCreation(app)
             app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                "StartDelay",    1.5,            ...
-                "Period",        .1,             ...
-                "TimerFcn",      @(~,~)app.startup_timerFcn);
+                                 "StartDelay",    1.5,            ...
+                                 "Period",        .1,             ...
+                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
             start(app.timerObj)
         end
 
@@ -537,6 +633,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                 MFilePath = fileparts(mfilename('fullpath'));
                 app.rootFolder = appUtil.RootFolder(appName, MFilePath);
 
+                % webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
+                % webWin.openDevTools();
+                % pause(3)
+
                 % Customizações...
                 jsBackDoor_AppCustomizations(app, 0)
                 jsBackDoor_AppCustomizations(app, 1)
@@ -550,7 +650,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 startup_GUIComponents(app)
 
                 % Inicia módulo de operação paralelo...
-                % parpoolCheck()
+                parpoolCheck()
     
                 % Por fim, exclui-se o splashscreen, um segundo após envio do comando 
                 % para que diminua a transparência do background.
@@ -558,7 +658,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                 drawnow
             
                 pause(1)
-                delete(app.popupContainerGrid)
+                if isvalid(app.popupContainerGrid)
+                    delete(app.popupContainerGrid)
+                end
 
             else
                 jsBackDoor_AppCustomizations(app, 0)
@@ -581,6 +683,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             mkdir(tempDir)
             app.General_I.fileFolder.tempPath  = tempDir;
             app.General_I.fileFolder.MFilePath = MFilePath;
+
+            app.General_I.ui.searchTable       = struct2table(app.General_I.ui.searchTable);
 
             switch app.executionMode
                 case 'webApp'
@@ -607,11 +711,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
             end
 
-            % Especificidades...
-            app.General_I.ui.searchTable = struct2table(app.General_I.ui.searchTable);
-            app.General_I.search.cacheColumns = 'Modelo | Nome Comercial';
-
-            app.General = app.General_I;
+            app.General            = app.General_I;
+            app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir);
+            sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
         end
 
         %-----------------------------------------------------------------%
@@ -622,37 +724,11 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_mainVariables(app)
-            DataHub_GET     = app.General.fileFolder.DataHub_GET;
-            SCHDataFileName = app.General.search.dataSources.main;
-            SCHDataFullFile = fullfile(DataHub_GET, SCHDataFileName);
-
-            try
-                if ~isfolder(DataHub_GET)
-                    error('Pendente mapear os repositórios "DataHub - GET" e "DataHub - POST".')
-                elseif isfolder(DataHub_GET) && ~isfile(SCHDataFullFile)
-                    error('Apesar de mapeado o repositório "DataHub - GET", não foi encontrado o arquivo %s. Favor verificar se a pasta foi mapeada corretamente e, persistindo o erro, relatar isso ao Escritório de inovação da SFI.', SCHDataFileName)
-                end
-                startup_ReadSCHDataFile(app, SCHDataFullFile)
-
-            catch ME
-                SCHDataFullFile = fullfile(app.rootFolder, 'config', 'DataBase', SCHDataFileName);
-                startup_ReadSCHDataFile(app, SCHDataFullFile)
-
-                msgWarning = ME.message;
-            end
-
-            app.annotationTable = readFile.Annotation(app.rootFolder, DataHub_GET);
-
-            if exist('msgWarning', 'var')
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_ReadSCHDataFile(app, SCHDataFullFile)
             [app.rawDataTable, ...
              app.releasedData, ...
-             app.cacheData] = readFile.SCHData(SCHDataFullFile);
+             app.cacheData,    ...
+             app.cacheColumns]  = util.readExternalFile.SCHData(app.rootFolder, app.General.fileFolder.DataHub_GET);
+            app.annotationTable = util.readExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_GET);
         end
 
         %-----------------------------------------------------------------%
@@ -663,6 +739,24 @@ classdef winSCH_exported < matlab.apps.AppBase
             addComponent(app.tabGroupController, "Built-in", "mainApp",            app.menu_Button1, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), matlab.graphics.GraphicsPlaceholder, 2)
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.menu_Button3, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.menu_Button1,                    3)
+
+            % Salva na propriedade "UserData" as opções de ícone e o índice
+            % da aba, simplificando os ajustes decorrentes de uma alteração...
+            app.search_ToolbarWordCloud.UserData      = false;
+
+            % Inicialização da propriedade "UserData" da tabela.
+            app.search_entryPointImage.UserData       = struct('value2Search', '', 'words2Search', '');
+            app.search_Table.UserData                 = struct('primaryIndex', [], 'secundaryIndex', [], 'cacheColumns', {{}});
+            app.search_Table.RowName                  = 'numbered';
+
+            % Os painéis de metadados do registro selecionado nas tabelas já 
+            % tem, na sua propriedade "UserData", a chave "id" que armazena 
+            % o "data-tag" que identifica o componente no código HTML. 
+            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
+            app.search_ProductInfo.UserData.selectedRow = [];
+            app.search_ProductInfo.UserData.showedHom   = '';
+
+            search_EntryPoint_Layout(app)
 
             % Avalia mapeamento de pasta do Sharepoint...
             DataHubWarningLamp(app)
@@ -681,72 +775,524 @@ classdef winSCH_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % TABGROUPCONTROLLER
-        %-----------------------------------------------------------------%
-        % function hAuxApp = auxAppHandle(app, auxAppName)
-        %     arguments
-        %         app
-        %         auxAppName string {mustBeMember(auxAppName, ["DRIVETEST", "SIGNALANALYSIS", "RFDATAHUB", "CONFIG"])}
-        %     end
-        %
-        %     hAuxApp = app.tabGroupController.Components.appHandle{app.tabGroupController.Components.Tag == auxAppName};
-        % end
+        % MÓDULO "SEARCH"
+        %-----------------------------------------------------------------%   
+        function search_SuggestionAlgorithm(app, eventValue, panelVisibility)
+            value2Search = textAnalysis.preProcessedData(eventValue, false);
+            search_EntryPointImage_Status(app, value2Search)
 
-        %-----------------------------------------------------------------%
-        function inputArguments = auxAppInputArguments(app, auxAppName)
-            arguments
-                app
-                auxAppName char {mustBeMember(auxAppName, {'SEARCH', 'REPORT', 'CONFIG'})}
+            if strcmp(app.General.search.mode, 'tokens')
+                if numel(value2Search) >= app.General.search.minCharacters
+                    [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, value2Search, app.General.search.minDisplayedTokens);
+
+                    set(app.search_Suggestions, 'Visible', panelVisibility, 'Value', {}, 'Items', similarStrings, 'ItemsData', 1:numel(idxFiltered))
+                    search_EntryPoint_Color(app, redFontFlag)
+
+                    app.previousSearch = eventValue;
+                end
             end
-
-            % [auxAppIsOpen, ...
-            %  auxAppHandle] = checkStatusModule(app.tabGroupController, auxAppName);
-
-            inputArguments = {app};
-
-            % switch auxAppName
-            %     case 'SEARCH'
-            %
-            %     case 'REPORT'
-            %
-            %     case 'CONFIG'
-            % end
         end
 
         %-----------------------------------------------------------------%
-        function menu_LayoutPopupApp(app, auxiliarApp, varargin)
-            arguments
-                app
-                auxiliarApp char {mustBeMember(auxiliarApp, {'FilterSetup', 'ProductInfo'})}
+        function relatedAnnotationTable = search_Annotation_RelatedTable(app, showedHom)
+            annotationLogical      = strcmp(app.annotationTable.("Homologação"), showedHom);
+            relatedAnnotationTable = app.annotationTable(annotationLogical, :);
+        end
+
+
+        %-----------------------------------------------------------------%
+        function search_Annotation_Add2Cache(app, selectedRow, showedHom, attributeName, attributeValue, wourdCloudRefreshTag)
+            % !! PONTO DE EVOLUÇÃO !!
+            % IMPLEMENTADA INCLUSÃO DE ANOTAÇÃO, ALÉM DE EDIÇÃO DE ANOTAÇÃO
+            % DO WORDCLOUD. PENDENTE EXCLUSÃO DE ANOTAÇÃO, ALÉM DA EDIÇÃO
+            % DOS OUTROS TIPOS DE ANOTAÇÃO.
+            newRowTable = table({char(matlab.lang.internal.uuid())},           ...
+                {datestr(now, 'dd/mm/yyyy HH:MM:SS')},         ...
+                {ccTools.fcn.OperationSystem('computerName')}, ...
+                {ccTools.fcn.OperationSystem('userName')},     ...
+                {showedHom},                                   ...
+                {attributeName},                               ...
+                {attributeValue},                              ...
+                1, 'VariableNames', util.readExternalFile.annotationColumns);
+
+            idx1 = find(strcmp(app.annotationTable.("Homologação"), showedHom))';
+            if isempty(idx1) || wourdCloudRefreshTag
+                app.annotationTable(end+1,:) = newRowTable;
+
+            else
+                if any(strcmp(app.annotationTable.("Atributo")(idx1), attributeName) & strcmp(app.annotationTable.("Valor")(idx1), attributeValue))
+                    appUtil.modalWindow(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', showedHom));
+                    return
+
+                else
+                    app.annotationTable(end+1,:) = newRowTable;
+                end
             end
 
-            arguments (Repeating)
-                varargin
+            if wourdCloudRefreshTag
+                idx2 = find(strcmp(app.annotationTable.("Homologação"), showedHom) & strcmp(app.annotationTable.("Atributo"), 'WordCloud'));
+                app.annotationTable(idx2(1:end-1), :) = [];
             end
 
+            % A cada nova inserção, gera-se uma planilha que é submetida à
+            % pasta POST, ou é salva localmente em cache.
+            [app.annotationTable, msgWarning] = util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
+            if ~isempty(msgWarning)
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+            end
+
+            % Atualizando o painel com os metadados do registro selecionado...
+            relatedAnnotationTable   = search_Annotation_RelatedTable(app, showedHom);
+            htmlSource = misc_SelectedHomPanel_InfoCreation(app, showedHom, relatedAnnotationTable);
+            misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow, showedHom);
+
+            % Ajusta apenas o estilo de anotação do registro.
+            search_Table_RemoveStyle(app, 'cell')
+            search_Table_AnnotationIcon(app)
+            % !! PONTO DE EVOLUÇÃO !!
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Filtering_primaryFilter(app, words2Search)
             app.progressDialog.Visible = 'visible';
 
-            % Inicialmente ajusta as dimensões do container.
-            switch auxiliarApp
-                case 'FilterSetup'; screenWidth = 412; screenHeight = 464;
-                case 'ProductInfo'; screenWidth = 580; screenHeight = 554;
+            % Rotina de inicialização dos objetos relacionados aos filtros
+            % secundários.
+            app.filteringObj.filterRules(:,:) = [];
+
+            % O "primaryTempIndex" retorna os registros da tabela que deram match
+            % com "words2Search". Uma homologação, contudo, pode estar relacionada
+            % a vários registros da base de dados, por isso devem ser buscados
+            % os demais.
+
+            % A order dos registros é importante APENAS se foi usado o algoritmo
+            % Levenshtein p/ cálculo da distância entre as strings.
+            switch app.General.search.mode
+                case 'tokens'
+                    sortOrder = 'stable';
+                otherwise
+                    sortOrder = 'unstable';
             end
 
-            app.popupContainerGrid.ColumnWidth{2} = screenWidth;
-            app.popupContainerGrid.RowHeight{3}   = screenHeight-180;
+            cacheColumnNames   = search_Table_PrimaryColumnNames(app);
+            listOfCacheColumns = cellfun(@(x) sprintf('_%s', x), cacheColumnNames, 'UniformOutput', false);
+            searchFunction     = app.General.search.function;
 
-            % Executa o app auxiliar, mas antes tenta configurar transparência
-            % do BackgroundColor do Grid (caso não tenha sido aplicada anteriormente).
-            ccTools.compCustomizationV2(app.jsBackDoor, app.popupContainerGrid, 'backgroundColor', 'rgba(255,255,255,0.65)')
-            inputArguments = [{app}, varargin];
-            eval(sprintf('auxApp.dock%s_exported(app.popupContainer, inputArguments{:})', auxiliarApp))
+            primaryTempIndex   = run(app.filteringObj, 'words2Search', app.rawDataTable, listOfCacheColumns, sortOrder, searchFunction, words2Search);
+            primaryHomProducts = unique(app.rawDataTable(primaryTempIndex,:).("Homologação"), 'stable');
 
-            app.popupContainerGrid.Visible = 1;
-            app.popupContainer.Visible     = 1;
+            primaryIndex       = run(app.filteringObj, 'words2Search', app.rawDataTable, {'Homologação'}, sortOrder, 'strcmp', primaryHomProducts);
+            GUIColumns         = search_Table_ColumnNames(app);
+
+            set(app.search_Table, 'Data',      app.rawDataTable(primaryIndex, GUIColumns), ...
+                'UserData',  struct('primaryIndex', primaryIndex, 'secundaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
+
+            % Cria chart para a nuvem de palavras...
+            if isempty(app.wordCloudObj)
+                app.wordCloudObj = wordCloud(app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
+            end
+
+            % Torna visível a tabela e outros elementos relacionados à tabela...
+            search_Table_Visibility(app)
+
+            % Renderiza em tela o número de linhas, além de selecionar a primeira
+            % linha da tabela, caso a pesquisa retorne algo.
+            misc_Table_NumberOfRows(app)
+            search_Table_InitialSelection(app, true)
+
+            % Aplica estilo na tabela e verifica se a tabela está visível...
+            search_Table_AddStyle(app)
 
             app.progressDialog.Visible = 'hidden';
         end
+
+        %-----------------------------------------------------------------%
+        function search_Filtering_secundaryFilter(app)
+            primaryIndex = app.search_Table.UserData.primaryIndex;
+            GUIColumns   = search_Table_ColumnNames(app);
+
+            if ~isempty(app.filteringObj.filterRules)
+                logicalArray   = run(app.filteringObj, 'filterRules', app.rawDataTable(primaryIndex,:));
+                secundaryIndex = primaryIndex(logicalArray);
+            else
+                secundaryIndex = primaryIndex;
+            end
+
+            app.search_Table.Data = app.rawDataTable(secundaryIndex, GUIColumns);
+            app.search_Table.UserData.secundaryIndex = secundaryIndex;
+
+            % Renderiza em tela o número de linhas, além de selecionar a primeira
+            % linha da tabela, caso a pesquisa retorne algo.
+            misc_Table_NumberOfRows(app)
+            search_Table_InitialSelection(app, false)
+
+            % Aplica estilo na tabela...
+            search_Table_AddStyle(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function search_SuggestionPanel_InitialValues(app)
+            set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
+        end
+
+        %-----------------------------------------------------------------%
+        function search_EntryPoint_Layout(app)
+            switch app.General.search.mode
+                case 'tokens'
+                    app.search_entryPointPanel.Layout.Column = 1;
+                otherwise
+                    app.search_entryPointPanel.Layout.Column = [1, 2];
+    
+                    app.previousSearch   = '';
+                    app.previousItemData = 0;                                        
+                    set(app.search_Suggestions, Visible=0, Items={}, ItemsData=[])
+            end
+            search_EntryPoint_InitialValue(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function search_EntryPoint_InitialValue(app)
+            set(app.search_entryPoint, 'Value', '', 'FontColor', [0,0,0])
+            app.search_entryPointImage.Enable = 0;
+        end
+
+        %-----------------------------------------------------------------%
+        function search_EntryPoint_CheckIfNeedsUpdate(app)
+            % Conforme exposto nos comentários da função "ipcMainJSEventsHandler", quando altero o conteúdo
+            % de app.search_entryPoint, sem alterar o seu foco, será executado o evento "ValueChangingFcn".
+            % Se pressiono a tecla "Enter", será executada a função "ipcMainJSEventsHandler" antes de atualizar
+            % a propriedade "Value" do app.search_entryPoint.
+
+            % Por conta disso, é essencial inserir WAITFOR. O problema é que eventualmente o MATLAB
+            % perde o momento exato da alteração da propriedade "Value" de app.search_entryPoint
+            % e isso trava a execução do app.
+
+            % Evidenciado que em condições normais o WAITFOR demora entre 25 e 50 milisegundos
+            % para atualizar a citada propriedade. Consequentemente, foi substituído o WAITFOR por
+            % um LOOP+PAUSE.
+
+            % waitfor(app.search_entryPoint, 'Value')
+
+            tWaitFor = tic;
+            while toc(tWaitFor) < .050
+                if strcmp(app.search_entryPoint.Value, app.previousSearch)
+                    break
+                end
+                pause(.010)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_EntryPoint_Color(app, redFlag)
+            if redFlag
+                fontColor = [1,0,0];
+            else
+                fontColor = [0,0,0];
+            end
+            app.search_entryPoint.FontColor = fontColor;
+            %drawnow
+        end
+
+        %-----------------------------------------------------------------%
+        function search_EntryPointImage_Status(app, value2Search)
+            if numel(value2Search) < app.General.search.minCharacters
+                app.search_entryPointImage.Enable = 0;
+                search_SuggestionPanel_InitialValues(app)
+            else
+                app.search_entryPointImage.Enable = 1;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Table_Visibility(app)
+            if ~app.search_Table.Visible
+                app.search_leftPanelVisibility.Enable = 1;
+
+                app.search_Table.Visible    = 1;
+                app.search_Metadata.Visible = 1;
+                app.search_nRows.Visible    = 1;
+
+                if ~app.GridLayout_2.ColumnWidth{1}
+                    misc_Panel_VisibilityImageClicked(app, struct('Source', app.search_leftPanelVisibility))
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_FilterSpecification(app)
+            listOfColumns = app.cacheColumns;
+            primaryTag    = sprintf('Filtragem primária orientada à(s) coluna(s) %s', textFormatGUI.cellstr2ListWithQuotes(listOfColumns, 'none'));
+            secondaryTag  = strjoin(FilterList(app.filteringObj, 'SCH'), ', ');
+            if isempty(secondaryTag)
+                secondaryTag = '[]';
+            end
+
+            value2Search = app.search_entryPointImage.UserData.value2Search;
+            words2Search = app.search_entryPointImage.UserData.words2Search;
+
+            switch app.General.search.mode
+                case 'tokens'
+                    if ~isempty(words2Search)
+                        nWords2Search  = numel(words2Search);
+                        nWordsContains = sum(contains(words2Search, value2Search));
+    
+                        % Inserindo o texto "e similiares" caso exista alguma
+                        % palavra-chave que não contenha o termo a procurar.
+                        if nWordsContains < nWords2Search
+                            searchNote = ' e similares';
+                        else
+                            searchNote = '';
+                        end
+    
+                        app.search_Metadata.Text = sprintf('Exibindo resultados para "<b>%s</b>"%s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
+                            value2Search, searchNote, primaryTag, secondaryTag);
+                    end
+
+                otherwise
+                    if ~isempty(words2Search)
+                        app.search_Metadata.Text = sprintf('Exibindo resultados para %s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
+                            strjoin("""<b>" + string(words2Search) + "</b>""", ', '), primaryTag, secondaryTag);
+                    end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function columnInfo = search_Table_ColumnInfo(app, type)
+            switch type
+                case 'staticColumns'
+                    staticLogical  = logical(app.General.ui.searchTable.columnPosition);
+                    staticIndex    = app.General.ui.searchTable.columnPosition(staticLogical);
+                    [~, idxOrder]  = sort(staticIndex);
+                    columnList     = app.General.ui.searchTable.name(staticLogical);
+                    columnInfo     = columnList(idxOrder);
+
+                case 'visibleColumns'
+                    visibleLogical = logical(app.General.ui.searchTable.visible);
+                    columnInfo     = app.General.ui.searchTable.name(visibleLogical);
+
+                case 'allColumns'
+                    columnInfo     = app.General.ui.searchTable.name;
+
+                case 'allColumnsWidths'
+                    columnInfo     = app.General.ui.searchTable.columnWidth;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function cacheColumns = search_Table_PrimaryColumnNames(app)
+            cacheColumns = strsplit(app.cacheColumns, ' | ');
+        end
+
+        %-----------------------------------------------------------------%
+        function [columnNames, columnWidths] = search_Table_ColumnNames(app)
+            checkedNodes = search_Table_ColumnInfo(app, 'visibleColumns');
+            staticColums = search_Table_ColumnInfo(app, 'staticColumns');
+            columnNames  = unique([staticColums; checkedNodes], 'stable');
+
+            allColumns   = search_Table_ColumnInfo(app, 'allColumns');
+            widthColumns = search_Table_ColumnInfo(app, 'allColumnsWidths');
+
+            columnWidths = {};
+            for ii = 1:numel(columnNames)
+                columnName       = columnNames{ii};
+                columnIndex      = find(strcmp(allColumns, columnName), 1);
+
+                columnWidths{ii} = widthColumns{columnIndex};
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Table_InitialSelection(app, focusFlag)
+            if isempty(app.search_Table.Data)
+                app.search_Table.Selection    = [];
+                app.search_FilterSetup.Enable = 0;
+                app.search_ExportTable.Enable = 0;
+            else
+                app.search_Table.Selection    = [1, 1];
+                app.search_FilterSetup.Enable = 1;
+                app.search_ExportTable.Enable = 1;
+            end
+            search_Table_SelectionChanged(app)
+
+            if focusFlag
+                focus(app.search_Table)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Table_AddStyle(app)
+            search_Table_RemoveStyle(app, 'all')
+
+            % Row striping
+            [~, ~, uniqueHomIndex] = unique(app.search_Table.Data.("Homologação"), 'stable');
+            listOfRows             = find(~mod(uniqueHomIndex, 2));
+            if ~isempty(listOfRows)
+                addStyle(app.search_Table, class.Constants.configStyle1, 'row', listOfRows)
+            end
+
+            % Table annotation icon
+            search_Table_AnnotationIcon(app)
+            drawnow
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Table_RemoveStyle(app, styleType)
+            switch styleType
+                case 'all'
+                    removeStyle(app.search_Table)
+
+                otherwise
+                    styleTypeIndex  = find(strcmp(cellstr(app.search_Table.StyleConfigurations.Target), styleType));
+                    if ~isempty(styleTypeIndex)
+                        removeStyle(app.search_Table, styleTypeIndex)
+                    end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function search_Table_AnnotationIcon(app)
+            % Posição da coluna "Homologação".
+            homColumnIndex    = find(strcmp(app.search_Table.Data.Properties.VariableNames, 'Homologação'), 1);
+
+            % Valores únicos de homologação e seus índices...
+            [listOfHom, ...
+             lisOfHomIndex]   = unique(app.search_Table.Data.("Homologação"), 'stable');
+
+            % Identifica registros para os quais existe anotação registrada,
+            % aplicando o estilo.
+            annotationLogical = ismember(listOfHom, unique(app.annotationTable.("Homologação")));
+            annotationIndex   = lisOfHomIndex(annotationLogical);
+            listOfCells       = [annotationIndex, repmat(homColumnIndex, numel(annotationIndex), 1)];
+
+            if ~isempty(listOfCells)
+                s = class.Constants.configStyle4;
+                addStyle(app.search_Table, s, "cell", listOfCells)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function status = search_WordCloud_CheckCache(app, selectedHom, relatedTable)
+            status = false;
+
+            wordCloudLogical = strcmp(relatedTable.("Atributo"), 'WordCloud');
+            relatedTable     = relatedTable(wordCloudLogical, :);
+
+            if isempty(relatedTable) || any(wordCloudLogical) && ~strcmp(app.search_WordCloudPanel.Tag, selectedHom)
+                status = true;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function status = search_WordCloud_PlotUpdate(app, selectedRow, showedHom, wourdCloudRefreshTag)
+            status = true;
+
+            % O wordcloud, do MATLAB, é lento, demandando uma tela de progresso
+            % que bloqueia a interação com o app.
+            if strcmp(app.General.search.wordCloud.algorithm, 'MATLAB built-in')
+                app.progressDialog.Visible = 'visible';
+            end
+
+            if wourdCloudRefreshTag
+                wordCloudIndex = [];
+            else
+                relatedAnnotationTable = search_Annotation_RelatedTable(app, showedHom);
+                wordCloudIndex = find(strcmp(relatedAnnotationTable.("Atributo"), 'WordCloud'), 1);
+            end
+
+            if ~isempty(wordCloudIndex)
+                wordCloudAnnotation = relatedAnnotationTable.("Valor"){wordCloudIndex};
+                wordCloudTable      = util.getWordCloudFromCache(wordCloudAnnotation);
+
+            else
+                app.progressDialog.Visible = 'visible';
+                try
+                    word2Search = search_WordCloud_Word2Search(app, showedHom);
+                    nMaxWords   = 25;
+
+                    [wordCloudTable, wordCloudInfo] = util.getWordCloudFromWeb(word2Search, nMaxWords);
+                    if ~isempty(wordCloudTable)
+                        search_Annotation_Add2Cache(app, selectedRow, showedHom, 'WordCloud', wordCloudInfo, wourdCloudRefreshTag)
+                    end
+
+                catch ME
+                    app.progressDialog.Visible = 'hidden';
+                    appUtil.modalWindow(app.UIFigure, 'warning', ME.identifier);
+
+                    status = false;
+                    return
+                end
+            end
+
+            if ~isempty(wordCloudTable)
+                app.wordCloudObj.Table        = wordCloudTable;
+                app.search_WordCloudPanel.Tag = showedHom;
+            end
+
+            app.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function word2Search = search_WordCloud_Word2Search(app, showedHom)
+            selectedRow = find(strcmp(app.search_Table.Data.("Homologação"), showedHom), 1);
+            listOfWords = {char(app.search_Table.Data.("Modelo")(selectedRow)), ...
+                char(app.search_Table.Data.("Nome Comercial")(selectedRow))};
+
+            switch app.General.search.wordCloud.column
+                case 'Modelo';         idx1 = 1;
+                case 'Nome Comercial'; idx1 = 2;
+            end
+            word2Search = listOfWords{idx1};
+
+            if isempty(word2Search)
+                idx2 = setdiff([1 2], idx1);
+                word2Search = listOfWords{idx2};
+
+                if isempty(word2Search)
+                    error('Registro %s não possui cadastrado "Modelo" ou "Nome Comercial", inviabilizando consulta à internet.', showedHom)
+                else
+                    listOfColumns = {'Modelo', 'Nome Comercial'};
+                    appUtil.modalWindow(app.UIFigure, 'warning', sprintf('O registro %s não possui cadastrado "%s". Dessa forma, consulta à internet foi realizada usando o seu "%s".', showedHom, listOfColumns{idx1}, listOfColumns{idx2}));
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app)
+            if ~isempty(app.search_Table.Selection)
+                selectedRow = unique(app.search_Table.Selection(:,1));
+                selectedHom = unique(app.search_Table.Data.("Homologação")(selectedRow), 'stable');
+            else
+                selectedRow = [];
+                selectedHom = {};
+            end
+
+            showedHom = app.search_ProductInfo.UserData.showedHom;
+        end
+
+        %-----------------------------------------------------------------%
+        function misc_Table_NumberOfRows(app)
+            nHom  = numel(unique(app.search_Table.Data.("Homologação")));
+            nRows = height(app.search_Table.Data);
+            app.search_nRows.Text = sprintf('%d <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>\n%d <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>', nHom, nRows);
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable)
+            if isempty(selected2showedHom)
+                htmlSource = '';
+            else
+                selectedHomRawTableIndex = find(strcmp(app.rawDataTable.("Homologação"), selected2showedHom));
+                htmlSource = util.HtmlTextGenerator.RowTableInfo('ProdutoHomologado', app.rawDataTable(selectedHomRawTableIndex, :), relatedAnnotationTable);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow, selected2showedHom)
+            userData = struct('selectedRow', selectedRow, 'showedHom', selected2showedHom);
+            ui.TextView.update(app.search_ProductInfo, htmlSource, userData, app.search_ProductInfoImage);
+        end
     end
+
 
     methods (Access = private)
         %-----------------------------------------------------------------%
@@ -843,6 +1389,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 app.menu_AppName.Text = sprintf('%s v. %s\n<font style="font-size: 9px;">%s</font>', ...
                     class.Constants.appName, class.Constants.appVersion, class.Constants.appRelease);
+
+                app.GridLayout_2.ColumnWidth(1:2) = {0,0};
                 % </GUI>
 
                 appUtil.winPosition(app.UIFigure)
@@ -888,7 +1436,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
                 end
 
-                writeFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
+                util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             catch
             end
 
@@ -923,7 +1471,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         waitfor(app.search_Suggestions, 'Value')
                     end
 
-                    ipcMainJSEventsHandler(app, struct('HTMLEventName', 'app.search_Suggestions', 'HTMLEventData', 'Enter'))
+                    ipcMainJSEventsHandler(app, struct('HTMLEventName', 'mainApp.search_Suggestions', 'HTMLEventData', 'Enter'))
 
                 otherwise
                     set(app.search_Suggestions, Visible=0, Value={})
@@ -959,12 +1507,204 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case app.AppInfo
                     if isempty(app.AppInfo.Tag)
                         app.progressDialog.Visible = 'visible';
-                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo(app.General, app.rootFolder, app.executionMode, app.rawDataTable, app.releasedData, app.cacheData, app.annotationTable, 'popup');
+                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo( ...
+                            app.General, ...
+                            app.rootFolder, ...
+                            app.executionMode, ...
+                            app.renderCount, ...
+                            app.rawDataTable, ...
+                            app.releasedData, ...
+                            app.cacheData, ...
+                            app.annotationTable, ...
+                            'popup' ...
+                        );
                         app.progressDialog.Visible = 'hidden';
                     end
 
                     msgInfo = app.AppInfo.Tag;
                     appUtil.modalWindow(app.UIFigure, 'info', msgInfo);
+            end
+
+        end
+
+        % Image clicked function: search_entryPointImage
+        function search_EntryPoint_ImageClicked(app, event)
+            
+            value2Search = textAnalysis.preProcessedData(app.search_entryPoint.Value, false);
+
+            switch app.General.search.mode
+                case 'tokens'
+                    words2Search = app.search_Suggestions.Items;
+                    if ~isempty(words2Search)
+                        search_Filtering_primaryFilter(app, words2Search)
+                        app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
+                        search_FilterSpecification(app)
+                    end
+
+                otherwise
+                    words2Search = textAnalysis.preProcessedData(strsplit(app.search_entryPoint.Value, ','));
+                    if ~isempty(words2Search)
+                        search_Filtering_primaryFilter(app, words2Search)
+                        app.search_entryPointImage.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
+                        search_FilterSpecification(app)
+                    end
+            end
+
+        end
+
+        % Value changing function: search_entryPoint
+        function search_EntryPoint_ValueChanging(app, event)
+
+            search_SuggestionAlgorithm(app, event.Value, true)
+            
+        end
+
+        % Image clicked function: search_leftPanelVisibility
+        function misc_Panel_VisibilityImageClicked(app, event)
+            
+            if app.GridLayout_2.ColumnWidth{1}
+                app.GridLayout_2.ColumnWidth(1:2) = {0, 0};
+                app.TabGroup_2.Visible = "off";
+                app.search_leftPanelVisibility.ImageSource = 'ArrowRight_32.png';                     
+            else
+                app.GridLayout_2.ColumnWidth(1:2) = {10, 320};
+                app.TabGroup_2.Visible = "on";
+                app.search_leftPanelVisibility.ImageSource = 'ArrowLeft_32.png';                        
+            end
+
+        end
+
+        % Image clicked function: search_FilterSetup
+        function search_FilterSetupClicked(app, event)
+            
+            switch event.Source
+                case app.search_FilterSetup
+                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup')
+
+                case {app.report_EditProduct, app.report_ContextMenu_EditFcn}
+                    % Por alguma razão desconhecida, inseri algumas validações
+                    % aqui! :)
+                    % Enfim... a possibilidade de editar um registro não deve
+                    % existir toda vez que a tabela esteja vazia ou que não
+                    % esteja selecionada uma linha.
+                    selectedRow = app.report_Table.Selection;
+
+                    if isempty(selectedRow)
+                        if isempty(app.report_Table.Data)
+                            app.report_EditProduct.Enable  = 0;
+                            app.report_ContextMenu_EditFcn.Enable = 0;
+                            return
+                        end
+
+                        app.report_Table.Selection = 1;
+                        report_TableSelectionChanged(app)
+                    elseif ~isscalar(selectedRow)
+                        app.report_Table.Selection = app.report_Table.Selection(1);
+                    end
+
+                    ipcMainMatlabOpenPopupApp(app, app, 'ProductInfo')
+            end
+
+        end
+
+        % Image clicked function: search_ExportTable
+        function search_ExportTableImageClicked(app, event)
+            
+            nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
+            defaultName   = appUtil.DefaultFileName(app.General.fileFolder.userPath, 'SCH', -1);
+            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+            if isempty(fileFullPath)
+                return
+            end
+
+            app.progressDialog.Visible = 'visible';
+
+            try
+                idxSCH = app.search_Table.UserData.secundaryIndex;
+                writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+            end
+
+            app.progressDialog.Visible = 'hidden';
+
+        end
+
+        % Selection changed function: search_Table
+        function search_Table_SelectionChanged(app, event)
+            
+            [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app);
+
+            if ~isempty(selectedHom)
+                if ~ismember(showedHom, selectedHom)
+                    % Escolhe o primeiro registro da lista de homologações selecionadas
+                    % em tabela.
+                    selected2showedHom     = selectedHom{1};
+                    relatedAnnotationTable = search_Annotation_RelatedTable(app, selected2showedHom);
+
+                    htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable);
+                    misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow(1), selected2showedHom)
+
+                    % Apresenta a nuvem de palavras apenas se visível...
+                    if app.search_ToolbarWordCloud.UserData
+                        if search_WordCloud_CheckCache(app, selected2showedHom, relatedAnnotationTable)
+                            status = search_WordCloud_PlotUpdate(app, selectedRow(1), selected2showedHom, false);
+                            if ~status
+                                if ~isempty(app.wordCloudObj.Table)
+                                    app.wordCloudObj.Table = [];
+                                end
+                            end
+                        end
+
+                    else
+                        if ~isempty(app.wordCloudObj.Table)
+                            app.wordCloudObj.Table = [];
+                        end
+                    end
+
+                    app.search_ToolbarAnnotation.Enable     = 1;
+                    app.search_ToolbarListOfProducts.Enable = 1;
+                    app.search_ToolbarWordCloud.Enable      = 1;
+                end
+
+            else
+                htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
+                misc_SelectedHomPanel_InfoUpdate(app, htmlSource, [], '')
+
+                if ~isempty(app.wordCloudObj) && ~isempty(app.search_WordCloudPanel.Tag)
+                    app.wordCloudObj.Table        = [];
+                    app.search_WordCloudPanel.Tag = '';
+                end
+
+                app.search_ToolbarAnnotation.Enable     = 0;
+                app.search_ToolbarWordCloud.Enable      = 0;
+                app.search_ToolbarListOfProducts.Enable = 0;
+            end
+
+        end
+
+        % Image clicked function: search_ToolbarWordCloud
+        function search_ToolbarWordCloudImageClicked(app, event)
+            
+            app.search_ToolbarWordCloud.UserData = ~app.search_ToolbarWordCloud.UserData;
+    
+            if app.search_ToolbarWordCloud.UserData
+                % O "drawnow nocallbacks" aqui é ESSENCIAL porque o
+                % MATLAB precisa renderizar em tela o container do
+                % WordCloud (um objeto uihtml).
+                app.search_Tab1Grid.RowHeight{3} = 150;
+                drawnow
+    
+                selectedRow = app.search_ProductInfo.UserData.selectedRow;
+                showedHom   = app.search_ProductInfo.UserData.showedHom;
+                relatedAnnotationTable = search_Annotation_RelatedTable(app, showedHom);
+    
+                if search_WordCloud_CheckCache(app, showedHom, relatedAnnotationTable)
+                    search_WordCloud_PlotUpdate(app, selectedRow, showedHom, false);
+                end
+    
+            else
+                app.search_Tab1Grid.RowHeight{3} = 0;
             end
 
         end
@@ -1017,7 +1757,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout_2);
-            app.Toolbar.ColumnWidth = {22, 22, 22, '1x'};
+            app.Toolbar.ColumnWidth = {22, 22, 22, '1x', 22, 22};
             app.Toolbar.RowHeight = {4, 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -1027,6 +1767,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create search_leftPanelVisibility
             app.search_leftPanelVisibility = uiimage(app.Toolbar);
+            app.search_leftPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
             app.search_leftPanelVisibility.Enable = 'off';
             app.search_leftPanelVisibility.Layout.Row = 2;
             app.search_leftPanelVisibility.Layout.Column = 1;
@@ -1035,6 +1776,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create search_FilterSetup
             app.search_FilterSetup = uiimage(app.Toolbar);
             app.search_FilterSetup.ScaleMethod = 'none';
+            app.search_FilterSetup.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
             app.search_FilterSetup.Enable = 'off';
             app.search_FilterSetup.Tooltip = {'Edita filtragem secundária'};
             app.search_FilterSetup.Layout.Row = [1 3];
@@ -1044,11 +1786,29 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create search_ExportTable
             app.search_ExportTable = uiimage(app.Toolbar);
             app.search_ExportTable.ScaleMethod = 'none';
+            app.search_ExportTable.ImageClickedFcn = createCallbackFcn(app, @search_ExportTableImageClicked, true);
             app.search_ExportTable.Enable = 'off';
             app.search_ExportTable.Tooltip = {'Exporta resultados de busca em arquivo XLSX'};
             app.search_ExportTable.Layout.Row = 2;
             app.search_ExportTable.Layout.Column = 3;
             app.search_ExportTable.ImageSource = 'Export_16.png';
+
+            % Create search_ToolbarListOfProducts
+            app.search_ToolbarListOfProducts = uiimage(app.Toolbar);
+            app.search_ToolbarListOfProducts.Tooltip = {'Adiciona à cesta de produtos sob análise'};
+            app.search_ToolbarListOfProducts.Layout.Row = [1 3];
+            app.search_ToolbarListOfProducts.Layout.Column = 6;
+            app.search_ToolbarListOfProducts.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Box_32.png');
+
+            % Create search_ToolbarAnnotation
+            app.search_ToolbarAnnotation = uiimage(app.Toolbar);
+            app.search_ToolbarAnnotation.ScaleMethod = 'none';
+            app.search_ToolbarAnnotation.Enable = 'off';
+            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
+            app.search_ToolbarAnnotation.Layout.Row = 2;
+            app.search_ToolbarAnnotation.Layout.Column = 5;
+            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
+            app.search_ToolbarAnnotation.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
 
             % Create TabGroup_2
             app.TabGroup_2 = uitabgroup(app.GridLayout_2);
@@ -1056,15 +1816,15 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.TabGroup_2.Layout.Row = [3 4];
             app.TabGroup_2.Layout.Column = 2;
 
-            % Create PRODUTOTab
-            app.PRODUTOTab = uitab(app.TabGroup_2);
-            app.PRODUTOTab.AutoResizeChildren = 'off';
-            app.PRODUTOTab.Title = 'PRODUTO';
+            % Create PESQUISATab
+            app.PESQUISATab = uitab(app.TabGroup_2);
+            app.PESQUISATab.AutoResizeChildren = 'off';
+            app.PESQUISATab.Title = 'PESQUISA';
 
             % Create search_Tab1Grid
-            app.search_Tab1Grid = uigridlayout(app.PRODUTOTab);
-            app.search_Tab1Grid.ColumnWidth = {'1x', 18, 18, 18};
-            app.search_Tab1Grid.RowHeight = {17, '1x', 0, 0, 0, 0, 0, 0};
+            app.search_Tab1Grid = uigridlayout(app.PESQUISATab);
+            app.search_Tab1Grid.ColumnWidth = {'1x', 18};
+            app.search_Tab1Grid.RowHeight = {17, '1x', 0};
             app.search_Tab1Grid.ColumnSpacing = 5;
             app.search_Tab1Grid.RowSpacing = 5;
             app.search_Tab1Grid.BackgroundColor = [1 1 1];
@@ -1077,39 +1837,21 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfoLabel.Layout.Column = 1;
             app.search_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
 
-            % Create search_ToolbarAnnotation
-            app.search_ToolbarAnnotation = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarAnnotation.ScaleMethod = 'none';
-            app.search_ToolbarAnnotation.Enable = 'off';
-            app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
-            app.search_ToolbarAnnotation.Layout.Row = 1;
-            app.search_ToolbarAnnotation.Layout.Column = 2;
-            app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
-            app.search_ToolbarAnnotation.ImageSource = 'Edit_18x18Gray.png';
-
             % Create search_ToolbarWordCloud
             app.search_ToolbarWordCloud = uiimage(app.search_Tab1Grid);
+            app.search_ToolbarWordCloud.ImageClickedFcn = createCallbackFcn(app, @search_ToolbarWordCloudImageClicked, true);
             app.search_ToolbarWordCloud.Enable = 'off';
             app.search_ToolbarWordCloud.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
             app.search_ToolbarWordCloud.Layout.Row = 1;
-            app.search_ToolbarWordCloud.Layout.Column = 3;
+            app.search_ToolbarWordCloud.Layout.Column = 2;
             app.search_ToolbarWordCloud.VerticalAlignment = 'bottom';
             app.search_ToolbarWordCloud.ImageSource = 'Cloud_32x32Gray.png';
-
-            % Create search_ToolbarListOfProducts
-            app.search_ToolbarListOfProducts = uiimage(app.search_Tab1Grid);
-            app.search_ToolbarListOfProducts.Enable = 'off';
-            app.search_ToolbarListOfProducts.Tooltip = {'Lista de produtos homologados sob análise'};
-            app.search_ToolbarListOfProducts.Layout.Row = 1;
-            app.search_ToolbarListOfProducts.Layout.Column = 4;
-            app.search_ToolbarListOfProducts.VerticalAlignment = 'bottom';
-            app.search_ToolbarListOfProducts.ImageSource = 'Box_32x32Gray.png';
 
             % Create search_ProductInfoImage
             app.search_ProductInfoImage = uiimage(app.search_Tab1Grid);
             app.search_ProductInfoImage.ScaleMethod = 'none';
             app.search_ProductInfoImage.Layout.Row = 2;
-            app.search_ProductInfoImage.Layout.Column = [1 4];
+            app.search_ProductInfoImage.Layout.Column = [1 2];
             app.search_ProductInfoImage.ImageSource = 'warning.svg';
 
             % Create search_ProductInfo
@@ -1118,114 +1860,31 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfo.WordWrap = 'on';
             app.search_ProductInfo.FontSize = 11;
             app.search_ProductInfo.Layout.Row = 2;
-            app.search_ProductInfo.Layout.Column = [1 4];
+            app.search_ProductInfo.Layout.Column = [1 2];
             app.search_ProductInfo.Interpreter = 'html';
             app.search_ProductInfo.Text = '';
-
-            % Create search_AnnotationPanelLabel
-            app.search_AnnotationPanelLabel = uilabel(app.search_Tab1Grid);
-            app.search_AnnotationPanelLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationPanelLabel.FontSize = 10;
-            app.search_AnnotationPanelLabel.Layout.Row = 3;
-            app.search_AnnotationPanelLabel.Layout.Column = [1 2];
-            app.search_AnnotationPanelLabel.Text = 'ANOTAÇÃO';
-
-            % Create search_WordCloudRefresh
-            app.search_WordCloudRefresh = uiimage(app.search_Tab1Grid);
-            app.search_WordCloudRefresh.Visible = 'off';
-            app.search_WordCloudRefresh.Tooltip = {'Nova consulta à API do Google'};
-            app.search_WordCloudRefresh.Layout.Row = 3;
-            app.search_WordCloudRefresh.Layout.Column = 4;
-            app.search_WordCloudRefresh.VerticalAlignment = 'bottom';
-            app.search_WordCloudRefresh.ImageSource = 'Refresh_18.png';
-
-            % Create search_AnnotationPanel
-            app.search_AnnotationPanel = uipanel(app.search_Tab1Grid);
-            app.search_AnnotationPanel.AutoResizeChildren = 'off';
-            app.search_AnnotationPanel.Layout.Row = 4;
-            app.search_AnnotationPanel.Layout.Column = [1 4];
-
-            % Create search_AnnotationGrid
-            app.search_AnnotationGrid = uigridlayout(app.search_AnnotationPanel);
-            app.search_AnnotationGrid.ColumnWidth = {'1x', 20};
-            app.search_AnnotationGrid.RowHeight = {17, 22, 17, '1x', 20};
-            app.search_AnnotationGrid.ColumnSpacing = 3;
-            app.search_AnnotationGrid.RowSpacing = 5;
-            app.search_AnnotationGrid.Padding = [10 10 5 5];
-            app.search_AnnotationGrid.BackgroundColor = [1 1 1];
-
-            % Create search_AnnotationAttributeLabel
-            app.search_AnnotationAttributeLabel = uilabel(app.search_AnnotationGrid);
-            app.search_AnnotationAttributeLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationAttributeLabel.FontSize = 10;
-            app.search_AnnotationAttributeLabel.Layout.Row = 1;
-            app.search_AnnotationAttributeLabel.Layout.Column = 1;
-            app.search_AnnotationAttributeLabel.Text = 'Atributo:';
-
-            % Create search_AnnotationAttribute
-            app.search_AnnotationAttribute = uidropdown(app.search_AnnotationGrid);
-            app.search_AnnotationAttribute.Items = {'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
-            app.search_AnnotationAttribute.FontSize = 11;
-            app.search_AnnotationAttribute.BackgroundColor = [1 1 1];
-            app.search_AnnotationAttribute.Layout.Row = 2;
-            app.search_AnnotationAttribute.Layout.Column = 1;
-            app.search_AnnotationAttribute.Value = 'Fornecedor';
-
-            % Create search_AnnotationValueLabel
-            app.search_AnnotationValueLabel = uilabel(app.search_AnnotationGrid);
-            app.search_AnnotationValueLabel.VerticalAlignment = 'bottom';
-            app.search_AnnotationValueLabel.FontSize = 10;
-            app.search_AnnotationValueLabel.Layout.Row = 3;
-            app.search_AnnotationValueLabel.Layout.Column = 1;
-            app.search_AnnotationValueLabel.Text = 'Valor:';
-
-            % Create search_AnnotationValue
-            app.search_AnnotationValue = uitextarea(app.search_AnnotationGrid);
-            app.search_AnnotationValue.FontSize = 11;
-            app.search_AnnotationValue.Layout.Row = [4 5];
-            app.search_AnnotationValue.Layout.Column = 1;
-
-            % Create search_AnnotationPanelAdd
-            app.search_AnnotationPanelAdd = uiimage(app.search_AnnotationGrid);
-            app.search_AnnotationPanelAdd.Layout.Row = 5;
-            app.search_AnnotationPanelAdd.Layout.Column = 2;
-            app.search_AnnotationPanelAdd.VerticalAlignment = 'bottom';
-            app.search_AnnotationPanelAdd.ImageSource = 'NewFile_36.png';
 
             % Create search_WordCloudPanel
             app.search_WordCloudPanel = uipanel(app.search_Tab1Grid);
             app.search_WordCloudPanel.AutoResizeChildren = 'off';
             app.search_WordCloudPanel.BackgroundColor = [1 1 1];
-            app.search_WordCloudPanel.Layout.Row = [5 6];
-            app.search_WordCloudPanel.Layout.Column = [1 4];
+            app.search_WordCloudPanel.Layout.Row = 3;
+            app.search_WordCloudPanel.Layout.Column = [1 2];
 
-            % Create search_ListOfProductsLabel
-            app.search_ListOfProductsLabel = uilabel(app.search_Tab1Grid);
-            app.search_ListOfProductsLabel.VerticalAlignment = 'bottom';
-            app.search_ListOfProductsLabel.FontSize = 10;
-            app.search_ListOfProductsLabel.Layout.Row = 7;
-            app.search_ListOfProductsLabel.Layout.Column = [1 3];
-            app.search_ListOfProductsLabel.Text = 'LISTA DE PRODUTOS HOMOLOGADOS SOB ANÁLISE';
+            % Create CONFIGTab
+            app.CONFIGTab = uitab(app.TabGroup_2);
+            app.CONFIGTab.Title = 'CONFIG';
 
-            % Create search_ListOfProductsAdd
-            app.search_ListOfProductsAdd = uiimage(app.search_Tab1Grid);
-            app.search_ListOfProductsAdd.Layout.Row = 7;
-            app.search_ListOfProductsAdd.Layout.Column = 4;
-            app.search_ListOfProductsAdd.VerticalAlignment = 'bottom';
-            app.search_ListOfProductsAdd.ImageSource = 'Sum_36.png';
-
-            % Create search_ListOfProducts
-            app.search_ListOfProducts = uilistbox(app.search_Tab1Grid);
-            app.search_ListOfProducts.Items = {};
-            app.search_ListOfProducts.Multiselect = 'on';
-            app.search_ListOfProducts.FontSize = 11;
-            app.search_ListOfProducts.Layout.Row = 8;
-            app.search_ListOfProducts.Layout.Column = [1 4];
-            app.search_ListOfProducts.Value = {};
+            % Create GridLayout2
+            app.GridLayout2 = uigridlayout(app.CONFIGTab);
+            app.GridLayout2.ColumnWidth = {'1x'};
+            app.GridLayout2.RowHeight = {17, 22, 22, 22};
+            app.GridLayout2.ColumnSpacing = 5;
+            app.GridLayout2.BackgroundColor = [1 1 1];
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout_2);
-            app.Document.ColumnWidth = {'1x', 412, '1x'};
+            app.Document.ColumnWidth = {412, '1x'};
             app.Document.RowHeight = {35, 1, 5, 54, 342, '1x', 1};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 0;
@@ -1240,11 +1899,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SOLICITANTE'; 'FABRICANTE'; 'MODELO'; 'NOME COMERCIAL'; 'SITUAÇÃO'};
             app.search_Table.ColumnWidth = {110, 300, 'auto', 'auto', 150, 150, 150};
             app.search_Table.RowName = {};
-            app.search_Table.SelectionType = 'row';
             app.search_Table.RowStriping = 'off';
+            app.search_Table.SelectionChangedFcn = createCallbackFcn(app, @search_Table_SelectionChanged, true);
             app.search_Table.Visible = 'off';
             app.search_Table.Layout.Row = [5 6];
-            app.search_Table.Layout.Column = [1 3];
+            app.search_Table.Layout.Column = [1 2];
             app.search_Table.FontSize = 10;
 
             % Create search_entryPointPanel
@@ -1252,7 +1911,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_entryPointPanel.AutoResizeChildren = 'off';
             app.search_entryPointPanel.BackgroundColor = [1 1 1];
             app.search_entryPointPanel.Layout.Row = 1;
-            app.search_entryPointPanel.Layout.Column = 2;
+            app.search_entryPointPanel.Layout.Column = 1;
 
             % Create search_entryPointGrid
             app.search_entryPointGrid = uigridlayout(app.search_entryPointPanel);
@@ -1266,6 +1925,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create search_entryPoint
             app.search_entryPoint = uieditfield(app.search_entryPointGrid, 'text');
             app.search_entryPoint.CharacterLimits = [0 128];
+            app.search_entryPoint.ValueChangingFcn = createCallbackFcn(app, @search_EntryPoint_ValueChanging, true);
+            app.search_entryPoint.BusyAction = 'cancel';
             app.search_entryPoint.Tag = 'PROMPT';
             app.search_entryPoint.FontSize = 14;
             app.search_entryPoint.Placeholder = 'O que você quer pesquisar?';
@@ -1275,6 +1936,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create search_entryPointImage
             app.search_entryPointImage = uiimage(app.search_entryPointGrid);
             app.search_entryPointImage.ScaleMethod = 'scaledown';
+            app.search_entryPointImage.ImageClickedFcn = createCallbackFcn(app, @search_EntryPoint_ImageClicked, true);
             app.search_entryPointImage.Enable = 'off';
             app.search_entryPointImage.Layout.Row = 1;
             app.search_entryPointImage.Layout.Column = 2;
@@ -1287,7 +1949,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Metadata.FontSize = 14;
             app.search_Metadata.Visible = 'off';
             app.search_Metadata.Layout.Row = 4;
-            app.search_Metadata.Layout.Column = [1 3];
+            app.search_Metadata.Layout.Column = [1 2];
             app.search_Metadata.Interpreter = 'html';
             app.search_Metadata.Text = {'Exibindo resultados para "<b>apple iphone</b>"'; '<p style="color: #808080; font-size:10px;">Filtragem primária: Homologação<br>Filtragem secundária: []</p>'};
 
@@ -1298,7 +1960,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Suggestions.Visible = 'off';
             app.search_Suggestions.FontSize = 14;
             app.search_Suggestions.Layout.Row = [2 5];
-            app.search_Suggestions.Layout.Column = 2;
+            app.search_Suggestions.Layout.Column = 1;
             app.search_Suggestions.Value = {};
 
             % Create search_nRows
@@ -1308,7 +1970,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_nRows.FontColor = [0.502 0.502 0.502];
             app.search_nRows.Visible = 'off';
             app.search_nRows.Layout.Row = [1 4];
-            app.search_nRows.Layout.Column = 3;
+            app.search_nRows.Layout.Column = 2;
             app.search_nRows.Interpreter = 'html';
             app.search_nRows.Text = {'88 <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '137 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>'};
 

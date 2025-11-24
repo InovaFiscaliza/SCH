@@ -1,5 +1,5 @@
 {
-    "version": 1.76,
+    "version": 1.81,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -24,15 +24,11 @@
     },
     "openGL": "hardware",
     "search": {
-        "dataSources": {
-            "main": "SCHData.mat",
-            "annotation": "Annotation.xlsx"
-        },
         "mode": "tokens",
         "function": "strcmp",
         "minCharacters": 2,
-        "minDisplayedTokens": 20,
-        "cacheColumns": "Modelo | Nome Comercial",
+        "minDisplayedTokens": 50,
+        "cacheColumns": "Homologação | Solicitante | Fabricante | Modelo | Nome Comercial",
         "wordCloud": {
             "algorithm": "D3.js",
             "column": "Modelo"
@@ -442,9 +438,9 @@
             }
         },
         "typeOfProduct": {
-            "default": "-1",
+            "default": "-",
             "options": [
-                "-1",
+                "-",
                 "Antena",
                 "Baterias",
                 "Bloqueador de sinal (Jammer)",
@@ -465,17 +461,17 @@
             ]
         },
         "typeOfSituation": {
-            "default": "-1",
+            "default": "-",
             "options": [
-                "-1",
+                "-",
                 "Regular",
                 "Irregular"
             ]
         },
         "typeOfViolation": {
-            "default": "-1",
+            "default": "-",
             "options": [
-                "-1",
+                "-",
                 "Comercialização",
                 "Identificação homologação",
                 "Importação",
