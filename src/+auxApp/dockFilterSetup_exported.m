@@ -29,29 +29,28 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         Container
         isDocked = true
 
-        CallingApp
-        General
-        filteringObj
+        mainApp
+        callingApp
     end
     
     
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            allColumns      = app.General.ui.searchTable.name;
+            allColumns      = app.mainApp.General.ui.searchTable.name;
             [~, sortIndex]  = sort(lower(allColumns));
             GUIAllColumns   = allColumns(sortIndex);
 
             app.SecundaryColumn.Items = GUIAllColumns;
             SecundaryColumnValueChanged(app)
 
-            app.SecundaryListOfFilters.Items = FilterList(app.filteringObj, 'SCH');
+            app.SecundaryListOfFilters.Items = FilterList(app.mainApp.filteringObj, 'SCH');
         end
 
         %-----------------------------------------------------------------%
         function filter = SecundaryFilterType(app, columnName)
-            index  = find(strcmp(app.General.ui.searchTable.name, columnName), 1);
-            filter = app.General.ui.searchTable.filter{index};
+            index  = find(strcmp(app.mainApp.General.ui.searchTable.name, columnName), 1);
+            filter = app.mainApp.General.ui.searchTable.filter{index};
         end
 
        %-----------------------------------------------------------------%
@@ -100,7 +99,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function CallingMainApp(app, updateFlag, returnFlag)
-            ipcMainMatlabCallsHandler(app.CallingApp, app, 'SEARCH:FILTERSETUP', updateFlag, returnFlag)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'SEARCH:FILTERSETUP', updateFlag, returnFlag)
         end
     end
     
@@ -109,11 +108,10 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp)
+        function startupFcn(app, mainApp, callingApp)
             
-            app.CallingApp   = mainApp;
-            app.General      = mainApp.General;
-            app.filteringObj = mainApp.filteringObj;
+            app.mainApp    = mainApp;
+            app.callingApp = callingApp;
 
             initialValues(app)
             
@@ -183,8 +181,8 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
                 case 'listOfText'
                     try
-                        primaryIndex = app.CallingApp.search_Table.UserData.primaryIndex;
-                        columnItems  = [{''}; cellstr(unique(app.CallingApp.rawDataTable{primaryIndex, columnName}))];
+                        primaryIndex = app.mainApp.search_Table.UserData.primaryIndex;
+                        columnItems  = [{''}; cellstr(unique(app.mainApp.rawDataTable{primaryIndex, columnName}))];
                     catch
                         columnItems = {};
                     end
@@ -201,7 +199,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         % Image clicked function: SecundaryAddFilter
         function SecundaryAddFilterImageClicked(app, event)
             
-            primaryIndex = app.CallingApp.search_Table.UserData.primaryIndex;
+            primaryIndex = app.mainApp.search_Table.UserData.primaryIndex;
             if isempty(primaryIndex)
                 appUtil.modalWindow(app.UIFigure, 'warning', 'A filtragem secundária é aplicável apenas após a realização de uma pesquisa (filtragem primária), e desde que tenha retornado algum registro dessa pesquisa.');
                 return
@@ -218,7 +216,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             end
 
             % Adiciona um novo filtro à lista de filtros secundários.
-            msgWarning = addFilterRule(app.filteringObj, Column, Operation, Value);
+            msgWarning = addFilterRule(app.mainApp.filteringObj, Column, Operation, Value);
             if ~isempty(msgWarning)
                 appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
                 return
@@ -245,7 +243,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
             if ~isempty(selectedFilter)
                 idxFilter = find(ismember(app.SecundaryListOfFilters.Items, selectedFilter));
-                removeFilterRule(app.filteringObj, idxFilter);
+                removeFilterRule(app.mainApp.filteringObj, idxFilter);
                 
                 CallingMainApp(app, true, true)
                 initialValues(app)

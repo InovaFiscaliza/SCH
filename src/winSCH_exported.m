@@ -362,16 +362,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                             case 'wordCloudAlgorithmChanged'
                                 if ~isempty(app.wordCloudObj)
                                     if ~strcmp(app.wordCloudObj.Algorithm, app.General.search.wordCloud.algorithm)
-                                        delete(app.wordCloudObj.Chart.Parent)
-                                        clear('app.wordCloudObj.Chart.Parent')
+                                        refTable = app.wordCloudObj.Table;
+                                        delete(app.wordCloudObj)
                     
                                         app.wordCloudObj = wordCloud(app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
-                                        app.search_WordCloudPanel.Tag = '';
-
-                                        app.search_ProductInfo.UserData.selectedRow = [];
-                                        app.search_ProductInfo.UserData.showedHom   = '';
-                    
-                                        search_Table_SelectionChanged(app)
+                                        app.wordCloudObj.Table = refTable;
                                     end
                                 end
 
@@ -698,6 +693,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                     % meio de chamada a uiputfile.
                     app.General_I.fileFolder.userPath = tempDir;
 
+                    % Wordcloud built-in do MATLAB é incompatível com webapps.
+                    if ~strcmp(app.General_I.search.wordCloud.algorithm, 'D3.js')
+                        app.General_I.search.wordCloud.algorithm = 'D3.js';
+                    end
+
                 otherwise
                     % Resgata a pasta de trabalho do usuário (configurável).
                     userPaths = appUtil.UserPaths(app.General_I.fileFolder.userPath);
@@ -734,7 +734,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
             % Cria o objeto que conecta o TabGroup com o GraphicMenu.
-            app.tabGroupController = tabGroupGraphicMenu(app.NavBar, app.TabGroup, app.progressDialog, @app.jsBackDoor_Customizations, '');
+            app.tabGroupController = tabGroupGraphicMenu(app.NavBar, app.TabGroup, app.progressDialog, @app.jsBackDoor_AppCustomizations, '');
 
             addComponent(app.tabGroupController, "Built-in", "mainApp",            app.menu_Button1, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), matlab.graphics.GraphicsPlaceholder, 2)
@@ -1373,6 +1373,41 @@ classdef winSCH_exported < matlab.apps.AppBase
     end
 
 
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % TABGROUPCONTROLLER
+        %-----------------------------------------------------------------%
+        function hAuxApp = auxAppHandle(app, auxAppName)
+            arguments
+                app
+                auxAppName string {mustBeMember(auxAppName, ["PRODUCTS", "CONFIG"])}
+            end
+
+            hAuxApp = app.tabGroupController.Components.appHandle{app.tabGroupController.Components.Tag == auxAppName};
+        end
+
+        %-----------------------------------------------------------------%
+        function inputArguments = auxAppInputArguments(app, auxAppName)
+            arguments
+                app
+                auxAppName char {mustBeMember(auxAppName, {'SEARCH', 'PRODUCTS', 'CONFIG'})}
+            end
+            
+            [auxAppIsOpen, ...
+             auxAppHandle] = checkStatusModule(app.tabGroupController, auxAppName);
+
+            inputArguments = {app};
+
+            switch auxAppName
+                case 'ECD'
+                    if auxAppIsOpen
+                        % ...
+                    end
+            end
+        end
+    end
+
+
     % Callbacks that handle component events
     methods (Access = private)
 
@@ -1446,7 +1481,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Window button down function: UIFigure
+        % Callback function: UIFigure, search_Table
         function UIFigureWindowButtonDown(app, event)
 
             % O listener que captura cliques do mouse só é aplicável no
@@ -1455,7 +1490,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                 return
             end
 
-            hitObject = struct(event).HitObject;
+            event = struct(event);
+            if isfield(event, 'HitObject')
+                hitObject = event.HitObject;
+            else
+                hitObject = event.Source;
+            end
+
             switch hitObject
                 case app.search_entryPoint
                     if ~isempty(app.search_entryPoint.Value)
@@ -1486,8 +1527,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         function menu_mainButtonPushed(app, event)
 
             clickedButton  = event.Source;
-            auxAppName     = clickedButton.Tag;
-            inputArguments = auxAppInputArguments(app, auxAppName);
+            auxAppTag      = clickedButton.Tag;
+
+            inputArguments = auxAppInputArguments(app, auxAppTag);
             openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, inputArguments{:})
 
             if ~app.TabGroup.Visible
@@ -1761,7 +1803,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Toolbar.RowHeight = {4, 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
-            app.Toolbar.Padding = [10 5 10 5];
+            app.Toolbar.Padding = [5 5 10 5];
             app.Toolbar.Layout.Row = 6;
             app.Toolbar.Layout.Column = [1 7];
 
@@ -1900,6 +1942,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Table.ColumnWidth = {110, 300, 'auto', 'auto', 150, 150, 150};
             app.search_Table.RowName = {};
             app.search_Table.RowStriping = 'off';
+            app.search_Table.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
             app.search_Table.SelectionChangedFcn = createCallbackFcn(app, @search_Table_SelectionChanged, true);
             app.search_Table.Visible = 'off';
             app.search_Table.Layout.Row = [5 6];
@@ -2040,7 +2083,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create menu_Button2
             app.menu_Button2 = uibutton(app.NavBar, 'state');
             app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button2.Tag = 'REPORT';
+            app.menu_Button2.Tag = 'PRODUCTS';
             app.menu_Button2.Tooltip = {''};
             app.menu_Button2.Icon = 'Detection_32White.png';
             app.menu_Button2.IconAlignment = 'top';
