@@ -4,21 +4,12 @@ classdef winProducts_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                     matlab.ui.Figure
         GridLayout                   matlab.ui.container.GridLayout
-        DockModule                   matlab.ui.container.GridLayout
-        dockModule_Undock            matlab.ui.control.Image
-        dockModule_Close             matlab.ui.control.Image
-        Document                     matlab.ui.container.GridLayout
-        report_Table                 matlab.ui.control.Table
-        report_nRows                 matlab.ui.control.Label
-        report_ViewType              matlab.ui.container.ButtonGroup
-        AduanaButton                 matlab.ui.control.RadioButton
-        FornecedorUsurioButton       matlab.ui.control.RadioButton
         TabGroup                     matlab.ui.container.TabGroup
-        PRODUTOTab                   matlab.ui.container.Tab
+        INSPEOTab                    matlab.ui.container.Tab
         report_Tab1Grid              matlab.ui.container.GridLayout
-        report_ProjectLabel_2        matlab.ui.control.Label
         report_ProductInfo           matlab.ui.control.Label
         report_ProductInfoImage      matlab.ui.control.Image
+        report_ProductInfoLabel      matlab.ui.control.Label
         PROJETOTab                   matlab.ui.container.Tab
         Tab4Grid                     matlab.ui.container.GridLayout
         report_EntityPanel           matlab.ui.container.Panel
@@ -52,6 +43,15 @@ classdef winProducts_exported < matlab.apps.AppBase
         reportSystem                 matlab.ui.control.DropDown
         reportSystemLabel            matlab.ui.control.Label
         eFiscalizaLabel              matlab.ui.control.Label
+        DockModule                   matlab.ui.container.GridLayout
+        dockModule_Undock            matlab.ui.control.Image
+        dockModule_Close             matlab.ui.control.Image
+        Document                     matlab.ui.container.GridLayout
+        report_Table                 matlab.ui.control.Table
+        report_nRows                 matlab.ui.control.Label
+        report_ViewType              matlab.ui.container.ButtonGroup
+        AduanaButton                 matlab.ui.control.RadioButton
+        FornecedorUsurioButton       matlab.ui.control.RadioButton
         Toolbar                      matlab.ui.container.GridLayout
         report_FiscalizaUpdate       matlab.ui.control.Image
         report_ReportGeneration      matlab.ui.control.Image
@@ -107,9 +107,6 @@ classdef winProducts_exported < matlab.apps.AppBase
                                 error('UnexpectedEvent')
                         end
 
-                    case 'auxApp.winExternalRequest.TreePoints'
-                        DeleteSelectedPoint(app, struct('ContextObject', app.TreePoints))
-
                     otherwise
                         error('UnexpectedEvent')
                 end
@@ -123,41 +120,11 @@ classdef winProducts_exported < matlab.apps.AppBase
         function ipcSecundaryMatlabCallsHandler(app, callingApp, operationType, varargin)
             try
                 switch class(callingApp)
-                    case {'winMonitorRNI', 'winMonitorRNI_exported'}
+                    case {'winSCH', 'winSCH_exported'}
                         switch operationType
-                            case {'FileListChanged:Add', ...
-                                  'FileListChanged:Del', ...
-                                  'FileListChanged:Unmerge', ...
-                                  'FileListChanged:Merge'}
-                                app.measData = app.mainApp.measData;
-                                TreeFileLocationBuilding(app)
-
-                                if ~isempty(app.measData)
-                                    Analysis(app)
-                                end
-
-                            case 'ExternalRequest:AnalysisParameterChanged'
-                                app.UITable.ColumnName{4} = sprintf('Qtd.|> %.0f V/m', app.mainApp.General.ExternalRequest.FieldValue);
-                                updateAnalysis(app.projectData, app.measData, app.mainApp.General, operationType);
-                                Analysis(app)
-
-                            case 'ExternalRequest:AxesParameterChanged'
-                                if ~isequal(app.UIAxes.Basemap, app.mainApp.General.Plot.GeographicAxes.Basemap)
-                                    app.UIAxes.Basemap = app.mainApp.General.Plot.GeographicAxes.Basemap;
-
-                                    switch app.mainApp.General.Plot.GeographicAxes.Basemap
-                                        case {'darkwater', 'none'}
-                                            app.UIAxes.Grid = 'on';
-                                        otherwise
-                                            app.UIAxes.Grid = 'off';
-                                    end
-                                end
-
-                                plot.axes.Colormap(app.UIAxes, app.mainApp.General.Plot.GeographicAxes.Colormap)
-                                plot.axes.Colorbar(app.UIAxes, app.mainApp.General.Plot.GeographicAxes.Colorbar)
-
-                            case 'ExternalRequest:PlotParameterChanged'
-                                Analysis(app)
+                            case 'updateInspectedProducts'
+                                'updateInspectedProducts'
+                                % ...
 
                             otherwise
                                 error('UnexpectedCall')
@@ -223,35 +190,18 @@ classdef winProducts_exported < matlab.apps.AppBase
                             end
 
                             % Outros elementos:
-                            elToModify = {app.AxesToolbar, app.TreePoints};
+                            elToModify = { ...
+                                app.report_ProductInfo, ...
+                                app.report_ProductInfoImage ...
+                            };
                             elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                             if ~isempty(elDataTag)
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elDataTag{1}, 'styleImportant', struct('borderTopLeftRadius', '0', 'borderTopRightRadius', '0')), ...
-                                    struct('appName', appName, 'dataTag', elDataTag{2}, 'listener', struct('componentName', 'auxApp.winExternalRequest.TreePoints', 'keyEvents', {{'Delete', 'Backspace'}})) ...
-                                });
+                                ui.TextView.startup(app.jsBackDoor, elToModify{1}, appName);
+                                ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
                             end
 
                         case 2
-                            context = 'ExternalRequest';
-
-                            if isempty(app.projectData.modules.(context).ui.system) && ~isequal(app.projectData.modules.(context).ui.system, app.mainApp.General.Report.system)
-                                app.projectData.modules.(context).ui.system = app.mainApp.General.Report.system;
-                            end
-                            
-                            if isempty(app.projectData.modules.(context).ui.unit)   && ~isequal(app.projectData.modules.(context).ui.unit,   app.mainApp.General.Report.unit)
-                                app.projectData.modules.(context).ui.unit   = app.mainApp.General.Report.unit;
-                            end
-
-                            if ~isdeployed()
-                                app.reportSystem.Items = {'eFiscaliza', 'eFiscaliza TS', 'eFiscaliza HM', 'eFiscaliza DS'};
-                            end
-                            app.reportSystem.Value     = app.projectData.modules.(context).ui.system;
-
-                            set(app.reportUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, ...
-                                                'Value', app.projectData.modules.(context).ui.unit)
-                            app.reportIssue.Value     = app.projectData.modules.(context).ui.issue;
-                            app.reportModelName.Items = app.projectData.modules.(context).ui.templates;
+                            % ...
                     end
             end
         end
@@ -301,6 +251,12 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
+            if ~strcmp(app.mainApp.executionMode, 'webApp')
+                app.dockModule_Undock.Enable = 1;
+            end
+
+            app.report_Table.RowName = 'numbered';
+
             % ...
         end
     end
@@ -606,7 +562,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create tool_AddNonCertificate
             app.tool_AddNonCertificate = uiimage(app.Toolbar);
             app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
-            app.tool_AddNonCertificate.Layout.Row = [2 3];
+            app.tool_AddNonCertificate.Layout.Row = 2;
             app.tool_AddNonCertificate.Layout.Column = 2;
             app.tool_AddNonCertificate.ImageSource = 'Forbidden_32Red.png';
 
@@ -638,6 +594,95 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_FiscalizaUpdate.Layout.Column = 6;
             app.report_FiscalizaUpdate.ImageSource = 'Up_24.png';
 
+            % Create Document
+            app.Document = uigridlayout(app.GridLayout);
+            app.Document.ColumnWidth = {'1x', 100, 16, 16};
+            app.Document.RowHeight = {4, 22, 16, '1x'};
+            app.Document.ColumnSpacing = 2;
+            app.Document.RowSpacing = 5;
+            app.Document.Padding = [0 0 0 0];
+            app.Document.Layout.Row = [3 4];
+            app.Document.Layout.Column = [4 5];
+            app.Document.BackgroundColor = [1 1 1];
+
+            % Create report_ViewType
+            app.report_ViewType = uibuttongroup(app.Document);
+            app.report_ViewType.BorderType = 'none';
+            app.report_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
+            app.report_ViewType.BackgroundColor = [1 1 1];
+            app.report_ViewType.Layout.Row = [2 3];
+            app.report_ViewType.Layout.Column = [1 4];
+            app.report_ViewType.FontSize = 10;
+
+            % Create FornecedorUsurioButton
+            app.FornecedorUsurioButton = uiradiobutton(app.report_ViewType);
+            app.FornecedorUsurioButton.Tag = 'vendorView';
+            app.FornecedorUsurioButton.Text = 'Fornecedor/Usuário';
+            app.FornecedorUsurioButton.FontSize = 11;
+            app.FornecedorUsurioButton.Position = [1 1 167 23];
+            app.FornecedorUsurioButton.Value = true;
+
+            % Create AduanaButton
+            app.AduanaButton = uiradiobutton(app.report_ViewType);
+            app.AduanaButton.Tag = 'customsView';
+            app.AduanaButton.Text = 'Aduana';
+            app.AduanaButton.FontSize = 11;
+            app.AduanaButton.Position = [187 1 180 22];
+
+            % Create report_nRows
+            app.report_nRows = uilabel(app.Document);
+            app.report_nRows.HorizontalAlignment = 'right';
+            app.report_nRows.VerticalAlignment = 'bottom';
+            app.report_nRows.FontSize = 11;
+            app.report_nRows.FontColor = [0.502 0.502 0.502];
+            app.report_nRows.Layout.Row = 3;
+            app.report_nRows.Layout.Column = [2 4];
+            app.report_nRows.Interpreter = 'html';
+            app.report_nRows.Text = '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>';
+
+            % Create report_Table
+            app.report_Table = uitable(app.Document);
+            app.report_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
+            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
+            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
+            app.report_Table.RowName = {};
+            app.report_Table.SelectionType = 'row';
+            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
+            app.report_Table.Layout.Row = 4;
+            app.report_Table.Layout.Column = [1 4];
+            app.report_Table.FontSize = 10;
+
+            % Create DockModule
+            app.DockModule = uigridlayout(app.GridLayout);
+            app.DockModule.RowHeight = {'1x'};
+            app.DockModule.ColumnSpacing = 2;
+            app.DockModule.Padding = [5 2 5 2];
+            app.DockModule.Visible = 'off';
+            app.DockModule.Layout.Row = [2 3];
+            app.DockModule.Layout.Column = [5 6];
+            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
+
+            % Create dockModule_Close
+            app.dockModule_Close = uiimage(app.DockModule);
+            app.dockModule_Close.ScaleMethod = 'none';
+            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.dockModule_Close.Tag = 'DRIVETEST';
+            app.dockModule_Close.Tooltip = {'Fecha módulo'};
+            app.dockModule_Close.Layout.Row = 1;
+            app.dockModule_Close.Layout.Column = 2;
+            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
+
+            % Create dockModule_Undock
+            app.dockModule_Undock = uiimage(app.DockModule);
+            app.dockModule_Undock.ScaleMethod = 'none';
+            app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.dockModule_Undock.Tag = 'DRIVETEST';
+            app.dockModule_Undock.Enable = 'off';
+            app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
+            app.dockModule_Undock.Layout.Row = 1;
+            app.dockModule_Undock.Layout.Column = 1;
+            app.dockModule_Undock.ImageSource = 'Undock_18White.png';
+
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);
             app.TabGroup.AutoResizeChildren = 'off';
@@ -645,16 +690,25 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.TabGroup.Layout.Row = [3 4];
             app.TabGroup.Layout.Column = 2;
 
-            % Create PRODUTOTab
-            app.PRODUTOTab = uitab(app.TabGroup);
-            app.PRODUTOTab.AutoResizeChildren = 'off';
-            app.PRODUTOTab.Title = 'PRODUTO';
+            % Create INSPEOTab
+            app.INSPEOTab = uitab(app.TabGroup);
+            app.INSPEOTab.AutoResizeChildren = 'off';
+            app.INSPEOTab.Title = 'INSPEÇÃO';
 
             % Create report_Tab1Grid
-            app.report_Tab1Grid = uigridlayout(app.PRODUTOTab);
+            app.report_Tab1Grid = uigridlayout(app.INSPEOTab);
             app.report_Tab1Grid.ColumnWidth = {'1x'};
             app.report_Tab1Grid.RowHeight = {17, '1x'};
+            app.report_Tab1Grid.RowSpacing = 5;
             app.report_Tab1Grid.BackgroundColor = [1 1 1];
+
+            % Create report_ProductInfoLabel
+            app.report_ProductInfoLabel = uilabel(app.report_Tab1Grid);
+            app.report_ProductInfoLabel.VerticalAlignment = 'bottom';
+            app.report_ProductInfoLabel.FontSize = 10;
+            app.report_ProductInfoLabel.Layout.Row = 1;
+            app.report_ProductInfoLabel.Layout.Column = 1;
+            app.report_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
 
             % Create report_ProductInfoImage
             app.report_ProductInfoImage = uiimage(app.report_Tab1Grid);
@@ -672,14 +726,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProductInfo.Layout.Column = 1;
             app.report_ProductInfo.Interpreter = 'html';
             app.report_ProductInfo.Text = '';
-
-            % Create report_ProjectLabel_2
-            app.report_ProjectLabel_2 = uilabel(app.report_Tab1Grid);
-            app.report_ProjectLabel_2.VerticalAlignment = 'bottom';
-            app.report_ProjectLabel_2.FontSize = 10;
-            app.report_ProjectLabel_2.Layout.Row = 1;
-            app.report_ProjectLabel_2.Layout.Column = 1;
-            app.report_ProjectLabel_2.Text = 'PRODUTO SELECIONADO';
 
             % Create PROJETOTab
             app.PROJETOTab = uitab(app.TabGroup);
@@ -940,94 +986,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_Entity.Enable = 'off';
             app.report_Entity.Layout.Row = 4;
             app.report_Entity.Layout.Column = [1 3];
-
-            % Create Document
-            app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {'1x', 16, 16};
-            app.Document.RowHeight = {1, 22, 5, 10, '1x'};
-            app.Document.ColumnSpacing = 2;
-            app.Document.RowSpacing = 4;
-            app.Document.Padding = [0 0 0 0];
-            app.Document.Layout.Row = [3 4];
-            app.Document.Layout.Column = [4 5];
-            app.Document.BackgroundColor = [1 1 1];
-
-            % Create report_ViewType
-            app.report_ViewType = uibuttongroup(app.Document);
-            app.report_ViewType.BorderType = 'none';
-            app.report_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
-            app.report_ViewType.BackgroundColor = [1 1 1];
-            app.report_ViewType.Layout.Row = [2 4];
-            app.report_ViewType.Layout.Column = [1 3];
-            app.report_ViewType.FontSize = 10;
-
-            % Create FornecedorUsurioButton
-            app.FornecedorUsurioButton = uiradiobutton(app.report_ViewType);
-            app.FornecedorUsurioButton.Tag = 'vendorView';
-            app.FornecedorUsurioButton.Text = 'Fornecedor/Usuário';
-            app.FornecedorUsurioButton.FontSize = 11;
-            app.FornecedorUsurioButton.Position = [1 1 167 23];
-            app.FornecedorUsurioButton.Value = true;
-
-            % Create AduanaButton
-            app.AduanaButton = uiradiobutton(app.report_ViewType);
-            app.AduanaButton.Tag = 'customsView';
-            app.AduanaButton.Text = 'Aduana';
-            app.AduanaButton.FontSize = 11;
-            app.AduanaButton.Position = [187 1 180 22];
-
-            % Create report_nRows
-            app.report_nRows = uilabel(app.Document);
-            app.report_nRows.HorizontalAlignment = 'right';
-            app.report_nRows.VerticalAlignment = 'top';
-            app.report_nRows.FontColor = [0.502 0.502 0.502];
-            app.report_nRows.Layout.Row = [3 4];
-            app.report_nRows.Layout.Column = [1 3];
-            app.report_nRows.Interpreter = 'html';
-            app.report_nRows.Text = '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>';
-
-            % Create report_Table
-            app.report_Table = uitable(app.Document);
-            app.report_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
-            app.report_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
-            app.report_Table.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
-            app.report_Table.RowName = {};
-            app.report_Table.SelectionType = 'row';
-            app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
-            app.report_Table.Layout.Row = 5;
-            app.report_Table.Layout.Column = [1 3];
-            app.report_Table.FontSize = 10;
-
-            % Create DockModule
-            app.DockModule = uigridlayout(app.GridLayout);
-            app.DockModule.RowHeight = {'1x'};
-            app.DockModule.ColumnSpacing = 2;
-            app.DockModule.Padding = [5 2 5 2];
-            app.DockModule.Visible = 'off';
-            app.DockModule.Layout.Row = [2 3];
-            app.DockModule.Layout.Column = [5 6];
-            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
-
-            % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModule);
-            app.dockModule_Close.ScaleMethod = 'none';
-            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Close.Tag = 'DRIVETEST';
-            app.dockModule_Close.Tooltip = {'Fecha módulo'};
-            app.dockModule_Close.Layout.Row = 1;
-            app.dockModule_Close.Layout.Column = 2;
-            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
-
-            % Create dockModule_Undock
-            app.dockModule_Undock = uiimage(app.DockModule);
-            app.dockModule_Undock.ScaleMethod = 'none';
-            app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Undock.Tag = 'DRIVETEST';
-            app.dockModule_Undock.Enable = 'off';
-            app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
-            app.dockModule_Undock.Layout.Row = 1;
-            app.dockModule_Undock.Layout.Column = 1;
-            app.dockModule_Undock.ImageSource = 'Undock_18White.png';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

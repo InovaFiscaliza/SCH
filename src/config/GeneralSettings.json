@@ -1,5 +1,5 @@
 {
-    "version": 1.83,
+    "version": 1.87,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -23,6 +23,7 @@
         "lastVisited": ""
     },
     "search": {
+        "dataBaseVersion": "_v2",
         "mode": "tokens",
         "function": "strcmp",
         "minCharacters": 2,
@@ -443,21 +444,234 @@
                 "-",
                 "Antena",
                 "Baterias",
-                "Bloqueador de sinal (Jammer)",
+                "Bloqueador de sinal Jammer",
                 "Cabo Metálico",
                 "Cabo Óptico",
                 "Carregadores de Baterias",
                 "Celulares",
                 "Decodificador de sinal para SeAC",
-                "Drone",
                 "Equipamento de Radiação Restrita",
                 "Equipamento de Rede de Dados",
                 "Equipamento óptico",
+                "Outros",
                 "Reforçador de sinal",
                 "SmartTV Box",
-                "Transmissor Radiodifusão",
                 "Transceptor RF",
-                "Outros"
+                "Transmissor Radiodifusão"
+            ],
+            "mapping": [
+                {
+                    "type": "Antena",
+                    "sybtype": [
+                        "-",
+                        "Antena",
+                        "Não Passível | Antena"
+                    ]
+                },
+                {
+                    "type": "Baterias",
+                    "sybtype": [
+                        "-",
+                        "Acessório p/ Telefone Móvel Celular do tipo Bateria Auxiliar",
+                        "Acumulador de Energia",
+                        "Bateria de Lítio utilizada em Telefone Celular"
+                    ]
+                },
+                {
+                    "type": "Bloqueador de sinal Jammer",
+                    "sybtype": [
+                        "Bloqueador de Sinais (jammer)"
+                    ]
+                },
+                {
+                    "type": "Cabo Metálico",
+                    "sybtype": [
+                        "-",
+                        "Cabo Coaxial",
+                        "Cabo de Manobra",
+                        "Cabo para Circuito Fechado de TV (CFTV)",
+                        "Cabo para Transmissão de Dados",
+                        "Cabo Telefônico",
+                        "Cabo xDSL"
+                    ]
+                },
+                {
+                    "type": "Cabo Óptico",
+                    "sybtype": [
+                        "-",
+                        "Cabo de Fibra Óptica",
+                        "Cabo OPGW"
+                    ]
+                },
+                {
+                    "type": "Carregadores de Baterias",
+                    "sybtype": [
+                        "-",
+                        "Carregador para Telefone Celular",
+                        "Carregador para Telefone Celular | Indutivo",
+                        "Carregador para Telefone Celular | Portátil/Powerbank",
+                        "Carregador para Telefone Celular | Veicular"
+                    ]
+                },
+                {
+                    "type": "Celulares",
+                    "sybtype": [
+                        "Telefone Móvel Celular"
+                    ]
+                },
+                {
+                    "type": "Decodificador de sinal para SeAC",
+                    "sybtype": [
+                        "-",
+                        "Conversor para TV por assinatura (Set-top Box)",
+                        "Equipamento Terminal de Usuário de TV por Assinatura"
+                    ]
+                },
+                {
+                    "type": "Equipamento de Radiação Restrita",
+                    "sybtype": [
+                        "-",
+                        "Microfone sem Fio",
+                        "Radiação Restrita | Adaptador de Rede sem Fio",
+                        "Radiação Restrita | Alarme",
+                        "Radiação Restrita | Caixa de Som sem Fio",
+                        "Radiação Restrita | Câmera sem Fio",
+                        "Radiação Restrita | Central Multimídia",
+                        "Radiação Restrita | Controle de Videogame",
+                        "Radiação Restrita | Controle sem Fio",
+                        "Radiação Restrita | Drone",
+                        "Radiação Restrita | Fone de Ouvido sem Fio",
+                        "Radiação Restrita | Impressora",
+                        "Radiação Restrita | Impressora 3D",
+                        "Radiação Restrita | Micro Transmissor na Faixa de 88-108MHz",
+                        "Radiação Restrita | Mouse sem Fio",
+                        "Radiação Restrita | Outros",
+                        "Radiação Restrita | Rádio SCM",
+                        "Radiação Restrita | Relógio Smart",
+                        "Radiação Restrita | Roteador",
+                        "Radiação Restrita | Som Automotivo",
+                        "Radiação Restrita | Teclado sem Fio",
+                        "Radiação Restrita | Transceptor",
+                        "Sistema de Telefone sem Cordão",
+                        "Sistemas de Identificação por Radiofrequências"
+                    ]
+                },
+                {
+                    "type": "Equipamento de Rede de Dados",
+                    "sybtype": [
+                        "-",
+                        "Equipamento de Rede de Dados",
+                        "Equipamento para Interconexão de Redes",
+                        "Multiplex",
+                        "Telefone IP"
+                    ]
+                },
+                {
+                    "type": "Equipamento óptico",
+                    "sybtype": [
+                        "-",
+                        "Acoplador / Divisor Óptico Passivo (Splitter)",
+                        "Caixa Terminal Óptica",
+                        "Conector de Fibra Óptica",
+                        "Conjunto de Emenda para Cabos Ópticos",
+                        "OLT - Terminação de Linha Óptica",
+                        "ONT - Terminação de Rede Ótica",
+                        "ONU - Unidade de Rede Óptica",
+                        "Terminal de Linha Óptica"
+                    ]
+                },
+                {
+                    "type": "Outros",
+                    "sybtype": [
+                        "-",
+                        "Alarme para Linha Telefônica",
+                        "Aparelho para Telefonista",
+                        "ATA - Adaptador para Telefone Analógico",
+                        "Bloco Terminal",
+                        "Central de Comutação",
+                        "Conector de Aterramento ou Blindagem",
+                        "Conector para Cabo Coaxial",
+                        "Conector para Cabo Telefônico",
+                        "Dispositivo de Operação Periódica",
+                        "Equipamento de Fac-Símile",
+                        "Estação Terminal de Acesso",
+                        "Filtro ADSL ou xDSL",
+                        "Modem",
+                        "Modulador",
+                        "Módulo Protetor",
+                        "Não Passível | Borne de antena",
+                        "Não Passível | Computador",
+                        "Não passível | Equalizador",
+                        "Não Passível | Fonte de alimentação",
+                        "Não Passível | Gerador de Estéreo",
+                        "Não passível | HD",
+                        "Não Passível | Mesa de Som",
+                        "Não passível | Mídia (LP/K7/CD/DVD)",
+                        "Não Passível | Processador de Áudio",
+                        "Não Passível | Rádio (receptor)",
+                        "Plataforma Multisserviço",
+                        "Regenerador de Sinais SHDSL",
+                        "Relógio de Rede",
+                        "Sistema de Comunicação de Implantes Médicos (MICS)",
+                        "Sistema de Ramal sem Fio de CPCT",
+                        "Sistema de Retificadores",
+                        "Sistema de Telecomando",
+                        "Telefone de Assinante",
+                        "Telefone Dedicado",
+                        "Terminal do STFC",
+                        "Transmissor | Estação Terrena",
+                        "Unidade de Supervisão CA",
+                        "Unidade Retificadora"
+                    ]
+                },
+                {
+                    "type": "Reforçador de sinal",
+                    "sybtype": [
+                        "-",
+                        "Amplificador de Potência RF",
+                        "Reforçador de Sinais Interno",
+                        "Repetidor Celular",
+                        "Repetidor de Radiofrequências"
+                    ]
+                },
+                {
+                    "type": "SmartTV Box",
+                    "sybtype": [
+                        "Smart TV Box"
+                    ]
+                },
+                {
+                    "type": "Transceptor RF",
+                    "sybtype": [
+                        "-",
+                        "Conversor de Subida para Estação Terrena",
+                        "Emissor-Sensor de sistema de radar de veículo",
+                        "Emissor-Sensor de Variação de Campo Eletromagnético",
+                        "Equipamento de Radiocomunicação de Uso Geral",
+                        "Radar",
+                        "Sistemas Operando Na Faixa de 57 a 64 GHz",
+                        "Sistemas Operando nas Faixas de RF Ultra Larga",
+                        "Telefone Móvel por Satélite",
+                        "Transceptor | Estação Rádio Base",
+                        "Transceptor | Estação Terrena (não SMM)",
+                        "Transceptor | Fixo",
+                        "Transceptor | Móvel",
+                        "Transceptor | PLC",
+                        "Transceptor | Portátil",
+                        "Transceptor | SMM por Satélite",
+                        "Transceptor | Troncalizado"
+                    ]
+                },
+                {
+                    "type": "Transmissor Radiodifusão",
+                    "sybtype": [
+                        "-",
+                        "Sistemas de Transmissão de Áudio, Vídeo",
+                        "Transmissor | FM",
+                        "Transmissor | Outros",
+                        "Transmissor | TV"
+                    ]
+                }
             ]
         },
         "typeOfSituation": {

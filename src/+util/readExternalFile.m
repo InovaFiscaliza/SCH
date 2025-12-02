@@ -17,8 +17,8 @@ classdef (Abstract) readExternalFile
         end
 
         %-----------------------------------------------------------------%
-        function [rawDataTable, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder)
-            fileName = 'SCHData_v2.mat';
+        function [rawDataTable, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
+            fileName = sprintf('SCHData%s.mat', generalSettings.search.dataBaseVersion);
 
             try
                 load(fullfile(cloudFolder,                      fileName), 'rawDataTable', 'releasedData', 'cacheData')
