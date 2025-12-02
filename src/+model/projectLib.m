@@ -20,7 +20,7 @@ classdef projectLib < handle
                                                        'reportModel',   '',  ...
                                                        'reportVersion', 'Preliminar', ...
                                                        'entity', struct('type', '', 'name', '', 'id', ''))), ...
-            'REPORT', struct('annotationTable', [], ...
+            'PRODUCTS', struct('annotationTable', [], ...
                              'generatedFiles',  struct('rawFiles', {{}}, 'lastHTMLDocFullPath', '', 'lastTableFullPath', '', 'lastZIPFullPath', ''), ...
                              'ui',              struct('system',        '',  ...
                                                        'unit',          '',  ...
@@ -32,6 +32,7 @@ classdef projectLib < handle
         )
 
         inspectedProducts
+        typeSubtypeProductsMapping
     end
 
     
@@ -50,6 +51,8 @@ classdef projectLib < handle
 
             ReadReportTemplates(obj, rootFolder)
             CreateInspectedProductsTable(obj, mainApp.General)
+
+            obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
         end
 
         %-----------------------------------------------------------------%
@@ -89,15 +92,21 @@ classdef projectLib < handle
         %-----------------------------------------------------------------%
         function CreateInspectedProductsTable(obj, generalSettings)
             obj.inspectedProducts = table( ...
-                'Size', [0, 22], ...
-                'VariableTypes', {'cell', 'cell', 'cell', 'categorical', 'cell', 'cell', 'logical', 'logical', 'logical', 'double', 'cell', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'categorical', 'categorical', 'categorical', 'cell'}, ...
-                'VariableNames', {'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', 'Fonte do valor', 'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'} ...
+                'Size', [0, 26], ...
+                'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'categorical', 'cell', 'cell', 'cell', 'logical', 'logical', 'logical', 'double', 'cell', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'uint32', 'cell', 'cell', 'categorical', 'categorical', 'categorical', 'cell'}, ...
+                'VariableNames', {'Hash', 'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Subtipo', 'Fabricante', 'Modelo', 'RF?', 'Em uso?', 'Interferência?', 'Valor Unit. (R$)', 'Fonte do valor', 'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)', 'Lacre', 'PLAI', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'} ...
             );
             
             obj.inspectedProducts.("Tipo")     = categorical(obj.inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options);
             obj.inspectedProducts.("Situação") = categorical(obj.inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options);
             obj.inspectedProducts.("Infração") = categorical(obj.inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options);
             obj.inspectedProducts.("Sanável?") = categorical(obj.inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'});
+        end
+
+        %-----------------------------------------------------------------%
+        function subtypeList = checkTypeSubtypeProductsMapping(obj, type)
+            [~, typeIndex] = ismember(type, {obj.typeSubtypeProductsMapping.type});
+            subtypeList = obj.typeSubtypeProductsMapping(typeIndex).sybtype;
         end
 
         %-----------------------------------------------------------------%

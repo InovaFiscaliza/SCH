@@ -2,51 +2,70 @@ classdef winSCH_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                      matlab.ui.Figure
-        GridLayout                    matlab.ui.container.GridLayout
-        popupContainerGrid            matlab.ui.container.GridLayout
-        SplashScreen                  matlab.ui.control.Image
-        NavBar                        matlab.ui.container.GridLayout
-        menu_AppName                  matlab.ui.control.Label
-        menu_AppIcon                  matlab.ui.control.Image
-        menu_Button3                  matlab.ui.control.StateButton
-        menu_Separator                matlab.ui.control.Image
-        menu_Button2                  matlab.ui.control.StateButton
-        menu_Button1                  matlab.ui.control.StateButton
-        jsBackDoor                    matlab.ui.control.HTML
-        DataHubLamp                   matlab.ui.control.Lamp
-        AppInfo                       matlab.ui.control.Image
-        FigurePosition                matlab.ui.control.Image
-        TabGroup                      matlab.ui.container.TabGroup
-        Tab1_Search                   matlab.ui.container.Tab
-        GridLayout_2                  matlab.ui.container.GridLayout
-        Document                      matlab.ui.container.GridLayout
-        search_nRows                  matlab.ui.control.Label
-        search_Suggestions            matlab.ui.control.ListBox
-        search_Metadata               matlab.ui.control.Label
-        search_entryPointPanel        matlab.ui.container.Panel
-        search_entryPointGrid         matlab.ui.container.GridLayout
-        search_entryPointImage        matlab.ui.control.Image
-        search_entryPoint             matlab.ui.control.EditField
-        search_Table                  matlab.ui.control.Table
-        TabGroup_2                    matlab.ui.container.TabGroup
-        PESQUISATab                   matlab.ui.container.Tab
-        search_Tab1Grid               matlab.ui.container.GridLayout
-        search_WordCloudPanel         matlab.ui.container.Panel
-        search_ProductInfo            matlab.ui.control.Label
-        search_ProductInfoImage       matlab.ui.control.Image
-        search_ToolbarWordCloud       matlab.ui.control.Image
-        search_ProductInfoLabel       matlab.ui.control.Label
-        CONFIGTab                     matlab.ui.container.Tab
-        GridLayout2                   matlab.ui.container.GridLayout
-        Toolbar                       matlab.ui.container.GridLayout
-        search_ToolbarAnnotation      matlab.ui.control.Image
-        search_ToolbarListOfProducts  matlab.ui.control.Image
-        search_ExportTable            matlab.ui.control.Image
-        search_FilterSetup            matlab.ui.control.Image
-        search_leftPanelVisibility    matlab.ui.control.Image
-        Tab2_Report                   matlab.ui.container.Tab
-        Tab3_Config                   matlab.ui.container.Tab
+        UIFigure                       matlab.ui.Figure
+        GridLayout                     matlab.ui.container.GridLayout
+        popupContainerGrid             matlab.ui.container.GridLayout
+        SplashScreen                   matlab.ui.control.Image
+        NavBar                         matlab.ui.container.GridLayout
+        menu_AppName                   matlab.ui.control.Label
+        menu_AppIcon                   matlab.ui.control.Image
+        menu_Button3                   matlab.ui.control.StateButton
+        menu_Separator                 matlab.ui.control.Image
+        menu_Button2                   matlab.ui.control.StateButton
+        menu_Button1                   matlab.ui.control.StateButton
+        jsBackDoor                     matlab.ui.control.HTML
+        DataHubLamp                    matlab.ui.control.Lamp
+        AppInfo                        matlab.ui.control.Image
+        FigurePosition                 matlab.ui.control.Image
+        TabGroup                       matlab.ui.container.TabGroup
+        Tab1_Search                    matlab.ui.container.Tab
+        GridLayout_2                   matlab.ui.container.GridLayout
+        Document                       matlab.ui.container.GridLayout
+        search_nRows                   matlab.ui.control.Label
+        search_Suggestions             matlab.ui.control.ListBox
+        search_Metadata                matlab.ui.control.Label
+        search_entryPointPanel         matlab.ui.container.Panel
+        search_entryPointGrid          matlab.ui.container.GridLayout
+        search_entryPointImage         matlab.ui.control.Image
+        search_entryPoint              matlab.ui.control.EditField
+        search_Table                   matlab.ui.control.Table
+        TabGroup_2                     matlab.ui.container.TabGroup
+        PESQUISATab                    matlab.ui.container.Tab
+        search_Tab1Grid                matlab.ui.container.GridLayout
+        search_WordCloudPanel          matlab.ui.container.Panel
+        search_ProductInfo             matlab.ui.control.Label
+        search_ProductInfoImage        matlab.ui.control.Image
+        search_ToolbarWordCloud        matlab.ui.control.Image
+        search_ProductInfoLabel        matlab.ui.control.Label
+        FILTROTab                      matlab.ui.container.Tab
+        Document_2                     matlab.ui.container.GridLayout
+        LocationLabelGrid              matlab.ui.container.GridLayout
+        SecundaryPanelLabel            matlab.ui.control.Label
+        LocationEditionCancel          matlab.ui.control.Image
+        LocationEditionConfirm         matlab.ui.control.Image
+        LocationEditionMode            matlab.ui.control.Image
+        FILTRAGEMPRIMRIADropDown       matlab.ui.control.DropDown
+        FILTRAGEMPRIMRIADropDownLabel  matlab.ui.control.Label
+        SecundaryPanel                 matlab.ui.container.Panel
+        SecundaryGrid                  matlab.ui.container.GridLayout
+        SecundaryTextListValue         matlab.ui.control.DropDown
+        SecundaryTextFreeValue         matlab.ui.control.EditField
+        SecundaryDateTime2             matlab.ui.control.EditField
+        SecundaryDateTimeSeparator     matlab.ui.control.Label
+        SecundaryDateTime1             matlab.ui.control.EditField
+        SecundaryOperation             matlab.ui.control.DropDown
+        SecundaryColumn                matlab.ui.control.DropDown
+        SecundaryListOfFilters         matlab.ui.control.ListBox
+        Toolbar                        matlab.ui.container.GridLayout
+        tool_tableNRowsIcon            matlab.ui.control.Image
+        tool_FilterInfo                matlab.ui.control.Label
+        tool_Separator2_2              matlab.ui.control.Image
+        search_ToolbarAnnotation       matlab.ui.control.Image
+        search_AddSelectedToListOfProducts  matlab.ui.control.Image
+        search_ExportTable             matlab.ui.control.Image
+        search_leftPanelVisibility     matlab.ui.control.Image
+        Tab2_Report                    matlab.ui.container.Tab
+        Tab3_Config                    matlab.ui.container.Tab
     end
 
 
@@ -571,6 +590,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             
                             try
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 1, 'style',    struct('borderTop', '0')), ...
                                     struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
                                 });
                             catch
@@ -718,7 +738,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_AppProperties(app)
-            app.projectData = projectLib(app, app.General.ui.typeOfProduct.options, app.General.ui.typeOfSituation.options, app.General.ui.typeOfViolation.options);
+            app.projectData = model.projectLib(app, app.rootFolder);
             startup_mainVariables(app)
         end
 
@@ -727,7 +747,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             [app.rawDataTable, ...
              app.releasedData, ...
              app.cacheData,    ...
-             app.cacheColumns]  = util.readExternalFile.SCHData(app.rootFolder, app.General.fileFolder.DataHub_GET);
+             app.cacheColumns]  = util.readExternalFile.SCHData(app.rootFolder, app.General.fileFolder.DataHub_GET, app.General);
             app.annotationTable = util.readExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_GET);
         end
 
@@ -737,7 +757,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tabGroupController = tabGroupGraphicMenu(app.NavBar, app.TabGroup, app.progressDialog, @app.jsBackDoor_AppCustomizations, '');
 
             addComponent(app.tabGroupController, "Built-in", "mainApp",            app.menu_Button1, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
-            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), matlab.graphics.GraphicsPlaceholder, 2)
+            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), app.menu_Button1,                    2)
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.menu_Button3, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.menu_Button1,                    3)
 
             % Salva na propriedade "UserData" as opções de ícone e o índice
@@ -757,6 +777,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ProductInfo.UserData.showedHom   = '';
 
             search_EntryPoint_Layout(app)
+            updateFilterSpecificationToolbar(app)
 
             % Avalia mapeamento de pasta do Sharepoint...
             DataHubWarningLamp(app)
@@ -1007,7 +1028,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function search_Table_Visibility(app)
             if ~app.search_Table.Visible
                 app.search_leftPanelVisibility.Enable = 1;
-
+                
                 app.search_Table.Visible    = 1;
                 app.search_Metadata.Visible = 1;
                 app.search_nRows.Visible    = 1;
@@ -1020,13 +1041,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function search_FilterSpecification(app)
-            listOfColumns = app.cacheColumns;
-            primaryTag    = sprintf('Filtragem primária orientada à(s) coluna(s) %s', textFormatGUI.cellstr2ListWithQuotes(listOfColumns, 'none'));
-            secondaryTag  = strjoin(FilterList(app.filteringObj, 'SCH'), ', ');
-            if isempty(secondaryTag)
-                secondaryTag = '[]';
-            end
-
             value2Search = app.search_entryPointImage.UserData.value2Search;
             words2Search = app.search_entryPointImage.UserData.words2Search;
 
@@ -1044,16 +1058,27 @@ classdef winSCH_exported < matlab.apps.AppBase
                             searchNote = '';
                         end
     
-                        app.search_Metadata.Text = sprintf('Exibindo resultados para "<b>%s</b>"%s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
-                            value2Search, searchNote, primaryTag, secondaryTag);
+                        app.search_Metadata.Text = sprintf('Exibindo resultados para "<b>%s</b>"%s', value2Search, searchNote);
+                        updateFilterSpecificationToolbar(app)
                     end
 
                 otherwise
                     if ~isempty(words2Search)
-                        app.search_Metadata.Text = sprintf('Exibindo resultados para %s\n<p style="color: #808080; font-size:10px;">%s<br>Filtragem secundária: %s</p>', ...
-                            strjoin("""<b>" + string(words2Search) + "</b>""", ', '), primaryTag, secondaryTag);
+                        app.search_Metadata.Text = sprintf('Exibindo resultados para %s', strjoin("""<b>" + string(words2Search) + "</b>""", ', '));
+                        updateFilterSpecificationToolbar(app)
                     end
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function updateFilterSpecificationToolbar(app)
+            primaryTag   = sprintf('Filtragem primária orientada à(s) coluna(s) %s', textFormatGUI.cellstr2ListWithQuotes(app.cacheColumns, 'none'));
+            secondaryTag = strjoin(FilterList(app.filteringObj, 'SCH'), ', ');
+            if isempty(secondaryTag)
+                secondaryTag = '[]';
+            end
+
+            app.tool_FilterInfo.Text = sprintf('%s\nFiltragem secundária: %s', primaryTag, secondaryTag);
         end
 
         %-----------------------------------------------------------------%
@@ -1105,11 +1130,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         function search_Table_InitialSelection(app, focusFlag)
             if isempty(app.search_Table.Data)
                 app.search_Table.Selection    = [];
-                app.search_FilterSetup.Enable = 0;
                 app.search_ExportTable.Enable = 0;
             else
                 app.search_Table.Selection    = [1, 1];
-                app.search_FilterSetup.Enable = 1;
                 app.search_ExportTable.Enable = 1;
             end
             search_Table_SelectionChanged(app)
@@ -1257,13 +1280,56 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app)
+        function [newRow2Add, selectedHomHash] = report_newRow2Add(app, selectedRow)
+            primaryIndex    = app.search_Table.UserData.primaryIndex;
+            relatedSCHTable = app.rawDataTable(primaryIndex(selectedRow), :);
+            
+            selectedHomHash = Base64Hash.encode(strjoin([relatedSCHTable.("Homologação")(1), relatedSCHTable.("Modelo")(1), relatedSCHTable.("Nome Comercial")(1)], ' - '));
+            selectedHom2Add = relatedSCHTable.("Homologação"){1};
+            typeOfProduct   = app.General.ui.typeOfProduct.default;
+            typeOfSituation = app.General.ui.typeOfSituation.default;
+            typeOfViolation = app.General.ui.typeOfViolation.default;
+
+            Fabricante      = upper(char(relatedSCHTable.("Fabricante")(1)));            
+            modelValue      = unique([relatedSCHTable.("Modelo")(1), relatedSCHTable.("Nome Comercial")(1)], 'stable');
+            modelValue(cellfun(@(x) isempty(x), modelValue)) = [];
+            if isempty(modelValue)
+                modelValue = {''};
+            end            
+
+            optionalNote    = '';
+            if selectedHom2Add ~= "-" 
+                typeList     = unique(cellstr(relatedSCHTable.("Tipo")));
+                optionalNote = sprintf('TIPO: %s', textFormatGUI.cellstr2ListWithQuotes(typeList, 'none'));
+                if numel(modelValue) > 1
+                    optionalNote = sprintf('%s\nMODELO: %s', optionalNote, textFormatGUI.cellstr2ListWithQuotes(modelValue, 'none'));
+                end
+            end
+
+            newRow2Add = { ...
+                selectedHomHash, ... 'Hash'
+                selectedHom2Add, ... 'Homologação'
+                '', ...              'Importador'
+                '', ...              'Código aduaneiro'
+                typeOfProduct, ...   'Tipo'
+                Fabricante, ...      'Fabricante'
+                modelValue{1}, ...   'Modelo'
+                '', ...              'Fonte do valor'
+                typeOfSituation, ... 'Situação'
+                typeOfViolation, ... 'Infração'
+                '-', ...             'Sanável?'
+                optionalNote ...     'Informações adicionais'
+            };
+        end
+
+        %-----------------------------------------------------------------%
+        function [selectedHom, showedHom, selectedRows] = misc_Table_SelectedRow(app)
             if ~isempty(app.search_Table.Selection)
-                selectedRow = unique(app.search_Table.Selection(:,1));
-                selectedHom = unique(app.search_Table.Data.("Homologação")(selectedRow), 'stable');
+                selectedRows = unique(app.search_Table.Selection(:,1));
+                selectedHom  = unique(app.search_Table.Data.("Homologação")(selectedRows), 'stable');
             else
-                selectedRow = [];
-                selectedHom = {};
+                selectedRows = [];
+                selectedHom  = {};
             end
 
             showedHom = app.search_ProductInfo.UserData.showedHom;
@@ -1616,39 +1682,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: search_FilterSetup
-        function search_FilterSetupClicked(app, event)
-            
-            switch event.Source
-                case app.search_FilterSetup
-                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup')
-
-                case {app.report_EditProduct, app.report_ContextMenu_EditFcn}
-                    % Por alguma razão desconhecida, inseri algumas validações
-                    % aqui! :)
-                    % Enfim... a possibilidade de editar um registro não deve
-                    % existir toda vez que a tabela esteja vazia ou que não
-                    % esteja selecionada uma linha.
-                    selectedRow = app.report_Table.Selection;
-
-                    if isempty(selectedRow)
-                        if isempty(app.report_Table.Data)
-                            app.report_EditProduct.Enable  = 0;
-                            app.report_ContextMenu_EditFcn.Enable = 0;
-                            return
-                        end
-
-                        app.report_Table.Selection = 1;
-                        report_TableSelectionChanged(app)
-                    elseif ~isscalar(selectedRow)
-                        app.report_Table.Selection = app.report_Table.Selection(1);
-                    end
-
-                    ipcMainMatlabOpenPopupApp(app, app, 'ProductInfo')
-            end
-
-        end
-
         % Image clicked function: search_ExportTable
         function search_ExportTableImageClicked(app, event)
             
@@ -1705,7 +1738,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
 
                     app.search_ToolbarAnnotation.Enable     = 1;
-                    app.search_ToolbarListOfProducts.Enable = 1;
+                    app.search_AddSelectedToListOfProducts.Enable = 1;
                     app.search_ToolbarWordCloud.Enable      = 1;
                 end
 
@@ -1720,7 +1753,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 app.search_ToolbarAnnotation.Enable     = 0;
                 app.search_ToolbarWordCloud.Enable      = 0;
-                app.search_ToolbarListOfProducts.Enable = 0;
+                app.search_AddSelectedToListOfProducts.Enable = 0;
             end
 
         end
@@ -1747,6 +1780,38 @@ classdef winSCH_exported < matlab.apps.AppBase
     
             else
                 app.search_Tab1Grid.RowHeight{3} = 0;
+            end
+
+        end
+
+        % Image clicked function: search_AddSelectedToListOfProducts
+        function search_AddSelectedToListOfProductsImageClicked(app, event)
+            
+            [~, ~, selectedRows] = misc_Table_SelectedRow(app);
+
+            if isempty(selectedRows)
+                msgWarning = 'Selecione ao menos um registro na tabela.';
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                return
+
+            else
+                addedHom = false;
+                for selectedRow = selectedRows'
+                    [newRow2Add, selectedHomHash] = report_newRow2Add(app, selectedRow);
+                    if ismember(selectedHomHash, app.projectData.inspectedProducts.("Hash"))
+                        continue
+                    end
+                    
+                    addedHom = true;    
+                    columnList = {'Hash', 'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'Fonte do valor', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'};
+
+                    app.projectData.inspectedProducts(end+1, columnList) = newRow2Add;
+                    app.projectData.inspectedProducts = sortrows(app.projectData.inspectedProducts, 'Homologação');
+                end
+
+                if addedHom
+                    ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
+                end
             end
 
         end
@@ -1790,22 +1855,22 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create GridLayout_2
             app.GridLayout_2 = uigridlayout(app.Tab1_Search);
-            app.GridLayout_2.ColumnWidth = {10, 320, 10, '1x', 48, 8, 2};
-            app.GridLayout_2.RowHeight = {2, 8, 24, '1x', 10, 34};
+            app.GridLayout_2.ColumnWidth = {10, 320, 10, '1x', 10};
+            app.GridLayout_2.RowHeight = {'1x', 10, 34};
             app.GridLayout_2.ColumnSpacing = 0;
             app.GridLayout_2.RowSpacing = 0;
-            app.GridLayout_2.Padding = [0 0 0 31];
+            app.GridLayout_2.Padding = [0 0 0 40];
             app.GridLayout_2.BackgroundColor = [1 1 1];
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout_2);
-            app.Toolbar.ColumnWidth = {22, 22, 22, '1x', 22, 22};
+            app.Toolbar.ColumnWidth = {22, 22, 22, 5, 22, '1x', 18};
             app.Toolbar.RowHeight = {4, 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [5 5 10 5];
-            app.Toolbar.Layout.Row = 6;
-            app.Toolbar.Layout.Column = [1 7];
+            app.Toolbar.Layout.Row = 3;
+            app.Toolbar.Layout.Column = [1 5];
 
             % Create search_leftPanelVisibility
             app.search_leftPanelVisibility = uiimage(app.Toolbar);
@@ -1815,16 +1880,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_leftPanelVisibility.Layout.Column = 1;
             app.search_leftPanelVisibility.ImageSource = 'ArrowRight_32.png';
 
-            % Create search_FilterSetup
-            app.search_FilterSetup = uiimage(app.Toolbar);
-            app.search_FilterSetup.ScaleMethod = 'none';
-            app.search_FilterSetup.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
-            app.search_FilterSetup.Enable = 'off';
-            app.search_FilterSetup.Tooltip = {'Edita filtragem secundária'};
-            app.search_FilterSetup.Layout.Row = [1 3];
-            app.search_FilterSetup.Layout.Column = 2;
-            app.search_FilterSetup.ImageSource = 'Filter_18x18.png';
-
             % Create search_ExportTable
             app.search_ExportTable = uiimage(app.Toolbar);
             app.search_ExportTable.ScaleMethod = 'none';
@@ -1832,15 +1887,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ExportTable.Enable = 'off';
             app.search_ExportTable.Tooltip = {'Exporta resultados de busca em arquivo XLSX'};
             app.search_ExportTable.Layout.Row = 2;
-            app.search_ExportTable.Layout.Column = 3;
+            app.search_ExportTable.Layout.Column = 5;
             app.search_ExportTable.ImageSource = 'Export_16.png';
 
-            % Create search_ToolbarListOfProducts
-            app.search_ToolbarListOfProducts = uiimage(app.Toolbar);
-            app.search_ToolbarListOfProducts.Tooltip = {'Adiciona à cesta de produtos sob análise'};
-            app.search_ToolbarListOfProducts.Layout.Row = [1 3];
-            app.search_ToolbarListOfProducts.Layout.Column = 6;
-            app.search_ToolbarListOfProducts.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Box_32.png');
+            % Create search_AddSelectedToListOfProducts
+            app.search_AddSelectedToListOfProducts = uiimage(app.Toolbar);
+            app.search_AddSelectedToListOfProducts.ImageClickedFcn = createCallbackFcn(app, @search_AddSelectedToListOfProductsImageClicked, true);
+            app.search_AddSelectedToListOfProducts.Enable = 'off';
+            app.search_AddSelectedToListOfProducts.Tooltip = {'Adiciona à lista de produtos sob análise'};
+            app.search_AddSelectedToListOfProducts.Layout.Row = [1 3];
+            app.search_AddSelectedToListOfProducts.Layout.Column = 2;
+            app.search_AddSelectedToListOfProducts.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create search_ToolbarAnnotation
             app.search_ToolbarAnnotation = uiimage(app.Toolbar);
@@ -1848,14 +1905,39 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_ToolbarAnnotation.Enable = 'off';
             app.search_ToolbarAnnotation.Tooltip = {'Anotação textual'};
             app.search_ToolbarAnnotation.Layout.Row = 2;
-            app.search_ToolbarAnnotation.Layout.Column = 5;
+            app.search_ToolbarAnnotation.Layout.Column = 3;
             app.search_ToolbarAnnotation.VerticalAlignment = 'bottom';
             app.search_ToolbarAnnotation.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
+
+            % Create tool_Separator2_2
+            app.tool_Separator2_2 = uiimage(app.Toolbar);
+            app.tool_Separator2_2.ScaleMethod = 'none';
+            app.tool_Separator2_2.Enable = 'off';
+            app.tool_Separator2_2.Layout.Row = [1 3];
+            app.tool_Separator2_2.Layout.Column = 4;
+            app.tool_Separator2_2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+
+            % Create tool_FilterInfo
+            app.tool_FilterInfo = uilabel(app.Toolbar);
+            app.tool_FilterInfo.HorizontalAlignment = 'right';
+            app.tool_FilterInfo.FontSize = 10;
+            app.tool_FilterInfo.FontColor = [0.502 0.502 0.502];
+            app.tool_FilterInfo.Layout.Row = [1 3];
+            app.tool_FilterInfo.Layout.Column = 6;
+            app.tool_FilterInfo.Text = '';
+
+            % Create tool_tableNRowsIcon
+            app.tool_tableNRowsIcon = uiimage(app.Toolbar);
+            app.tool_tableNRowsIcon.ScaleMethod = 'none';
+            app.tool_tableNRowsIcon.Enable = 'off';
+            app.tool_tableNRowsIcon.Layout.Row = 2;
+            app.tool_tableNRowsIcon.Layout.Column = 7;
+            app.tool_tableNRowsIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
 
             % Create TabGroup_2
             app.TabGroup_2 = uitabgroup(app.GridLayout_2);
             app.TabGroup_2.AutoResizeChildren = 'off';
-            app.TabGroup_2.Layout.Row = [3 4];
+            app.TabGroup_2.Layout.Row = 1;
             app.TabGroup_2.Layout.Column = 2;
 
             % Create PESQUISATab
@@ -1913,26 +1995,169 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_WordCloudPanel.Layout.Row = 3;
             app.search_WordCloudPanel.Layout.Column = [1 2];
 
-            % Create CONFIGTab
-            app.CONFIGTab = uitab(app.TabGroup_2);
-            app.CONFIGTab.Title = 'CONFIG';
+            % Create FILTROTab
+            app.FILTROTab = uitab(app.TabGroup_2);
+            app.FILTROTab.Title = 'FILTRO';
 
-            % Create GridLayout2
-            app.GridLayout2 = uigridlayout(app.CONFIGTab);
-            app.GridLayout2.ColumnWidth = {'1x'};
-            app.GridLayout2.RowHeight = {17, 22, 22, 22};
-            app.GridLayout2.ColumnSpacing = 5;
-            app.GridLayout2.BackgroundColor = [1 1 1];
+            % Create Document_2
+            app.Document_2 = uigridlayout(app.FILTROTab);
+            app.Document_2.ColumnWidth = {'1x'};
+            app.Document_2.RowHeight = {17, 22, 22, 69, '1x'};
+            app.Document_2.RowSpacing = 5;
+            app.Document_2.BackgroundColor = [1 1 1];
+
+            % Create SecundaryListOfFilters
+            app.SecundaryListOfFilters = uilistbox(app.Document_2);
+            app.SecundaryListOfFilters.Items = {};
+            app.SecundaryListOfFilters.Multiselect = 'on';
+            app.SecundaryListOfFilters.FontSize = 11;
+            app.SecundaryListOfFilters.Layout.Row = 5;
+            app.SecundaryListOfFilters.Layout.Column = 1;
+            app.SecundaryListOfFilters.Value = {};
+
+            % Create SecundaryPanel
+            app.SecundaryPanel = uipanel(app.Document_2);
+            app.SecundaryPanel.Layout.Row = 4;
+            app.SecundaryPanel.Layout.Column = 1;
+
+            % Create SecundaryGrid
+            app.SecundaryGrid = uigridlayout(app.SecundaryPanel);
+            app.SecundaryGrid.ColumnWidth = {55, '1x', 10, '1x'};
+            app.SecundaryGrid.RowHeight = {22, 22};
+            app.SecundaryGrid.ColumnSpacing = 5;
+            app.SecundaryGrid.RowSpacing = 5;
+            app.SecundaryGrid.BackgroundColor = [1 1 1];
+
+            % Create SecundaryColumn
+            app.SecundaryColumn = uidropdown(app.SecundaryGrid);
+            app.SecundaryColumn.Items = {};
+            app.SecundaryColumn.FontSize = 11;
+            app.SecundaryColumn.BackgroundColor = [1 1 1];
+            app.SecundaryColumn.Layout.Row = 1;
+            app.SecundaryColumn.Layout.Column = [1 4];
+            app.SecundaryColumn.Value = {};
+
+            % Create SecundaryOperation
+            app.SecundaryOperation = uidropdown(app.SecundaryGrid);
+            app.SecundaryOperation.Items = {'=', '≠', '⊃', '⊅', '<', '≤', '>', '≥', '><', '<>'};
+            app.SecundaryOperation.FontName = 'Consolas';
+            app.SecundaryOperation.BackgroundColor = [1 1 1];
+            app.SecundaryOperation.Layout.Row = 2;
+            app.SecundaryOperation.Layout.Column = 1;
+            app.SecundaryOperation.Value = '=';
+
+            % Create SecundaryDateTime1
+            app.SecundaryDateTime1 = uieditfield(app.SecundaryGrid, 'text');
+            app.SecundaryDateTime1.CharacterLimits = [10 10];
+            app.SecundaryDateTime1.Visible = 'off';
+            app.SecundaryDateTime1.Placeholder = 'dd/mm/yyyy';
+            app.SecundaryDateTime1.Layout.Row = 2;
+            app.SecundaryDateTime1.Layout.Column = 2;
+
+            % Create SecundaryDateTimeSeparator
+            app.SecundaryDateTimeSeparator = uilabel(app.SecundaryGrid);
+            app.SecundaryDateTimeSeparator.HorizontalAlignment = 'center';
+            app.SecundaryDateTimeSeparator.Visible = 'off';
+            app.SecundaryDateTimeSeparator.Layout.Row = 2;
+            app.SecundaryDateTimeSeparator.Layout.Column = 3;
+            app.SecundaryDateTimeSeparator.Text = '-';
+
+            % Create SecundaryDateTime2
+            app.SecundaryDateTime2 = uieditfield(app.SecundaryGrid, 'text');
+            app.SecundaryDateTime2.CharacterLimits = [10 10];
+            app.SecundaryDateTime2.Visible = 'off';
+            app.SecundaryDateTime2.Placeholder = 'dd/mm/yyyy';
+            app.SecundaryDateTime2.Layout.Row = 2;
+            app.SecundaryDateTime2.Layout.Column = 4;
+
+            % Create SecundaryTextFreeValue
+            app.SecundaryTextFreeValue = uieditfield(app.SecundaryGrid, 'text');
+            app.SecundaryTextFreeValue.FontSize = 10;
+            app.SecundaryTextFreeValue.FontColor = [0.149 0.149 0.149];
+            app.SecundaryTextFreeValue.Visible = 'off';
+            app.SecundaryTextFreeValue.Layout.Row = 2;
+            app.SecundaryTextFreeValue.Layout.Column = [2 4];
+
+            % Create SecundaryTextListValue
+            app.SecundaryTextListValue = uidropdown(app.SecundaryGrid);
+            app.SecundaryTextListValue.Items = {};
+            app.SecundaryTextListValue.Visible = 'off';
+            app.SecundaryTextListValue.FontSize = 10;
+            app.SecundaryTextListValue.BackgroundColor = [1 1 1];
+            app.SecundaryTextListValue.Layout.Row = 2;
+            app.SecundaryTextListValue.Layout.Column = [2 4];
+            app.SecundaryTextListValue.Value = {};
+
+            % Create FILTRAGEMPRIMRIADropDownLabel
+            app.FILTRAGEMPRIMRIADropDownLabel = uilabel(app.Document_2);
+            app.FILTRAGEMPRIMRIADropDownLabel.VerticalAlignment = 'bottom';
+            app.FILTRAGEMPRIMRIADropDownLabel.FontSize = 10;
+            app.FILTRAGEMPRIMRIADropDownLabel.Layout.Row = 1;
+            app.FILTRAGEMPRIMRIADropDownLabel.Layout.Column = 1;
+            app.FILTRAGEMPRIMRIADropDownLabel.Text = 'FILTRAGEM PRIMÁRIA';
+
+            % Create FILTRAGEMPRIMRIADropDown
+            app.FILTRAGEMPRIMRIADropDown = uidropdown(app.Document_2);
+            app.FILTRAGEMPRIMRIADropDown.Items = {};
+            app.FILTRAGEMPRIMRIADropDown.FontSize = 11;
+            app.FILTRAGEMPRIMRIADropDown.BackgroundColor = [1 1 1];
+            app.FILTRAGEMPRIMRIADropDown.Layout.Row = 2;
+            app.FILTRAGEMPRIMRIADropDown.Layout.Column = 1;
+            app.FILTRAGEMPRIMRIADropDown.Value = {};
+
+            % Create LocationLabelGrid
+            app.LocationLabelGrid = uigridlayout(app.Document_2);
+            app.LocationLabelGrid.ColumnWidth = {'1x', 18, 0, 0};
+            app.LocationLabelGrid.RowHeight = {'1x'};
+            app.LocationLabelGrid.ColumnSpacing = 5;
+            app.LocationLabelGrid.Padding = [0 0 0 0];
+            app.LocationLabelGrid.Layout.Row = 3;
+            app.LocationLabelGrid.Layout.Column = 1;
+            app.LocationLabelGrid.BackgroundColor = [1 1 1];
+
+            % Create LocationEditionMode
+            app.LocationEditionMode = uiimage(app.LocationLabelGrid);
+            app.LocationEditionMode.Tooltip = {'Habilita painel de edição'};
+            app.LocationEditionMode.Layout.Row = 1;
+            app.LocationEditionMode.Layout.Column = 2;
+            app.LocationEditionMode.VerticalAlignment = 'bottom';
+            app.LocationEditionMode.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Edit_36.png');
+
+            % Create LocationEditionConfirm
+            app.LocationEditionConfirm = uiimage(app.LocationLabelGrid);
+            app.LocationEditionConfirm.Enable = 'off';
+            app.LocationEditionConfirm.Tooltip = {'Confirma edição'};
+            app.LocationEditionConfirm.Layout.Row = 1;
+            app.LocationEditionConfirm.Layout.Column = 3;
+            app.LocationEditionConfirm.VerticalAlignment = 'bottom';
+            app.LocationEditionConfirm.ImageSource = 'Ok_32Green.png';
+
+            % Create LocationEditionCancel
+            app.LocationEditionCancel = uiimage(app.LocationLabelGrid);
+            app.LocationEditionCancel.Enable = 'off';
+            app.LocationEditionCancel.Tooltip = {'Cancela edição'};
+            app.LocationEditionCancel.Layout.Row = 1;
+            app.LocationEditionCancel.Layout.Column = 4;
+            app.LocationEditionCancel.VerticalAlignment = 'bottom';
+            app.LocationEditionCancel.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Delete_32Red.png');
+
+            % Create SecundaryPanelLabel
+            app.SecundaryPanelLabel = uilabel(app.LocationLabelGrid);
+            app.SecundaryPanelLabel.VerticalAlignment = 'bottom';
+            app.SecundaryPanelLabel.FontSize = 10;
+            app.SecundaryPanelLabel.Layout.Row = 1;
+            app.SecundaryPanelLabel.Layout.Column = 1;
+            app.SecundaryPanelLabel.Text = 'FILTRAGEM SECUNDÁRIA';
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout_2);
-            app.Document.ColumnWidth = {412, '1x'};
-            app.Document.RowHeight = {35, 1, 5, 54, 342, '1x', 1};
+            app.Document.ColumnWidth = {412, '1x', 170};
+            app.Document.RowHeight = {34, 18, 5, 342, '1x', 1};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 0;
             app.Document.Padding = [0 0 0 0];
-            app.Document.Layout.Row = [3 4];
-            app.Document.Layout.Column = [4 5];
+            app.Document.Layout.Row = 1;
+            app.Document.Layout.Column = 4;
             app.Document.BackgroundColor = [1 1 1];
 
             % Create search_Table
@@ -1945,8 +2170,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Table.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
             app.search_Table.SelectionChangedFcn = createCallbackFcn(app, @search_Table_SelectionChanged, true);
             app.search_Table.Visible = 'off';
-            app.search_Table.Layout.Row = [5 6];
-            app.search_Table.Layout.Column = [1 2];
+            app.search_Table.Layout.Row = [4 5];
+            app.search_Table.Layout.Column = [1 3];
             app.search_Table.FontSize = 10;
 
             % Create search_entryPointPanel
@@ -1987,14 +2212,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create search_Metadata
             app.search_Metadata = uilabel(app.Document);
-            app.search_Metadata.VerticalAlignment = 'top';
-            app.search_Metadata.WordWrap = 'on';
-            app.search_Metadata.FontSize = 14;
+            app.search_Metadata.FontSize = 10;
             app.search_Metadata.Visible = 'off';
-            app.search_Metadata.Layout.Row = 4;
-            app.search_Metadata.Layout.Column = [1 2];
+            app.search_Metadata.Layout.Row = [2 3];
+            app.search_Metadata.Layout.Column = 1;
             app.search_Metadata.Interpreter = 'html';
-            app.search_Metadata.Text = {'Exibindo resultados para "<b>apple iphone</b>"'; '<p style="color: #808080; font-size:10px;">Filtragem primária: Homologação<br>Filtragem secundária: []</p>'};
+            app.search_Metadata.Text = 'Exibindo resultados para "<b>apple iphone</b>"';
 
             % Create search_Suggestions
             app.search_Suggestions = uilistbox(app.Document);
@@ -2002,7 +2225,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Suggestions.Tag = 'CAIXA DE BUSCA';
             app.search_Suggestions.Visible = 'off';
             app.search_Suggestions.FontSize = 14;
-            app.search_Suggestions.Layout.Row = [2 5];
+            app.search_Suggestions.Layout.Row = [2 4];
             app.search_Suggestions.Layout.Column = 1;
             app.search_Suggestions.Value = {};
 
@@ -2010,10 +2233,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_nRows = uilabel(app.Document);
             app.search_nRows.HorizontalAlignment = 'right';
             app.search_nRows.VerticalAlignment = 'bottom';
+            app.search_nRows.FontSize = 11;
             app.search_nRows.FontColor = [0.502 0.502 0.502];
             app.search_nRows.Visible = 'off';
-            app.search_nRows.Layout.Row = [1 4];
-            app.search_nRows.Layout.Column = 2;
+            app.search_nRows.Layout.Row = [1 2];
+            app.search_nRows.Layout.Column = 3;
             app.search_nRows.Interpreter = 'html';
             app.search_nRows.Text = {'88 <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '137 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>'};
 

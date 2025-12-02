@@ -175,6 +175,9 @@ classdef winConfig_exported < matlab.apps.AppBase
                             end
 
                         case 2
+                            if ~strcmp(app.mainApp.executionMode, 'webApp')
+                                app.config_WordCloudAlgorithm.Enable = 1;
+                            end
                             updatePanel_Analysis(app)
 
                         case 3
@@ -184,6 +187,9 @@ classdef winConfig_exported < matlab.apps.AppBase
                             updatePanel_Report(app)
 
                         case 4
+                            if ~strcmp(app.mainApp.executionMode, 'webApp')
+                                set([app.DataHubGETButton, app.DataHubPOSTButton, app.userPathButton], 'Enable', 1)
+                            end
                             updatePanel_Folder(app)
                     end
             end
@@ -238,17 +244,14 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function startup_GUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.dockModule_Undock.Enable = 1;
-                app.openDevTools.Enable = 1;
-
-                set([app.DataHubGETButton, app.DataHubPOSTButton, app.userPathButton], 'Enable', 1)
-                app.tool_versionInfoRefresh.Enable   = 1;
-                app.openAuxiliarAppAsDocked.Enable   = 1;
-                app.config_WordCloudAlgorithm.Enable = 1;
+                app.dockModule_Undock.Enable       = 1;
+                app.openDevTools.Enable            = 1;
+                app.tool_versionInfoRefresh.Enable = 1;
+                app.openAuxiliarAppAsDocked.Enable = 1;
             end
 
             if ~isdeployed
-                app.openAuxiliarApp2Debug.Enable = 1;
+                app.openAuxiliarApp2Debug.Enable   = 1;
             end
 
             if isfolder(app.mainApp.General.fileFolder.DataHub_GET)
@@ -500,8 +503,12 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.progressDialog.Visible = 'visible';
         
                     try
-                        copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, replace(app.mainApp.General.search.dataSources.main, '.mat', '.xlsx')), fileFullPath, 'f')
-                        ccTools.fcn.OperationSystem('openFile', fileFullPath)        
+                        fileName = sprintf('SCHData%s.xlsx', app.mainApp.General.search.dataBaseVersion);
+                        copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, fileName), fileFullPath, 'f')
+
+                        if ~strcmp(app.mainApp.executionMode, 'webApp')
+                            ccTools.fcn.OperationSystem('openFile', fileFullPath)
+                        end
                     catch ME
                         appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
                     end
@@ -910,22 +917,22 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create Tab2Grid
             app.Tab2Grid = uigridlayout(app.Tab2);
             app.Tab2Grid.ColumnWidth = {'1x', 22};
-            app.Tab2Grid.RowHeight = {17, 5, 68, 5, 22, 5, 64, 5, 22, 5, 64, 5, 22, 5, '1x', 1};
-            app.Tab2Grid.RowSpacing = 0;
+            app.Tab2Grid.RowHeight = {17, 70, 22, 64, 22, 64, 22, '1x', 1};
+            app.Tab2Grid.RowSpacing = 5;
             app.Tab2Grid.BackgroundColor = [1 1 1];
 
             % Create config_MiscelaneousLabel1
             app.config_MiscelaneousLabel1 = uilabel(app.Tab2Grid);
             app.config_MiscelaneousLabel1.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel1.FontSize = 10;
-            app.config_MiscelaneousLabel1.Layout.Row = 5;
+            app.config_MiscelaneousLabel1.Layout.Row = 3;
             app.config_MiscelaneousLabel1.Layout.Column = 1;
             app.config_MiscelaneousLabel1.Text = 'ALGORITMO SUGESTÃO DE TOKENS';
 
             % Create config_MiscelaneousPanel1
             app.config_MiscelaneousPanel1 = uipanel(app.Tab2Grid);
             app.config_MiscelaneousPanel1.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel1.Layout.Row = 7;
+            app.config_MiscelaneousPanel1.Layout.Row = 4;
             app.config_MiscelaneousPanel1.Layout.Column = [1 2];
 
             % Create config_MiscelaneousGrid1
@@ -980,14 +987,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousLabel2 = uilabel(app.Tab2Grid);
             app.config_MiscelaneousLabel2.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel2.FontSize = 10;
-            app.config_MiscelaneousLabel2.Layout.Row = 9;
+            app.config_MiscelaneousLabel2.Layout.Row = 5;
             app.config_MiscelaneousLabel2.Layout.Column = 1;
             app.config_MiscelaneousLabel2.Text = 'ANOTAÇÃO DO TIPO "WORDCLOUD"';
 
             % Create config_MiscelaneousPanel2
             app.config_MiscelaneousPanel2 = uipanel(app.Tab2Grid);
             app.config_MiscelaneousPanel2.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel2.Layout.Row = 11;
+            app.config_MiscelaneousPanel2.Layout.Row = 6;
             app.config_MiscelaneousPanel2.Layout.Column = [1 2];
 
             % Create config_MiscelaneousGrid2
@@ -1041,14 +1048,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SelectedTableColumnsLabel = uilabel(app.Tab2Grid);
             app.config_SelectedTableColumnsLabel.VerticalAlignment = 'bottom';
             app.config_SelectedTableColumnsLabel.FontSize = 10;
-            app.config_SelectedTableColumnsLabel.Layout.Row = 13;
+            app.config_SelectedTableColumnsLabel.Layout.Row = 7;
             app.config_SelectedTableColumnsLabel.Layout.Column = 1;
             app.config_SelectedTableColumnsLabel.Text = 'VISIBILIDADE DE COLUNAS';
 
             % Create config_SelectedTableColumns
             app.config_SelectedTableColumns = uitree(app.Tab2Grid, 'checkbox');
             app.config_SelectedTableColumns.FontSize = 11;
-            app.config_SelectedTableColumns.Layout.Row = 15;
+            app.config_SelectedTableColumns.Layout.Row = 8;
             app.config_SelectedTableColumns.Layout.Column = [1 2];
 
             % Assign Checked Nodes
@@ -1070,7 +1077,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModePanel.AutoResizeChildren = 'off';
             app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_SearchModePanel.BackgroundColor = [1 1 1];
-            app.config_SearchModePanel.Layout.Row = 3;
+            app.config_SearchModePanel.Layout.Row = 2;
             app.config_SearchModePanel.Layout.Column = [1 2];
 
             % Create config_SearchModeTokenSuggestion
@@ -1079,7 +1086,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModeTokenSuggestion.WordWrap = 'on';
             app.config_SearchModeTokenSuggestion.FontSize = 11;
             app.config_SearchModeTokenSuggestion.Interpreter = 'html';
-            app.config_SearchModeTokenSuggestion.Position = [10 33 840 29];
+            app.config_SearchModeTokenSuggestion.Position = [11 34 840 29];
             app.config_SearchModeTokenSuggestion.Value = true;
 
             % Create config_SearchModeListOfWords
@@ -1088,7 +1095,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModeListOfWords.WordWrap = 'on';
             app.config_SearchModeListOfWords.FontSize = 11;
             app.config_SearchModeListOfWords.Interpreter = 'html';
-            app.config_SearchModeListOfWords.Position = [11 4 837 34];
+            app.config_SearchModeListOfWords.Position = [12 7 837 29];
 
             % Create config_SearchModeLabel
             app.config_SearchModeLabel = uilabel(app.Tab2Grid);
