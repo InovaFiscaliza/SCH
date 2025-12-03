@@ -2,65 +2,66 @@ classdef winProducts_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                     matlab.ui.Figure
-        GridLayout                   matlab.ui.container.GridLayout
-        TabGroup                     matlab.ui.container.TabGroup
-        INSPEOTab                    matlab.ui.container.Tab
-        report_Tab1Grid              matlab.ui.container.GridLayout
-        report_ProductInfo           matlab.ui.control.Label
-        report_ProductInfoImage      matlab.ui.control.Image
-        report_ProductInfoLabel      matlab.ui.control.Label
-        PROJETOTab                   matlab.ui.container.Tab
-        Tab4Grid                     matlab.ui.container.GridLayout
-        report_EntityPanel           matlab.ui.container.Panel
-        report_EntityGrid            matlab.ui.container.GridLayout
-        report_Entity                matlab.ui.control.EditField
-        report_EntityLabel           matlab.ui.control.Label
-        report_EntityID              matlab.ui.control.EditField
-        report_EntityCheck           matlab.ui.control.Image
-        report_EntityIDLabel         matlab.ui.control.Label
-        report_EntityType            matlab.ui.control.DropDown
-        report_EntityTypeLabel       matlab.ui.control.Label
-        report_EntityPanelLabel      matlab.ui.control.Label
-        report_ProjectName           matlab.ui.control.TextArea
-        report_ProjectSave           matlab.ui.control.Image
-        report_ProjectOpen           matlab.ui.control.Image
-        report_ProjectNew            matlab.ui.control.Image
-        report_ProjectLabel          matlab.ui.control.Label
-        reportPanel                  matlab.ui.container.Panel
-        reportGrid                   matlab.ui.container.GridLayout
-        reportVersion                matlab.ui.control.DropDown
-        reportVersionLabel           matlab.ui.control.Label
-        reportModelName              matlab.ui.control.DropDown
-        reportModelNameLabel         matlab.ui.control.Label
-        reportLabel                  matlab.ui.control.Label
-        eFiscalizaPanel              matlab.ui.container.Panel
-        eFiscalizaGrid               matlab.ui.container.GridLayout
-        reportIssue                  matlab.ui.control.NumericEditField
-        reportIssueLabel             matlab.ui.control.Label
-        reportUnit                   matlab.ui.control.DropDown
-        reportUnitLabel              matlab.ui.control.Label
-        reportSystem                 matlab.ui.control.DropDown
-        reportSystemLabel            matlab.ui.control.Label
-        eFiscalizaLabel              matlab.ui.control.Label
-        DockModule                   matlab.ui.container.GridLayout
-        dockModule_Undock            matlab.ui.control.Image
-        dockModule_Close             matlab.ui.control.Image
-        Document                     matlab.ui.container.GridLayout
-        report_Table                 matlab.ui.control.Table
-        report_nRows                 matlab.ui.control.Label
-        report_ViewType              matlab.ui.container.ButtonGroup
-        AduanaButton                 matlab.ui.control.RadioButton
-        FornecedorUsurioButton       matlab.ui.control.RadioButton
-        Toolbar                      matlab.ui.container.GridLayout
-        report_FiscalizaUpdate       matlab.ui.control.Image
-        report_ReportGeneration      matlab.ui.control.Image
-        tool_EditSelectedProduct     matlab.ui.control.Image
-        tool_AddNonCertificate       matlab.ui.control.Image
-        tool_ControlPanelVisibility  matlab.ui.control.Image
-        ContextMenu                  matlab.ui.container.ContextMenu
-        EditarMenu                   matlab.ui.container.Menu
-        DeletePoint                  matlab.ui.container.Menu
+        UIFigure                  matlab.ui.Figure
+        GridLayout                matlab.ui.container.GridLayout
+        SubTabGroup               matlab.ui.container.TabGroup
+        SubTab1_Products          matlab.ui.container.Tab
+        SubGrid1                  matlab.ui.container.GridLayout
+        report_ProductInfo        matlab.ui.control.Label
+        report_ProductInfoImage   matlab.ui.control.Image
+        report_ProductInfoLabel   matlab.ui.control.Label
+        SubTab2_Project           matlab.ui.container.Tab
+        SubGrid2                  matlab.ui.container.GridLayout
+        report_EntityPanel        matlab.ui.container.Panel
+        report_EntityGrid         matlab.ui.container.GridLayout
+        report_Entity             matlab.ui.control.EditField
+        report_EntityLabel        matlab.ui.control.Label
+        report_EntityID           matlab.ui.control.EditField
+        report_EntityCheck        matlab.ui.control.Image
+        report_EntityIDLabel      matlab.ui.control.Label
+        report_EntityType         matlab.ui.control.DropDown
+        report_EntityTypeLabel    matlab.ui.control.Label
+        report_EntityPanelLabel   matlab.ui.control.Label
+        report_ProjectName        matlab.ui.control.TextArea
+        report_ProjectSave        matlab.ui.control.Image
+        report_ProjectOpen        matlab.ui.control.Image
+        report_ProjectNew         matlab.ui.control.Image
+        report_ProjectLabel       matlab.ui.control.Label
+        reportPanel               matlab.ui.container.Panel
+        reportGrid                matlab.ui.container.GridLayout
+        reportVersion             matlab.ui.control.DropDown
+        reportVersionLabel        matlab.ui.control.Label
+        report_ModelName          matlab.ui.control.DropDown
+        reportModelNameLabel      matlab.ui.control.Label
+        reportLabel               matlab.ui.control.Label
+        eFiscalizaPanel           matlab.ui.container.Panel
+        eFiscalizaGrid            matlab.ui.container.GridLayout
+        reportIssue               matlab.ui.control.NumericEditField
+        reportIssueLabel          matlab.ui.control.Label
+        reportUnit                matlab.ui.control.DropDown
+        reportUnitLabel           matlab.ui.control.Label
+        reportSystem              matlab.ui.control.DropDown
+        reportSystemLabel         matlab.ui.control.Label
+        eFiscalizaLabel           matlab.ui.control.Label
+        DockModule                matlab.ui.container.GridLayout
+        dockModule_Undock         matlab.ui.control.Image
+        dockModule_Close          matlab.ui.control.Image
+        Document                  matlab.ui.container.GridLayout
+        report_Table              matlab.ui.control.Table
+        report_nRows              matlab.ui.control.Label
+        report_ViewType           matlab.ui.container.ButtonGroup
+        ADUANAButton              matlab.ui.control.RadioButton
+        FORNECEDORUSURIOButton    matlab.ui.control.RadioButton
+        Toolbar                   matlab.ui.container.GridLayout
+        tool_Separator            matlab.ui.control.Image
+        report_FiscalizaUpdate    matlab.ui.control.Image
+        report_ReportGeneration   matlab.ui.control.Image
+        tool_EditSelectedProduct  matlab.ui.control.Image
+        tool_AddNonCertificate    matlab.ui.control.Image
+        tool_PanelVisibility      matlab.ui.control.Image
+        ContextMenu               matlab.ui.container.ContextMenu
+        ContextMenu_EditFcn       matlab.ui.container.Menu
+        ContextMenu_DeleteFcn     matlab.ui.container.Menu
     end
 
     
@@ -123,8 +124,9 @@ classdef winProducts_exported < matlab.apps.AppBase
                     case {'winSCH', 'winSCH_exported'}
                         switch operationType
                             case 'updateInspectedProducts'
-                                'updateInspectedProducts'
-                                % ...
+                                report_UpdatingTable(app)
+                                report_TableSelectionChanged(app)
+                                report_ProjectWarnImageVisibility(app)
 
                             otherwise
                                 error('UnexpectedCall')
@@ -143,7 +145,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        % INICIALIZAÇÃO
+        % JSBACKDOOR
         %-----------------------------------------------------------------%
         function jsBackDoor_Initialization(app)
             app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                 ...
@@ -245,6 +247,9 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'visible';
 
             startup_GUIComponents(app)
+            report_UpdatingTable(app)
+            report_TableSelectionChanged(app)
+            report_ProjectWarnImageVisibility(app)
 
             app.progressDialog.Visible = 'hidden';
         end
@@ -257,7 +262,268 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             app.report_Table.RowName = 'numbered';
 
+            % Os painéis de metadados do registro selecionado nas tabelas já 
+            % tem, na sua propriedade "UserData", a chave "id" que armazena 
+            % o "data-tag" que identifica o componente no código HTML. 
+            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
+            app.report_ProductInfo.UserData.selectedRow = [];
+            app.report_ProductInfo.UserData.showedHom   = '';
+
             % ...
+        end
+    end
+
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % ESPECIFICIDADES AUXAPP.WINPRODUCTS
+        %-----------------------------------------------------------------%
+        function relatedAnnotationTable = search_Annotation_RelatedTable(app, showedHom)
+            annotationLogical      = strcmp(app.mainApp.annotationTable.("Homologação"), showedHom);
+            relatedAnnotationTable = app.mainApp.annotationTable(annotationLogical, :);
+        end
+
+        %-----------------------------------------------------------------%
+        function [listOfRows, idx, analyzedColumns] = report_ListOfProductsCheck(app)
+            % É nessa função que são feitas as validações nos valores das 
+            % células da tabela. Se algum valor não passar numa validação,
+            % então não poderá ser gerada a versão definitiva do relatório
+            % e a célula ficará destacada em vermelho.
+
+            analyzedColumns = {                                                                                 ...
+                'Tipo',                                                                                         ... #1
+                'Fabricante',                                                                                   ... #2
+                'Modelo',                                                                                       ... #3
+                'Valor Unit. (R$)',                                                                             ... #4
+                {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'},                          ... #5
+                {'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ... #6
+                'Situação',                                                                                     ... #7
+                {'Situação', 'Infração'}                                                                        ... #8
+                {'Situação', 'Valor Unit. (R$)'},                                                               ... #9
+                {'Situação', 'Fonte do valor'},                                                                 ... #10
+                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'},                        ... #11
+            };
+
+            idx      = zeros(height(app.projectData.inspectedProducts), 11, 'logical');
+
+            idx(:, 1) = string(app.projectData.inspectedProducts.("Tipo")) == "-";
+            idx(:, 2) = string(app.projectData.inspectedProducts.("Fabricante")) == "";
+            idx(:, 3) = string(app.projectData.inspectedProducts.("Modelo")) == "";
+            idx(:, 4) = app.projectData.inspectedProducts.("Valor Unit. (R$)") < 0;
+            idx(:, 5) = app.projectData.inspectedProducts.("Qtd. uso")            + ...
+                        app.projectData.inspectedProducts.("Qtd. vendida")        + ...
+                        app.projectData.inspectedProducts.("Qtd. estoque/aduana") + ...
+                        app.projectData.inspectedProducts.("Qtd. anunciada") <= 0;
+            idx(:, 6) = sum(app.projectData.inspectedProducts{:, {'Qtd. uso', 'Qtd. estoque/aduana'}}, 2) < ...
+                        sum(app.projectData.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);            
+            idx(:, 7) =   string(app.projectData.inspectedProducts.("Situação")) == "-";
+            idx(:, 8) = ((string(app.projectData.inspectedProducts.("Situação")) == "Regular")   & (string(app.projectData.inspectedProducts.("Infração")) ~= "-")) | ...
+                        ((string(app.projectData.inspectedProducts.("Situação")) == "Irregular") & (string(app.projectData.inspectedProducts.("Infração")) == "-"));
+            idx(:, 9) =  (string(app.projectData.inspectedProducts.("Situação")) == "Irregular") & (app.projectData.inspectedProducts.("Valor Unit. (R$)") <= 0);
+            idx(:,10) =  (string(app.projectData.inspectedProducts.("Situação")) == "Irregular") & (string(app.projectData.inspectedProducts.("Fonte do valor")) == "");
+            idx(:,11) =  (string(app.projectData.inspectedProducts.("Situação")) == "Regular")   & (sum(app.projectData.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2) > 0);
+
+            listOfRows = find(any(idx, 2));
+        end
+
+        %-----------------------------------------------------------------%
+        function report_UpdatingTable(app)
+            report_syncTableAndGui(app, 'dataToGuiSync')
+
+            % LAYOUT
+            misc_Table_NumberOfRows(app)
+
+            if ~isempty(app.projectData.inspectedProducts)
+                report_Table_AddStyle(app, 'Icon+BackgroundColor')
+            else
+                removeStyle(app.report_Table)
+            end
+
+            report_ModelNameValueChanged(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function report_syncTableAndGui(app, syncType, varargin)
+            arguments
+                app
+                syncType char {mustBeMember(syncType, {'guiToDataSync', 'dataToGuiSync', 'tableViewChanged'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            viewType    = app.report_ViewType.SelectedObject.Tag; % 'vendorView' | 'customsView'
+
+            columnList  = app.mainApp.General.ui.reportTable.(viewType).name';
+            columnIndex = cellfun(@(x) find(strcmp(app.projectData.inspectedProducts.Properties.VariableNames, x), 1), columnList);
+
+            switch syncType
+                case 'guiToDataSync'
+                    newHashFlag = varargin{1};
+                    app.projectData.inspectedProducts(:, columnIndex) = app.report_Table.Data;
+                    
+                    % Recalcular hash dos produtos não homologados... 
+                    if newHashFlag
+                        nonCertificateIndexes = find(strcmp(app.projectData.inspectedProducts.('Homologação'), '-'));
+                        if ~isempty(nonCertificateIndexes)
+                            nonCertificateHash = cellfun(@(x) Base64Hash.encode(x), strcat(app.projectData.inspectedProducts.("Homologação")(nonCertificateIndexes), {' - '}, app.projectData.inspectedProducts.("Fabricante")(nonCertificateIndexes), {' - '}, app.projectData.inspectedProducts.("Modelo")(nonCertificateIndexes)), 'UniformOutput', false);
+                            app.projectData.inspectedProducts.("Hash")(nonCertificateIndexes) = nonCertificateHash;
+                        end
+                    end
+
+
+                case 'dataToGuiSync'
+                    app.report_Table.Data = app.projectData.inspectedProducts(:, columnIndex);
+
+                case 'tableViewChanged'
+                    set(app.report_Table, 'Data',        app.projectData.inspectedProducts(:, columnIndex), ...
+                                          'ColumnName',  app.mainApp.General.ui.reportTable.(viewType).label',   ...
+                                          'ColumnWidth', app.mainApp.General.ui.reportTable.(viewType).columnWidth')
+
+                    report_Table_AddStyle(app, 'Icon+BackgroundColor')
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function report_Table_AddStyle(app, styleType)
+            [listOfRows, idx, analyzedColumns] = report_ListOfProductsCheck(app);
+
+            switch styleType
+                case 'Icon'
+                    removeStyle(app.report_Table)
+                    if ~isempty(listOfRows)
+                        report_Table_AddStyle_Icon(app, listOfRows)
+                    end
+
+                case 'BackgroundColor'
+                    % O evento aqui é iniciado apenas do botão na barra de tarefas...
+                    report_Table_AddStyle_BackgroundColor(app, idx, analyzedColumns, false)
+
+                case 'Icon+BackgroundColor'
+                    removeStyle(app.report_Table)
+                    if ~isempty(listOfRows)
+                        report_Table_AddStyle_Icon(app, listOfRows)
+                        report_Table_AddStyle_BackgroundColor(app, idx, analyzedColumns, false)
+                    end
+
+                case 'Icon+TemporaryBackgroundColor'
+                    removeStyle(app.report_Table)
+                    if ~isempty(listOfRows)
+                        report_Table_AddStyle_Icon(app, listOfRows)
+                        report_Table_AddStyle_BackgroundColor(app, idx, analyzedColumns, true)
+                    end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function report_Table_AddStyle_Icon(app, listOfRows)
+            s = class.Constants.configStyle6;
+            addStyle(app.report_Table, s, "cell", [listOfRows, ones(numel(listOfRows), 1)])
+        end
+
+        %-----------------------------------------------------------------%
+        function report_Table_AddStyle_BackgroundColor(app, idx, analyzedColumns, temporaryFlag)
+            % Identifica o número de estilos aplicados à tabela...
+            styleIndex = height(app.report_Table.StyleConfigurations);
+
+            % Identifica as células...
+            cellList = [];
+            for ii = 1:numel(analyzedColumns)
+                rowIndex = find(idx(:,ii));
+
+                if ~isempty(rowIndex)
+                    columnNames = analyzedColumns{ii};
+                    columnIndex = find(ismember(app.report_Table.Data.Properties.VariableNames, columnNames));
+
+                    for jj = 1:numel(columnIndex)
+                        cellList = [cellList; [rowIndex, repmat(columnIndex(jj), numel(rowIndex), 1)]];
+                    end
+                end
+            end
+
+            % Aplica o estilo, o qual terá o index "styleIndex+1", e depois
+            % de cerca de 300ms o estilo é excluído (caso temporaryFlag = true).
+            s = class.Constants.configStyle7;
+            addStyle(app.report_Table, s, "cell", cellList)
+
+            if temporaryFlag
+                drawnow
+                pause(.3)
+
+                % O bloco try/catch evita retorno de erro, caso o usuário
+                % interaja com a tabela durante o pause de 300 ms.
+                try
+                    removeStyle(app.report_Table, styleIndex+1)
+                catch
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app)
+            selectedRow = app.report_Table.Selection;
+            if ~isempty(selectedRow)
+                selectedHom = unique(app.report_Table.Data.("Homologação")(selectedRow), 'stable');
+            else
+                selectedHom = {};
+            end
+            showedHom = app.report_ProductInfo.UserData.showedHom;
+        end
+
+        %-----------------------------------------------------------------%
+        function misc_Table_NumberOfRows(app)
+            nRows = height(app.report_Table.Data);
+            app.report_nRows.Text = sprintf('%d <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>', nRows);
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable)
+            if isempty(selected2showedHom)
+                htmlSource = '';
+
+            else
+                if ~strcmp(selected2showedHom, '-')
+                    selectedHomRawTableIndex = find(strcmp(app.mainApp.rawDataTable.("Homologação"), selected2showedHom));
+                    htmlSource = util.HtmlTextGenerator.ProductInfo('ProdutoHomologado', app.mainApp.rawDataTable(selectedHomRawTableIndex, :), relatedAnnotationTable, app.projectData.regulatronData);
+
+                else
+                    % Esse é um caso específico do modo "REPORT", quando é
+                    % selecionado registro de um produto não homologado,
+                    % cuja homologação é preenchido como "-". Nesse caso,
+                    % deve-se identificar a linha selecionada da tabela (do
+                    % modo "REPORT) pois podem existir mais de um registro
+                    % com o número igual a "-".
+                    %
+                    % O bloco try/catch é apenas por precaução. Não foi
+                    % evidenciado erro nos testes de uso do app.
+
+                    try
+                        selectedRow = app.report_Table.Selection(1);
+                        htmlSource = util.HtmlTextGenerator.ProductInfo('ProdutoNãoHomologado', app.projectData.inspectedProducts(selectedRow, :));
+                    catch
+                        htmlSource = '';
+                    end
+                end
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow, selected2showedHom)
+            userData = struct('selectedRow', selectedRow, 'showedHom', selected2showedHom);
+            ui.TextView.update(app.report_ProductInfo, htmlSource, userData, app.report_ProductInfoImage);
+        end
+
+        %-----------------------------------------------------------------%
+        function layout_CNPJOrCPF(app, status)
+            if status
+                backgroundColor = [1,1,1];
+                fontColor       = [0,0,0];
+            else
+                backgroundColor = [1,0,0];
+                fontColor       = [1,1,1];
+            end
+            set(app.report_EntityID, 'BackgroundColor', backgroundColor, 'FontColor', fontColor)
         end
     end
     
@@ -315,18 +581,18 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_ControlPanelVisibility
+        % Image clicked function: tool_PanelVisibility
         function Toolbar_InteractionImageClicked(app, event)
             
             switch event.Source
-                case app.tool_ControlPanelVisibility
-                    if app.TabGroup.Visible
-                        app.tool_ControlPanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.TabGroup.Visible = 0;
+                case app.tool_PanelVisibility
+                    if app.SubTabGroup.Visible
+                        app.tool_PanelVisibility.ImageSource = 'ArrowRight_32.png';
+                        app.SubTabGroup.Visible = 0;
                         app.Document.Layout.Column = [2 5];
                     else
-                        app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.TabGroup.Visible = 1;
+                        app.tool_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
+                        app.SubTabGroup.Visible = 1;
                         app.Document.Layout.Column = [4 5];
                     end
 
@@ -412,7 +678,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                     reportSettings = struct('system',        app.reportSystem.Value, ...
                                             'unit',          app.reportUnit.Value, ...
                                             'issue',         app.reportIssue.Value, ...
-                                            'model',         app.reportModelName.Value, ...
+                                            'model',         app.report_ModelName.Value, ...
                                             'reportVersion', app.reportVersion.Value);
                     reportLibConnection.Controller.Run(app, app.projectData, app.measData(indexes), reportSettings, app.mainApp.General)
                 catch ME
@@ -467,18 +733,22 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Selection change function: TabGroup
-        function TabGroupSelectionChanged(app, event)
+        % Selection change function: SubTabGroup
+        function SubTabGroupSelectionChanged(app, event)
 
-            [~, tabIndex] = ismember(app.TabGroup.SelectedTab, app.TabGroup.Children);
+            [~, tabIndex] = ismember(app.SubTabGroup.SelectedTab, app.SubTabGroup.Children);
             jsBackDoor_Customizations(app, tabIndex)
 
         end
 
-        % Value changed function: reportModelName
-        function reportModelNameValueChanged(app, event)
+        % Value changed function: report_ModelName
+        function report_ModelNameValueChanged(app, event)
             
-            updateToolbar(app)
+            if ~isempty(app.projectData.inspectedProducts) && ~isempty(app.report_ModelName.Value)
+                app.report_ReportGeneration.Enable = 1;
+            else
+                app.report_ReportGeneration.Enable = 0;
+            end
 
         end
 
@@ -494,6 +764,306 @@ classdef winProducts_exported < matlab.apps.AppBase
                     updateUiInfo(app.projectData, context, 'unit',   app.reportUnit.Value)
                 case app.reportIssue
                     updateUiInfo(app.projectData, context, 'issue',  app.reportIssue.Value)
+            end
+
+        end
+
+        % Selection changed function: report_ViewType
+        function report_ViewTypeSelectionChanged(app, event)
+            
+            report_syncTableAndGui(app, 'tableViewChanged')
+            
+        end
+
+        % Image clicked function: tool_AddNonCertificate
+        function tool_AddNonCertificateImageClicked(app, event)
+            
+            nonCertificatedId   = '-';
+            defaultManufacturer = '';
+            defaultModelName    = '';
+
+            selectedHomHash = Base64Hash.encode(strjoin({nonCertificatedId, defaultManufacturer, defaultModelName}, ' - '));
+            if ismember(selectedHomHash, app.projectData.inspectedProducts.("Hash"))
+                msgWarning = [ ...
+                    'Na lista de produtos sob análise já consta um produto ' ...
+                    'não homologado sem fabricante e modelo definidos. Inserir ' ...
+                    'um novo registro irá duplicá-lo. Se houver vários produtos ' ...
+                    'não homologados, preencha fabricante e modelo para ' ...
+                    'diferenciá-los e evitar duplicidades.' ...
+                ];
+                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                return
+            end
+
+            typeOfProduct   = app.mainApp.General.ui.typeOfProduct.default;
+            typeOfSituation = app.mainApp.General.ui.typeOfSituation.default;
+            typeOfViolation = app.mainApp.General.ui.typeOfViolation.default;
+
+            newRow2Add = { ...
+                selectedHomHash, ... 'Hash'
+                nonCertificatedId, ... 'Homologação'
+                '', ...              'Importador'
+                '', ...              'Código aduaneiro'
+                typeOfProduct, ...   'Tipo'
+                '', ...              'Fabricante'
+                '', ...              'Modelo'
+                '', ...              'Fonte do valor'
+                typeOfSituation, ... 'Situação'
+                typeOfViolation, ... 'Infração'
+                '-', ...             'Sanável?'
+                '' ...               'Informações adicionais'
+            };
+
+            columnList = {'Hash', 'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'Fonte do valor', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'};
+
+            app.projectData.inspectedProducts(end+1, columnList) = newRow2Add;
+            app.projectData.inspectedProducts = sortrows(app.projectData.inspectedProducts, 'Homologação');
+
+            % Atualizando a tabela e o número de linhas (do modo REPORT), nessa
+            % ordem. E depois forçando uma atualização dos paineis.
+            report_UpdatingTable(app)
+            report_TableSelectionChanged(app)
+
+            % Torna visível imagem de warning, caso aberto projeto.
+            report_ProjectWarnImageVisibility(app)
+
+        end
+
+        % Callback function: ContextMenu_EditFcn, tool_EditSelectedProduct
+        function search_FilterSetupClicked(app, event)
+            
+            switch event.Source
+                case app.search_FilterSetup
+                    menu_LayoutPopupApp(app, 'FilterSetup')
+
+                case {app.tool_EditSelectedProduct, app.ContextMenu_EditFcn}
+                    % Por alguma razão desconhecida, inseri algumas validações
+                    % aqui! :)
+                    % Enfim... a possibilidade de editar um registro não deve
+                    % existir toda vez que a tabela esteja vazia ou que não
+                    % esteja selecionada uma linha.
+                    selectedRow = app.report_Table.Selection;
+
+                    if isempty(selectedRow)
+                        if isempty(app.report_Table.Data)
+                            app.tool_EditSelectedProduct.Enable  = 0;
+                            app.ContextMenu_EditFcn.Enable = 0;
+                            return
+                        end
+
+                        app.report_Table.Selection = 1;
+                        report_TableSelectionChanged(app)
+                    elseif ~isscalar(selectedRow)
+                        app.report_Table.Selection = app.report_Table.Selection(1);
+                    end
+
+                    menu_LayoutPopupApp(app, 'ProductInfo')
+            end
+
+        end
+
+        % Menu selected function: ContextMenu_DeleteFcn
+        function report_ContextMenu_DeleteFcnSelected(app, event)
+            
+            selectedTableIndex = app.report_Table.Selection;
+            selectedProduct    = {};
+
+            if ~isempty(selectedTableIndex)
+                idx = selectedTableIndex(~strcmp(app.report_Table.Data.("Homologação")(selectedTableIndex), '-'));
+                selectedProduct = app.report_Table.Data.("Homologação")(idx);
+            end
+
+            if ~isempty(selectedTableIndex)
+                app.projectData.inspectedProducts(selectedTableIndex,:) = [];
+                report_UpdatingTable(app)
+                report_ProjectWarnImageVisibility(app)
+            end
+
+            report_TableSelectionChanged(app)
+
+        end
+
+        % Selection changed function: report_Table
+        function report_TableSelectionChanged(app, event)
+            
+            [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app);
+
+            if ~isempty(selectedHom)
+                updateFlag = false;
+                if ~ismember(showedHom, selectedHom) || ~isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
+                    updateFlag = true;
+                end
+
+                if updateFlag
+                    % Escolhe o primeiro registro da lista de homologações selecionadas
+                    % em tabela.
+                    selected2showedHom     = selectedHom{1};
+                    relatedAnnotationTable = search_Annotation_RelatedTable(app, selected2showedHom);
+
+                    htmlSource = misc_SelectedHomPanel_InfoCreation(app, selected2showedHom, relatedAnnotationTable);
+                    misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow(1), selected2showedHom)
+                end
+
+                app.tool_EditSelectedProduct.Enable = 1;
+                app.ContextMenu_EditFcn.Enable      = 1;
+                app.ContextMenu_DeleteFcn.Enable    = 1;
+
+            else
+                htmlSource = misc_SelectedHomPanel_InfoCreation(app, '', []);
+                misc_SelectedHomPanel_InfoUpdate(app, htmlSource, [], '')
+
+                app.tool_EditSelectedProduct.Enable = 0;
+                app.ContextMenu_EditFcn.Enable      = 0;
+                app.ContextMenu_DeleteFcn.Enable    = 0;
+            end
+            
+        end
+
+        % Cell edit callback: report_Table
+        function report_TableCellEdit(app, event)
+            
+            % BUG "MATLAB R2024a Update 7":
+            % Ao clicar no dropdown (colunas categóricas) e clicar fora do
+            % painel (do dropdown) ou selecionar o valor já selecionado, o
+            % MATLAB dispara esse callback. A primeira validação evita fazer
+            % atualizações desnessárias.
+            if iscellstr(event.Source.Data{event.Indices(1), event.Indices(2)})
+                event.Source.Data{event.Indices(1), event.Indices(2)} = strtrim(event.Source.Data{event.Indices(1), event.Indices(2)});
+            end
+
+            if isequal(event.PreviousData, event.NewData)
+                return
+
+            elseif isnumeric(event.NewData) && ((event.NewData < 0) || isnan(event.NewData))
+                event.Source.Data{event.Indices(1), event.Indices(2)} = event.PreviousData;
+                return
+
+            elseif ischar(event.NewData) && isequal(strtrim(event.NewData), event.PreviousData)
+                event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};
+                return
+
+            % Outro comportamento inesperado é a possibilidade de editar as
+            % categorias das colunas categóricas. Para evitar isso, afere-se
+            % se o nome valor é membro da lista de valores esperados.
+            else
+                editedGUIColumn = event.Source.ColumnName{event.Indices(2)};
+
+                if (strcmpi(editedGUIColumn, 'TIPO')     && ~ismember(event.NewData, app.mainApp.General.ui.typeOfProduct.options))   || ...
+                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, app.mainApp.General.ui.typeOfSituation.options)) || ...
+                   (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.mainApp.General.ui.typeOfViolation.options)) || ...
+                   (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-', 'Sim', 'Não'}))
+
+                    columnNames      = app.projectData.inspectedProducts.Properties.VariableNames;
+                    editedRealColumn = columnNames{find(strcmpi(editedGUIColumn, columnNames), 1)};
+
+                    app.report_Table.Data.(editedRealColumn) = app.projectData.inspectedProducts.(editedRealColumn);
+                    return
+                end
+
+                newHashFlag = false;
+                if strcmp(event.Source.Data.("Homologação"){event.Indices(1)}, '-') && ismember(editedGUIColumn, {'FABRICANTE', 'MODELO'})
+                    newHashFlag = true;
+                    newNonCertificateHash = Base64Hash.encode(strjoin({'-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)}}, ' - '));
+
+                    if ismember(newNonCertificateHash, app.projectData.inspectedProducts.("Hash"))
+                        event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};
+
+                        msgWarning = [ ...
+                            'Na lista de produtos sob análise já consta um produto ' ...
+                            'não homologado com informações idênticas de fabricante e ' ...
+                            'modelo. Essa edição duplicará esse registro. Se houver vários produtos ' ...
+                            'não homologados, preencha fabricante e modelo para ' ...
+                            'diferenciá-los e evitar duplicidades.' ...
+                        ];
+                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                        return
+                    end
+                end
+            end
+
+            report_syncTableAndGui(app, 'guiToDataSync', newHashFlag)
+            report_Table_AddStyle(app, 'Icon+BackgroundColor')
+
+            report_ProjectWarnImageVisibility(app)
+
+            % Atualizando o painel de metadados do registro selecionado...
+            % (só pode ser editada uma célular por vez)
+            [~, showedHom, selectedRow] = misc_Table_SelectedRow(app);
+            if strcmp(showedHom, '-')
+                htmlSource = misc_SelectedHomPanel_InfoCreation(app, showedHom, []);
+                misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow, showedHom)
+            end
+            
+        end
+
+        % Image clicked function: report_ProjectNew, report_ProjectOpen, 
+        % ...and 1 other component
+        function report_ProjectToolbarImageClicked(app, event)
+            
+        end
+
+        % Value changed function: report_EntityType
+        function report_EntityTypeValueChanged(app, event)
+            
+            switch app.report_EntityType.Value
+                case {'Fornecedor', 'Usuário'}
+                    app.report_Entity.Enable      = 1;
+                    app.report_EntityID.Enable    = 1;
+                    app.report_EntityCheck.Enable = 1;
+
+                otherwise
+                    app.report_Entity.Enable      = 0;
+                    app.report_EntityID.Enable    = 0;
+                    app.report_EntityCheck.Enable = 0;
+            end
+
+            report_ProjectWarnImageVisibility(app)
+            
+        end
+
+        % Value changed function: report_EntityID
+        function report_EntityIDValueChanged(app, event)
+            
+            try
+                CNPJOrCPF = checkCNPJOrCPF(app.report_EntityID.Value, 'NumberValidation');
+                set(app.report_EntityID, 'Value', CNPJOrCPF, 'UserData', CNPJOrCPF)
+                layout_CNPJOrCPF(app, true)
+
+            catch ME
+                app.report_EntityID.UserData = [];
+                layout_CNPJOrCPF(app, false)
+
+            end
+
+            report_ProjectWarnImageVisibility(app)
+            
+        end
+
+        % Image clicked function: report_EntityCheck
+        function report_EntityIDCheck(app, event)
+            
+            entityID = regexprep(app.report_EntityID.Value, '\D', '');
+            if isempty(entityID)
+                appUtil.modalWindow(app.UIFigure, 'info', 'Consulta limitada a valores não nulos de CNPJ ou CPF');
+                return
+            end
+
+            try
+                % Pesquisa restrita ao CNPJ.
+                CNPJInfo = checkCNPJOrCPF(app.report_EntityID.Value, 'PublicAPI');
+                appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJInfo, "PrettyPrint", true));
+
+            catch ME
+                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+            end
+
+        end
+
+        % Value changed function: report_Entity
+        function report_ProjectWarnImageVisibility(app, event)
+            
+            if ~isempty(app.report_ProjectName.Value{1})
+                app.report_ProjectWarnIcon.Visible = 1;
             end
 
         end
@@ -544,7 +1114,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 22, 22, '1x', 22, 22};
+            app.Toolbar.ColumnWidth = {22, 22, 5, 22, '1x', 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -552,27 +1122,29 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Toolbar.Layout.Row = 6;
             app.Toolbar.Layout.Column = [1 7];
 
-            % Create tool_ControlPanelVisibility
-            app.tool_ControlPanelVisibility = uiimage(app.Toolbar);
-            app.tool_ControlPanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_InteractionImageClicked, true);
-            app.tool_ControlPanelVisibility.Layout.Row = 2;
-            app.tool_ControlPanelVisibility.Layout.Column = 1;
-            app.tool_ControlPanelVisibility.ImageSource = 'ArrowLeft_32.png';
+            % Create tool_PanelVisibility
+            app.tool_PanelVisibility = uiimage(app.Toolbar);
+            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_InteractionImageClicked, true);
+            app.tool_PanelVisibility.Layout.Row = 2;
+            app.tool_PanelVisibility.Layout.Column = 1;
+            app.tool_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
 
             % Create tool_AddNonCertificate
             app.tool_AddNonCertificate = uiimage(app.Toolbar);
+            app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @tool_AddNonCertificateImageClicked, true);
             app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
-            app.tool_AddNonCertificate.Layout.Row = 2;
-            app.tool_AddNonCertificate.Layout.Column = 2;
-            app.tool_AddNonCertificate.ImageSource = 'Forbidden_32Red.png';
+            app.tool_AddNonCertificate.Layout.Row = [1 3];
+            app.tool_AddNonCertificate.Layout.Column = 4;
+            app.tool_AddNonCertificate.ImageSource = 'AddForbidden_32.png';
 
             % Create tool_EditSelectedProduct
             app.tool_EditSelectedProduct = uiimage(app.Toolbar);
             app.tool_EditSelectedProduct.ScaleMethod = 'none';
+            app.tool_EditSelectedProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
             app.tool_EditSelectedProduct.Enable = 'off';
-            app.tool_EditSelectedProduct.Tooltip = {'Edita lista de produtos'};
+            app.tool_EditSelectedProduct.Tooltip = {'Edita lista de produtos sob análise'};
             app.tool_EditSelectedProduct.Layout.Row = [2 3];
-            app.tool_EditSelectedProduct.Layout.Column = 3;
+            app.tool_EditSelectedProduct.Layout.Column = 2;
             app.tool_EditSelectedProduct.ImageSource = 'Variable_edit_16.png';
 
             % Create report_ReportGeneration
@@ -582,7 +1154,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ReportGeneration.Enable = 'off';
             app.report_ReportGeneration.Tooltip = {'Gera relatório'};
             app.report_ReportGeneration.Layout.Row = [1 3];
-            app.report_ReportGeneration.Layout.Column = 5;
+            app.report_ReportGeneration.Layout.Column = 6;
             app.report_ReportGeneration.ImageSource = 'Publish_HTML_16.png';
 
             % Create report_FiscalizaUpdate
@@ -591,13 +1163,21 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_FiscalizaUpdate.Enable = 'off';
             app.report_FiscalizaUpdate.Tooltip = {'Upload relatório'};
             app.report_FiscalizaUpdate.Layout.Row = 2;
-            app.report_FiscalizaUpdate.Layout.Column = 6;
+            app.report_FiscalizaUpdate.Layout.Column = 7;
             app.report_FiscalizaUpdate.ImageSource = 'Up_24.png';
+
+            % Create tool_Separator
+            app.tool_Separator = uiimage(app.Toolbar);
+            app.tool_Separator.ScaleMethod = 'none';
+            app.tool_Separator.Enable = 'off';
+            app.tool_Separator.Layout.Row = [1 3];
+            app.tool_Separator.Layout.Column = 3;
+            app.tool_Separator.ImageSource = 'LineV.svg';
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
             app.Document.ColumnWidth = {'1x', 100, 16, 16};
-            app.Document.RowHeight = {4, 22, 16, '1x'};
+            app.Document.RowHeight = {4, 22, 17, '1x'};
             app.Document.ColumnSpacing = 2;
             app.Document.RowSpacing = 5;
             app.Document.Padding = [0 0 0 0];
@@ -607,6 +1187,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_ViewType
             app.report_ViewType = uibuttongroup(app.Document);
+            app.report_ViewType.SelectionChangedFcn = createCallbackFcn(app, @report_ViewTypeSelectionChanged, true);
             app.report_ViewType.BorderType = 'none';
             app.report_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
             app.report_ViewType.BackgroundColor = [1 1 1];
@@ -614,20 +1195,20 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ViewType.Layout.Column = [1 4];
             app.report_ViewType.FontSize = 10;
 
-            % Create FornecedorUsurioButton
-            app.FornecedorUsurioButton = uiradiobutton(app.report_ViewType);
-            app.FornecedorUsurioButton.Tag = 'vendorView';
-            app.FornecedorUsurioButton.Text = 'Fornecedor/Usuário';
-            app.FornecedorUsurioButton.FontSize = 11;
-            app.FornecedorUsurioButton.Position = [1 1 167 23];
-            app.FornecedorUsurioButton.Value = true;
+            % Create FORNECEDORUSURIOButton
+            app.FORNECEDORUSURIOButton = uiradiobutton(app.report_ViewType);
+            app.FORNECEDORUSURIOButton.Tag = 'vendorView';
+            app.FORNECEDORUSURIOButton.Text = 'FORNECEDOR/USUÁRIO';
+            app.FORNECEDORUSURIOButton.FontSize = 10;
+            app.FORNECEDORUSURIOButton.Position = [2 1 148 23];
+            app.FORNECEDORUSURIOButton.Value = true;
 
-            % Create AduanaButton
-            app.AduanaButton = uiradiobutton(app.report_ViewType);
-            app.AduanaButton.Tag = 'customsView';
-            app.AduanaButton.Text = 'Aduana';
-            app.AduanaButton.FontSize = 11;
-            app.AduanaButton.Position = [187 1 180 22];
+            % Create ADUANAButton
+            app.ADUANAButton = uiradiobutton(app.report_ViewType);
+            app.ADUANAButton.Tag = 'customsView';
+            app.ADUANAButton.Text = 'ADUANA';
+            app.ADUANAButton.FontSize = 10;
+            app.ADUANAButton.Position = [156 1 180 22];
 
             % Create report_nRows
             app.report_nRows = uilabel(app.Document);
@@ -648,6 +1229,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_Table.RowName = {};
             app.report_Table.SelectionType = 'row';
             app.report_Table.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
+            app.report_Table.CellEditCallback = createCallbackFcn(app, @report_TableCellEdit, true);
+            app.report_Table.SelectionChangedFcn = createCallbackFcn(app, @report_TableSelectionChanged, true);
             app.report_Table.Layout.Row = 4;
             app.report_Table.Layout.Column = [1 4];
             app.report_Table.FontSize = 10;
@@ -683,27 +1266,27 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.dockModule_Undock.Layout.Column = 1;
             app.dockModule_Undock.ImageSource = 'Undock_18White.png';
 
-            % Create TabGroup
-            app.TabGroup = uitabgroup(app.GridLayout);
-            app.TabGroup.AutoResizeChildren = 'off';
-            app.TabGroup.SelectionChangedFcn = createCallbackFcn(app, @TabGroupSelectionChanged, true);
-            app.TabGroup.Layout.Row = [3 4];
-            app.TabGroup.Layout.Column = 2;
+            % Create SubTabGroup
+            app.SubTabGroup = uitabgroup(app.GridLayout);
+            app.SubTabGroup.AutoResizeChildren = 'off';
+            app.SubTabGroup.SelectionChangedFcn = createCallbackFcn(app, @SubTabGroupSelectionChanged, true);
+            app.SubTabGroup.Layout.Row = [3 4];
+            app.SubTabGroup.Layout.Column = 2;
 
-            % Create INSPEOTab
-            app.INSPEOTab = uitab(app.TabGroup);
-            app.INSPEOTab.AutoResizeChildren = 'off';
-            app.INSPEOTab.Title = 'INSPEÇÃO';
+            % Create SubTab1_Products
+            app.SubTab1_Products = uitab(app.SubTabGroup);
+            app.SubTab1_Products.AutoResizeChildren = 'off';
+            app.SubTab1_Products.Title = 'INSPEÇÃO';
 
-            % Create report_Tab1Grid
-            app.report_Tab1Grid = uigridlayout(app.INSPEOTab);
-            app.report_Tab1Grid.ColumnWidth = {'1x'};
-            app.report_Tab1Grid.RowHeight = {17, '1x'};
-            app.report_Tab1Grid.RowSpacing = 5;
-            app.report_Tab1Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid1
+            app.SubGrid1 = uigridlayout(app.SubTab1_Products);
+            app.SubGrid1.ColumnWidth = {'1x'};
+            app.SubGrid1.RowHeight = {17, '1x'};
+            app.SubGrid1.RowSpacing = 5;
+            app.SubGrid1.BackgroundColor = [1 1 1];
 
             % Create report_ProductInfoLabel
-            app.report_ProductInfoLabel = uilabel(app.report_Tab1Grid);
+            app.report_ProductInfoLabel = uilabel(app.SubGrid1);
             app.report_ProductInfoLabel.VerticalAlignment = 'bottom';
             app.report_ProductInfoLabel.FontSize = 10;
             app.report_ProductInfoLabel.Layout.Row = 1;
@@ -711,14 +1294,14 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProductInfoLabel.Text = 'PRODUTO SELECIONADO';
 
             % Create report_ProductInfoImage
-            app.report_ProductInfoImage = uiimage(app.report_Tab1Grid);
+            app.report_ProductInfoImage = uiimage(app.SubGrid1);
             app.report_ProductInfoImage.ScaleMethod = 'none';
             app.report_ProductInfoImage.Layout.Row = 2;
             app.report_ProductInfoImage.Layout.Column = 1;
             app.report_ProductInfoImage.ImageSource = 'warning.svg';
 
             % Create report_ProductInfo
-            app.report_ProductInfo = uilabel(app.report_Tab1Grid);
+            app.report_ProductInfo = uilabel(app.SubGrid1);
             app.report_ProductInfo.VerticalAlignment = 'top';
             app.report_ProductInfo.WordWrap = 'on';
             app.report_ProductInfo.FontSize = 11;
@@ -727,21 +1310,21 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProductInfo.Interpreter = 'html';
             app.report_ProductInfo.Text = '';
 
-            % Create PROJETOTab
-            app.PROJETOTab = uitab(app.TabGroup);
-            app.PROJETOTab.AutoResizeChildren = 'off';
-            app.PROJETOTab.Title = 'PROJETO';
+            % Create SubTab2_Project
+            app.SubTab2_Project = uitab(app.SubTabGroup);
+            app.SubTab2_Project.AutoResizeChildren = 'off';
+            app.SubTab2_Project.Title = 'PROJETO';
 
-            % Create Tab4Grid
-            app.Tab4Grid = uigridlayout(app.PROJETOTab);
-            app.Tab4Grid.ColumnWidth = {'1x', 22, 22, 22};
-            app.Tab4Grid.RowHeight = {17, 44, 22, 110, 22, 100, 22, '1x'};
-            app.Tab4Grid.ColumnSpacing = 5;
-            app.Tab4Grid.RowSpacing = 5;
-            app.Tab4Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid2
+            app.SubGrid2 = uigridlayout(app.SubTab2_Project);
+            app.SubGrid2.ColumnWidth = {'1x', 22, 22, 22};
+            app.SubGrid2.RowHeight = {17, 44, 22, 110, 22, 100, 22, '1x'};
+            app.SubGrid2.ColumnSpacing = 5;
+            app.SubGrid2.RowSpacing = 5;
+            app.SubGrid2.BackgroundColor = [1 1 1];
 
             % Create eFiscalizaLabel
-            app.eFiscalizaLabel = uilabel(app.Tab4Grid);
+            app.eFiscalizaLabel = uilabel(app.SubGrid2);
             app.eFiscalizaLabel.VerticalAlignment = 'bottom';
             app.eFiscalizaLabel.FontSize = 10;
             app.eFiscalizaLabel.Layout.Row = 5;
@@ -749,7 +1332,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.eFiscalizaLabel.Text = 'eFISCALIZA';
 
             % Create eFiscalizaPanel
-            app.eFiscalizaPanel = uipanel(app.Tab4Grid);
+            app.eFiscalizaPanel = uipanel(app.SubGrid2);
             app.eFiscalizaPanel.Layout.Row = 6;
             app.eFiscalizaPanel.Layout.Column = [1 4];
 
@@ -814,7 +1397,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.reportIssue.Value = -1;
 
             % Create reportLabel
-            app.reportLabel = uilabel(app.Tab4Grid);
+            app.reportLabel = uilabel(app.SubGrid2);
             app.reportLabel.VerticalAlignment = 'bottom';
             app.reportLabel.FontSize = 10;
             app.reportLabel.Layout.Row = 7;
@@ -822,7 +1405,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.reportLabel.Text = 'RELATÓRIO';
 
             % Create reportPanel
-            app.reportPanel = uipanel(app.Tab4Grid);
+            app.reportPanel = uipanel(app.SubGrid2);
             app.reportPanel.BackgroundColor = [1 1 1];
             app.reportPanel.Layout.Row = 8;
             app.reportPanel.Layout.Column = [1 4];
@@ -841,15 +1424,15 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.reportModelNameLabel.Layout.Column = 1;
             app.reportModelNameLabel.Text = 'Modelo (.json):';
 
-            % Create reportModelName
-            app.reportModelName = uidropdown(app.reportGrid);
-            app.reportModelName.Items = {''};
-            app.reportModelName.ValueChangedFcn = createCallbackFcn(app, @reportModelNameValueChanged, true);
-            app.reportModelName.FontSize = 11;
-            app.reportModelName.BackgroundColor = [1 1 1];
-            app.reportModelName.Layout.Row = 1;
-            app.reportModelName.Layout.Column = 2;
-            app.reportModelName.Value = '';
+            % Create report_ModelName
+            app.report_ModelName = uidropdown(app.reportGrid);
+            app.report_ModelName.Items = {''};
+            app.report_ModelName.ValueChangedFcn = createCallbackFcn(app, @report_ModelNameValueChanged, true);
+            app.report_ModelName.FontSize = 11;
+            app.report_ModelName.BackgroundColor = [1 1 1];
+            app.report_ModelName.Layout.Row = 1;
+            app.report_ModelName.Layout.Column = 2;
+            app.report_ModelName.Value = '';
 
             % Create reportVersionLabel
             app.reportVersionLabel = uilabel(app.reportGrid);
@@ -869,7 +1452,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.reportVersion.Value = 'Preliminar';
 
             % Create report_ProjectLabel
-            app.report_ProjectLabel = uilabel(app.Tab4Grid);
+            app.report_ProjectLabel = uilabel(app.SubGrid2);
             app.report_ProjectLabel.VerticalAlignment = 'bottom';
             app.report_ProjectLabel.FontSize = 10;
             app.report_ProjectLabel.Layout.Row = 1;
@@ -877,7 +1460,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProjectLabel.Text = 'ARQUIVO';
 
             % Create report_ProjectNew
-            app.report_ProjectNew = uiimage(app.Tab4Grid);
+            app.report_ProjectNew = uiimage(app.SubGrid2);
+            app.report_ProjectNew.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
             app.report_ProjectNew.Tooltip = {'Cria novo projeto'};
             app.report_ProjectNew.Layout.Row = 1;
             app.report_ProjectNew.Layout.Column = 2;
@@ -885,7 +1469,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProjectNew.ImageSource = 'AddFiles_36.png';
 
             % Create report_ProjectOpen
-            app.report_ProjectOpen = uiimage(app.Tab4Grid);
+            app.report_ProjectOpen = uiimage(app.SubGrid2);
+            app.report_ProjectOpen.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
             app.report_ProjectOpen.Tooltip = {'Abre projeto'};
             app.report_ProjectOpen.Layout.Row = 1;
             app.report_ProjectOpen.Layout.Column = 3;
@@ -893,7 +1478,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProjectOpen.ImageSource = 'OpenFile_36x36.png';
 
             % Create report_ProjectSave
-            app.report_ProjectSave = uiimage(app.Tab4Grid);
+            app.report_ProjectSave = uiimage(app.SubGrid2);
+            app.report_ProjectSave.ImageClickedFcn = createCallbackFcn(app, @report_ProjectToolbarImageClicked, true);
             app.report_ProjectSave.Tooltip = {'Salva projeto'};
             app.report_ProjectSave.Layout.Row = 1;
             app.report_ProjectSave.Layout.Column = 4;
@@ -901,14 +1487,14 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProjectSave.ImageSource = 'SaveFile_36.png';
 
             % Create report_ProjectName
-            app.report_ProjectName = uitextarea(app.Tab4Grid);
+            app.report_ProjectName = uitextarea(app.SubGrid2);
             app.report_ProjectName.Editable = 'off';
             app.report_ProjectName.FontSize = 11;
             app.report_ProjectName.Layout.Row = 2;
             app.report_ProjectName.Layout.Column = [1 4];
 
             % Create report_EntityPanelLabel
-            app.report_EntityPanelLabel = uilabel(app.Tab4Grid);
+            app.report_EntityPanelLabel = uilabel(app.SubGrid2);
             app.report_EntityPanelLabel.VerticalAlignment = 'bottom';
             app.report_EntityPanelLabel.FontSize = 10;
             app.report_EntityPanelLabel.Layout.Row = 3;
@@ -916,7 +1502,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_EntityPanelLabel.Text = 'FISCALIZADA';
 
             % Create report_EntityPanel
-            app.report_EntityPanel = uipanel(app.Tab4Grid);
+            app.report_EntityPanel = uipanel(app.SubGrid2);
             app.report_EntityPanel.Layout.Row = 4;
             app.report_EntityPanel.Layout.Column = [1 4];
 
@@ -939,6 +1525,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create report_EntityType
             app.report_EntityType = uidropdown(app.report_EntityGrid);
             app.report_EntityType.Items = {'', 'Importador', 'Fornecedor', 'Usuário'};
+            app.report_EntityType.ValueChangedFcn = createCallbackFcn(app, @report_EntityTypeValueChanged, true);
             app.report_EntityType.FontSize = 11;
             app.report_EntityType.BackgroundColor = [1 1 1];
             app.report_EntityType.Layout.Row = 2;
@@ -957,6 +1544,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_EntityCheck
             app.report_EntityCheck = uiimage(app.report_EntityGrid);
+            app.report_EntityCheck.ImageClickedFcn = createCallbackFcn(app, @report_EntityIDCheck, true);
             app.report_EntityCheck.Enable = 'off';
             app.report_EntityCheck.Layout.Row = 1;
             app.report_EntityCheck.Layout.Column = 3;
@@ -965,6 +1553,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_EntityID
             app.report_EntityID = uieditfield(app.report_EntityGrid, 'text');
+            app.report_EntityID.ValueChangedFcn = createCallbackFcn(app, @report_EntityIDValueChanged, true);
             app.report_EntityID.FontSize = 11;
             app.report_EntityID.Enable = 'off';
             app.report_EntityID.Layout.Row = 2;
@@ -982,6 +1571,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_Entity
             app.report_Entity = uieditfield(app.report_EntityGrid, 'text');
+            app.report_Entity.ValueChangedFcn = createCallbackFcn(app, @report_ProjectWarnImageVisibility, true);
             app.report_Entity.FontSize = 11;
             app.report_Entity.Enable = 'off';
             app.report_Entity.Layout.Row = 4;
@@ -991,17 +1581,21 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.ContextMenu = uicontextmenu(app.UIFigure);
             app.ContextMenu.Tag = 'auxApp.winExternalRequest';
 
-            % Create EditarMenu
-            app.EditarMenu = uimenu(app.ContextMenu);
-            app.EditarMenu.Enable = 'off';
-            app.EditarMenu.Text = 'Editar';
+            % Create ContextMenu_EditFcn
+            app.ContextMenu_EditFcn = uimenu(app.ContextMenu);
+            app.ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.ContextMenu_EditFcn.Enable = 'off';
+            app.ContextMenu_EditFcn.Text = '✏️ Editar';
 
-            % Create DeletePoint
-            app.DeletePoint = uimenu(app.ContextMenu);
-            app.DeletePoint.ForegroundColor = [1 0 0];
-            app.DeletePoint.Enable = 'off';
-            app.DeletePoint.Separator = 'on';
-            app.DeletePoint.Text = 'Excluir';
+            % Create ContextMenu_DeleteFcn
+            app.ContextMenu_DeleteFcn = uimenu(app.ContextMenu);
+            app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_DeleteFcnSelected, true);
+            app.ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
+            app.ContextMenu_DeleteFcn.Enable = 'off';
+            app.ContextMenu_DeleteFcn.Text = '❌ Excluir';
+            
+            % Assign app.ContextMenu
+            app.report_Table.ContextMenu = app.ContextMenu;
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

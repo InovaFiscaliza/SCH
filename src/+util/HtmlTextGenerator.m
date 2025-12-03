@@ -65,12 +65,13 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % SCH:SEARCH
         %-----------------------------------------------------------------%
-        function htmlContent = RowTableInfo(varargin)
+        function htmlContent = ProductInfo(varargin)
             dataType = varargin{1};
             switch dataType
                 case 'ProdutoHomologado'
                     relatedSCHTable = varargin{2};
                     relatedAnnotationTable = varargin{3};
+                    regulatronData = varargin{4};
         
                     Homologacao   = char(relatedSCHTable.("Homologação")(1));
                     Status        = char(relatedSCHTable.("Situação")(1));
@@ -129,7 +130,14 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(6) = struct('group', 'Tipo:',                 'value', {Tipo});
                     dataStruct(7) = struct('group', 'Modelo:',               'value', {Modelo});
                     dataStruct(8) = struct('group', 'Nome Comercial:',       'value', {NomeComercial});
-                    dataStruct(9) = struct('group', 'Anotações:',            'value', {Anotacoes});
+
+                    regulatronAddsIndexes  = find(contains(regulatronData.addsTable.certificado, replace(Homologacao, '-', '')));
+                    if ~isempty(regulatronAddsIndexes)
+                        regulatronAddsUrls = strcat('<a href="', regulatronData.urlPreffix, regulatronData.addsTable.pdf(regulatronAddsIndexes), '" target="_blank" rel="noopener noreferrer">', cellstr(string(1:numel(regulatronAddsIndexes)))', '</a>');
+                        dataStruct(end+1) = struct('group', 'Anúncios Regulatron:',   'value', strjoin(regulatronAddsUrls, ', '));
+                    end
+
+                    dataStruct(end+1) = struct('group', 'Anotações:',        'value', {Anotacoes});
         
                 case 'ProdutoNãoHomologado'
                     listOfProducts = varargin{2};
