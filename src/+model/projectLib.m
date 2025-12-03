@@ -33,6 +33,11 @@ classdef projectLib < handle
 
         inspectedProducts
         typeSubtypeProductsMapping
+        
+        regulatronData = struct( ...
+            'urlPreffix', '', ...
+            'addsTable', [] ...
+        )
     end
 
     
@@ -50,6 +55,7 @@ classdef projectLib < handle
             obj.rootFolder = rootFolder;
 
             ReadReportTemplates(obj, rootFolder)
+            ReadRegulatronData(obj, rootFolder)
             CreateInspectedProductsTable(obj, mainApp.General)
 
             obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
@@ -87,6 +93,24 @@ classdef projectLib < handle
                 templateIndexes = ismember({obj.report.templates.Module}, moduleNameList(ii));
                 obj.modules.(moduleNameList{ii}).ui.templates = [{''}, templateNameList(templateIndexes)];
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function ReadRegulatronData(obj, rootFolder)
+            [projectFolder, ...
+             programDataFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+            projectFilePath  = fullfile(projectFolder,     'DataBase', 'RegulatronAdds.xlsx');
+            externalFilePath = fullfile(programDataFolder, 'DataBase', 'RegulatronAdds.xlsx');
+
+            try
+                urlPreffix = util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds');
+                addsTable  = readtable(externalFilePath);
+            catch
+                addsTable  = readtable(projectFilePath);
+            end
+
+            obj.regulatronData.urlPreffix = urlPreffix;
+            obj.regulatronData.addsTable  = addsTable;
         end
 
         %-----------------------------------------------------------------%
