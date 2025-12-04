@@ -123,10 +123,33 @@ classdef winProducts_exported < matlab.apps.AppBase
                 switch class(callingApp)
                     case {'winSCH', 'winSCH_exported'}
                         switch operationType
+                            % winSCH >> auxApp.winProducts
                             case 'updateInspectedProducts'
                                 report_UpdatingTable(app)
                                 report_TableSelectionChanged(app)
                                 report_ProjectWarnImageVisibility(app)
+
+                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
+                            case 'closeFcnCallFromDockModule'
+                                app.popupContainer.Parent.Visible = 0;
+
+                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
+                            case 'TableCellEdit'
+                                selectedRow = varargin{1};
+
+                                report_UpdatingTable(app)
+                                if isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
+                                    app.report_ProductInfo.UserData.selectedRow = [];
+                                    report_TableSelectionChanged(app)
+                                end
+                                report_ProjectWarnImageVisibility(app)
+
+                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
+                            case 'TableSelectionChanged'
+                                selectedRow = varargin{1};
+
+                                app.report_Table.Selection = selectedRow;
+                                report_TableSelectionChanged(app)
 
                             otherwise
                                 error('UnexpectedCall')
@@ -343,35 +366,19 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function report_syncTableAndGui(app, syncType, varargin)
+        function report_syncTableAndGui(app, syncType)
             arguments
                 app
                 syncType char {mustBeMember(syncType, {'guiToDataSync', 'dataToGuiSync', 'tableViewChanged'})}
             end
 
-            arguments (Repeating)
-                varargin
-            end
-
             viewType    = app.report_ViewType.SelectedObject.Tag; % 'vendorView' | 'customsView'
-
             columnList  = app.mainApp.General.ui.reportTable.(viewType).name';
             columnIndex = cellfun(@(x) find(strcmp(app.projectData.inspectedProducts.Properties.VariableNames, x), 1), columnList);
 
             switch syncType
                 case 'guiToDataSync'
-                    newHashFlag = varargin{1};
-                    app.projectData.inspectedProducts(:, columnIndex) = app.report_Table.Data;
-                    
-                    % Recalcular hash dos produtos não homologados... 
-                    if newHashFlag
-                        nonCertificateIndexes = find(strcmp(app.projectData.inspectedProducts.('Homologação'), '-'));
-                        if ~isempty(nonCertificateIndexes)
-                            nonCertificateHash = cellfun(@(x) Base64Hash.encode(x), strcat(app.projectData.inspectedProducts.("Homologação")(nonCertificateIndexes), {' - '}, app.projectData.inspectedProducts.("Fabricante")(nonCertificateIndexes), {' - '}, app.projectData.inspectedProducts.("Modelo")(nonCertificateIndexes)), 'UniformOutput', false);
-                            app.projectData.inspectedProducts.("Hash")(nonCertificateIndexes) = nonCertificateHash;
-                        end
-                    end
-
+                    updateInspectedProducts(app.projectData, 'edit', 1:height(app.projectData.inspectedProducts), columnIndex, app.report_Table.Data)
 
                 case 'dataToGuiSync'
                     app.report_Table.Data = app.projectData.inspectedProducts(:, columnIndex);
@@ -552,7 +559,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn')
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', "PRODUCTS")
             delete(app)
             
         end
@@ -624,72 +631,72 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: report_ReportGeneration
         function Toolbar_GenerateReportImageClicked(app, event)
             
-            context = 'ExternalRequest';
-            indexes = FileIndex(app);
-
-            if ~isempty(indexes)
-                % <VALIDAÇÕES>
-                if numel(indexes) < numel(app.measData)
-                    initialQuestion  = 'Deseja gerar relatório que contemple informações de TODAS as localidades de agrupamento, ou apenas da SELECIONADA?';
-                    initialSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', initialQuestion, {'Todas', 'Selecionada', 'Cancelar'}, 1, 3);
-
-                    switch initialSelection
-                        case 'Cancelar'
-                            return
-                        case 'Todas'
-                            indexes = 1:numel(app.measData);
-                    end
-                end
-
-                warningMessages = {};
-                if ~report_checkEFiscalizaIssueId(app.mainApp, app.projectData.modules.(context).ui.issue)
-                    warningMessages{end+1} = sprintf('O número da inspeção "%.0f" é inválido.', app.projectData.modules.(context).ui.issue);
-                end
-                
-                if ~isempty(layout_searchUnexpectedTableValues(app))
-                    warningMessages{end+1} = ['Há registro de pontos críticos localizados na(s) localidade(s) sob análise para os quais '     ...
-                                              'não foram identificadas medidas no entorno. Nesse caso específico, deve-se preencher ' ...
-                                              'o campo "Justificativa" e anotar os registros, caso aplicável.'];
-                end
-
-                if ~isempty(warningMessages)
-                    warningMessages = strjoin(warningMessages, '<br><br>');
-
-                    switch app.reportVersion.Value
-                        case 'Definitiva'
-                            warningMessages = [warningMessages, '<br><br>Isso impossibilita a geração da versão DEFINITIVA do relatório.'];
-                            appUtil.modalWindow(app.UIFigure, "warning", warningMessages);
-                            return
-
-                        otherwise % 'Preliminar'
-                            warningMessages = [warningMessages, '<br><br>Deseja ignorar esse alerta, gerando a versão PRÉVIA do relatório?'];
-                            userSelection   = appUtil.modalWindow(app.UIFigure, 'uiconfirm', warningMessages, {'Sim', 'Não'}, 2, 2);
-                            if userSelection == "Não"
-                                return
-                            end
-                    end
-                end
-                % </VALIDAÇÕES>
-
-                % <PROCESSO>
-                app.progressDialog.Visible = 'visible';
-
-                try
-                    reportSettings = struct('system',        app.reportSystem.Value, ...
-                                            'unit',          app.reportUnit.Value, ...
-                                            'issue',         app.reportIssue.Value, ...
-                                            'model',         app.report_ModelName.Value, ...
-                                            'reportVersion', app.reportVersion.Value);
-                    reportLibConnection.Controller.Run(app, app.projectData, app.measData(indexes), reportSettings, app.mainApp.General)
-                catch ME
-                    appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
-                end
-
-                updateToolbar(app)
-
-                app.progressDialog.Visible = 'hidden';
-                % </PROCESSO>
-            end
+            % context = 'ExternalRequest';
+            % indexes = FileIndex(app);
+            % 
+            % if ~isempty(indexes)
+            %     % <VALIDAÇÕES>
+            %     if numel(indexes) < numel(app.measData)
+            %         initialQuestion  = 'Deseja gerar relatório que contemple informações de TODAS as localidades de agrupamento, ou apenas da SELECIONADA?';
+            %         initialSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', initialQuestion, {'Todas', 'Selecionada', 'Cancelar'}, 1, 3);
+            % 
+            %         switch initialSelection
+            %             case 'Cancelar'
+            %                 return
+            %             case 'Todas'
+            %                 indexes = 1:numel(app.measData);
+            %         end
+            %     end
+            % 
+            %     warningMessages = {};
+            %     if ~report_checkEFiscalizaIssueId(app.mainApp, app.projectData.modules.(context).ui.issue)
+            %         warningMessages{end+1} = sprintf('O número da inspeção "%.0f" é inválido.', app.projectData.modules.(context).ui.issue);
+            %     end
+            % 
+            %     if ~isempty(layout_searchUnexpectedTableValues(app))
+            %         warningMessages{end+1} = ['Há registro de pontos críticos localizados na(s) localidade(s) sob análise para os quais '     ...
+            %                                   'não foram identificadas medidas no entorno. Nesse caso específico, deve-se preencher ' ...
+            %                                   'o campo "Justificativa" e anotar os registros, caso aplicável.'];
+            %     end
+            % 
+            %     if ~isempty(warningMessages)
+            %         warningMessages = strjoin(warningMessages, '<br><br>');
+            % 
+            %         switch app.reportVersion.Value
+            %             case 'Definitiva'
+            %                 warningMessages = [warningMessages, '<br><br>Isso impossibilita a geração da versão DEFINITIVA do relatório.'];
+            %                 appUtil.modalWindow(app.UIFigure, "warning", warningMessages);
+            %                 return
+            % 
+            %             otherwise % 'Preliminar'
+            %                 warningMessages = [warningMessages, '<br><br>Deseja ignorar esse alerta, gerando a versão PRÉVIA do relatório?'];
+            %                 userSelection   = appUtil.modalWindow(app.UIFigure, 'uiconfirm', warningMessages, {'Sim', 'Não'}, 2, 2);
+            %                 if userSelection == "Não"
+            %                     return
+            %                 end
+            %         end
+            %     end
+            %     % </VALIDAÇÕES>
+            % 
+            %     % <PROCESSO>
+            %     app.progressDialog.Visible = 'visible';
+            % 
+            %     try
+            %         reportSettings = struct('system',        app.reportSystem.Value, ...
+            %                                 'unit',          app.reportUnit.Value, ...
+            %                                 'issue',         app.reportIssue.Value, ...
+            %                                 'model',         app.report_ModelName.Value, ...
+            %                                 'reportVersion', app.reportVersion.Value);
+            %         reportLibConnection.Controller.Run(app, app.projectData, app.measData(indexes), reportSettings, app.mainApp.General)
+            %     catch ME
+            %         appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
+            %     end
+            % 
+            %     updateToolbar(app)
+            % 
+            %     app.progressDialog.Visible = 'hidden';
+            %     % </PROCESSO>
+            % end
 
         end
 
@@ -778,46 +785,13 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: tool_AddNonCertificate
         function tool_AddNonCertificateImageClicked(app, event)
             
-            nonCertificatedId   = '-';
-            defaultManufacturer = '';
-            defaultModelName    = '';
-
-            selectedHomHash = Base64Hash.encode(strjoin({nonCertificatedId, defaultManufacturer, defaultModelName}, ' - '));
-            if ismember(selectedHomHash, app.projectData.inspectedProducts.("Hash"))
-                msgWarning = [ ...
-                    'Na lista de produtos sob análise já consta um produto ' ...
-                    'não homologado sem fabricante e modelo definidos. Inserir ' ...
-                    'um novo registro irá duplicá-lo. Se houver vários produtos ' ...
-                    'não homologados, preencha fabricante e modelo para ' ...
-                    'diferenciá-los e evitar duplicidades.' ...
-                ];
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+            [productData, productHash] = model.projectLib.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
+            if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
+                appUtil.modalWindow(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
                 return
             end
 
-            typeOfProduct   = app.mainApp.General.ui.typeOfProduct.default;
-            typeOfSituation = app.mainApp.General.ui.typeOfSituation.default;
-            typeOfViolation = app.mainApp.General.ui.typeOfViolation.default;
-
-            newRow2Add = { ...
-                selectedHomHash, ... 'Hash'
-                nonCertificatedId, ... 'Homologação'
-                '', ...              'Importador'
-                '', ...              'Código aduaneiro'
-                typeOfProduct, ...   'Tipo'
-                '', ...              'Fabricante'
-                '', ...              'Modelo'
-                '', ...              'Fonte do valor'
-                typeOfSituation, ... 'Situação'
-                typeOfViolation, ... 'Infração'
-                '-', ...             'Sanável?'
-                '' ...               'Informações adicionais'
-            };
-
-            columnList = {'Hash', 'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'Fonte do valor', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'};
-
-            app.projectData.inspectedProducts(end+1, columnList) = newRow2Add;
-            app.projectData.inspectedProducts = sortrows(app.projectData.inspectedProducts, 'Homologação');
+            updateInspectedProducts(app.projectData, 'add', productData)
 
             % Atualizando a tabela e o número de linhas (do modo REPORT), nessa
             % ordem. E depois forçando uma atualização dos paineis.
@@ -832,33 +806,27 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Callback function: ContextMenu_EditFcn, tool_EditSelectedProduct
         function search_FilterSetupClicked(app, event)
             
-            switch event.Source
-                case app.search_FilterSetup
-                    menu_LayoutPopupApp(app, 'FilterSetup')
+            % Por alguma razão desconhecida, inseri algumas validações
+            % aqui! :)
+            % Enfim... a possibilidade de editar um registro não deve
+            % existir toda vez que a tabela esteja vazia ou que não
+            % esteja selecionada uma linha.
+            selectedRow = app.report_Table.Selection;
 
-                case {app.tool_EditSelectedProduct, app.ContextMenu_EditFcn}
-                    % Por alguma razão desconhecida, inseri algumas validações
-                    % aqui! :)
-                    % Enfim... a possibilidade de editar um registro não deve
-                    % existir toda vez que a tabela esteja vazia ou que não
-                    % esteja selecionada uma linha.
-                    selectedRow = app.report_Table.Selection;
+            if isempty(selectedRow)
+                if isempty(app.report_Table.Data)
+                    app.tool_EditSelectedProduct.Enable  = 0;
+                    app.ContextMenu_EditFcn.Enable = 0;
+                    return
+                end
 
-                    if isempty(selectedRow)
-                        if isempty(app.report_Table.Data)
-                            app.tool_EditSelectedProduct.Enable  = 0;
-                            app.ContextMenu_EditFcn.Enable = 0;
-                            return
-                        end
-
-                        app.report_Table.Selection = 1;
-                        report_TableSelectionChanged(app)
-                    elseif ~isscalar(selectedRow)
-                        app.report_Table.Selection = app.report_Table.Selection(1);
-                    end
-
-                    menu_LayoutPopupApp(app, 'ProductInfo')
+                app.report_Table.Selection = 1;
+                report_TableSelectionChanged(app)
+            elseif ~isscalar(selectedRow)
+                app.report_Table.Selection = app.report_Table.Selection(1);
             end
+
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo')
 
         end
 
@@ -866,15 +834,10 @@ classdef winProducts_exported < matlab.apps.AppBase
         function report_ContextMenu_DeleteFcnSelected(app, event)
             
             selectedTableIndex = app.report_Table.Selection;
-            selectedProduct    = {};
 
             if ~isempty(selectedTableIndex)
-                idx = selectedTableIndex(~strcmp(app.report_Table.Data.("Homologação")(selectedTableIndex), '-'));
-                selectedProduct = app.report_Table.Data.("Homologação")(idx);
-            end
+                updateInspectedProducts(app.projectData, 'delete', selectedTableIndex)
 
-            if ~isempty(selectedTableIndex)
-                app.projectData.inspectedProducts(selectedTableIndex,:) = [];
                 report_UpdatingTable(app)
                 report_ProjectWarnImageVisibility(app)
             end
@@ -960,28 +923,18 @@ classdef winProducts_exported < matlab.apps.AppBase
                     return
                 end
 
-                newHashFlag = false;
                 if strcmp(event.Source.Data.("Homologação"){event.Indices(1)}, '-') && ismember(editedGUIColumn, {'FABRICANTE', 'MODELO'})
-                    newHashFlag = true;
-                    newNonCertificateHash = Base64Hash.encode(strjoin({'-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)}}, ' - '));
+                    newProductHash = model.projectLib.computeInspectedProductHash('-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)});
 
-                    if ismember(newNonCertificateHash, app.projectData.inspectedProducts.("Hash"))
-                        event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};
-
-                        msgWarning = [ ...
-                            'Na lista de produtos sob análise já consta um produto ' ...
-                            'não homologado com informações idênticas de fabricante e ' ...
-                            'modelo. Essa edição duplicará esse registro. Se houver vários produtos ' ...
-                            'não homologados, preencha fabricante e modelo para ' ...
-                            'diferenciá-los e evitar duplicidades.' ...
-                        ];
-                        appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                    if ismember(newProductHash, app.projectData.inspectedProducts.("Hash"))
+                        event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};                        
+                        appUtil.modalWindow(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
                         return
                     end
                 end
             end
 
-            report_syncTableAndGui(app, 'guiToDataSync', newHashFlag)
+            report_syncTableAndGui(app, 'guiToDataSync')
             report_Table_AddStyle(app, 'Icon+BackgroundColor')
 
             report_ProjectWarnImageVisibility(app)
@@ -1187,6 +1140,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_ViewType
             app.report_ViewType = uibuttongroup(app.Document);
+            app.report_ViewType.AutoResizeChildren = 'off';
             app.report_ViewType.SelectionChangedFcn = createCallbackFcn(app, @report_ViewTypeSelectionChanged, true);
             app.report_ViewType.BorderType = 'none';
             app.report_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
@@ -1333,6 +1287,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create eFiscalizaPanel
             app.eFiscalizaPanel = uipanel(app.SubGrid2);
+            app.eFiscalizaPanel.AutoResizeChildren = 'off';
             app.eFiscalizaPanel.Layout.Row = 6;
             app.eFiscalizaPanel.Layout.Column = [1 4];
 
@@ -1406,6 +1361,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create reportPanel
             app.reportPanel = uipanel(app.SubGrid2);
+            app.reportPanel.AutoResizeChildren = 'off';
             app.reportPanel.BackgroundColor = [1 1 1];
             app.reportPanel.Layout.Row = 8;
             app.reportPanel.Layout.Column = [1 4];
@@ -1503,6 +1459,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create report_EntityPanel
             app.report_EntityPanel = uipanel(app.SubGrid2);
+            app.report_EntityPanel.AutoResizeChildren = 'off';
             app.report_EntityPanel.Layout.Row = 4;
             app.report_EntityPanel.Layout.Column = [1 4];
 
@@ -1579,7 +1536,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);
-            app.ContextMenu.Tag = 'auxApp.winExternalRequest';
+            app.ContextMenu.Tag = 'auxApp.winProducts';
 
             % Create ContextMenu_EditFcn
             app.ContextMenu_EditFcn = uimenu(app.ContextMenu);
@@ -1590,7 +1547,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create ContextMenu_DeleteFcn
             app.ContextMenu_DeleteFcn = uimenu(app.ContextMenu);
             app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @report_ContextMenu_DeleteFcnSelected, true);
-            app.ContextMenu_DeleteFcn.ForegroundColor = [1 0 0];
             app.ContextMenu_DeleteFcn.Enable = 'off';
             app.ContextMenu_DeleteFcn.Text = '❌ Excluir';
             
