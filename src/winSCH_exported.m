@@ -357,11 +357,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                     case {'auxApp.winConfig', 'auxApp.winConfig_exported'}
                         switch operationType
                             case 'closeFcn'
-                                closeModule(app.tabGroupController, "CONFIG", app.General)
+                                context = varargin{1};
+                                closeModule(app.tabGroupController, context, app.General)
 
                             case 'dockButtonPushed'
-                                auxAppTag = varargin{1};
-                                varargout{1} = auxAppInputArguments(app, auxAppTag);
+                                context = varargin{1};
+                                varargout{1} = auxAppInputArguments(app, context);
 
                             case 'updateDataHubGetFolder'
                                 app.progressDialog.Visible = 'visible';
@@ -412,64 +413,34 @@ classdef winSCH_exported < matlab.apps.AppBase
                     case {'auxApp.winProducts', 'auxApp.winProducts_exported'}
                         switch operationType
                             case 'closeFcn'
-                                closeModule(app.tabGroupController, "CONFIG", app.General)
+                                context = varargin{1};
+                                closeModule(app.tabGroupController, context, app.General)
 
                             case 'dockButtonPushed'
-                                auxAppTag = varargin{1};
-                                varargout{1} = auxAppInputArguments(app, auxAppTag);
+                                context = varargin{1};
+                                varargout{1} = auxAppInputArguments(app, context);
 
                             otherwise
                                 error('UnexpectedCall')
                         end
 
                     % DOCKS:OTHERS
-                    case {'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ... % SEARCH:FILTERSETUP
-                          'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported'}     % REPORT:PRODUCTINFO
+                    case {'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported'}
+                        switch operationType
+                            case 'closeFcn'
+                                context  = varargin{1};
+                                varargin = [{'closeFcnCallFromDockModule'}, varargin(2:end)];
+                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
 
-                        % Esse ramo do switch trata chamados de módulos auxiliares dos
-                        % modos "SEARCH" e "REPORT". Algumas das funcionalidades
-                        % desses módulos requerem atualização do SCH:
-                        % (a) SEARCH: atualização da filtragem, impactando na tabela com
-                        %     resultado de busca e o seu painel.
-                        % (b) REPORT: atualização da tabela com a lista de produtos sob
-                        %     análise e o seu painel.
+                            case {'TableSelectionChanged', 'TableCellEdit'}
+                                context  = varargin{1};
+                                varargin = [{operationType}, varargin(2:end)];
+                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
+                                return
 
-                        % O flag "updateFlag" provê essa atualização, e o flag "returnFlag"
-                        % evita que o módulo seja "fechado" (por meio da invisibilidade do
-                        % app.popupContainerGrid).
-
-                        updateFlag = varargin{1};
-                        returnFlag = varargin{2};
-
-                        if updateFlag
-                            switch operationType
-                                case 'SEARCH:FILTERSETUP'
-                                    search_Filtering_secundaryFilter(app)
-                                    search_FilterSpecification(app)
-
-                                case 'REPORT:EditInfo'
-                                    selectedRow = varargin{3};
-
-                                    report_UpdatingTable(app)
-                                    if isequal(selectedRow, app.report_ProductInfo.UserData.selectedRow)
-                                        app.report_ProductInfo.UserData.selectedRow = [];
-                                        report_TableSelectionChanged(app)
-                                    end
-                                    report_ProjectWarnImageVisibility(app)
-
-                                case 'REPORT:UITableSelectionChanged'
-                                    selectedRow = varargin{3};
-
-                                    app.report_Table.Selection = selectedRow;
-                                    report_TableSelectionChanged(app)
-                            end
+                            otherwise
+                                error('UnexpectedCall')
                         end
-
-                        if returnFlag
-                            return
-                        end
-
-                        app.popupContainer.Parent.Visible = 0;
 
                     otherwise
                         error('UnexpectedCall')
@@ -522,7 +493,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     screenHeight = 464;
                 case 'ProductInfo'
                     screenWidth  = 580;
-                    screenHeight = 554;
+                    screenHeight = 660;
             end
 
             ui.PopUpContainer(callingApp, class.Constants.appName, screenWidth, screenHeight)
@@ -1305,52 +1276,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function [newRow2Add, selectedHomHash] = report_newRow2Add(app, selectedRow)
-            primaryIndex    = app.search_Table.UserData.primaryIndex;
-            relatedSCHTable = app.rawDataTable(primaryIndex(selectedRow), :);
-            
-            selectedHomHash = Base64Hash.encode(strjoin([relatedSCHTable.("Homologação")(1), relatedSCHTable.("Solicitante")(1), relatedSCHTable.("Fabricante")(1), relatedSCHTable.("Modelo")(1), relatedSCHTable.("Nome Comercial")(1)], ' - '));
-            selectedHom2Add = relatedSCHTable.("Homologação"){1};
-            typeOfProduct   = app.General.ui.typeOfProduct.default;
-            typeOfSituation = app.General.ui.typeOfSituation.default;
-            typeOfViolation = app.General.ui.typeOfViolation.default;
-
-            Fabricante      = upper(char(relatedSCHTable.("Fabricante")(1)));            
-            modelValue      = unique([relatedSCHTable.("Modelo")(1), relatedSCHTable.("Nome Comercial")(1)], 'stable');
-            modelValue(cellfun(@(x) isempty(x), modelValue)) = [];
-            if isempty(modelValue)
-                modelValue  = {''};
-                modelValueMerged = '';
-            else
-                modelValueMerged = strjoin(modelValue, ' - ');
-            end            
-
-            optionalNote    = '';
-            if selectedHom2Add ~= "-" 
-                typeList     = unique(cellstr(relatedSCHTable.("Tipo")));
-                optionalNote = sprintf('TIPO: %s', textFormatGUI.cellstr2ListWithQuotes(typeList, 'none'));
-                if numel(modelValue) > 1
-                    optionalNote = sprintf('%s\nMODELO: %s', optionalNote, textFormatGUI.cellstr2ListWithQuotes(modelValue, 'none'));
-                end
-            end
-
-            newRow2Add = { ...
-                selectedHomHash, ... 'Hash'
-                selectedHom2Add, ... 'Homologação'
-                '', ...              'Importador'
-                '', ...              'Código aduaneiro'
-                typeOfProduct, ...   'Tipo'
-                Fabricante, ...      'Fabricante'
-                modelValueMerged, ... 'Modelo'
-                '', ...              'Fonte do valor'
-                typeOfSituation, ... 'Situação'
-                typeOfViolation, ... 'Infração'
-                '-', ...             'Sanável?'
-                optionalNote ...     'Informações adicionais'
-            };
-        end
-
-        %-----------------------------------------------------------------%
         function [selectedHom, showedHom, selectedRows] = misc_Table_SelectedRow(app)
             if ~isempty(app.search_Table.Selection)
                 selectedRows = unique(app.search_Table.Selection(:,1));
@@ -1844,23 +1769,20 @@ classdef winSCH_exported < matlab.apps.AppBase
             else
                 addedHom = 0;
                 for selectedRow = selectedRows'
-                    [newRow2Add, selectedHomHash] = report_newRow2Add(app, selectedRow);
-                    if ismember(selectedHomHash, app.projectData.inspectedProducts.("Hash"))
+                    [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.search_Table.UserData.primaryIndex(selectedRow));
+                    if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
                         continue
                     end
                     
-                    addedHom = addedHom+1;    
-                    columnList = {'Hash', 'Homologação', 'Importador', 'Código aduaneiro', 'Tipo', 'Fabricante', 'Modelo', 'Fonte do valor', 'Situação', 'Infração', 'Sanável?', 'Informações adicionais'};
-
-                    app.projectData.inspectedProducts(end+1, columnList) = newRow2Add;
-                    app.projectData.inspectedProducts = sortrows(app.projectData.inspectedProducts, 'Homologação');
+                    addedHom = addedHom+1;
+                    updateInspectedProducts(app.projectData, 'add', productData)
                 end
 
                 if addedHom
                     showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
                     ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
                 else
-                    showPopupTempWarning(app, 'O(s) registro(s) selecionado(s) já consta(m) na lista de produtos sob análise.')
+                    showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
                 end
             end
 
@@ -2056,6 +1978,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create SubTab2_Filter
             app.SubTab2_Filter = uitab(app.SubTabGroup);
+            app.SubTab2_Filter.AutoResizeChildren = 'off';
             app.SubTab2_Filter.Title = 'FILTRO';
 
             % Create SubGrid2
@@ -2085,6 +2008,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create SecundaryPanel
             app.SecundaryPanel = uipanel(app.SubGrid2);
+            app.SecundaryPanel.AutoResizeChildren = 'off';
             app.SecundaryPanel.Layout.Row = 4;
             app.SecundaryPanel.Layout.Column = [1 4];
 
@@ -2314,6 +2238,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Tab3_Config
             app.Tab3_Config = uitab(app.TabGroup);
+            app.Tab3_Config.AutoResizeChildren = 'off';
 
             % Create NavBar
             app.NavBar = uigridlayout(app.GridLayout);
