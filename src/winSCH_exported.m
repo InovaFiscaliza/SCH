@@ -239,11 +239,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.General.AppVersion.browser = event.HTMLEventData;
     
                     case 'mainApp.search_entryPoint'
+                        % Ao alterar o conteúdo de app.search_entryPoint, 
+                        % sem alterar o seu foco, será executado o evento 
+                        % "ValueChangingFcn". Ao pressionar "Enter", será 
+                        % executada a função "ipcMainJSEventsHandler" antes 
+                        % de atualizar a sua propriedade "Value". Por conta 
+                        % disso, é essencial inserir WAITFOR.
+
                         focus(app.jsBackDoor)
+                        matlab.waitfor(app.search_entryPoint, 'Value', @(propValue) strcmp(propValue, app.previousSearch), .100, 1, 'propValue')
     
                         switch event.HTMLEventData
                             case {'Escape', 'Tab'}
-                                search_EntryPoint_CheckIfNeedsUpdate(app)
                                 if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
                                     search_EntryPoint_InitialValue(app)
                                 end
@@ -256,10 +263,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 set(app.search_Suggestions, Visible=0, Value={})
     
                             otherwise
-                                search_EntryPoint_CheckIfNeedsUpdate(app)
                                 if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
-                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));
-    
+                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));    
                                 else
                                     switch event.HTMLEventData
                                         case 'ArrowDown'
@@ -975,32 +980,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function search_EntryPoint_CheckIfNeedsUpdate(app)
-            % Conforme exposto nos comentários da função "ipcMainJSEventsHandler", quando altero o conteúdo
-            % de app.search_entryPoint, sem alterar o seu foco, será executado o evento "ValueChangingFcn".
-            % Se pressiono a tecla "Enter", será executada a função "ipcMainJSEventsHandler" antes de atualizar
-            % a propriedade "Value" do app.search_entryPoint.
-
-            % Por conta disso, é essencial inserir WAITFOR. O problema é que eventualmente o MATLAB
-            % perde o momento exato da alteração da propriedade "Value" de app.search_entryPoint
-            % e isso trava a execução do app.
-
-            % Evidenciado que em condições normais o WAITFOR demora entre 25 e 50 milisegundos
-            % para atualizar a citada propriedade. Consequentemente, foi substituído o WAITFOR por
-            % um LOOP+PAUSE.
-
-            % waitfor(app.search_entryPoint, 'Value')
-
-            tWaitFor = tic;
-            while toc(tWaitFor) < .050
-                if strcmp(app.search_entryPoint.Value, app.previousSearch)
-                    break
-                end
-                pause(.010)
-            end
-        end
-
-        %-----------------------------------------------------------------%
         function search_EntryPoint_Color(app, redFlag)
             if redFlag
                 fontColor = [1,0,0];
@@ -1538,7 +1517,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 case app.search_Suggestions
                     if isempty(app.search_Suggestions.Value)
-                        waitfor(app.search_Suggestions, 'Value')
+                        matlab.waitfor(app.search_Suggestions, 'Value', @(propValue) ~isempty(propValue), .075, 1, 'propValue')
                     end
 
                     ipcMainJSEventsHandler(app, struct('HTMLEventName', 'mainApp.search_Suggestions', 'HTMLEventData', 'Enter'))
