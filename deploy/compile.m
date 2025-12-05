@@ -1,6 +1,6 @@
 function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeFolder, showConsoleInDesktopBuild, createGitHubReleaseForDesktopBuild, githubCLIFolder, githubAccount)
     
-    % Automatiza compilação do SCH, nas suas versões desktop e webapp.
+    % Automatiza compilação da ferramenta, nas suas versões desktop e webapp.
     % No caso de criação de release no repo do GitHub, deve-se certificar
     % de instalar o GitHub CLI e estar conectado a uma conta que tem perfil
     % de escrita no repo InovaFiscaliza/SCH.
@@ -22,10 +22,13 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
 
     initFolder  = fileparts(mfilename('fullpath'));
     finalFolder = fullfile(rootCompiledFolder, appName);
+    if ~isfolder(finalFolder)
+        mkdir(finalFolder)
+    end
 
     if contains(compilationType, 'Desktop') && createGitHubReleaseForDesktopBuild
         if showConsoleInDesktopBuild
-            error('The flag "showConsoleInDesktopBuild" must be true when creating a GitHub release.');
+            error('The flag "showConsoleInDesktopBuild" must be false when creating a GitHub release.');
         end
 
         cd(githubCLIFolder)
@@ -55,18 +58,20 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     preCompile()
 
     % Atualiza base de dados, caso necessário.
-    SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData.mat');
-    SCHDataEditedFile   = "C:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData.mat";
-    if isfile(SCHDataEditedFile)
-        load(SCHDataOriginalFile, 'releasedData')
-        originalReleaseDate = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
+    SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData_v2.mat');
+    SCHDataEditedFile   = "D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\DEV - InovaFiscaliza (Post)\SCHData_v2.mat";
+    if ~isfile(SCHDataEditedFile)
+        error('File does not exist')
+    end
 
-        load(SCHDataEditedFile, 'releasedData')
-        editedReleaseDate   = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
+    load(SCHDataOriginalFile, 'releasedData')
+    originalReleaseDate = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
+    
+    load(SCHDataEditedFile,   'releasedData')    
+    editedReleaseDate   = datetime(releasedData, 'InputFormat', 'dd/MM/yyyy');
 
-        if editedReleaseDate > originalReleaseDate
-            copyfile(SCHDataEditedFile, SCHDataOriginalFile, 'f');
-        end
+    if editedReleaseDate > originalReleaseDate
+        copyfile(SCHDataEditedFile, SCHDataOriginalFile, 'f');
     end
 
     % Gera as versões desktop e webapp.
@@ -102,7 +107,7 @@ function results = desktopCompilation(finalFolder, matlabRuntimeFolder, githubRe
     appResources = cellstr(xmlProject.configuration.fileset_resources.file);
     appPackages  = cellstr(xmlProject.configuration.fileset_package.file);
     appIcon      = fullfile(initFolder, 'desktop_resources', 'icon_48.png');
-    appVersion   = class.Constants.appVersion;
+    appVersion   = char(regexp(class.Constants.appVersion, '^(?:alpha|beta)?_?(\d+(?:\.\d+){2})', 'tokens', 'once'));
 
     % Arquivo EXECUTÁVEL
     cd(fileparts(appMainFile))
@@ -123,7 +128,7 @@ function results = desktopCompilation(finalFolder, matlabRuntimeFolder, githubRe
     cd(initFolder)
 
     % Copia arquivos para a pasta do usuário, além de criar vínculo entre 
-    % o SCH e o seu splashscreen (construído em C#, no Visual Studio).
+    % o app e o seu splashscreen (construído em C#, no Visual Studio).
     for ii = 1:numel(appPackages)
         appPackage = appPackages{ii};
 
@@ -207,10 +212,7 @@ function desktopPostCompilation(finalFolder, matlabRuntimeFolder, githubReleaseF
         if isfolder(desktopFinalFolder)
             rmdir(desktopFinalFolder, 's')
         end
-
-        if isfile(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))
-            delete(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))
-        end   
+        delete(fullfile(finalFolder, sprintf('%s_Installer.zip', appName)))
         
         copyfile(deploySplash, desktopFinalFolder, 'f')
         copyfile(deployApp, fullfile(desktopFinalFolder, 'application'), 'f')
@@ -221,11 +223,18 @@ function desktopPostCompilation(finalFolder, matlabRuntimeFolder, githubReleaseF
 
         % Cria release no GitHub, caso aplicável.
         if githubReleaseFlag
+            cd(githubCLIFolder)
+            try                
+                ghCommand1 = sprintf('gh release upload %s "%s" --repo InovaFiscaliza/.github --clobber', appName, fullfile(finalFolder, sprintf('%s_Installer.zip', appName)));
+                system(ghCommand1);
+            catch ME
+                warning(ME.message)
+            end
+
             try
-                cd(githubCLIFolder)
-                ghMessage = sprintf('gh release create %s "%s" --title "%s" --notes "https://anatel365.sharepoint.com/sites/InovaFiscaliza/SitePages/%s.aspx" --repo InovaFiscaliza/%s', appVersion, fullfile(finalFolder, sprintf('%s_Matlab.zip', appName)), appName, appName, appName);
-                [~, ghStatus] = system(ghMessage);
-                warning(ghStatus)
+                ghCommand2 = sprintf('gh release create %s "%s" --title "%s" --notes "https://anatel365.sharepoint.com/sites/InovaFiscaliza/SitePages/%s.aspx" --repo InovaFiscaliza/%s', appVersion, fullfile(finalFolder, sprintf('%s_Matlab.zip', appName)), appName, appName, appName);
+                [~, ghStatus2] = system(ghCommand2);
+                warning(ghStatus2)
             catch ME
                 warning(ME.message)
             end
