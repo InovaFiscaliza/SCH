@@ -142,7 +142,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                         app.progressDialog = app.mainApp.progressDialog;
                     else
                         sendEventToHTMLSource(app.jsBackDoor, 'startup', app.mainApp.executionMode);
-                        app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
+                        app.progressDialog = ui.ProgressDialog(app.jsBackDoor);
                     end
                     customizationStatus = [false, false, false, false];
 
@@ -209,7 +209,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_timerFcn(app)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+            if ui.FigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
                 delete(app.timerObj)
                 
@@ -507,7 +507,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                         copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, fileName), fileFullPath, 'f')
 
                         if ~strcmp(app.mainApp.executionMode, 'webApp')
-                            ccTools.fcn.OperationSystem('openFile', fileFullPath)
+                            appUtil.OperationSystem('openFile', fileFullPath)
                         end
                     catch ME
                         appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));

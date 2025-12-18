@@ -33,13 +33,13 @@ classdef (Abstract) HtmlTextGenerator
             appName      = class.Constants.appName;
             appVersion   = appGeneral.AppVersion;
             appURL       = util.publicLink(appName, rootFolder, 'SCH');
-            cacheColumns = ccTools.fcn.FormatString({cacheData.Column});
+            cacheColumns = textFormatGUI.cellstr2ListWithQuotes({cacheData.Column});
         
             switch executionMode
                 case {'MATLABEnvironment', 'desktopStandaloneApp'}
                     appMode = 'desktopApp';        
                 case 'webApp'
-                    computerName = ccTools.fcn.OperationSystem('computerName');
+                    computerName = appUtil.OperationSystem('computerName');
                     if strcmpi(computerName, appGeneral.computerName.webServer)
                         appMode = 'webServer';
                     else

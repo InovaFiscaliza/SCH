@@ -14,6 +14,11 @@ classdef winProducts_exported < matlab.apps.AppBase
         ADUANAButton              matlab.ui.control.RadioButton
         FORNECEDORUSURIOButton    matlab.ui.control.RadioButton
         SubTabGroup               matlab.ui.container.TabGroup
+        SubTab1_Products          matlab.ui.container.Tab
+        SubGrid1                  matlab.ui.container.GridLayout
+        report_ProductInfo        matlab.ui.control.Label
+        report_ProductInfoImage   matlab.ui.control.Image
+        report_ProductInfoLabel   matlab.ui.control.Label
         SubTab2_Project           matlab.ui.container.Tab
         SubGrid2                  matlab.ui.container.GridLayout
         report_EntityPanel        matlab.ui.container.Panel
@@ -47,11 +52,6 @@ classdef winProducts_exported < matlab.apps.AppBase
         reportSystem              matlab.ui.control.DropDown
         reportSystemLabel         matlab.ui.control.Label
         eFiscalizaLabel           matlab.ui.control.Label
-        SubTab1_Products          matlab.ui.container.Tab
-        SubGrid1                  matlab.ui.container.GridLayout
-        report_ProductInfo        matlab.ui.control.Label
-        report_ProductInfoImage   matlab.ui.control.Image
-        report_ProductInfoLabel   matlab.ui.control.Label
         Toolbar                   matlab.ui.container.GridLayout
         tool_Separator            matlab.ui.control.Image
         report_FiscalizaUpdate    matlab.ui.control.Image
@@ -189,7 +189,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                         app.progressDialog = app.mainApp.progressDialog;
                     else
                         sendEventToHTMLSource(app.jsBackDoor, 'startup', app.mainApp.executionMode);
-                        app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);                        
+                        app.progressDialog = ui.ProgressDialog(app.jsBackDoor);                        
                     end
                     customizationStatus = [false, false];
 
@@ -247,7 +247,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_timerFcn(app)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+            if ui.FigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
                 delete(app.timerObj)
 
