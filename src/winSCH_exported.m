@@ -622,7 +622,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function startup_timerFcn(app)
-            if ccTools.fcn.UIFigureRenderStatus(app.UIFigure)
+            if ui.FigureRenderStatus(app.UIFigure)
                 stop(app.timerObj)
                 delete(app.timerObj)
 
@@ -660,7 +660,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 pause(.100)
 
                 % Cria tela de progresso...
-                app.progressDialog = ccTools.ProgressDialog(app.jsBackDoor);
+                app.progressDialog = ui.ProgressDialog(app.jsBackDoor);
     
                 startup_ConfigFileRead(app, appName, MFilePath)
                 startup_AppProperties(app)
@@ -831,8 +831,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % DOS OUTROS TIPOS DE ANOTAÇÃO.
             newRowTable = table({char(matlab.lang.internal.uuid())},           ...
                 {datestr(now, 'dd/mm/yyyy HH:MM:SS')},         ...
-                {ccTools.fcn.OperationSystem('computerName')}, ...
-                {ccTools.fcn.OperationSystem('userName')},     ...
+                {appUtil.OperationSystem('computerName')}, ...
+                {appUtil.OperationSystem('userName')},     ...
                 {showedHom},                                   ...
                 {attributeName},                               ...
                 {attributeValue},                              ...
@@ -878,10 +878,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function search_Filtering_primaryFilter(app, words2Search)
             app.progressDialog.Visible = 'visible';
-
-            % Rotina de inicialização dos objetos relacionados aos filtros
-            % secundários.
-            app.filteringObj.filterRules(:,:) = [];
 
             % O "primaryTempIndex" retorna os registros da tabela que deram match
             % com "words2Search". Uma homologação, contudo, pode estar relacionada
@@ -1048,7 +1044,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updateFilterSpecificationToolbar(app)
             primaryTag   = sprintf('Filtragem primária orientada à(s) coluna(s) %s', textFormatGUI.cellstr2ListWithQuotes(search_Table_PrimaryColumnNames(app), 'none'));
-            secondaryTag = strjoin(FilterList(app.filteringObj, 'SCH'), ', ');
+            secondaryTag = strjoin(getFilterList(app.filteringObj, 'SCH', 'on'), ', ');
             if isempty(secondaryTag)
                 secondaryTag = '[]';
             end

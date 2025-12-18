@@ -210,7 +210,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                     % Verifica se edição ocorreu em produto NÃO homologado, o que
                     % demanda recálculo do hash.
                     if strcmp(app.nHom.Value, '-')
-                        newNonCertificateHash = Base64Hash.encode(strjoin({'-', app.Manufacturer.Value, app.Model.Value}, ' - '));
+                        newNonCertificateHash = Hash.base64encode(strjoin({'-', app.Manufacturer.Value, app.Model.Value}, ' - '));
         
                         if ismember(newNonCertificateHash, app.projectData.inspectedProducts.("Hash"))
                             updateForm(app, app.Index.Value)

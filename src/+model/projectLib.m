@@ -276,7 +276,7 @@ classdef projectLib < handle
     methods (Static = true)
         %-----------------------------------------------------------------%
         function hash = computeInspectedProductHash(homologation, manufacturer, model)
-            hash = Base64Hash.encode(strjoin({homologation, manufacturer, model}, ' - '));
+            hash = Hash.base64encode(strjoin({homologation, manufacturer, model}, ' - '));
         end
 
         %-----------------------------------------------------------------%
