@@ -185,12 +185,16 @@ classdef winSCH_exported < matlab.apps.AppBase
                             % versão webapp, quando o navegador atualiza a
                             % página (decorrente de F5 ou CTRL+F5).
 
-                            closeModule(app.tabGroupController, ["PRODUCTS", "CONFIG"], app.General)
-
                             if ~app.menu_Button1.Value
                                 app.menu_Button1.Value = true;                    
                                 menu_mainButtonPushed(app, struct('Source', app.menu_Button1, 'PreviousValue', false))
                                 drawnow
+                            end
+
+                            closeModule(app.tabGroupController, ["PRODUCTS", "CONFIG"], app.General)
+
+                            if ~isempty(app.popupContainer)
+                                delete(app.popupContainer)
                             end
     
                             if ~isempty(app.AppInfo.Tag)
