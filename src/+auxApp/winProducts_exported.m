@@ -65,39 +65,31 @@ classdef winProducts_exported < matlab.apps.AppBase
     end
 
     
+    properties (Access = private)
+        %-----------------------------------------------------------------%
+        Role = 'secondaryApp'
+    end
+
+
     properties (Access = public)
         %-----------------------------------------------------------------%
         Container
         isDocked = false
-
         mainApp
-        projectData
-        
-        % A função do timer é executada uma única vez após a renderização
-        % da figura, lendo arquivos de configuração, iniciando modo de operação
-        % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos 
-        % componentes essenciais da GUI (especificados em "createComponents"), 
-        % mostrando a GUI para o usuário o mais rápido possível.
-        timerObj
         jsBackDoor
-
-        % Janela de progresso já criada no DOM. Dessa forma, controla-se 
-        % apenas a sua visibilidade - e tornando desnecessário criá-la a
-        % cada chamada (usando uiprogressdlg, por exemplo).
         progressDialog
         popupContainer
+        projectData
     end
 
 
-    methods
+    methods (Access = public)
         %-----------------------------------------------------------------%
-        % IPC: COMUNICAÇÃO ENTRE PROCESSOS
-        %-----------------------------------------------------------------%
-        function ipcSecundaryJSEventsHandler(app, event)
+        function ipcSecondaryJSEventsHandler(app, event)
             try
                 switch event.HTMLEventName
                     case 'renderer'
-                        startup_Controller(app)
+                        appEngine.activate(app, app.Role)
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
@@ -113,12 +105,12 @@ classdef winProducts_exported < matlab.apps.AppBase
                 end
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
         end
 
         %-----------------------------------------------------------------%
-        function ipcSecundaryMatlabCallsHandler(app, callingApp, operationType, varargin)
+        function ipcSecondaryMatlabCallsHandler(app, callingApp, operationType, varargin)
             try
                 switch class(callingApp)
                     case {'winSCH', 'winSCH_exported'}
@@ -160,24 +152,12 @@ classdef winProducts_exported < matlab.apps.AppBase
                 end
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
         end
-    end
-
-
-    methods (Access = private)
-        %-----------------------------------------------------------------%
-        % JSBACKDOOR
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                 ...
-                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt), ...
-                                                  "Visible",              "off");
-        end
 
         %-----------------------------------------------------------------%
-        function jsBackDoor_Customizations(app, tabIndex)
+        function applyJSCustomizations(app, tabIndex)
             persistent customizationStatus
             if isempty(customizationStatus)
                 customizationStatus = [false, false];
@@ -230,55 +210,14 @@ classdef winProducts_exported < matlab.apps.AppBase
                     end
             end
         end
-    end
 
-
-    methods (Access = private)
         %-----------------------------------------------------------------%
-        % INICIALIZAÇÃO
-        %-----------------------------------------------------------------%
-        function startup_timerCreation(app)
-            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                                 "StartDelay",    1.5,            ...
-                                 "Period",        .1,             ...
-                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj)
+        function initializeAppProperties(app)
+            % ...
         end
 
         %-----------------------------------------------------------------%
-        function startup_timerFcn(app)
-            if ui.FigureRenderStatus(app.UIFigure)
-                stop(app.timerObj)
-                delete(app.timerObj)
-
-                jsBackDoor_Initialization(app)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Controller(app)
-            drawnow
-
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, 1)
-
-            % Define tamanho mínimo do app (não aplicável à versão webapp).
-            if ~strcmp(app.mainApp.executionMode, 'webApp') && ~app.isDocked
-                appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-            end
-
-            app.progressDialog.Visible = 'visible';
-
-            startup_GUIComponents(app)
-            report_UpdatingTable(app)
-            report_TableSelectionChanged(app)
-            report_ProjectWarnImageVisibility(app)
-
-            app.progressDialog.Visible = 'hidden';
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_GUIComponents(app)
+        function initializeUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
                 app.dockModule_Undock.Enable = 1;
             end
@@ -293,6 +232,13 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProductInfo.UserData.showedHom   = '';
 
             % ...
+        end
+
+        %-----------------------------------------------------------------%
+        function applyInitialLayout(app)
+            report_UpdatingTable(app)
+            report_TableSelectionChanged(app)
+            report_ProjectWarnImageVisibility(app)
         end
     end
 
@@ -541,17 +487,11 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainApp)
             
-            app.mainApp     = mainApp;
-            app.projectData = mainApp.projectData;
-
-            if app.isDocked
-                app.GridLayout.Padding(4)  = 30;
-                app.DockModule.Visible = 1;
-                app.jsBackDoor = mainApp.jsBackDoor;
-                startup_Controller(app)
-            else
-                appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app)
+            try
+                app.projectData = mainApp.projectData;
+                appEngine.boot(app, app.Role, mainApp)                
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
             end
 
         end
@@ -638,7 +578,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             %     % <VALIDAÇÕES>
             %     if numel(indexes) < numel(app.measData)
             %         initialQuestion  = 'Deseja gerar relatório que contemple informações de TODAS as localidades de agrupamento, ou apenas da SELECIONADA?';
-            %         initialSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', initialQuestion, {'Todas', 'Selecionada', 'Cancelar'}, 1, 3);
+            %         initialSelection = ui.Dialog(app.UIFigure, 'uiconfirm', initialQuestion, {'Todas', 'Selecionada', 'Cancelar'}, 1, 3);
             % 
             %         switch initialSelection
             %             case 'Cancelar'
@@ -665,12 +605,12 @@ classdef winProducts_exported < matlab.apps.AppBase
             %         switch app.reportVersion.Value
             %             case 'Definitiva'
             %                 warningMessages = [warningMessages, '<br><br>Isso impossibilita a geração da versão DEFINITIVA do relatório.'];
-            %                 appUtil.modalWindow(app.UIFigure, "warning", warningMessages);
+            %                 ui.Dialog(app.UIFigure, "warning", warningMessages);
             %                 return
             % 
             %             otherwise % 'Preliminar'
             %                 warningMessages = [warningMessages, '<br><br>Deseja ignorar esse alerta, gerando a versão PRÉVIA do relatório?'];
-            %                 userSelection   = appUtil.modalWindow(app.UIFigure, 'uiconfirm', warningMessages, {'Sim', 'Não'}, 2, 2);
+            %                 userSelection   = ui.Dialog(app.UIFigure, 'uiconfirm', warningMessages, {'Sim', 'Não'}, 2, 2);
             %                 if userSelection == "Não"
             %                     return
             %                 end
@@ -689,7 +629,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             %                                 'reportVersion', app.reportVersion.Value);
             %         reportLibConnection.Controller.Run(app, app.projectData, app.measData(indexes), reportSettings, app.mainApp.General)
             %     catch ME
-            %         appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
+            %         ui.Dialog(app.UIFigure, 'error', getReport(ME));
             %     end
             % 
             %     updateToolbar(app)
@@ -723,7 +663,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
             if ~isempty(msg)
-                appUtil.modalWindow(app.UIFigure, 'warning', msg);
+                ui.Dialog(app.UIFigure, 'warning', msg);
                 return
             end
             % </VALIDAÇÕES>
@@ -744,7 +684,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         function SubTabGroupSelectionChanged(app, event)
 
             [~, tabIndex] = ismember(app.SubTabGroup.SelectedTab, app.SubTabGroup.Children);
-            jsBackDoor_Customizations(app, tabIndex)
+            applyJSCustomizations(app, tabIndex)
 
         end
 
@@ -787,7 +727,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             [productData, productHash] = model.projectLib.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
             if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                appUtil.modalWindow(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
                 return
             end
 
@@ -928,7 +868,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
                     if ismember(newProductHash, app.projectData.inspectedProducts.("Hash"))
                         event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};                        
-                        appUtil.modalWindow(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                        ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
                         return
                     end
                 end
@@ -997,17 +937,17 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             entityID = regexprep(app.report_EntityID.Value, '\D', '');
             if isempty(entityID)
-                appUtil.modalWindow(app.UIFigure, 'info', 'Consulta limitada a valores não nulos de CNPJ ou CPF');
+                ui.Dialog(app.UIFigure, 'info', 'Consulta limitada a valores não nulos de CNPJ ou CPF');
                 return
             end
 
             try
                 % Pesquisa restrita ao CNPJ.
                 CNPJInfo = checkCNPJOrCPF(app.report_EntityID.Value, 'PublicAPI');
-                appUtil.modalWindow(app.UIFigure, 'info', jsonencode(CNPJInfo, "PrettyPrint", true));
+                ui.Dialog(app.UIFigure, 'info', jsonencode(CNPJInfo, "PrettyPrint", true));
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
 
         end

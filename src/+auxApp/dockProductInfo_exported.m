@@ -741,7 +741,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.FontSize = 11;
             app.ViolationType.BackgroundColor = [1 1 1];
             app.ViolationType.Layout.Row = 20;
-            app.ViolationType.Layout.Column = [3 6];
+            app.ViolationType.Layout.Column = [3 5];
             app.ViolationType.Value = 'Comercialização';
 
             % Create CorrigibleLabel
@@ -749,7 +749,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.CorrigibleLabel.VerticalAlignment = 'bottom';
             app.CorrigibleLabel.FontSize = 10;
             app.CorrigibleLabel.Layout.Row = 19;
-            app.CorrigibleLabel.Layout.Column = 7;
+            app.CorrigibleLabel.Layout.Column = [6 7];
             app.CorrigibleLabel.Text = 'Sanável?';
 
             % Create Corrigible
@@ -759,7 +759,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Corrigible.FontSize = 11;
             app.Corrigible.BackgroundColor = [1 1 1];
             app.Corrigible.Layout.Row = 20;
-            app.Corrigible.Layout.Column = 7;
+            app.Corrigible.Layout.Column = [6 7];
             app.Corrigible.Value = '-';
 
             % Create optNotesLabel

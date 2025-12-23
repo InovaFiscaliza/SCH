@@ -4,19 +4,19 @@ classdef winConfig_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                        matlab.ui.Figure
         GridLayout                      matlab.ui.container.GridLayout
-        DockModuleGroup                 matlab.ui.container.GridLayout
+        DockModule                      matlab.ui.container.GridLayout
         dockModule_Undock               matlab.ui.control.Image
         dockModule_Close                matlab.ui.control.Image
-        TabGroup                        matlab.ui.container.TabGroup
-        Tab1                            matlab.ui.container.Tab
-        Tab1Grid                        matlab.ui.container.GridLayout
+        SubTabGroup                     matlab.ui.container.TabGroup
+        SubTab1                         matlab.ui.container.Tab
+        SubGrid1                        matlab.ui.container.GridLayout
         openAuxiliarApp2Debug           matlab.ui.control.CheckBox
         openAuxiliarAppAsDocked         matlab.ui.control.CheckBox
         versionInfo                     matlab.ui.control.Label
         tool_versionInfoRefresh         matlab.ui.control.Image
         versionInfoLabel                matlab.ui.control.Label
-        Tab2                            matlab.ui.container.Tab
-        Tab2Grid                        matlab.ui.container.GridLayout
+        SubTab2                         matlab.ui.container.Tab
+        SubGrid2                        matlab.ui.container.GridLayout
         config_SearchModeLabel          matlab.ui.control.Label
         config_SearchModePanel          matlab.ui.container.ButtonGroup
         config_SearchModeListOfWords    matlab.ui.control.RadioButton
@@ -38,8 +38,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_nMinCharacters           matlab.ui.control.Spinner
         config_nMinCharactersLabel      matlab.ui.control.Label
         config_MiscelaneousLabel1       matlab.ui.control.Label
-        Tab3                            matlab.ui.container.Tab
-        Tab3Grid                        matlab.ui.container.GridLayout
+        SubTab3                         matlab.ui.container.Tab
+        SubGrid3                        matlab.ui.container.GridLayout
         reportPanel                     matlab.ui.container.Panel
         reportGrid                      matlab.ui.container.GridLayout
         reportDocType                   matlab.ui.control.DropDown
@@ -53,8 +53,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         reportSystemLabel               matlab.ui.control.Label
         eFiscalizaRefresh               matlab.ui.control.Image
         eFiscalizaLabel                 matlab.ui.control.Label
-        Tab4                            matlab.ui.container.Tab
-        Tab4Grid                        matlab.ui.container.GridLayout
+        SubTab4                         matlab.ui.container.Tab
+        SubGrid4                        matlab.ui.container.GridLayout
         userPathButton                  matlab.ui.control.Image
         userPath                        matlab.ui.control.EditField
         userPathLabel                   matlab.ui.control.Label
@@ -70,24 +70,18 @@ classdef winConfig_exported < matlab.apps.AppBase
     end
 
     
-    properties
+    properties (Access = private)
+        %-----------------------------------------------------------------%
+        Role = 'secondaryApp'
+    end
+
+
+    properties (Access = public)
         %-----------------------------------------------------------------%
         Container
         isDocked = false
-        
         mainApp
-
-        % A função do timer é executada uma única vez após a renderização
-        % da figura, lendo arquivos de configuração, iniciando modo de operação
-        % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos 
-        % componentes essenciais da GUI (especificados em "createComponents"), 
-        % mostrando a GUI para o usuário o mais rápido possível.
-        timerObj
         jsBackDoor
-
-        % Janela de progresso já criada no DOM. Dessa forma, controla-se 
-        % apenas a sua visibilidade - e tornando desnecessário criá-la a
-        % cada chamada (usando uiprogressdlg, por exemplo).
         progressDialog
     end
 
@@ -98,39 +92,25 @@ classdef winConfig_exported < matlab.apps.AppBase
     end
 
 
-    methods
+    methods (Access = public)
         %-----------------------------------------------------------------%
-        % IPC: COMUNICAÇÃO ENTRE PROCESSOS
-        %-----------------------------------------------------------------%
-        function ipcSecundaryJSEventsHandler(app, event)
+        function ipcSecondaryJSEventsHandler(app, event)
             try
                 switch event.HTMLEventName
                     case 'renderer'
-                        startup_Controller(app)
+                        appEngine.activate(app, app.Role)
                         
                     otherwise
                         error('UnexpectedEvent')
                 end
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
         end
-    end
-    
-
-    methods (Access = private)
-        %-----------------------------------------------------------------%
-        % JSBACKDOOR
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            app.jsBackDoor = uihtml(app.UIFigure, "HTMLSource",           appUtil.jsBackDoorHTMLSource(),                 ...
-                                                  "HTMLEventReceivedFcn", @(~, evt)ipcSecundaryJSEventsHandler(app, evt), ...
-                                                  "Visible",              "off");
-        end
 
         %-----------------------------------------------------------------%
-        function jsBackDoor_Customizations(app, tabIndex)
+        function applyJSCustomizations(app, tabIndex)
             persistent customizationStatus
             if isempty(customizationStatus)
                 customizationStatus = [false, false, false, false];
@@ -158,7 +138,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                             % Grid botões "dock":
                             if app.isDocked
-                                elToModify = {app.DockModuleGroup};
+                                elToModify = {app.DockModule};
                                 elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
                                 if ~isempty(elDataTag)
                                     sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
@@ -194,44 +174,12 @@ classdef winConfig_exported < matlab.apps.AppBase
                     end
             end
         end
-    end
-
-
-    methods (Access = private)
-        %-----------------------------------------------------------------%
-        function startup_timerCreation(app)
-            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                                 "StartDelay",    1.5,            ...
-                                 "Period",        .1,             ...
-                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj)
-        end
 
         %-----------------------------------------------------------------%
-        function startup_timerFcn(app)
-            if ui.FigureRenderStatus(app.UIFigure)
-                stop(app.timerObj)
-                delete(app.timerObj)
-                
-                jsBackDoor_Initialization(app)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Controller(app)
-            drawnow
-            jsBackDoor_Customizations(app, 0)
-            jsBackDoor_Customizations(app, 1)
-
-            startup_AppProperties(app)
-            startup_GUIComponents(app)
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_AppProperties(app)
+        function initializeAppProperties(app)
             % Lê a versão de "GeneralSettings.json" que vem junto ao
             % projeto (e não a versão armazenada em "ProgramData").
-            projectFolder     = appUtil.Path(class.Constants.appName, app.mainApp.rootFolder);
+            projectFolder     = appEngine.util.Path(class.Constants.appName, app.mainApp.rootFolder);
             projectFilePath   = fullfile(projectFolder, 'GeneralSettings.json');
             projectGeneral    = jsondecode(fileread(projectFilePath));
 
@@ -242,7 +190,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_GUIComponents(app)
+        function initializeUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
                 app.dockModule_Undock.Enable       = 1;
                 app.openDevTools.Enable            = 1;
@@ -257,14 +205,12 @@ classdef winConfig_exported < matlab.apps.AppBase
             if isfolder(app.mainApp.General.fileFolder.DataHub_GET)
                 app.exportTable.Enable = 'on';
             end
-
-            updatePanel_General(app)
         end
 
         %-----------------------------------------------------------------%
-        function updatePanel_General(app)
+        function applyInitialLayout(app)
             % Versão:
-            ui.TextView.update(app.versionInfo, util.HtmlTextGenerator.AppInfo( ...
+            appInfo = util.HtmlTextGenerator.AppInfo( ...
                 app.mainApp.General, ...
                 app.mainApp.rootFolder, ...
                 app.mainApp.executionMode, ...
@@ -274,13 +220,17 @@ classdef winConfig_exported < matlab.apps.AppBase
                 app.mainApp.cacheData, ...
                 app.mainApp.annotationTable, ...
                 'textview' ...
-            ));
+            );
+            ui.TextView.update(app.versionInfo, appInfo);
 
             % Modo de operação:
             app.openAuxiliarAppAsDocked.Value = app.mainApp.General.operationMode.Dock;
             app.openAuxiliarApp2Debug.Value   = app.mainApp.General.operationMode.Debug;
         end
+    end
 
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function updatePanel_Analysis(app)
             % MODO
@@ -411,7 +361,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function saveGeneralSettings(app)
-            appUtil.generalSettingsSave(class.Constants.appName, app.mainApp.rootFolder, app.mainApp.General_I, app.mainApp.executionMode)
+            appEngine.util.generalSettingsSave(class.Constants.appName, app.mainApp.rootFolder, app.mainApp.General_I, app.mainApp.executionMode)
         end
     end
     
@@ -422,16 +372,10 @@ classdef winConfig_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainApp)
             
-            app.mainApp = mainApp;
-
-            if app.isDocked
-                app.GridLayout.Padding(4) = 30;
-                app.DockModuleGroup.Visible = 1;
-                app.jsBackDoor = mainApp.jsBackDoor;
-                startup_Controller(app)
-            else
-                appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app)
+            try
+                appEngine.boot(app, app.Role, mainApp)
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
             end
             
         end
@@ -468,11 +412,11 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Selection change function: TabGroup
-        function TabGroup_TabSelectionChanged(app, event)
+        % Selection change function: SubTabGroup
+        function SubTabGroup_TabSelectionChanged(app, event)
             
-            [~, tabIndex] = ismember(app.TabGroup.SelectedTab, app.TabGroup.Children);
-            jsBackDoor_Customizations(app, tabIndex)
+            [~, tabIndex] = ismember(app.SubTabGroup.SelectedTab, app.SubTabGroup.Children);
+            applyJSCustomizations(app, tabIndex)
             
         end
 
@@ -482,7 +426,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'visible';
 
             htmlContent = util.HtmlTextGenerator.checkUpdate(app.mainApp.General, app.mainApp.rootFolder);
-            appUtil.modalWindow(app.UIFigure, "info", htmlContent);       
+            ui.Dialog(app.UIFigure, "info", htmlContent);       
 
             app.progressDialog.Visible = 'hidden';
 
@@ -494,8 +438,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             switch event.Source
                 case app.exportTable
                     nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
-                    defaultName   = appUtil.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
-                    fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+                    defaultName   = appEngine.util.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
+                    fileFullPath  = ui.Dialog(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
                     if isempty(fileFullPath)
                         return
                     end
@@ -507,10 +451,10 @@ classdef winConfig_exported < matlab.apps.AppBase
                         copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, fileName), fileFullPath, 'f')
 
                         if ~strcmp(app.mainApp.executionMode, 'webApp')
-                            appUtil.OperationSystem('openFile', fileFullPath)
+                            appEngine.util.OperationSystem('openFile', fileFullPath)
                         end
                     catch ME
-                        appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+                        ui.Dialog(app.UIFigure, 'warning', getReport(ME));
                     end
         
                     app.progressDialog.Visible = 'hidden';
@@ -526,7 +470,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             % Lê a versão de "GeneralSettings.json" que vem junto ao
             % projeto (e não a versão armazenada em "ProgramData").
-            projectFolder      = appUtil.Path(class.Constants.appName, app.mainApp.rootFolder);
+            projectFolder      = appEngine.util.Path(class.Constants.appName, app.mainApp.rootFolder);
             projectFilePath    = fullfile(projectFolder, 'GeneralSettings.json');
 
             projectFileContent = jsondecode(fileread(projectFilePath));
@@ -534,7 +478,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             if isequal(app.mainApp.General.search, projectFileContent.search) && isequal(app.mainApp.General.ui, projectFileContent.ui)
                 msgWarning = 'Configurações atuais já coincidem com as iniciais.';
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                ui.Dialog(app.UIFigure, 'warning', msgWarning);
                 return
 
             else
@@ -727,7 +671,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                         else
                             selectedFolderFiles = dir(selectedFolder);
                             if ~ismember('.sch_get', {selectedFolderFiles.name})
-                                appUtil.modalWindow(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - GET", do SCH.');
+                                ui.Dialog(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - GET", do SCH.');
                                 return
                             end
 
@@ -744,7 +688,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                         else
                             selectedFolderFiles = dir(selectedFolder);
                             if ~ismember('.sch_post', {selectedFolderFiles.name})
-                                appUtil.modalWindow(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - POST", do SCH.');
+                                ui.Dialog(app.UIFigure, 'error', 'Não se trata da pasta "DataHub - POST", do SCH.');
                                 return
                             end
 
@@ -840,28 +784,28 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.exportTable.Layout.Column = 1;
             app.exportTable.ImageSource = 'Sheet_32.png';
 
-            % Create TabGroup
-            app.TabGroup = uitabgroup(app.GridLayout);
-            app.TabGroup.AutoResizeChildren = 'off';
-            app.TabGroup.SelectionChangedFcn = createCallbackFcn(app, @TabGroup_TabSelectionChanged, true);
-            app.TabGroup.Layout.Row = [3 4];
-            app.TabGroup.Layout.Column = [2 3];
+            % Create SubTabGroup
+            app.SubTabGroup = uitabgroup(app.GridLayout);
+            app.SubTabGroup.AutoResizeChildren = 'off';
+            app.SubTabGroup.SelectionChangedFcn = createCallbackFcn(app, @SubTabGroup_TabSelectionChanged, true);
+            app.SubTabGroup.Layout.Row = [3 4];
+            app.SubTabGroup.Layout.Column = [2 3];
 
-            % Create Tab1
-            app.Tab1 = uitab(app.TabGroup);
-            app.Tab1.AutoResizeChildren = 'off';
-            app.Tab1.Title = 'ASPECTOS GERAIS';
-            app.Tab1.BackgroundColor = 'none';
+            % Create SubTab1
+            app.SubTab1 = uitab(app.SubTabGroup);
+            app.SubTab1.AutoResizeChildren = 'off';
+            app.SubTab1.Title = 'ASPECTOS GERAIS';
+            app.SubTab1.BackgroundColor = 'none';
 
-            % Create Tab1Grid
-            app.Tab1Grid = uigridlayout(app.Tab1);
-            app.Tab1Grid.ColumnWidth = {'1x', 22};
-            app.Tab1Grid.RowHeight = {17, 150, 22, '1x', 1, 22, 15};
-            app.Tab1Grid.RowSpacing = 5;
-            app.Tab1Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid1
+            app.SubGrid1 = uigridlayout(app.SubTab1);
+            app.SubGrid1.ColumnWidth = {'1x', 22};
+            app.SubGrid1.RowHeight = {17, 150, 22, '1x', 1, 22, 15};
+            app.SubGrid1.RowSpacing = 5;
+            app.SubGrid1.BackgroundColor = [1 1 1];
 
             % Create versionInfoLabel
-            app.versionInfoLabel = uilabel(app.Tab1Grid);
+            app.versionInfoLabel = uilabel(app.SubGrid1);
             app.versionInfoLabel.VerticalAlignment = 'bottom';
             app.versionInfoLabel.FontSize = 10;
             app.versionInfoLabel.Layout.Row = 1;
@@ -869,7 +813,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.versionInfoLabel.Text = 'AMBIENTE:';
 
             % Create tool_versionInfoRefresh
-            app.tool_versionInfoRefresh = uiimage(app.Tab1Grid);
+            app.tool_versionInfoRefresh = uiimage(app.SubGrid1);
             app.tool_versionInfoRefresh.ScaleMethod = 'none';
             app.tool_versionInfoRefresh.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AppEnvRefreshButtonPushed, true);
             app.tool_versionInfoRefresh.Enable = 'off';
@@ -880,7 +824,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.tool_versionInfoRefresh.ImageSource = 'Refresh_18.png';
 
             % Create versionInfo
-            app.versionInfo = uilabel(app.Tab1Grid);
+            app.versionInfo = uilabel(app.SubGrid1);
             app.versionInfo.BackgroundColor = [1 1 1];
             app.versionInfo.VerticalAlignment = 'top';
             app.versionInfo.WordWrap = 'on';
@@ -891,7 +835,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.versionInfo.Text = '';
 
             % Create openAuxiliarAppAsDocked
-            app.openAuxiliarAppAsDocked = uicheckbox(app.Tab1Grid);
+            app.openAuxiliarAppAsDocked = uicheckbox(app.SubGrid1);
             app.openAuxiliarAppAsDocked.ValueChangedFcn = createCallbackFcn(app, @Config_GeneralParameterValueChanged, true);
             app.openAuxiliarAppAsDocked.Enable = 'off';
             app.openAuxiliarAppAsDocked.Text = 'Modo DOCK: módulos auxiliares abertos na janela principal do app';
@@ -900,7 +844,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.openAuxiliarAppAsDocked.Layout.Column = [1 2];
 
             % Create openAuxiliarApp2Debug
-            app.openAuxiliarApp2Debug = uicheckbox(app.Tab1Grid);
+            app.openAuxiliarApp2Debug = uicheckbox(app.SubGrid1);
             app.openAuxiliarApp2Debug.ValueChangedFcn = createCallbackFcn(app, @Config_GeneralParameterValueChanged, true);
             app.openAuxiliarApp2Debug.Enable = 'off';
             app.openAuxiliarApp2Debug.Text = 'Modo DEBUG';
@@ -908,21 +852,21 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.openAuxiliarApp2Debug.Layout.Row = 7;
             app.openAuxiliarApp2Debug.Layout.Column = [1 2];
 
-            % Create Tab2
-            app.Tab2 = uitab(app.TabGroup);
-            app.Tab2.AutoResizeChildren = 'off';
-            app.Tab2.Title = 'ANÁLISE';
-            app.Tab2.BackgroundColor = 'none';
+            % Create SubTab2
+            app.SubTab2 = uitab(app.SubTabGroup);
+            app.SubTab2.AutoResizeChildren = 'off';
+            app.SubTab2.Title = 'ANÁLISE';
+            app.SubTab2.BackgroundColor = 'none';
 
-            % Create Tab2Grid
-            app.Tab2Grid = uigridlayout(app.Tab2);
-            app.Tab2Grid.ColumnWidth = {'1x', 22};
-            app.Tab2Grid.RowHeight = {17, 70, 22, 64, 22, 64, 22, '1x', 1};
-            app.Tab2Grid.RowSpacing = 5;
-            app.Tab2Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid2
+            app.SubGrid2 = uigridlayout(app.SubTab2);
+            app.SubGrid2.ColumnWidth = {'1x', 22};
+            app.SubGrid2.RowHeight = {17, 70, 22, 64, 22, 64, 22, '1x', 1};
+            app.SubGrid2.RowSpacing = 5;
+            app.SubGrid2.BackgroundColor = [1 1 1];
 
             % Create config_MiscelaneousLabel1
-            app.config_MiscelaneousLabel1 = uilabel(app.Tab2Grid);
+            app.config_MiscelaneousLabel1 = uilabel(app.SubGrid2);
             app.config_MiscelaneousLabel1.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel1.FontSize = 10;
             app.config_MiscelaneousLabel1.Layout.Row = 3;
@@ -930,7 +874,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousLabel1.Text = 'ALGORITMO SUGESTÃO DE TOKENS';
 
             % Create config_MiscelaneousPanel1
-            app.config_MiscelaneousPanel1 = uipanel(app.Tab2Grid);
+            app.config_MiscelaneousPanel1 = uipanel(app.SubGrid2);
             app.config_MiscelaneousPanel1.AutoResizeChildren = 'off';
             app.config_MiscelaneousPanel1.Layout.Row = 4;
             app.config_MiscelaneousPanel1.Layout.Column = [1 2];
@@ -984,7 +928,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_nMinWords.Value = '20';
 
             % Create config_MiscelaneousLabel2
-            app.config_MiscelaneousLabel2 = uilabel(app.Tab2Grid);
+            app.config_MiscelaneousLabel2 = uilabel(app.SubGrid2);
             app.config_MiscelaneousLabel2.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel2.FontSize = 10;
             app.config_MiscelaneousLabel2.Layout.Row = 5;
@@ -992,7 +936,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousLabel2.Text = 'ANOTAÇÃO DO TIPO "WORDCLOUD"';
 
             % Create config_MiscelaneousPanel2
-            app.config_MiscelaneousPanel2 = uipanel(app.Tab2Grid);
+            app.config_MiscelaneousPanel2 = uipanel(app.SubGrid2);
             app.config_MiscelaneousPanel2.AutoResizeChildren = 'off';
             app.config_MiscelaneousPanel2.Layout.Row = 6;
             app.config_MiscelaneousPanel2.Layout.Column = [1 2];
@@ -1045,7 +989,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.Value = 'Modelo';
 
             % Create config_SelectedTableColumnsLabel
-            app.config_SelectedTableColumnsLabel = uilabel(app.Tab2Grid);
+            app.config_SelectedTableColumnsLabel = uilabel(app.SubGrid2);
             app.config_SelectedTableColumnsLabel.VerticalAlignment = 'bottom';
             app.config_SelectedTableColumnsLabel.FontSize = 10;
             app.config_SelectedTableColumnsLabel.Layout.Row = 7;
@@ -1053,7 +997,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SelectedTableColumnsLabel.Text = 'VISIBILIDADE DE COLUNAS';
 
             % Create config_SelectedTableColumns
-            app.config_SelectedTableColumns = uitree(app.Tab2Grid, 'checkbox');
+            app.config_SelectedTableColumns = uitree(app.SubGrid2, 'checkbox');
             app.config_SelectedTableColumns.FontSize = 11;
             app.config_SelectedTableColumns.Layout.Row = 8;
             app.config_SelectedTableColumns.Layout.Column = [1 2];
@@ -1062,7 +1006,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SelectedTableColumns.CheckedNodesChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
 
             % Create config_SearchModeDefaultParameters
-            app.config_SearchModeDefaultParameters = uiimage(app.Tab2Grid);
+            app.config_SearchModeDefaultParameters = uiimage(app.SubGrid2);
             app.config_SearchModeDefaultParameters.ScaleMethod = 'none';
             app.config_SearchModeDefaultParameters.ImageClickedFcn = createCallbackFcn(app, @Analysis_DefaultParametersClicked, true);
             app.config_SearchModeDefaultParameters.Visible = 'off';
@@ -1073,7 +1017,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModeDefaultParameters.ImageSource = 'Refresh_18.png';
 
             % Create config_SearchModePanel
-            app.config_SearchModePanel = uibuttongroup(app.Tab2Grid);
+            app.config_SearchModePanel = uibuttongroup(app.SubGrid2);
             app.config_SearchModePanel.AutoResizeChildren = 'off';
             app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_SearchModePanel.BackgroundColor = [1 1 1];
@@ -1098,27 +1042,27 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModeListOfWords.Position = [12 7 837 29];
 
             % Create config_SearchModeLabel
-            app.config_SearchModeLabel = uilabel(app.Tab2Grid);
+            app.config_SearchModeLabel = uilabel(app.SubGrid2);
             app.config_SearchModeLabel.VerticalAlignment = 'bottom';
             app.config_SearchModeLabel.FontSize = 10;
             app.config_SearchModeLabel.Layout.Row = 1;
             app.config_SearchModeLabel.Layout.Column = 1;
             app.config_SearchModeLabel.Text = 'MODO';
 
-            % Create Tab3
-            app.Tab3 = uitab(app.TabGroup);
-            app.Tab3.AutoResizeChildren = 'off';
-            app.Tab3.Title = 'PROJETO';
+            % Create SubTab3
+            app.SubTab3 = uitab(app.SubTabGroup);
+            app.SubTab3.AutoResizeChildren = 'off';
+            app.SubTab3.Title = 'PROJETO';
 
-            % Create Tab3Grid
-            app.Tab3Grid = uigridlayout(app.Tab3);
-            app.Tab3Grid.ColumnWidth = {'1x', 22};
-            app.Tab3Grid.RowHeight = {17, 70, 22, '1x'};
-            app.Tab3Grid.RowSpacing = 5;
-            app.Tab3Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid3
+            app.SubGrid3 = uigridlayout(app.SubTab3);
+            app.SubGrid3.ColumnWidth = {'1x', 22};
+            app.SubGrid3.RowHeight = {17, 70, 22, '1x'};
+            app.SubGrid3.RowSpacing = 5;
+            app.SubGrid3.BackgroundColor = [1 1 1];
 
             % Create eFiscalizaLabel
-            app.eFiscalizaLabel = uilabel(app.Tab3Grid);
+            app.eFiscalizaLabel = uilabel(app.SubGrid3);
             app.eFiscalizaLabel.VerticalAlignment = 'bottom';
             app.eFiscalizaLabel.FontSize = 10;
             app.eFiscalizaLabel.Layout.Row = 1;
@@ -1126,7 +1070,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.eFiscalizaLabel.Text = 'INICIALIZAÇÃO eFISCALIZA';
 
             % Create eFiscalizaRefresh
-            app.eFiscalizaRefresh = uiimage(app.Tab3Grid);
+            app.eFiscalizaRefresh = uiimage(app.SubGrid3);
             app.eFiscalizaRefresh.ScaleMethod = 'none';
             app.eFiscalizaRefresh.ImageClickedFcn = createCallbackFcn(app, @Config_ProjectRefreshImageClicked, true);
             app.eFiscalizaRefresh.Visible = 'off';
@@ -1137,7 +1081,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.eFiscalizaRefresh.ImageSource = 'Refresh_18.png';
 
             % Create eFiscalizaPanel
-            app.eFiscalizaPanel = uipanel(app.Tab3Grid);
+            app.eFiscalizaPanel = uipanel(app.SubGrid3);
             app.eFiscalizaPanel.AutoResizeChildren = 'off';
             app.eFiscalizaPanel.Layout.Row = 2;
             app.eFiscalizaPanel.Layout.Column = [1 2];
@@ -1186,7 +1130,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.reportUnit.Value = {};
 
             % Create reportLabel
-            app.reportLabel = uilabel(app.Tab3Grid);
+            app.reportLabel = uilabel(app.SubGrid3);
             app.reportLabel.VerticalAlignment = 'bottom';
             app.reportLabel.FontSize = 10;
             app.reportLabel.Layout.Row = 3;
@@ -1194,7 +1138,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.reportLabel.Text = 'RELATÓRIO';
 
             % Create reportPanel
-            app.reportPanel = uipanel(app.Tab3Grid);
+            app.reportPanel = uipanel(app.SubGrid3);
             app.reportPanel.AutoResizeChildren = 'off';
             app.reportPanel.BackgroundColor = [1 1 1];
             app.reportPanel.Layout.Row = 4;
@@ -1225,22 +1169,22 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.reportDocType.Layout.Column = [2 3];
             app.reportDocType.Value = 'Relatório de Atividades';
 
-            % Create Tab4
-            app.Tab4 = uitab(app.TabGroup);
-            app.Tab4.AutoResizeChildren = 'off';
-            app.Tab4.Title = 'MAPEAMENTO DE PASTAS';
-            app.Tab4.BackgroundColor = 'none';
+            % Create SubTab4
+            app.SubTab4 = uitab(app.SubTabGroup);
+            app.SubTab4.AutoResizeChildren = 'off';
+            app.SubTab4.Title = 'MAPEAMENTO DE PASTAS';
+            app.SubTab4.BackgroundColor = 'none';
 
-            % Create Tab4Grid
-            app.Tab4Grid = uigridlayout(app.Tab4);
-            app.Tab4Grid.ColumnWidth = {'1x', 20};
-            app.Tab4Grid.RowHeight = {17, 22, 22, 22, 22, 22, '1x'};
-            app.Tab4Grid.ColumnSpacing = 5;
-            app.Tab4Grid.RowSpacing = 5;
-            app.Tab4Grid.BackgroundColor = [1 1 1];
+            % Create SubGrid4
+            app.SubGrid4 = uigridlayout(app.SubTab4);
+            app.SubGrid4.ColumnWidth = {'1x', 20};
+            app.SubGrid4.RowHeight = {17, 22, 22, 22, 22, 22, '1x'};
+            app.SubGrid4.ColumnSpacing = 5;
+            app.SubGrid4.RowSpacing = 5;
+            app.SubGrid4.BackgroundColor = [1 1 1];
 
             % Create DATAHUBGETLabel
-            app.DATAHUBGETLabel = uilabel(app.Tab4Grid);
+            app.DATAHUBGETLabel = uilabel(app.SubGrid4);
             app.DATAHUBGETLabel.VerticalAlignment = 'bottom';
             app.DATAHUBGETLabel.FontSize = 10;
             app.DATAHUBGETLabel.Layout.Row = 1;
@@ -1248,14 +1192,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DATAHUBGETLabel.Text = 'DATAHUB - GET:';
 
             % Create DataHubGET
-            app.DataHubGET = uieditfield(app.Tab4Grid, 'text');
+            app.DataHubGET = uieditfield(app.SubGrid4, 'text');
             app.DataHubGET.Editable = 'off';
             app.DataHubGET.FontSize = 11;
             app.DataHubGET.Layout.Row = 2;
             app.DataHubGET.Layout.Column = 1;
 
             % Create DataHubGETButton
-            app.DataHubGETButton = uiimage(app.Tab4Grid);
+            app.DataHubGETButton = uiimage(app.SubGrid4);
             app.DataHubGETButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
             app.DataHubGETButton.Tag = 'DataHub_POST';
             app.DataHubGETButton.Enable = 'off';
@@ -1264,7 +1208,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DataHubGETButton.ImageSource = 'OpenFile_36x36.png';
 
             % Create DATAHUBPOSTLabel
-            app.DATAHUBPOSTLabel = uilabel(app.Tab4Grid);
+            app.DATAHUBPOSTLabel = uilabel(app.SubGrid4);
             app.DATAHUBPOSTLabel.VerticalAlignment = 'bottom';
             app.DATAHUBPOSTLabel.FontSize = 10;
             app.DATAHUBPOSTLabel.Layout.Row = 3;
@@ -1272,14 +1216,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DATAHUBPOSTLabel.Text = 'DATAHUB - POST:';
 
             % Create DataHubPOST
-            app.DataHubPOST = uieditfield(app.Tab4Grid, 'text');
+            app.DataHubPOST = uieditfield(app.SubGrid4, 'text');
             app.DataHubPOST.Editable = 'off';
             app.DataHubPOST.FontSize = 11;
             app.DataHubPOST.Layout.Row = 4;
             app.DataHubPOST.Layout.Column = 1;
 
             % Create DataHubPOSTButton
-            app.DataHubPOSTButton = uiimage(app.Tab4Grid);
+            app.DataHubPOSTButton = uiimage(app.SubGrid4);
             app.DataHubPOSTButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
             app.DataHubPOSTButton.Tag = 'DataHub_POST';
             app.DataHubPOSTButton.Enable = 'off';
@@ -1288,7 +1232,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DataHubPOSTButton.ImageSource = 'OpenFile_36x36.png';
 
             % Create userPathLabel
-            app.userPathLabel = uilabel(app.Tab4Grid);
+            app.userPathLabel = uilabel(app.SubGrid4);
             app.userPathLabel.VerticalAlignment = 'bottom';
             app.userPathLabel.FontSize = 10;
             app.userPathLabel.Layout.Row = 5;
@@ -1296,14 +1240,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.userPathLabel.Text = 'PASTA DO USUÁRIO:';
 
             % Create userPath
-            app.userPath = uieditfield(app.Tab4Grid, 'text');
+            app.userPath = uieditfield(app.SubGrid4, 'text');
             app.userPath.Editable = 'off';
             app.userPath.FontSize = 11;
             app.userPath.Layout.Row = 6;
             app.userPath.Layout.Column = 1;
 
             % Create userPathButton
-            app.userPathButton = uiimage(app.Tab4Grid);
+            app.userPathButton = uiimage(app.SubGrid4);
             app.userPathButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
             app.userPathButton.Tag = 'userPath';
             app.userPathButton.Enable = 'off';
@@ -1311,18 +1255,18 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.userPathButton.Layout.Column = 2;
             app.userPathButton.ImageSource = 'OpenFile_36x36.png';
 
-            % Create DockModuleGroup
-            app.DockModuleGroup = uigridlayout(app.GridLayout);
-            app.DockModuleGroup.RowHeight = {'1x'};
-            app.DockModuleGroup.ColumnSpacing = 2;
-            app.DockModuleGroup.Padding = [5 2 5 2];
-            app.DockModuleGroup.Visible = 'off';
-            app.DockModuleGroup.Layout.Row = [2 3];
-            app.DockModuleGroup.Layout.Column = [3 4];
-            app.DockModuleGroup.BackgroundColor = [0.2 0.2 0.2];
+            % Create DockModule
+            app.DockModule = uigridlayout(app.GridLayout);
+            app.DockModule.RowHeight = {'1x'};
+            app.DockModule.ColumnSpacing = 2;
+            app.DockModule.Padding = [5 2 5 2];
+            app.DockModule.Visible = 'off';
+            app.DockModule.Layout.Row = [2 3];
+            app.DockModule.Layout.Column = [3 4];
+            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModuleGroup);
+            app.dockModule_Close = uiimage(app.DockModule);
             app.dockModule_Close.ScaleMethod = 'none';
             app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
             app.dockModule_Close.Tag = 'DRIVETEST';
@@ -1332,7 +1276,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
 
             % Create dockModule_Undock
-            app.dockModule_Undock = uiimage(app.DockModuleGroup);
+            app.dockModule_Undock = uiimage(app.DockModule);
             app.dockModule_Undock.ScaleMethod = 'none';
             app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
             app.dockModule_Undock.Tag = 'DRIVETEST';
