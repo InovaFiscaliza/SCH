@@ -18,7 +18,7 @@ classdef (Abstract) writeExternalFile
             msgWarning = {};
         
             [~, ...
-             externalFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+             externalFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             externalFilePath = fullfile(externalFolder,  'Annotation.xlsx');
         
             % É salvo localmente todos os registros com o campo "Situação" igual a
@@ -33,7 +33,7 @@ classdef (Abstract) writeExternalFile
                 % a ser criada no Power Automate, mas na sua versão local a "Situação"
                 % é alterada para 2.
                 if isfolder(postCloudFolder)
-                    cloudFilePath = [appUtil.DefaultFileName(postCloudFolder, 'Annotation') '.xlsx'];                    
+                    cloudFilePath = [appEngine.util.DefaultFileName(postCloudFolder, 'Annotation') '.xlsx'];                    
                 else
                     error('Pendente mapear a pasta "SCH" do repositório "DataHub - POST". Independente disso, a anotação será registrada em <i>cache</i> local, sendo feito o seu <i>upload</i> ao repositório após o mapeamento.')
                 end
