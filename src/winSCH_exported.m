@@ -4,19 +4,16 @@ classdef winSCH_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                       matlab.ui.Figure
         GridLayout                     matlab.ui.container.GridLayout
-        popupContainerGrid             matlab.ui.container.GridLayout
-        SplashScreen                   matlab.ui.control.Image
         NavBar                         matlab.ui.container.GridLayout
-        menu_AppName                   matlab.ui.control.Label
-        menu_AppIcon                   matlab.ui.control.Image
-        menu_Button3                   matlab.ui.control.StateButton
-        menu_Separator                 matlab.ui.control.Image
-        menu_Button2                   matlab.ui.control.StateButton
-        menu_Button1                   matlab.ui.control.StateButton
-        jsBackDoor                     matlab.ui.control.HTML
-        DataHubLamp                    matlab.ui.control.Lamp
         AppInfo                        matlab.ui.control.Image
         FigurePosition                 matlab.ui.control.Image
+        DataHubLamp                    matlab.ui.control.Lamp
+        Tab3Button                     matlab.ui.control.StateButton
+        ButtonsSeparator               matlab.ui.control.Image
+        Tab2Button                     matlab.ui.control.StateButton
+        Tab1Button                     matlab.ui.control.StateButton
+        AppName                        matlab.ui.control.Label
+        AppIcon                        matlab.ui.control.Image
         TabGroup                       matlab.ui.container.TabGroup
         Tab1_Search                    matlab.ui.container.Tab
         Grid1                          matlab.ui.container.GridLayout
@@ -33,6 +30,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         SubTabGroup                    matlab.ui.container.TabGroup
         SubTab1_Search                 matlab.ui.container.Tab
         SubGrid1                       matlab.ui.container.GridLayout
+        jsBackDoor                     matlab.ui.control.HTML
         search_WordCloudPanel          matlab.ui.container.Panel
         search_ProductInfo             matlab.ui.control.Label
         search_ProductInfoImage        matlab.ui.control.Image
@@ -40,20 +38,20 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_ProductInfoLabel        matlab.ui.control.Label
         SubTab2_Filter                 matlab.ui.container.Tab
         SubGrid2                       matlab.ui.container.GridLayout
-        SecundaryPanelLabel            matlab.ui.control.Label
+        SecondaryPanelLabel            matlab.ui.control.Label
         LocationEditionMode            matlab.ui.control.Image
         LocationEditionConfirm         matlab.ui.control.Image
         LocationEditionCancel          matlab.ui.control.Image
-        SecundaryListOfFilters         matlab.ui.control.ListBox
-        SecundaryPanel                 matlab.ui.container.Panel
-        SecundaryGrid                  matlab.ui.container.GridLayout
-        SecundaryTextListValue         matlab.ui.control.DropDown
-        SecundaryTextFreeValue         matlab.ui.control.EditField
-        SecundaryDateTime2             matlab.ui.control.EditField
-        SecundaryDateTimeSeparator     matlab.ui.control.Label
-        SecundaryDateTime1             matlab.ui.control.EditField
-        SecundaryOperation             matlab.ui.control.DropDown
-        SecundaryColumn                matlab.ui.control.DropDown
+        SecondaryListOfFilters         matlab.ui.control.ListBox
+        SecondaryPanel                 matlab.ui.container.Panel
+        SecondaryGrid                  matlab.ui.container.GridLayout
+        SecondaryTextListValue         matlab.ui.control.DropDown
+        SecondaryTextFreeValue         matlab.ui.control.EditField
+        SecondaryDateTime2             matlab.ui.control.EditField
+        SecondaryDateTimeSeparator     matlab.ui.control.Label
+        SecondaryDateTime1             matlab.ui.control.EditField
+        SecondaryOperation             matlab.ui.control.DropDown
+        SecondaryColumn                matlab.ui.control.DropDown
         FILTRAGEMPRIMRIADropDown       matlab.ui.control.DropDown
         FILTRAGEMPRIMRIADropDownLabel  matlab.ui.control.Label
         Toolbar                        matlab.ui.container.GridLayout
@@ -69,59 +67,43 @@ classdef winSCH_exported < matlab.apps.AppBase
     end
 
 
-    properties (Access = public)
+    properties (Access = private)
         %-----------------------------------------------------------------%
-        % PROPRIEDADES COMUNS A TODOS OS APPS
+        Role = 'mainApp'
+    end
+
+
+    properties (Access = public)
         %-----------------------------------------------------------------%
         General
         General_I
 
         rootFolder
-
-        % Essa propriedade registra o tipo de execução da aplicação, podendo
-        % ser: 'built-in', 'desktopApp' ou 'webApp'.
-        executionMode
-
-        % A função do timer é executada uma única vez após a renderização
-        % da figura, lendo arquivos de configuração, iniciando modo de operação
-        % paralelo etc. A ideia é deixar o MATLAB focar apenas na criação dos
-        % componentes essenciais da GUI (especificados em "createComponents"),
-        % mostrando a GUI para o usuário o mais rápido possível.
-        timerObj
-
-        % Controla a seleção da TabGroup a partir do menu.
         tabGroupController
         renderCount = 0
 
-        % Janela de progresso já criada no DOM. Dessa forma, controla-se
-        % apenas a sua visibilidade - e tornando desnecessário criá-la a
-        % cada chamada (usando uiprogressdlg, por exemplo).
+        executionMode
         progressDialog
         popupContainer
 
-        % Objeto que possibilita integração com o eFiscaliza.
         eFiscalizaObj
+        filteringObj = tableFiltering
+        wordCloudObj
 
-        %-----------------------------------------------------------------%
-        % PROPRIEDADES ESPECÍFICAS
-        %-----------------------------------------------------------------%
         projectData
-
+        
         rawDataTable
         releasedData
         cacheData
         cacheColumns
-
         annotationTable
 
         previousSearch   = ''
         previousItemData = 0
-        filteringObj     = tableFiltering
-        wordCloudObj
     end
 
 
-    methods
+    methods (Access = public)
         %-----------------------------------------------------------------%
         % COMUNICAÇÃO ENTRE PROCESSOS:
         % • ipcMainJSEventsHandler
@@ -176,34 +158,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             % app.search_entryPoint.Value = app.search_entryPoint.ChangingValue
             try
                 switch event.HTMLEventName
-                    % JSBACKDOOR (compCustomization.js)
+                    % MATLAB-JS BRIDGE (matlabJSBridge.js)
                     case 'renderer'
+                        MFilePath   = fileparts(mfilename('fullpath'));
+                        parpoolFlag = true;
+
                         if ~app.renderCount
-                            startup_Controller(app)
+                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         else
-                            % Esse fluxo será executado especificamente na
-                            % versão webapp, quando o navegador atualiza a
-                            % página (decorrente de F5 ou CTRL+F5).
-
-                            if ~app.menu_Button1.Value
-                                app.menu_Button1.Value = true;                    
-                                menu_mainButtonPushed(app, struct('Source', app.menu_Button1, 'PreviousValue', false))
-                                drawnow
-                            end
-
-                            closeModule(app.tabGroupController, ["PRODUCTS", "CONFIG"], app.General)
-
-                            if ~isempty(app.popupContainer)
-                                delete(app.popupContainer)
-                            end
-    
-                            if ~isempty(app.AppInfo.Tag)
-                                app.AppInfo.Tag = '';
-                            end
-
-                            startup_Controller(app)
-
-                            app.progressDialog.Visible = 'hidden';
+                            appEngine.beforeReload(app, app.Role)
+                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         end
                         
                         app.renderCount = app.renderCount+1;
@@ -211,45 +175,34 @@ classdef winSCH_exported < matlab.apps.AppBase
                     case 'unload'
                         closeFcn(app)
 
-                    case 'BackgroundColorTurnedInvisible'
-                        switch event.HTMLEventData
-                            case 'SplashScreen'
-                                if isvalid(app.popupContainerGrid)
-                                    delete(app.popupContainerGrid)
-                                end
-
-                            case 'PopupTempWarning'
-                                app.tool_AddSelectedToBucket.Enable = "on";
-                                app.PopupTempWarning.Visible = "off";
-
-                            otherwise
-                                error('UnexpectedEvent')
-                        end
-                    
                     case 'customForm'
                         switch event.HTMLEventData.uuid
                             case 'eFiscalizaSignInPage'
                                 context = event.HTMLEventData.context;
                                 report_uploadInfoController(app, event.HTMLEventData, 'uploadDocument', context)
 
+                            case 'eFiscalizaSignInPage:IssueQuery'
+                                error('Pendente de implementação!')
+                                context = event.HTMLEventData.context;
+                                report_queryIssueDetails(app, event.HTMLEventData, context)
+
                             case 'openDevTools'
                                 if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
                                     webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
                                     webWin.openDevTools();
                                 end
+
+                            case 'onProjectSave'
+                                error('Pendente de implementação!')
+                                context = event.HTMLEventData.context;
+                                prjName = event.HTMLEventData.projectName;
+                                report_saveProject(app, context, prjName)
                         end
 
                     case 'getNavigatorBasicInformation'
                         app.General.AppVersion.browser = event.HTMLEventData;
     
                     case 'mainApp.search_entryPoint'
-                        % Ao alterar o conteúdo de app.search_entryPoint, 
-                        % sem alterar o seu foco, será executado o evento 
-                        % "ValueChangingFcn". Ao pressionar "Enter", será 
-                        % executada a função "ipcMainJSEventsHandler" antes 
-                        % de atualizar a sua propriedade "Value". Por conta 
-                        % disso, é essencial inserir WAITFOR.
-
                         focus(app.jsBackDoor)
                         matlab.waitfor(app.search_entryPoint, 'Value', @(propValue) strcmp(propValue, app.previousSearch), .100, 1, 'propValue')
     
@@ -352,7 +305,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 drawnow
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME));
+                ui.Dialog(app.UIFigure, 'error', getReport(ME));
             end
         end
 
@@ -398,7 +351,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         refTable = app.wordCloudObj.Table;
                                         delete(app.wordCloudObj)
                     
-                                        app.wordCloudObj = wordCloud(app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
+                                        app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
                                         app.wordCloudObj.Table = refTable;
                                     end
                                 end
@@ -409,8 +362,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                     
                                 if ~isempty(app.search_Table.Data)
                                     if (numel(columnNames) ~= width(app.search_Table.Data)) || any(~ismember(app.search_Table.ColumnName, upper(columnNames)))
-                                        secundaryIndex = app.search_Table.UserData.secundaryIndex;
-                                        app.search_Table.Data = app.rawDataTable(secundaryIndex, columnNames);
+                                        secondaryIndex = app.search_Table.UserData.secondaryIndex;
+                                        app.search_Table.Data = app.rawDataTable(secondaryIndex, columnNames);
                                     end
                                 end
 
@@ -456,7 +409,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
 
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', ME.message);
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
 
             % Caso um app auxiliar esteja em modo DOCK, o progressDialog do
@@ -467,16 +420,16 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function ipcMainMatlabCallAuxiliarApp(app, auxAppName, communicationType, varargin)
-            hAuxApp = auxAppHandle(app, auxAppName);
+            hAuxApp = getAppHandle(app.tabGroupController, auxAppName);
 
             if ~isempty(hAuxApp)
                 switch communicationType
                     case 'MATLAB'
                         operationType = varargin{1};
-                        ipcSecundaryMatlabCallsHandler(hAuxApp, app, operationType, varargin{2:end});
+                        ipcSecondaryMatlabCallsHandler(hAuxApp, app, operationType, varargin{2:end});
                     case 'JS'
                         event = varargin{1};
-                        ipcSecundaryJSEventsHandler(hAuxApp, event)
+                        ipcSecondaryJSEventsHandler(hAuxApp, event)
                 end
             end
         end
@@ -520,17 +473,14 @@ classdef winSCH_exported < matlab.apps.AppBase
     end
 
 
-    methods (Access = private)
+    methods (Access = public)
         %-----------------------------------------------------------------%
-        % JSBACKDOOR
-        %-----------------------------------------------------------------%
-        function jsBackDoor_Initialization(app)
-            app.jsBackDoor.HTMLSource           = appUtil.jsBackDoorHTMLSource();
-            app.jsBackDoor.HTMLEventReceivedFcn = @(~, evt)ipcMainJSEventsHandler(app, evt);
+        function navigateToTab(app, clickedButton)
+            tabNavigatorButtonPushed(app, struct('Source', clickedButton, 'PreviousValue', false))
         end
 
         %-----------------------------------------------------------------%
-        function jsBackDoor_AppCustomizations(app, tabIndex)
+        function applyJSCustomizations(app, tabIndex)
             persistent customizationStatus
             if isempty(customizationStatus)
                 customizationStatus = [false, false, false];
@@ -551,53 +501,45 @@ classdef winSCH_exported < matlab.apps.AppBase
                     customizationStatus(tabIndex) = true;
                     switch tabIndex
                         case 1 % SEARCH
-                            elToModify = { ...
-                                app.popupContainerGrid, ...
-                                app.search_entryPoint, ...
-                                app.search_ProductInfo, ...                 % ui.TextView
-                                app.search_ProductInfoImage, ...            % ui.TextView (Background image)
-                                app.search_Suggestions, ...
-                                app.PopupTempWarning
+                            elToModify = {
+                                app.search_entryPoint;
+                                app.search_ProductInfo;                     % ui.TextView
+                                app.search_ProductInfoImage;                % ui.TextView (Background image)
+                                app.search_Suggestions;
+                                app.PopupTempWarning;
+                                app.search_WordCloudPanel
                             };
                             ui.CustomizationBase.getElementsDataTag(elToModify);
 
-                            appName = class(app);
-                            if isvalid(app.popupContainerGrid)
-                                try
-                                    sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', {struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'style', struct('backgroundColor', 'rgba(255,255,255,0.65)'))});
-                                catch
-                                end
-                            end
-
                             try
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{2}.UserData.id, 'generation', 1, 'style',    struct('borderWidth', '0')), ...
-                                    struct('appName', appName, 'dataTag', elToModify{2}.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.search_entryPoint', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                                    struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 1, 'style',    struct('borderWidth', '0')), ...
+                                    struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.search_entryPoint', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
                                 });
                             catch
                             end
 
                             try
-                                ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName);
+                                ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName);
                             catch
                             end
 
                             try
-                                ui.TextView.startup(app.jsBackDoor, elToModify{4}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
+                                ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
                             catch
                             end
                             
                             try
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 1, 'style',    struct('borderTop', '0')), ...
-                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                                    struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'style',    struct('borderTop', '0')), ...
+                                    struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
                                 });
                             catch
                             end
 
                             try
                                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{6}.UserData.id, 'generation', 0, 'style',    struct('borderRadius', '5px', 'pointerEvents', 'none')) ...
+                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 0, 'style',    struct('borderRadius', '5px', 'pointerEvents', 'none')) ...
                                 });
                             catch
                             end
@@ -609,93 +551,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
             end
         end
-    end
-
-
-    methods (Access = private)
-        %-----------------------------------------------------------------%
-        % INICIALIZAÇÃO DO APP
-        %-----------------------------------------------------------------%
-        function startup_timerCreation(app)
-            app.timerObj = timer("ExecutionMode", "fixedSpacing", ...
-                                 "StartDelay",    1.5,            ...
-                                 "Period",        .1,             ...
-                                 "TimerFcn",      @(~,~)app.startup_timerFcn);
-            start(app.timerObj)
-        end
 
         %-----------------------------------------------------------------%
-        function startup_timerFcn(app)
-            if ui.FigureRenderStatus(app.UIFigure)
-                stop(app.timerObj)
-                delete(app.timerObj)
-
-                jsBackDoor_Initialization(app)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_Controller(app)
-            drawnow
-
-            if ~app.renderCount
-                % Essa propriedade registra o tipo de execução da aplicação, podendo
-                % ser: 'built-in', 'desktopApp' ou 'webApp'.
-                app.executionMode  = appUtil.ExecutionMode(app.UIFigure);
-                if ~strcmp(app.executionMode, 'webApp')
-                    app.FigurePosition.Visible = 1;
-                    appUtil.winMinSize(app.UIFigure, class.Constants.windowMinSize)
-                end
-    
-                % Identifica o local deste arquivo .MLAPP, caso se trate das versões 
-                % "built-in" ou "webapp", ou do .EXE relacionado, caso se trate da
-                % versão executável (neste caso, o ctfroot indicará o local do .MLAPP).
-                appName = class.Constants.appName;
-                MFilePath = fileparts(mfilename('fullpath'));
-                app.rootFolder = appUtil.RootFolder(appName, MFilePath);
-
-                % webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
-                % webWin.openDevTools();
-                % pause(3)
-
-                % Customizações...
-                jsBackDoor_AppCustomizations(app, 0)
-                jsBackDoor_AppCustomizations(app, 1)
-                pause(.100)
-
-                % Cria tela de progresso...
-                app.progressDialog = ui.ProgressDialog(app.jsBackDoor);
-    
-                startup_ConfigFileRead(app, appName, MFilePath)
-                startup_AppProperties(app)
-                startup_GUIComponents(app)
-
-                % Inicia módulo de operação paralelo...
-                parpoolCheck()
-    
-                % Por fim, exclui-se o splashscreen, um segundo após envio do comando 
-                % para que diminua a transparência do background.
-                sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'SplashScreen', 'componentDataTag', struct(app.SplashScreen).Controller.ViewModel.Id));
-                drawnow
-            
-                pause(1)
-                if isvalid(app.popupContainerGrid)
-                    delete(app.popupContainerGrid)
-                end
-
-            else
-                jsBackDoor_AppCustomizations(app, 0)
-                jsBackDoor_AppCustomizations(app, 1)
-                pause(.100)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function startup_ConfigFileRead(app, appName, MFilePath)
+        function loadConfigurationFile(app, appName, MFilePath)
             % "GeneralSettings.json"
-            [app.General_I, msgWarning] = appUtil.generalSettingsLoad(appName, app.rootFolder, {'Annotation.xlsx'});
+            [app.General_I, msgWarning] = appEngine.util.generalSettingsLoad(appName, app.rootFolder, {'Annotation.xlsx'});
             if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'error', msgWarning);
+                ui.Dialog(app.UIFigure, 'error', msgWarning);
             end
 
             % Para criação de arquivos temporários, cria-se uma pasta da
@@ -726,7 +588,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 otherwise
                     % Resgata a pasta de trabalho do usuário (configurável).
-                    userPaths = appUtil.UserPaths(app.General_I.fileFolder.userPath);
+                    userPaths = appEngine.util.UserPaths(app.General_I.fileFolder.userPath);
                     app.General_I.fileFolder.userPath = userPaths{end};
 
                     switch app.executionMode
@@ -743,11 +605,46 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_AppProperties(app)
+        function initializeAppProperties(app)
             app.projectData = model.projectLib(app, app.rootFolder);
             startup_mainVariables(app)
         end
 
+        %-----------------------------------------------------------------%
+        function initializeUIComponents(app)
+            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog, @app.applyJSCustomizations, '');
+            addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), app.Tab1Button,                      2)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.Tab1Button,                      3)
+
+            % Salva na propriedade "UserData" as opções de ícone e o índice
+            % da aba, simplificando os ajustes decorrentes de uma alteração...
+            app.search_ToolbarWordCloud.UserData      = false;
+
+            % Inicialização da propriedade "UserData" da tabela.
+            app.search_entryPointImage.UserData       = struct('value2Search', '', 'words2Search', '');
+            app.search_Table.UserData                 = struct('primaryIndex', [], 'secondaryIndex', [], 'cacheColumns', {{}});
+            app.search_Table.RowName                  = 'numbered';
+
+            % Os painéis de metadados do registro selecionado nas tabelas já 
+            % tem, na sua propriedade "UserData", a chave "id" que armazena 
+            % o "data-tag" que identifica o componente no código HTML. 
+            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
+            app.search_ProductInfo.UserData.selectedRow = [];
+            app.search_ProductInfo.UserData.showedHom   = '';
+        end
+
+        %-----------------------------------------------------------------%
+        function applyInitialLayout(app)
+            DataHubWarningLamp(app)
+
+            search_EntryPoint_Layout(app)
+            updateFilterSpecificationToolbar(app)
+        end
+    end
+
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function startup_mainVariables(app)
             [app.rawDataTable, ...
@@ -758,38 +655,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function startup_GUIComponents(app)
-            % Cria o objeto que conecta o TabGroup com o GraphicMenu.
-            app.tabGroupController = tabGroupGraphicMenu(app.NavBar, app.TabGroup, app.progressDialog, @app.jsBackDoor_AppCustomizations, '');
-
-            addComponent(app.tabGroupController, "Built-in", "mainApp",            app.menu_Button1, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
-            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.menu_Button2, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), app.menu_Button1,                    2)
-            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.menu_Button3, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.menu_Button1,                    3)
-
-            % Salva na propriedade "UserData" as opções de ícone e o índice
-            % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.search_ToolbarWordCloud.UserData      = false;
-
-            % Inicialização da propriedade "UserData" da tabela.
-            app.search_entryPointImage.UserData       = struct('value2Search', '', 'words2Search', '');
-            app.search_Table.UserData                 = struct('primaryIndex', [], 'secundaryIndex', [], 'cacheColumns', {{}});
-            app.search_Table.RowName                  = 'numbered';
-
-            % Os painéis de metadados do registro selecionado nas tabelas já 
-            % tem, na sua propriedade "UserData", a chave "id" que armazena 
-            % o "data-tag" que identifica o componente no código HTML. 
-            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
-            app.search_ProductInfo.UserData.selectedRow = [];
-            app.search_ProductInfo.UserData.showedHom   = '';
-
-            search_EntryPoint_Layout(app)
-            updateFilterSpecificationToolbar(app)
-
-            % Avalia mapeamento de pasta do Sharepoint...
-            DataHubWarningLamp(app)
-        end
-
-        %-----------------------------------------------------------------%
         function DataHubWarningLamp(app)
             if isfolder(app.General.fileFolder.DataHub_GET) && isfolder(app.General.fileFolder.DataHub_POST)
                 app.DataHubLamp.Visible = 0;
@@ -797,13 +662,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.DataHubLamp.Visible = 1;
             end
         end
-    end
 
-
-    methods (Access = private)
         %-----------------------------------------------------------------%
-        % MÓDULO "SEARCH"
-        %-----------------------------------------------------------------%   
         function search_SuggestionAlgorithm(app, eventValue, panelVisibility)
             value2Search = textAnalysis.preProcessedData(eventValue, false);
             search_EntryPointImage_Status(app, value2Search)
@@ -826,7 +686,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             relatedAnnotationTable = app.annotationTable(annotationLogical, :);
         end
 
-
         %-----------------------------------------------------------------%
         function search_Annotation_Add2Cache(app, selectedRow, showedHom, attributeName, attributeValue, wourdCloudRefreshTag)
             % !! PONTO DE EVOLUÇÃO !!
@@ -835,8 +694,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % DOS OUTROS TIPOS DE ANOTAÇÃO.
             newRowTable = table({char(matlab.lang.internal.uuid())},           ...
                 {datestr(now, 'dd/mm/yyyy HH:MM:SS')},         ...
-                {appUtil.OperationSystem('computerName')}, ...
-                {appUtil.OperationSystem('userName')},     ...
+                {appEngine.util.OperationSystem('computerName')}, ...
+                {appEngine.util.OperationSystem('userName')},     ...
                 {showedHom},                                   ...
                 {attributeName},                               ...
                 {attributeValue},                              ...
@@ -848,7 +707,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             else
                 if any(strcmp(app.annotationTable.("Atributo")(idx1), attributeName) & strcmp(app.annotationTable.("Valor")(idx1), attributeValue))
-                    appUtil.modalWindow(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', showedHom));
+                    ui.Dialog(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', showedHom));
                     return
 
                 else
@@ -865,7 +724,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % pasta POST, ou é salva localmente em cache.
             [app.annotationTable, msgWarning] = util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             if ~isempty(msgWarning)
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                ui.Dialog(app.UIFigure, 'warning', msgWarning);
             end
 
             % Atualizando o painel com os metadados do registro selecionado...
@@ -908,11 +767,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             GUIColumns         = search_Table_ColumnNames(app);
 
             set(app.search_Table, 'Data',      app.rawDataTable(primaryIndex, GUIColumns), ...
-                'UserData',  struct('primaryIndex', primaryIndex, 'secundaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
+                'UserData',  struct('primaryIndex', primaryIndex, 'secondaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
 
             % Cria chart para a nuvem de palavras...
             if isempty(app.wordCloudObj)
-                app.wordCloudObj = wordCloud(app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
+                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
             end
 
             % Torna visível a tabela e outros elementos relacionados à tabela...
@@ -930,19 +789,19 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function search_Filtering_secundaryFilter(app)
+        function search_Filtering_secondaryFilter(app)
             primaryIndex = app.search_Table.UserData.primaryIndex;
             GUIColumns   = search_Table_ColumnNames(app);
 
             if ~isempty(app.filteringObj.filterRules)
                 logicalArray   = run(app.filteringObj, 'filterRules', app.rawDataTable(primaryIndex,:));
-                secundaryIndex = primaryIndex(logicalArray);
+                secondaryIndex = primaryIndex(logicalArray);
             else
-                secundaryIndex = primaryIndex;
+                secondaryIndex = primaryIndex;
             end
 
-            app.search_Table.Data = app.rawDataTable(secundaryIndex, GUIColumns);
-            app.search_Table.UserData.secundaryIndex = secundaryIndex;
+            app.search_Table.Data = app.rawDataTable(secondaryIndex, GUIColumns);
+            app.search_Table.UserData.secondaryIndex = secondaryIndex;
 
             % Renderiza em tela o número de linhas, além de selecionar a primeira
             % linha da tabela, caso a pesquisa retorne algo.
@@ -1214,7 +1073,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 catch ME
                     app.progressDialog.Visible = 'hidden';
-                    appUtil.modalWindow(app.UIFigure, 'warning', ME.identifier);
+                    ui.Dialog(app.UIFigure, 'warning', ME.identifier);
 
                     status = false;
                     return
@@ -1249,7 +1108,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     error('Registro %s não possui cadastrado "Modelo" ou "Nome Comercial", inviabilizando consulta à internet.', showedHom)
                 else
                     listOfColumns = {'Modelo', 'Nome Comercial'};
-                    appUtil.modalWindow(app.UIFigure, 'warning', sprintf('O registro %s não possui cadastrado "%s". Dessa forma, consulta à internet foi realizada usando o seu "%s".', showedHom, listOfColumns{idx1}, listOfColumns{idx2}));
+                    ui.Dialog(app.UIFigure, 'warning', sprintf('O registro %s não possui cadastrado "%s". Dessa forma, consulta à internet foi realizada usando o seu "%s".', showedHom, listOfColumns{idx1}, listOfColumns{idx2}));
                 end
             end
         end
@@ -1355,7 +1214,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 modalWindowMessage  = ME.message;
             end
 
-            appUtil.modalWindow(app.UIFigure, modalWindowIcon, modalWindowMessage);
+            ui.Dialog(app.UIFigure, modalWindowIcon, modalWindowMessage);
             app.progressDialog.Visible = 'hidden';
         end
 
@@ -1365,7 +1224,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             [status, msg] = copyfile(JSONFile, app.General.fileFolder.DataHub_POST, 'f');
 
             if ~status
-                appUtil.modalWindow(app.UIFigure, 'error', msg);
+                ui.Dialog(app.UIFigure, 'error', msg);
             end
         end
 
@@ -1421,26 +1280,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         function startupFcn(app)
 
             try
-                % WARNING MESSAGES
-                appUtil.disablingWarningMessages()
-
-                % <GUI>
-                app.popupContainerGrid.Layout.Row = [1,2];
-                app.GridLayout.RowHeight(end) = [];
-
-                app.menu_AppName.Text = sprintf('%s v. %s\n<font style="font-size: 9px;">%s</font>', ...
-                    class.Constants.appName, class.Constants.appVersion, class.Constants.appRelease);
-
                 if app.SubTabGroup.Visible
                     misc_Panel_VisibilityImageClicked(app)
                 end
-                % </GUI>
 
-                appUtil.winPosition(app.UIFigure)
-                startup_timerCreation(app)
-
+                appEngine.boot(app, app.Role)
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
+                ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
             end
 
         end
@@ -1455,7 +1301,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if ~strcmp(app.executionMode, 'webApp')
                 msgQuestion   = 'Deseja fechar o aplicativo?';
-                userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
                 if userSelection == "Não"
                     return
                 end
@@ -1473,7 +1319,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         msgQuestion = 'Deseja fechar o aplicativo?';
                     end
         
-                    userSelection = appUtil.modalWindow(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                    userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
                     if userSelection == "Não"
                         return
                     end
@@ -1484,7 +1330,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             % Aspectos gerais (comum em todos os apps):
-            appUtil.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
+            appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
             delete(app)
 
         end
@@ -1531,8 +1377,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: menu_Button1, menu_Button2, menu_Button3
-        function menu_mainButtonPushed(app, event)
+        % Value changed function: Tab1Button, Tab2Button, Tab3Button
+        function tabNavigatorButtonPushed(app, event)
 
             clickedButton  = event.Source;
             auxAppTag      = clickedButton.Tag;
@@ -1552,27 +1398,21 @@ classdef winSCH_exported < matlab.apps.AppBase
             switch event.Source
                 case app.FigurePosition
                     app.UIFigure.Position(3:4) = class.Constants.windowSize;
-                    appUtil.winPosition(app.UIFigure)
+                    appEngine.util.setWindowPosition(app.UIFigure)
 
                 case app.AppInfo
-                    if isempty(app.AppInfo.Tag)
-                        app.progressDialog.Visible = 'visible';
-                        app.AppInfo.Tag = util.HtmlTextGenerator.AppInfo( ...
-                            app.General, ...
-                            app.rootFolder, ...
-                            app.executionMode, ...
-                            app.renderCount, ...
-                            app.rawDataTable, ...
-                            app.releasedData, ...
-                            app.cacheData, ...
-                            app.annotationTable, ...
-                            'popup' ...
-                        );
-                        app.progressDialog.Visible = 'hidden';
-                    end
-
-                    msgInfo = app.AppInfo.Tag;
-                    appUtil.modalWindow(app.UIFigure, 'info', msgInfo);
+                    appInfo = util.HtmlTextGenerator.AppInfo( ...
+                        app.General, ...
+                        app.rootFolder, ...
+                        app.executionMode, ...
+                        app.renderCount, ...
+                        app.rawDataTable, ...
+                        app.releasedData, ...
+                        app.cacheData, ...
+                        app.annotationTable, ...
+                        "popup" ...
+                    );
+                    ui.Dialog(app.UIFigure, 'info', appInfo);
             end
 
         end
@@ -1628,8 +1468,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         function tool_ExportVisibleTableImageClicked(app, event)
             
             nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
-            defaultName   = appUtil.DefaultFileName(app.General.fileFolder.userPath, 'SCH', -1);
-            fileFullPath  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
+            defaultName   = appEngine.util.DefaultFileName(app.General.fileFolder.userPath, 'SCH', -1);
+            fileFullPath  = ui.Dialog(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
             if isempty(fileFullPath)
                 return
             end
@@ -1637,10 +1477,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'visible';
 
             try
-                idxSCH = app.search_Table.UserData.secundaryIndex;
+                idxSCH = app.search_Table.UserData.secondaryIndex;
                 writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
             catch ME
-                appUtil.modalWindow(app.UIFigure, 'warning', getReport(ME));
+                ui.Dialog(app.UIFigure, 'warning', getReport(ME));
             end
 
             app.progressDialog.Visible = 'hidden';
@@ -1742,7 +1582,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             if isempty(selectedRows)
                 app.tool_AddSelectedToBucket.Enable = 0;
                 msgWarning = 'Selecione ao menos um registro na tabela.';
-                appUtil.modalWindow(app.UIFigure, 'warning', msgWarning);
+                ui.Dialog(app.UIFigure, 'warning', msgWarning);
                 return
 
             else
@@ -1772,7 +1612,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         % ...and 4 other components
         function PENDENTE_IMPLEMENTACAO(app, event)
             
-            appUtil.modalWindow(app.UIFigure, 'error', 'PENDENTE');
+            ui.Dialog(app.UIFigure, 'error', 'PENDENTE');
 
         end
     end
@@ -1798,7 +1638,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.UIFigure);
             app.GridLayout.ColumnWidth = {'1x'};
-            app.GridLayout.RowHeight = {54, '1x', 44};
+            app.GridLayout.RowHeight = {54, '1x'};
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [0.9412 0.9412 0.9412];
@@ -1908,7 +1748,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create SubGrid1
             app.SubGrid1 = uigridlayout(app.SubTab1_Search);
             app.SubGrid1.ColumnWidth = {'1x', 18};
-            app.SubGrid1.RowHeight = {17, '1x', 0};
+            app.SubGrid1.RowHeight = {17, '1x', 150};
             app.SubGrid1.ColumnSpacing = 5;
             app.SubGrid1.RowSpacing = 5;
             app.SubGrid1.BackgroundColor = [1 1 1];
@@ -1955,6 +1795,12 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_WordCloudPanel.Layout.Row = 3;
             app.search_WordCloudPanel.Layout.Column = [1 2];
 
+            % Create jsBackDoor
+            app.jsBackDoor = uihtml(app.SubGrid1);
+            app.jsBackDoor.Tag = 'jsBackDoor';
+            app.jsBackDoor.Layout.Row = 3;
+            app.jsBackDoor.Layout.Column = [1 2];
+
             % Create SubTab2_Filter
             app.SubTab2_Filter = uitab(app.SubTabGroup);
             app.SubTab2_Filter.AutoResizeChildren = 'off';
@@ -1985,90 +1831,90 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.FILTRAGEMPRIMRIADropDown.Layout.Column = [1 4];
             app.FILTRAGEMPRIMRIADropDown.Value = {};
 
-            % Create SecundaryPanel
-            app.SecundaryPanel = uipanel(app.SubGrid2);
-            app.SecundaryPanel.AutoResizeChildren = 'off';
-            app.SecundaryPanel.Layout.Row = 4;
-            app.SecundaryPanel.Layout.Column = [1 4];
+            % Create SecondaryPanel
+            app.SecondaryPanel = uipanel(app.SubGrid2);
+            app.SecondaryPanel.AutoResizeChildren = 'off';
+            app.SecondaryPanel.Layout.Row = 4;
+            app.SecondaryPanel.Layout.Column = [1 4];
 
-            % Create SecundaryGrid
-            app.SecundaryGrid = uigridlayout(app.SecundaryPanel);
-            app.SecundaryGrid.ColumnWidth = {55, '1x', 10, '1x'};
-            app.SecundaryGrid.RowHeight = {22, 22};
-            app.SecundaryGrid.ColumnSpacing = 5;
-            app.SecundaryGrid.RowSpacing = 5;
-            app.SecundaryGrid.BackgroundColor = [1 1 1];
+            % Create SecondaryGrid
+            app.SecondaryGrid = uigridlayout(app.SecondaryPanel);
+            app.SecondaryGrid.ColumnWidth = {55, '1x', 10, '1x'};
+            app.SecondaryGrid.RowHeight = {22, 22};
+            app.SecondaryGrid.ColumnSpacing = 5;
+            app.SecondaryGrid.RowSpacing = 5;
+            app.SecondaryGrid.BackgroundColor = [1 1 1];
 
-            % Create SecundaryColumn
-            app.SecundaryColumn = uidropdown(app.SecundaryGrid);
-            app.SecundaryColumn.Items = {};
-            app.SecundaryColumn.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
-            app.SecundaryColumn.FontSize = 11;
-            app.SecundaryColumn.BackgroundColor = [1 1 1];
-            app.SecundaryColumn.Layout.Row = 1;
-            app.SecundaryColumn.Layout.Column = [1 4];
-            app.SecundaryColumn.Value = {};
+            % Create SecondaryColumn
+            app.SecondaryColumn = uidropdown(app.SecondaryGrid);
+            app.SecondaryColumn.Items = {};
+            app.SecondaryColumn.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.SecondaryColumn.FontSize = 11;
+            app.SecondaryColumn.BackgroundColor = [1 1 1];
+            app.SecondaryColumn.Layout.Row = 1;
+            app.SecondaryColumn.Layout.Column = [1 4];
+            app.SecondaryColumn.Value = {};
 
-            % Create SecundaryOperation
-            app.SecundaryOperation = uidropdown(app.SecundaryGrid);
-            app.SecundaryOperation.Items = {'=', '≠', '⊃', '⊅', '<', '≤', '>', '≥', '><', '<>'};
-            app.SecundaryOperation.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
-            app.SecundaryOperation.FontName = 'Consolas';
-            app.SecundaryOperation.BackgroundColor = [1 1 1];
-            app.SecundaryOperation.Layout.Row = 2;
-            app.SecundaryOperation.Layout.Column = 1;
-            app.SecundaryOperation.Value = '=';
+            % Create SecondaryOperation
+            app.SecondaryOperation = uidropdown(app.SecondaryGrid);
+            app.SecondaryOperation.Items = {'=', '≠', '⊃', '⊅', '<', '≤', '>', '≥', '><', '<>'};
+            app.SecondaryOperation.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.SecondaryOperation.FontName = 'Consolas';
+            app.SecondaryOperation.BackgroundColor = [1 1 1];
+            app.SecondaryOperation.Layout.Row = 2;
+            app.SecondaryOperation.Layout.Column = 1;
+            app.SecondaryOperation.Value = '=';
 
-            % Create SecundaryDateTime1
-            app.SecundaryDateTime1 = uieditfield(app.SecundaryGrid, 'text');
-            app.SecundaryDateTime1.CharacterLimits = [10 10];
-            app.SecundaryDateTime1.Visible = 'off';
-            app.SecundaryDateTime1.Placeholder = 'dd/mm/yyyy';
-            app.SecundaryDateTime1.Layout.Row = 2;
-            app.SecundaryDateTime1.Layout.Column = 2;
+            % Create SecondaryDateTime1
+            app.SecondaryDateTime1 = uieditfield(app.SecondaryGrid, 'text');
+            app.SecondaryDateTime1.CharacterLimits = [10 10];
+            app.SecondaryDateTime1.Visible = 'off';
+            app.SecondaryDateTime1.Placeholder = 'dd/mm/yyyy';
+            app.SecondaryDateTime1.Layout.Row = 2;
+            app.SecondaryDateTime1.Layout.Column = 2;
 
-            % Create SecundaryDateTimeSeparator
-            app.SecundaryDateTimeSeparator = uilabel(app.SecundaryGrid);
-            app.SecundaryDateTimeSeparator.HorizontalAlignment = 'center';
-            app.SecundaryDateTimeSeparator.Visible = 'off';
-            app.SecundaryDateTimeSeparator.Layout.Row = 2;
-            app.SecundaryDateTimeSeparator.Layout.Column = 3;
-            app.SecundaryDateTimeSeparator.Text = '-';
+            % Create SecondaryDateTimeSeparator
+            app.SecondaryDateTimeSeparator = uilabel(app.SecondaryGrid);
+            app.SecondaryDateTimeSeparator.HorizontalAlignment = 'center';
+            app.SecondaryDateTimeSeparator.Visible = 'off';
+            app.SecondaryDateTimeSeparator.Layout.Row = 2;
+            app.SecondaryDateTimeSeparator.Layout.Column = 3;
+            app.SecondaryDateTimeSeparator.Text = '-';
 
-            % Create SecundaryDateTime2
-            app.SecundaryDateTime2 = uieditfield(app.SecundaryGrid, 'text');
-            app.SecundaryDateTime2.CharacterLimits = [10 10];
-            app.SecundaryDateTime2.Visible = 'off';
-            app.SecundaryDateTime2.Placeholder = 'dd/mm/yyyy';
-            app.SecundaryDateTime2.Layout.Row = 2;
-            app.SecundaryDateTime2.Layout.Column = 4;
+            % Create SecondaryDateTime2
+            app.SecondaryDateTime2 = uieditfield(app.SecondaryGrid, 'text');
+            app.SecondaryDateTime2.CharacterLimits = [10 10];
+            app.SecondaryDateTime2.Visible = 'off';
+            app.SecondaryDateTime2.Placeholder = 'dd/mm/yyyy';
+            app.SecondaryDateTime2.Layout.Row = 2;
+            app.SecondaryDateTime2.Layout.Column = 4;
 
-            % Create SecundaryTextFreeValue
-            app.SecundaryTextFreeValue = uieditfield(app.SecundaryGrid, 'text');
-            app.SecundaryTextFreeValue.FontSize = 10;
-            app.SecundaryTextFreeValue.FontColor = [0.149 0.149 0.149];
-            app.SecundaryTextFreeValue.Visible = 'off';
-            app.SecundaryTextFreeValue.Layout.Row = 2;
-            app.SecundaryTextFreeValue.Layout.Column = [2 4];
+            % Create SecondaryTextFreeValue
+            app.SecondaryTextFreeValue = uieditfield(app.SecondaryGrid, 'text');
+            app.SecondaryTextFreeValue.FontSize = 10;
+            app.SecondaryTextFreeValue.FontColor = [0.149 0.149 0.149];
+            app.SecondaryTextFreeValue.Visible = 'off';
+            app.SecondaryTextFreeValue.Layout.Row = 2;
+            app.SecondaryTextFreeValue.Layout.Column = [2 4];
 
-            % Create SecundaryTextListValue
-            app.SecundaryTextListValue = uidropdown(app.SecundaryGrid);
-            app.SecundaryTextListValue.Items = {};
-            app.SecundaryTextListValue.Visible = 'off';
-            app.SecundaryTextListValue.FontSize = 10;
-            app.SecundaryTextListValue.BackgroundColor = [1 1 1];
-            app.SecundaryTextListValue.Layout.Row = 2;
-            app.SecundaryTextListValue.Layout.Column = [2 4];
-            app.SecundaryTextListValue.Value = {};
+            % Create SecondaryTextListValue
+            app.SecondaryTextListValue = uidropdown(app.SecondaryGrid);
+            app.SecondaryTextListValue.Items = {};
+            app.SecondaryTextListValue.Visible = 'off';
+            app.SecondaryTextListValue.FontSize = 10;
+            app.SecondaryTextListValue.BackgroundColor = [1 1 1];
+            app.SecondaryTextListValue.Layout.Row = 2;
+            app.SecondaryTextListValue.Layout.Column = [2 4];
+            app.SecondaryTextListValue.Value = {};
 
-            % Create SecundaryListOfFilters
-            app.SecundaryListOfFilters = uilistbox(app.SubGrid2);
-            app.SecundaryListOfFilters.Items = {};
-            app.SecundaryListOfFilters.Multiselect = 'on';
-            app.SecundaryListOfFilters.FontSize = 11;
-            app.SecundaryListOfFilters.Layout.Row = 5;
-            app.SecundaryListOfFilters.Layout.Column = [1 4];
-            app.SecundaryListOfFilters.Value = {};
+            % Create SecondaryListOfFilters
+            app.SecondaryListOfFilters = uilistbox(app.SubGrid2);
+            app.SecondaryListOfFilters.Items = {};
+            app.SecondaryListOfFilters.Multiselect = 'on';
+            app.SecondaryListOfFilters.FontSize = 11;
+            app.SecondaryListOfFilters.Layout.Row = 5;
+            app.SecondaryListOfFilters.Layout.Column = [1 4];
+            app.SecondaryListOfFilters.Value = {};
 
             % Create LocationEditionCancel
             app.LocationEditionCancel = uiimage(app.SubGrid2);
@@ -2099,13 +1945,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.LocationEditionMode.VerticalAlignment = 'bottom';
             app.LocationEditionMode.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Edit_36.png');
 
-            % Create SecundaryPanelLabel
-            app.SecundaryPanelLabel = uilabel(app.SubGrid2);
-            app.SecundaryPanelLabel.VerticalAlignment = 'bottom';
-            app.SecundaryPanelLabel.FontSize = 10;
-            app.SecundaryPanelLabel.Layout.Row = 3;
-            app.SecundaryPanelLabel.Layout.Column = 1;
-            app.SecundaryPanelLabel.Text = 'FILTRAGEM SECUNDÁRIA';
+            % Create SecondaryPanelLabel
+            app.SecondaryPanelLabel = uilabel(app.SubGrid2);
+            app.SecondaryPanelLabel.VerticalAlignment = 'bottom';
+            app.SecondaryPanelLabel.FontSize = 10;
+            app.SecondaryPanelLabel.Layout.Row = 3;
+            app.SecondaryPanelLabel.Layout.Column = 1;
+            app.SecondaryPanelLabel.Text = 'FILTRAGEM SECUNDÁRIA';
 
             % Create Document
             app.Document = uigridlayout(app.Grid1);
@@ -2231,6 +2077,79 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.NavBar.Layout.Column = 1;
             app.NavBar.BackgroundColor = [0.2 0.2 0.2];
 
+            % Create AppIcon
+            app.AppIcon = uiimage(app.NavBar);
+            app.AppIcon.Layout.Row = [1 5];
+            app.AppIcon.Layout.Column = 1;
+            app.AppIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'icon_32White.png');
+
+            % Create AppName
+            app.AppName = uilabel(app.NavBar);
+            app.AppName.WordWrap = 'on';
+            app.AppName.FontSize = 11;
+            app.AppName.FontColor = [1 1 1];
+            app.AppName.Layout.Row = [1 5];
+            app.AppName.Layout.Column = [2 3];
+            app.AppName.Interpreter = 'html';
+            app.AppName.Text = {'SCH v. 1.10.0'; '<font style="font-size: 9px;">R2024a</font>'};
+
+            % Create Tab1Button
+            app.Tab1Button = uibutton(app.NavBar, 'state');
+            app.Tab1Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
+            app.Tab1Button.Tag = 'SEARCH';
+            app.Tab1Button.Tooltip = {''};
+            app.Tab1Button.Icon = 'Zoom_32Yellow.png';
+            app.Tab1Button.IconAlignment = 'top';
+            app.Tab1Button.Text = '';
+            app.Tab1Button.BackgroundColor = [0.2 0.2 0.2];
+            app.Tab1Button.FontSize = 11;
+            app.Tab1Button.Layout.Row = [2 4];
+            app.Tab1Button.Layout.Column = 4;
+            app.Tab1Button.Value = true;
+
+            % Create Tab2Button
+            app.Tab2Button = uibutton(app.NavBar, 'state');
+            app.Tab2Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
+            app.Tab2Button.Tag = 'PRODUCTS';
+            app.Tab2Button.Tooltip = {''};
+            app.Tab2Button.Icon = 'Detection_32White.png';
+            app.Tab2Button.IconAlignment = 'top';
+            app.Tab2Button.Text = '';
+            app.Tab2Button.BackgroundColor = [0.2 0.2 0.2];
+            app.Tab2Button.FontSize = 11;
+            app.Tab2Button.Layout.Row = [2 4];
+            app.Tab2Button.Layout.Column = 5;
+
+            % Create ButtonsSeparator
+            app.ButtonsSeparator = uiimage(app.NavBar);
+            app.ButtonsSeparator.ScaleMethod = 'none';
+            app.ButtonsSeparator.Enable = 'off';
+            app.ButtonsSeparator.Layout.Row = [2 4];
+            app.ButtonsSeparator.Layout.Column = 6;
+            app.ButtonsSeparator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
+
+            % Create Tab3Button
+            app.Tab3Button = uibutton(app.NavBar, 'state');
+            app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
+            app.Tab3Button.Tag = 'CONFIG';
+            app.Tab3Button.Tooltip = {''};
+            app.Tab3Button.Icon = 'Settings_36White.png';
+            app.Tab3Button.IconAlignment = 'top';
+            app.Tab3Button.Text = '';
+            app.Tab3Button.BackgroundColor = [0.2 0.2 0.2];
+            app.Tab3Button.FontSize = 11;
+            app.Tab3Button.Layout.Row = [2 4];
+            app.Tab3Button.Layout.Column = 7;
+
+            % Create DataHubLamp
+            app.DataHubLamp = uilamp(app.NavBar);
+            app.DataHubLamp.Enable = 'off';
+            app.DataHubLamp.Visible = 'off';
+            app.DataHubLamp.Tooltip = {'Pendente mapear pastas do Sharepoint'};
+            app.DataHubLamp.Layout.Row = 3;
+            app.DataHubLamp.Layout.Column = 10;
+            app.DataHubLamp.Color = [1 0 0];
+
             % Create FigurePosition
             app.FigurePosition = uiimage(app.NavBar);
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @menu_auxiliarButtonPushed, true);
@@ -2245,102 +2164,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.AppInfo.Layout.Row = 3;
             app.AppInfo.Layout.Column = 13;
             app.AppInfo.ImageSource = 'Dots_36x36W.png';
-
-            % Create DataHubLamp
-            app.DataHubLamp = uilamp(app.NavBar);
-            app.DataHubLamp.Enable = 'off';
-            app.DataHubLamp.Visible = 'off';
-            app.DataHubLamp.Tooltip = {'Pendente mapear pastas do Sharepoint'};
-            app.DataHubLamp.Layout.Row = 3;
-            app.DataHubLamp.Layout.Column = 10;
-            app.DataHubLamp.Color = [1 0 0];
-
-            % Create jsBackDoor
-            app.jsBackDoor = uihtml(app.NavBar);
-            app.jsBackDoor.Tag = 'jsBackDoor';
-            app.jsBackDoor.Layout.Row = 3;
-            app.jsBackDoor.Layout.Column = 9;
-
-            % Create menu_Button1
-            app.menu_Button1 = uibutton(app.NavBar, 'state');
-            app.menu_Button1.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button1.Tag = 'SEARCH';
-            app.menu_Button1.Tooltip = {''};
-            app.menu_Button1.Icon = 'Zoom_32Yellow.png';
-            app.menu_Button1.IconAlignment = 'top';
-            app.menu_Button1.Text = '';
-            app.menu_Button1.BackgroundColor = [0.2 0.2 0.2];
-            app.menu_Button1.FontSize = 11;
-            app.menu_Button1.Layout.Row = [2 4];
-            app.menu_Button1.Layout.Column = 4;
-            app.menu_Button1.Value = true;
-
-            % Create menu_Button2
-            app.menu_Button2 = uibutton(app.NavBar, 'state');
-            app.menu_Button2.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button2.Tag = 'PRODUCTS';
-            app.menu_Button2.Tooltip = {''};
-            app.menu_Button2.Icon = 'Detection_32White.png';
-            app.menu_Button2.IconAlignment = 'top';
-            app.menu_Button2.Text = '';
-            app.menu_Button2.BackgroundColor = [0.2 0.2 0.2];
-            app.menu_Button2.FontSize = 11;
-            app.menu_Button2.Layout.Row = [2 4];
-            app.menu_Button2.Layout.Column = 5;
-
-            % Create menu_Separator
-            app.menu_Separator = uiimage(app.NavBar);
-            app.menu_Separator.ScaleMethod = 'none';
-            app.menu_Separator.Enable = 'off';
-            app.menu_Separator.Layout.Row = [2 4];
-            app.menu_Separator.Layout.Column = 6;
-            app.menu_Separator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
-
-            % Create menu_Button3
-            app.menu_Button3 = uibutton(app.NavBar, 'state');
-            app.menu_Button3.ValueChangedFcn = createCallbackFcn(app, @menu_mainButtonPushed, true);
-            app.menu_Button3.Tag = 'CONFIG';
-            app.menu_Button3.Tooltip = {''};
-            app.menu_Button3.Icon = 'Settings_36White.png';
-            app.menu_Button3.IconAlignment = 'top';
-            app.menu_Button3.Text = '';
-            app.menu_Button3.BackgroundColor = [0.2 0.2 0.2];
-            app.menu_Button3.FontSize = 11;
-            app.menu_Button3.Layout.Row = [2 4];
-            app.menu_Button3.Layout.Column = 7;
-
-            % Create menu_AppIcon
-            app.menu_AppIcon = uiimage(app.NavBar);
-            app.menu_AppIcon.Layout.Row = [1 5];
-            app.menu_AppIcon.Layout.Column = 1;
-            app.menu_AppIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'icon_32White.png');
-
-            % Create menu_AppName
-            app.menu_AppName = uilabel(app.NavBar);
-            app.menu_AppName.WordWrap = 'on';
-            app.menu_AppName.FontSize = 11;
-            app.menu_AppName.FontColor = [1 1 1];
-            app.menu_AppName.Layout.Row = [1 5];
-            app.menu_AppName.Layout.Column = [2 3];
-            app.menu_AppName.Interpreter = 'html';
-            app.menu_AppName.Text = {'SCH v. 1.10.0'; '<font style="font-size: 9px;">R2024a</font>'};
-
-            % Create popupContainerGrid
-            app.popupContainerGrid = uigridlayout(app.GridLayout);
-            app.popupContainerGrid.ColumnWidth = {'1x', 880, '1x'};
-            app.popupContainerGrid.RowHeight = {'1x', 90, 300, 90, '1x'};
-            app.popupContainerGrid.ColumnSpacing = 0;
-            app.popupContainerGrid.RowSpacing = 0;
-            app.popupContainerGrid.Padding = [13 10 0 0];
-            app.popupContainerGrid.Layout.Row = 3;
-            app.popupContainerGrid.Layout.Column = 1;
-            app.popupContainerGrid.BackgroundColor = [1 1 1];
-
-            % Create SplashScreen
-            app.SplashScreen = uiimage(app.popupContainerGrid);
-            app.SplashScreen.Layout.Row = 3;
-            app.SplashScreen.Layout.Column = 2;
-            app.SplashScreen.ImageSource = 'SplashScreen.gif';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

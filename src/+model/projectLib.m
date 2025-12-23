@@ -119,7 +119,7 @@ classdef projectLib < handle
         %-----------------------------------------------------------------%
         function ReadReportTemplates(obj, rootFolder)
             [projectFolder, ...
-             programDataFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             projectFilePath  = fullfile(projectFolder,     'ReportTemplates.json');
             externalFilePath = fullfile(programDataFolder, 'ReportTemplates.json');
 
@@ -145,7 +145,7 @@ classdef projectLib < handle
         %-----------------------------------------------------------------%
         function ReadRegulatronData(obj, rootFolder)
             [projectFolder, ...
-             programDataFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             projectFilePath  = fullfile(projectFolder,     'DataBase', 'RegulatronAdds.xlsx');
             externalFilePath = fullfile(programDataFolder, 'DataBase', 'RegulatronAdds.xlsx');
 

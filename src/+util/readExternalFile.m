@@ -59,7 +59,7 @@ classdef (Abstract) readExternalFile
             );
             msgWarning = '';
         
-            [~, localCacheFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+            [~, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             fileName = 'Annotation.xlsx';
         
             cloudFilePath      = fullfile(cloudFolder,      fileName);      % DataHub_GET
