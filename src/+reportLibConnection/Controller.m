@@ -10,7 +10,7 @@ classdef (Abstract) Controller
         %-----------------------------------------------------------------%
         function [modelFileContent, projectFolder, externalFolder] = Read(rootFolder)
             [projectFolder, ...
-             externalFolder] = appUtil.Path(class.Constants.appName, rootFolder);
+             externalFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             fileName         = reportLibConnection.Controller.fileName;
         
             projectFilePath  = fullfile(projectFolder,  fileName);
@@ -84,7 +84,7 @@ classdef (Abstract) Controller
             % Em sendo a versão "Preliminar", apenas apresenta o html no
             % navegador. Por outro lado, em sendo a versão "Definitiva",
             % salva-se o arquivo ZIP em pasta local.
-            [baseFullFileName, baseFileName] = appUtil.DefaultFileName(app.General.fileFolder.tempPath, 'Report', app.report_Issue.Value);
+            [baseFullFileName, baseFileName] = appEngine.util.DefaultFileName(app.General.fileFolder.tempPath, 'Report', app.report_Issue.Value);
             HTMLFile = [baseFullFileName '.html'];
             
             writematrix(HTMLDocContent, HTMLFile, 'QuoteStrings', 'none', 'FileType', 'text')
@@ -97,7 +97,7 @@ classdef (Abstract) Controller
                 case 'final'
                     JSONFile = [baseFullFileName '.json'];
                     XLSXFile = [baseFullFileName '.xlsx'];
-                    ZIPFile  = appUtil.modalWindow(app.UIFigure, 'uiputfile', '', {'*.zip', 'SCH (*.zip)'}, fullfile(app.General.fileFolder.userPath, [baseFileName '.zip']));
+                    ZIPFile  = ui.Dialog(app.UIFigure, 'uiputfile', '', {'*.zip', 'SCH (*.zip)'}, fullfile(app.General.fileFolder.userPath, [baseFileName '.zip']));
                     if isempty(ZIPFile)
                         return
                     end
