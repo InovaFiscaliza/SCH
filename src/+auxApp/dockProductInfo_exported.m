@@ -214,7 +214,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         
                         if ismember(newNonCertificateHash, app.projectData.inspectedProducts.("Hash"))
                             updateForm(app, app.Index.Value)
-                            appUtil.modalWindow(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                            ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
                             return
                         end
                     end

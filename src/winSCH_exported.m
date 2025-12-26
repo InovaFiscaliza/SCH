@@ -2,68 +2,68 @@ classdef winSCH_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                       matlab.ui.Figure
-        GridLayout                     matlab.ui.container.GridLayout
-        NavBar                         matlab.ui.container.GridLayout
-        AppInfo                        matlab.ui.control.Image
-        FigurePosition                 matlab.ui.control.Image
-        DataHubLamp                    matlab.ui.control.Lamp
-        Tab3Button                     matlab.ui.control.StateButton
-        ButtonsSeparator               matlab.ui.control.Image
-        Tab2Button                     matlab.ui.control.StateButton
-        Tab1Button                     matlab.ui.control.StateButton
-        AppName                        matlab.ui.control.Label
-        AppIcon                        matlab.ui.control.Image
-        TabGroup                       matlab.ui.container.TabGroup
-        Tab1_Search                    matlab.ui.container.Tab
-        Grid1                          matlab.ui.container.GridLayout
-        PopupTempWarning               matlab.ui.control.Label
-        Document                       matlab.ui.container.GridLayout
-        search_Suggestions             matlab.ui.control.ListBox
-        search_Table                   matlab.ui.control.Table
-        search_nRows                   matlab.ui.control.Label
-        search_words2Search            matlab.ui.control.Label
-        search_entryPointPanel         matlab.ui.container.Panel
-        search_entryPointGrid          matlab.ui.container.GridLayout
-        search_entryPointImage         matlab.ui.control.Image
-        search_entryPoint              matlab.ui.control.EditField
-        SubTabGroup                    matlab.ui.container.TabGroup
-        SubTab1_Search                 matlab.ui.container.Tab
-        SubGrid1                       matlab.ui.container.GridLayout
-        jsBackDoor                     matlab.ui.control.HTML
-        search_WordCloudPanel          matlab.ui.container.Panel
-        search_ProductInfo             matlab.ui.control.Label
-        search_ProductInfoImage        matlab.ui.control.Image
-        search_ToolbarWordCloud        matlab.ui.control.Image
-        search_ProductInfoLabel        matlab.ui.control.Label
-        SubTab2_Filter                 matlab.ui.container.Tab
-        SubGrid2                       matlab.ui.container.GridLayout
-        SecondaryPanelLabel            matlab.ui.control.Label
-        LocationEditionMode            matlab.ui.control.Image
-        LocationEditionConfirm         matlab.ui.control.Image
-        LocationEditionCancel          matlab.ui.control.Image
-        SecondaryListOfFilters         matlab.ui.control.ListBox
-        SecondaryPanel                 matlab.ui.container.Panel
-        SecondaryGrid                  matlab.ui.container.GridLayout
-        SecondaryTextListValue         matlab.ui.control.DropDown
-        SecondaryTextFreeValue         matlab.ui.control.EditField
-        SecondaryDateTime2             matlab.ui.control.EditField
-        SecondaryDateTimeSeparator     matlab.ui.control.Label
-        SecondaryDateTime1             matlab.ui.control.EditField
-        SecondaryOperation             matlab.ui.control.DropDown
-        SecondaryColumn                matlab.ui.control.DropDown
-        FILTRAGEMPRIMRIADropDown       matlab.ui.control.DropDown
-        FILTRAGEMPRIMRIADropDownLabel  matlab.ui.control.Label
-        Toolbar                        matlab.ui.container.GridLayout
-        tool_FilterIcon                matlab.ui.control.Image
-        tool_FilterInfo                matlab.ui.control.Label
-        tool_AddSelectedToBucket       matlab.ui.control.Image
-        tool_Separator                 matlab.ui.control.Image
-        tool_ExportVisibleTable        matlab.ui.control.Image
-        tool_AddAnnotationToSelected   matlab.ui.control.Image
-        tool_PanelVisibility           matlab.ui.control.Image
-        Tab2_Report                    matlab.ui.container.Tab
-        Tab3_Config                    matlab.ui.container.Tab
+        UIFigure                      matlab.ui.Figure
+        GridLayout                    matlab.ui.container.GridLayout
+        NavBar                        matlab.ui.container.GridLayout
+        AppInfo                       matlab.ui.control.Image
+        FigurePosition                matlab.ui.control.Image
+        DataHubLamp                   matlab.ui.control.Lamp
+        Tab3Button                    matlab.ui.control.StateButton
+        ButtonsSeparator              matlab.ui.control.Image
+        Tab2Button                    matlab.ui.control.StateButton
+        Tab1Button                    matlab.ui.control.StateButton
+        AppName                       matlab.ui.control.Label
+        AppIcon                       matlab.ui.control.Image
+        TabGroup                      matlab.ui.container.TabGroup
+        Tab1_Search                   matlab.ui.container.Tab
+        Grid1                         matlab.ui.container.GridLayout
+        PopupTempWarning              matlab.ui.control.Label
+        Document                      matlab.ui.container.GridLayout
+        search_Suggestions            matlab.ui.control.ListBox
+        search_Table                  matlab.ui.control.Table
+        search_nRows                  matlab.ui.control.Label
+        search_words2Search           matlab.ui.control.Label
+        search_entryPointPanel        matlab.ui.container.Panel
+        search_entryPointGrid         matlab.ui.container.GridLayout
+        search_entryPointImage        matlab.ui.control.Image
+        search_entryPoint             matlab.ui.control.EditField
+        SubTabGroup                   matlab.ui.container.TabGroup
+        SubTab1_Search                matlab.ui.container.Tab
+        SubGrid1                      matlab.ui.container.GridLayout
+        jsBackDoor                    matlab.ui.control.HTML
+        search_WordCloudPanel         matlab.ui.container.Panel
+        search_ProductInfo            matlab.ui.control.Label
+        search_ProductInfoImage       matlab.ui.control.Image
+        search_ToolbarWordCloud       matlab.ui.control.Image
+        search_ProductInfoLabel       matlab.ui.control.Label
+        SubTab2_Filter                matlab.ui.container.Tab
+        SubGrid2                      matlab.ui.container.GridLayout
+        SecondaryPanelLabel           matlab.ui.control.Label
+        LocationEditionMode           matlab.ui.control.Image
+        LocationEditionConfirm        matlab.ui.control.Image
+        LocationEditionCancel         matlab.ui.control.Image
+        SecondaryListOfFilters        matlab.ui.control.ListBox
+        SecondaryPanel                matlab.ui.container.Panel
+        SecondaryGrid                 matlab.ui.container.GridLayout
+        SecondaryTextListValue        matlab.ui.control.DropDown
+        SecondaryTextFreeValue        matlab.ui.control.EditField
+        SecondaryDateTime2            matlab.ui.control.EditField
+        SecondaryDateTimeSeparator    matlab.ui.control.Label
+        SecondaryDateTime1            matlab.ui.control.EditField
+        SecondaryOperation            matlab.ui.control.DropDown
+        SecondaryColumn               matlab.ui.control.DropDown
+        ESTRATGIADEFILTRAGEMDropDown  matlab.ui.control.DropDown
+        ESTRATGIADEFILTRAGEMDropDownLabel  matlab.ui.control.Label
+        Toolbar                       matlab.ui.container.GridLayout
+        tool_FilterIcon               matlab.ui.control.Image
+        tool_FilterInfo               matlab.ui.control.Label
+        tool_AddSelectedToBucket      matlab.ui.control.Image
+        tool_Separator                matlab.ui.control.Image
+        tool_ExportVisibleTable       matlab.ui.control.Image
+        tool_AddAnnotationToSelected  matlab.ui.control.Image
+        tool_PanelVisibility          matlab.ui.control.Image
+        Tab2_Report                   matlab.ui.container.Tab
+        Tab3_Config                   matlab.ui.container.Tab
     end
 
 
@@ -328,10 +328,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                             case 'updateDataHubGetFolder'
                                 app.progressDialog.Visible = 'visible';
-
                                 startup_mainVariables(app)
-                                app.AppInfo.Tag = '';
-
                                 app.progressDialog.Visible = 'hidden';
 
                             case 'checkDataHubLampStatus'
@@ -347,13 +344,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                             case 'wordCloudAlgorithmChanged'
                                 if ~isempty(app.wordCloudObj)
-                                    if ~strcmp(app.wordCloudObj.Algorithm, app.General.search.wordCloud.algorithm)
-                                        refTable = app.wordCloudObj.Table;
-                                        delete(app.wordCloudObj)
-                    
-                                        app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
-                                        app.wordCloudObj.Table = refTable;
-                                    end
+                                    onAlgorithmValueChanged(app.wordCloudObj, app.General.search.wordCloud.algorithm);
                                 end
 
                             case 'searchVisibleColumnsChanged'
@@ -774,9 +765,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.search_WordCloudPanel, app.General.search.wordCloud.algorithm);
             end
 
-            % Torna visível a tabela e outros elementos relacionados à tabela...
-            search_Table_Visibility(app)
-
             % Renderiza em tela o número de linhas, além de selecionar a primeira
             % linha da tabela, caso a pesquisa retorne algo.
             misc_Table_NumberOfRows(app)
@@ -856,20 +844,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 search_SuggestionPanel_InitialValues(app)
             else
                 app.search_entryPointImage.Enable = 1;
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function search_Table_Visibility(app)
-            if ~app.search_Table.Visible
-                app.tool_PanelVisibility.Enable = 1;                
-                app.search_Table.Visible        = 1;
-                app.search_words2Search.Visible = 1;
-                app.search_nRows.Visible        = 1;
-
-                if ~app.SubTabGroup.Visible
-                    misc_Panel_VisibilityImageClicked(app)
-                end
             end
         end
 
@@ -1280,10 +1254,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         function startupFcn(app)
 
             try
-                if app.SubTabGroup.Visible
-                    misc_Panel_VisibilityImageClicked(app)
-                end
-
                 appEngine.boot(app, app.Role)
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -1675,10 +1645,9 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create tool_PanelVisibility
             app.tool_PanelVisibility = uiimage(app.Toolbar);
             app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
-            app.tool_PanelVisibility.Enable = 'off';
             app.tool_PanelVisibility.Layout.Row = 2;
             app.tool_PanelVisibility.Layout.Column = 1;
-            app.tool_PanelVisibility.ImageSource = 'ArrowRight_32.png';
+            app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'ArrowLeft_32.png');
 
             % Create tool_AddAnnotationToSelected
             app.tool_AddAnnotationToSelected = uiimage(app.Toolbar);
@@ -1748,7 +1717,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create SubGrid1
             app.SubGrid1 = uigridlayout(app.SubTab1_Search);
             app.SubGrid1.ColumnWidth = {'1x', 18};
-            app.SubGrid1.RowHeight = {17, '1x', 150};
+            app.SubGrid1.RowHeight = {17, '1x', 0};
             app.SubGrid1.ColumnSpacing = 5;
             app.SubGrid1.RowSpacing = 5;
             app.SubGrid1.BackgroundColor = [1 1 1];
@@ -1814,22 +1783,22 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
-            % Create FILTRAGEMPRIMRIADropDownLabel
-            app.FILTRAGEMPRIMRIADropDownLabel = uilabel(app.SubGrid2);
-            app.FILTRAGEMPRIMRIADropDownLabel.VerticalAlignment = 'bottom';
-            app.FILTRAGEMPRIMRIADropDownLabel.FontSize = 10;
-            app.FILTRAGEMPRIMRIADropDownLabel.Layout.Row = 1;
-            app.FILTRAGEMPRIMRIADropDownLabel.Layout.Column = 1;
-            app.FILTRAGEMPRIMRIADropDownLabel.Text = 'FILTRAGEM PRIMÁRIA';
+            % Create ESTRATGIADEFILTRAGEMDropDownLabel
+            app.ESTRATGIADEFILTRAGEMDropDownLabel = uilabel(app.SubGrid2);
+            app.ESTRATGIADEFILTRAGEMDropDownLabel.VerticalAlignment = 'bottom';
+            app.ESTRATGIADEFILTRAGEMDropDownLabel.FontSize = 10;
+            app.ESTRATGIADEFILTRAGEMDropDownLabel.Layout.Row = 1;
+            app.ESTRATGIADEFILTRAGEMDropDownLabel.Layout.Column = 1;
+            app.ESTRATGIADEFILTRAGEMDropDownLabel.Text = 'ESTRATÉGIA DE FILTRAGEM';
 
-            % Create FILTRAGEMPRIMRIADropDown
-            app.FILTRAGEMPRIMRIADropDown = uidropdown(app.SubGrid2);
-            app.FILTRAGEMPRIMRIADropDown.Items = {};
-            app.FILTRAGEMPRIMRIADropDown.FontSize = 11;
-            app.FILTRAGEMPRIMRIADropDown.BackgroundColor = [1 1 1];
-            app.FILTRAGEMPRIMRIADropDown.Layout.Row = 2;
-            app.FILTRAGEMPRIMRIADropDown.Layout.Column = [1 4];
-            app.FILTRAGEMPRIMRIADropDown.Value = {};
+            % Create ESTRATGIADEFILTRAGEMDropDown
+            app.ESTRATGIADEFILTRAGEMDropDown = uidropdown(app.SubGrid2);
+            app.ESTRATGIADEFILTRAGEMDropDown.Items = {'Texto livre', 'Texto livre + filtros por coluna', 'Somente filtros por coluna'};
+            app.ESTRATGIADEFILTRAGEMDropDown.FontSize = 11;
+            app.ESTRATGIADEFILTRAGEMDropDown.BackgroundColor = [1 1 1];
+            app.ESTRATGIADEFILTRAGEMDropDown.Layout.Row = 2;
+            app.ESTRATGIADEFILTRAGEMDropDown.Layout.Column = [1 4];
+            app.ESTRATGIADEFILTRAGEMDropDown.Value = 'Texto livre';
 
             % Create SecondaryPanel
             app.SecondaryPanel = uipanel(app.SubGrid2);
@@ -1951,7 +1920,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SecondaryPanelLabel.FontSize = 10;
             app.SecondaryPanelLabel.Layout.Row = 3;
             app.SecondaryPanelLabel.Layout.Column = 1;
-            app.SecondaryPanelLabel.Text = 'FILTRAGEM SECUNDÁRIA';
+            app.SecondaryPanelLabel.Text = 'FILTROS POR COLUNA';
 
             % Create Document
             app.Document = uigridlayout(app.Grid1);
@@ -2004,11 +1973,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_words2Search = uilabel(app.Document);
             app.search_words2Search.VerticalAlignment = 'bottom';
             app.search_words2Search.FontSize = 10;
-            app.search_words2Search.Visible = 'off';
             app.search_words2Search.Layout.Row = 2;
             app.search_words2Search.Layout.Column = 1;
             app.search_words2Search.Interpreter = 'html';
-            app.search_words2Search.Text = 'EXIBINDO RESULTADOS PARA "<b>APPLE IPHONE</b>"';
+            app.search_words2Search.Text = 'AGUARDANDO PESQUISA';
 
             % Create search_nRows
             app.search_nRows = uilabel(app.Document);
@@ -2016,11 +1984,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_nRows.VerticalAlignment = 'bottom';
             app.search_nRows.FontSize = 11;
             app.search_nRows.FontColor = [0.502 0.502 0.502];
-            app.search_nRows.Visible = 'off';
             app.search_nRows.Layout.Row = [1 2];
             app.search_nRows.Layout.Column = 3;
             app.search_nRows.Interpreter = 'html';
-            app.search_nRows.Text = {'88 <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '137 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>'};
+            app.search_nRows.Text = {'0 <font style="font-size: 9px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '0 <font style="font-size: 9px; margin-right: 2px;">REGISTROS</font>'};
 
             % Create search_Table
             app.search_Table = uitable(app.Document);
@@ -2031,7 +1998,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_Table.RowStriping = 'off';
             app.search_Table.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
             app.search_Table.SelectionChangedFcn = createCallbackFcn(app, @search_Table_SelectionChanged, true);
-            app.search_Table.Visible = 'off';
             app.search_Table.Layout.Row = [4 5];
             app.search_Table.Layout.Column = [1 3];
             app.search_Table.FontSize = 10;
