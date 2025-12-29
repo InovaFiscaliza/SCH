@@ -188,7 +188,12 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
-            % ...
+            % Os painéis de metadados do registro selecionado nas tabelas já 
+            % tem, na sua propriedade "UserData", a chave "id" que armazena 
+            % o "data-tag" que identifica o componente no código HTML. 
+            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
+            app.report_ProductInfo.UserData.selectedRow = [];
+            app.report_ProductInfo.UserData.showedHom   = '';
         end
 
         %-----------------------------------------------------------------%
@@ -198,15 +203,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
             app.report_Table.RowName = 'numbered';
-
-            % Os painéis de metadados do registro selecionado nas tabelas já 
-            % tem, na sua propriedade "UserData", a chave "id" que armazena 
-            % o "data-tag" que identifica o componente no código HTML. 
-            % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
-            app.report_ProductInfo.UserData.selectedRow = [];
-            app.report_ProductInfo.UserData.showedHom   = '';
-
-            % ...
         end
 
         %-----------------------------------------------------------------%
