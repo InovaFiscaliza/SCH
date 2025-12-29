@@ -28,7 +28,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_entryPointImage        matlab.ui.control.Image
         search_entryPoint             matlab.ui.control.EditField
         SubTabGroup                   matlab.ui.container.TabGroup
-        SubTab1_Search                matlab.ui.container.Tab
+        SubTab1                       matlab.ui.container.Tab
         SubGrid1                      matlab.ui.container.GridLayout
         jsBackDoor                    matlab.ui.control.HTML
         search_WordCloudPanel         matlab.ui.container.Panel
@@ -36,7 +36,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         search_ProductInfoImage       matlab.ui.control.Image
         search_ToolbarWordCloud       matlab.ui.control.Image
         search_ProductInfoLabel       matlab.ui.control.Label
-        SubTab2_Filter                matlab.ui.container.Tab
+        SubTab2                       matlab.ui.container.Tab
         SubGrid2                      matlab.ui.container.GridLayout
         SecondaryPanelLabel           matlab.ui.control.Label
         LocationEditionMode           matlab.ui.control.Image
@@ -474,72 +474,63 @@ classdef winSCH_exported < matlab.apps.AppBase
         function applyJSCustomizations(app, tabIndex)
             persistent customizationStatus
             if isempty(customizationStatus)
-                customizationStatus = [false, false, false];
+                customizationStatus = zeros(1, numel(app.SubTabGroup.Children), 'logical');
             end
 
+            if customizationStatus(tabIndex)
+                return
+            end
+
+            appName = class(app);
+
+            customizationStatus(tabIndex) = true;
             switch tabIndex
-                case 0
-                    sendEventToHTMLSource(app.jsBackDoor, 'startup', app.executionMode);
-                    customizationStatus = [false, false, false];
+                case 1
+                    elToModify = {
+                        app.search_entryPoint;
+                        app.search_ProductInfo;                     % ui.TextView
+                        app.search_ProductInfoImage;                % ui.TextView (Background image)
+                        app.search_Suggestions;
+                        app.PopupTempWarning;
+                        app.search_WordCloudPanel
+                    };
+                    ui.CustomizationBase.getElementsDataTag(elToModify);
 
-                otherwise
-                    if customizationStatus(tabIndex)
-                        return
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 1, 'style',    struct('borderWidth', '0')), ...
+                            struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.search_entryPoint', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                        });
+                    catch
                     end
 
-                    appName = class(app);
-
-                    customizationStatus(tabIndex) = true;
-                    switch tabIndex
-                        case 1 % SEARCH
-                            elToModify = {
-                                app.search_entryPoint;
-                                app.search_ProductInfo;                     % ui.TextView
-                                app.search_ProductInfoImage;                % ui.TextView (Background image)
-                                app.search_Suggestions;
-                                app.PopupTempWarning;
-                                app.search_WordCloudPanel
-                            };
-                            ui.CustomizationBase.getElementsDataTag(elToModify);
-
-                            try
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 1, 'style',    struct('borderWidth', '0')), ...
-                                    struct('appName', appName, 'dataTag', elToModify{1}.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.search_entryPoint', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
-                                });
-                            catch
-                            end
-
-                            try
-                                ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName);
-                            catch
-                            end
-
-                            try
-                                ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
-                            catch
-                            end
-                            
-                            try
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'style',    struct('borderTop', '0')), ...
-                                    struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
-                                });
-                            catch
-                            end
-
-                            try
-                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                    struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 0, 'style',    struct('borderRadius', '5px', 'pointerEvents', 'none')) ...
-                                });
-                            catch
-                            end
-
-                        otherwise
-                            % Customização dos módulos que são renderizados
-                            % nesta figura são controladas pelos próprios
-                            % módulos.
+                    try
+                        ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName);
+                    catch
                     end
+
+                    try
+                        ui.TextView.startup(app.jsBackDoor, elToModify{3}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
+                    catch
+                    end
+                    
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'style',    struct('borderTop', '0')), ...
+                            struct('appName', appName, 'dataTag', elToModify{4}.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.search_Suggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                        });
+                    catch
+                    end
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 0, 'style',    struct('borderRadius', '5px', 'pointerEvents', 'none')) ...
+                        });
+                    catch
+                    end
+
+                case 2
+                    % ...
             end
         end
 
@@ -603,7 +594,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
-            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog, @app.applyJSCustomizations, '');
+            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog);
             addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), app.Tab1Button,                      2)
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.Tab1Button,                      3)
@@ -1709,13 +1700,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SubTabGroup.Layout.Row = [1 2];
             app.SubTabGroup.Layout.Column = 2;
 
-            % Create SubTab1_Search
-            app.SubTab1_Search = uitab(app.SubTabGroup);
-            app.SubTab1_Search.AutoResizeChildren = 'off';
-            app.SubTab1_Search.Title = 'PESQUISA';
+            % Create SubTab1
+            app.SubTab1 = uitab(app.SubTabGroup);
+            app.SubTab1.AutoResizeChildren = 'off';
+            app.SubTab1.Title = 'PESQUISA';
 
             % Create SubGrid1
-            app.SubGrid1 = uigridlayout(app.SubTab1_Search);
+            app.SubGrid1 = uigridlayout(app.SubTab1);
             app.SubGrid1.ColumnWidth = {'1x', 18};
             app.SubGrid1.RowHeight = {17, '1x', 0};
             app.SubGrid1.ColumnSpacing = 5;
@@ -1770,13 +1761,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.jsBackDoor.Layout.Row = 3;
             app.jsBackDoor.Layout.Column = [1 2];
 
-            % Create SubTab2_Filter
-            app.SubTab2_Filter = uitab(app.SubTabGroup);
-            app.SubTab2_Filter.AutoResizeChildren = 'off';
-            app.SubTab2_Filter.Title = 'FILTRO';
+            % Create SubTab2
+            app.SubTab2 = uitab(app.SubTabGroup);
+            app.SubTab2.AutoResizeChildren = 'off';
+            app.SubTab2.Title = 'FILTRO';
 
             % Create SubGrid2
-            app.SubGrid2 = uigridlayout(app.SubTab2_Filter);
+            app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 18, 18, 18};
             app.SubGrid2.RowHeight = {17, 22, 22, 69, '1x'};
             app.SubGrid2.ColumnSpacing = 5;

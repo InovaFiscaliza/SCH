@@ -14,12 +14,12 @@ classdef winProducts_exported < matlab.apps.AppBase
         ADUANAButton              matlab.ui.control.RadioButton
         FORNECEDORUSURIOButton    matlab.ui.control.RadioButton
         SubTabGroup               matlab.ui.container.TabGroup
-        SubTab1_Products          matlab.ui.container.Tab
+        SubTab1                   matlab.ui.container.Tab
         SubGrid1                  matlab.ui.container.GridLayout
         report_ProductInfo        matlab.ui.control.Label
         report_ProductInfoImage   matlab.ui.control.Image
         report_ProductInfoLabel   matlab.ui.control.Label
-        SubTab2_Project           matlab.ui.container.Tab
+        SubTab2                   matlab.ui.container.Tab
         SubGrid2                  matlab.ui.container.GridLayout
         report_EntityPanel        matlab.ui.container.Panel
         report_EntityGrid         matlab.ui.container.GridLayout
@@ -160,54 +160,29 @@ classdef winProducts_exported < matlab.apps.AppBase
         function applyJSCustomizations(app, tabIndex)
             persistent customizationStatus
             if isempty(customizationStatus)
-                customizationStatus = [false, false];
+                customizationStatus = zeros(1, numel(app.SubTabGroup.Children), 'logical');
             end
 
+            if customizationStatus(tabIndex)
+                return
+            end
+    
+            customizationStatus(tabIndex) = true;
             switch tabIndex
-                case 0 % STARTUP
-                    if app.isDocked
-                        app.progressDialog = app.mainApp.progressDialog;
-                    else
-                        sendEventToHTMLSource(app.jsBackDoor, 'startup', app.mainApp.executionMode);
-                        app.progressDialog = ui.ProgressDialog(app.jsBackDoor);                        
+                case 1
+                    appName = class(app);
+                    elToModify = { ...
+                        app.report_ProductInfo, ...
+                        app.report_ProductInfoImage ...
+                    };
+                    elDataTag = ui.CustomizationBase.getElementsDataTag(elToModify);
+                    if ~isempty(elDataTag)
+                        ui.TextView.startup(app.jsBackDoor, elToModify{1}, appName);
+                        ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
                     end
-                    customizationStatus = [false, false];
-
-                otherwise
-                    if customizationStatus(tabIndex)
-                        return
-                    end
-
-                    customizationStatus(tabIndex) = true;
-                    switch tabIndex
-                        case 1
-                            appName = class(app);
-
-                            % Grid botões "dock":
-                            if app.isDocked
-                                elToModify = {app.DockModule};
-                                elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
-                                if ~isempty(elDataTag)                                    
-                                    sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                                        struct('appName', appName, 'dataTag', elDataTag{1}, 'style', struct('transition', 'opacity 2s ease', 'opacity', '0.5')) ...
-                                    });
-                                end
-                            end
-
-                            % Outros elementos:
-                            elToModify = { ...
-                                app.report_ProductInfo, ...
-                                app.report_ProductInfoImage ...
-                            };
-                            elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
-                            if ~isempty(elDataTag)
-                                ui.TextView.startup(app.jsBackDoor, elToModify{1}, appName);
-                                ui.TextView.startup(app.jsBackDoor, elToModify{2}, appName, 'SELECIONE UM REGISTRO<br>NA TABELA');
-                            end
-
-                        case 2
-                            % ...
-                    end
+    
+                case 2
+                    % ...
             end
         end
 
@@ -1074,13 +1049,13 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.SubTabGroup.Layout.Row = [3 4];
             app.SubTabGroup.Layout.Column = 2;
 
-            % Create SubTab1_Products
-            app.SubTab1_Products = uitab(app.SubTabGroup);
-            app.SubTab1_Products.AutoResizeChildren = 'off';
-            app.SubTab1_Products.Title = 'INSPEÇÃO';
+            % Create SubTab1
+            app.SubTab1 = uitab(app.SubTabGroup);
+            app.SubTab1.AutoResizeChildren = 'off';
+            app.SubTab1.Title = 'INSPEÇÃO';
 
             % Create SubGrid1
-            app.SubGrid1 = uigridlayout(app.SubTab1_Products);
+            app.SubGrid1 = uigridlayout(app.SubTab1);
             app.SubGrid1.ColumnWidth = {'1x'};
             app.SubGrid1.RowHeight = {17, '1x'};
             app.SubGrid1.RowSpacing = 5;
@@ -1111,13 +1086,13 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.report_ProductInfo.Interpreter = 'html';
             app.report_ProductInfo.Text = '';
 
-            % Create SubTab2_Project
-            app.SubTab2_Project = uitab(app.SubTabGroup);
-            app.SubTab2_Project.AutoResizeChildren = 'off';
-            app.SubTab2_Project.Title = 'PROJETO';
+            % Create SubTab2
+            app.SubTab2 = uitab(app.SubTabGroup);
+            app.SubTab2.AutoResizeChildren = 'off';
+            app.SubTab2.Title = 'PROJETO';
 
             % Create SubGrid2
-            app.SubGrid2 = uigridlayout(app.SubTab2_Project);
+            app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22, 22, 22};
             app.SubGrid2.RowHeight = {17, 44, 22, 110, 22, 100, 22, '1x'};
             app.SubGrid2.ColumnSpacing = 5;
