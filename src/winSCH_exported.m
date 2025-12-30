@@ -55,13 +55,14 @@ classdef winSCH_exported < matlab.apps.AppBase
         ESTRATGIADEFILTRAGEMDropDown  matlab.ui.control.DropDown
         ESTRATGIADEFILTRAGEMDropDownLabel  matlab.ui.control.Label
         Toolbar                       matlab.ui.container.GridLayout
+        tool_PanelVisibility          matlab.ui.control.Image
+        tool_Separator_2              matlab.ui.control.Image
         tool_FilterIcon               matlab.ui.control.Image
         tool_FilterInfo               matlab.ui.control.Label
         tool_AddSelectedToBucket      matlab.ui.control.Image
         tool_Separator                matlab.ui.control.Image
         tool_ExportVisibleTable       matlab.ui.control.Image
         tool_AddAnnotationToSelected  matlab.ui.control.Image
-        tool_PanelVisibility          matlab.ui.control.Image
         Tab2_Report                   matlab.ui.container.Tab
         Tab3_Config                   matlab.ui.container.Tab
     end
@@ -146,16 +147,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % o trigger do evento JS-keydown ocorre antes do trigger dos eventos padrões dos
             % componentes matlab.ui.control.EditField e matlab.ui.control.ListBox.
 
-            % Isso é bom, mas ruim por criar uma complexidade extra! :(
-
             % Quando altero o conteúdo de app.search_entryPoint, sem alterar o seu foco, será executado
-            % o evento "ValueChangingFcn". Se pressiono a tecla "Enter", será executada essa função
-            % (ipcMainJSEventsHandler) antes de atualizar a propriedade "Value" do app.search_entryPoint.
-
-            % Por conta disso, é essencial inserir waitfor(app.search_entryPoint, 'Value')
-            % Isso é conseguido alterando o objeto em foco, de app.search_entryPoint para app.jsBackDoor
-            % Ao fazer isso, o MATLAB "executa" a seguinte operação:
-            % app.search_entryPoint.Value = app.search_entryPoint.ChangingValue
+            % o evento "ValueChangingFcn".
             try
                 switch event.HTMLEventName
                     % MATLAB-JS BRIDGE (matlabJSBridge.js)
@@ -201,18 +194,34 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'getNavigatorBasicInformation'
                         app.General.AppVersion.browser = event.HTMLEventData;
+
+                    case 'backgroundBecameTransparent'
+                        switch event.HTMLEventData
+                            case 'PopupTempWarning'
+                                app.tool_AddSelectedToBucket.Enable = "on";
+                                app.PopupTempWarning.Visible = "off";
+
+                            otherwise
+                                error('UnexpectedEvent')
+                        end
     
                     case 'mainApp.search_entryPoint'
-                        focus(app.jsBackDoor)
-                        matlab.waitfor(app.search_entryPoint, 'Value', @(propValue) strcmp(propValue, app.previousSearch), .100, 1, 'propValue')
-    
-                        switch event.HTMLEventData
+                        % HTMLEventData é uma estrutura com os campos "key" 
+                        % (tecla pressionada) e "value" (valor atual do campo).
+                        keydownPressed    = event.HTMLEventData.key;
+                        currentInputValue = event.HTMLEventData.value;
+
+                        % Força-se a atualização da propriedade "Value" porque, 
+                        % apesar de na GUI já constar um valor novo, este ainda 
+                        % não foi devidamente atualizado.
+                        app.search_entryPoint.Value = currentInputValue;    
+                        switch keydownPressed
                             case {'Escape', 'Tab'}
-                                if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
+                                if numel(currentInputValue) < app.General.search.minCharacters
                                     search_EntryPoint_InitialValue(app)
                                 end
     
-                                if strcmp(event.HTMLEventData, 'Tab') && app.search_entryPointImage.Enable
+                                if strcmp(keydownPressed, 'Tab') && app.search_entryPointImage.Enable
                                     focus(app.search_entryPointImage)
                                 end
     
@@ -220,10 +229,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 set(app.search_Suggestions, Visible=0, Value={})
     
                             otherwise
-                                if numel(app.search_entryPoint.Value) < app.General.search.minCharacters
-                                    sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.search_entryPoint.UserData.id));    
-                                else
-                                    switch event.HTMLEventData
+                                if numel(currentInputValue) >= app.General.search.minCharacters
+                                    switch keydownPressed
                                         case 'ArrowDown'
                                             if strcmp(app.General.search.mode, 'tokens')
                                                 app.previousItemData = 1;
@@ -252,6 +259,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                         end
     
                     case 'mainApp.search_Suggestions'
+                        % HTMLEventData é uma string com a indicação da tecla
+                        % pressionada.
                         switch event.HTMLEventData
                             case 'ArrowDown'
                                 nMaxValues = numel(app.search_Suggestions.Items);
@@ -472,27 +481,24 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function applyJSCustomizations(app, tabIndex)
-            persistent customizationStatus
-            if isempty(customizationStatus)
-                customizationStatus = zeros(1, numel(app.SubTabGroup.Children), 'logical');
-            end
-
-            if customizationStatus(tabIndex)
+            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
                 return
             end
+            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
 
-            appName = class(app);
-
-            customizationStatus(tabIndex) = true;
             switch tabIndex
                 case 1
+                    appName = class(app);
                     elToModify = {
                         app.search_entryPoint;
-                        app.search_ProductInfo;                     % ui.TextView
-                        app.search_ProductInfoImage;                % ui.TextView (Background image)
+                        app.search_ProductInfo;                             % ui.TextView
+                        app.search_ProductInfoImage;                        % ui.TextView (Background image)
                         app.search_Suggestions;
                         app.PopupTempWarning;
-                        app.search_WordCloudPanel
+                        app.search_WordCloudPanel;
+                        app.Tab1Button;
+                        app.Tab2Button;
+                        app.Tab3Button
                     };
                     ui.CustomizationBase.getElementsDataTag(elToModify);
 
@@ -525,6 +531,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
                             struct('appName', appName, 'dataTag', elToModify{5}.UserData.id, 'generation', 0, 'style',    struct('borderRadius', '5px', 'pointerEvents', 'none')) ...
+                        });
+                    catch
+                    end
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', elToModify{7}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                            struct('appName', appName, 'dataTag', elToModify{8}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                            struct('appName', appName, 'dataTag', elToModify{9}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button') ...
                         });
                     catch
                     end
@@ -595,9 +610,10 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
             app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog);
-            addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', 'Zoom_32Yellow.png',      'Off', 'Zoom_32White.png'),      matlab.graphics.GraphicsPlaceholder, 1)
-            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', 'Detection_32Yellow.png', 'Off', 'Detection_32White.png'), app.Tab1Button,                      2)
-            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', 'Settings_36Yellow.png',  'Off', 'Settings_36White.png'),  app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', 'search-sparkle.svg', 'Off', 'search-sparkle.svg'), matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', 'checklist.svg',      'Off', 'checklist.svg'),      app.Tab1Button,                      2)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', 'gear.svg',           'Off', 'gear.svg'),           app.Tab1Button,                      3)
+            convertToInlineSVG(app.tabGroupController, app.jsBackDoor)
 
             % Salva na propriedade "UserData" as opções de ícone e o índice
             % da aba, simplificando os ajustes decorrentes de uma alteração...
@@ -1197,7 +1213,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function showPopupTempWarning(app, msg)
             app.tool_AddSelectedToBucket.Enable = "off";
             set(app.PopupTempWarning, 'Text', msg, 'Visible', 'on')
-            sendEventToHTMLSource(app.jsBackDoor, 'turningBackgroundColorInvisible', struct('componentName', 'PopupTempWarning', 'componentDataTag', app.PopupTempWarning.UserData.id, 'interval_ms', 75));
+            sendEventToHTMLSource(app.jsBackDoor, 'setBackgroundTransparent', struct('componentName', 'PopupTempWarning', 'componentDataTag', app.PopupTempWarning.UserData.id, 'interval_ms', 75));
             drawnow
         end
     end
@@ -1245,6 +1261,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function startupFcn(app)
 
             try
+                Toolbar_PanelVisibilityImageClicked(app)
                 appEngine.boot(app, app.Role)
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -1411,22 +1428,31 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: tool_PanelVisibility
-        function misc_Panel_VisibilityImageClicked(app, event)
+        function Toolbar_PanelVisibilityImageClicked(app, event)
             
             if app.SubTabGroup.Visible
-                app.tool_PanelVisibility.ImageSource = 'ArrowRight_32.png';
+                app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right-off.svg';
                 app.SubTabGroup.Visible = "off";                
                 app.Document.Layout.Column = [2 4];
             else
-                app.tool_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
+                app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right.svg';
                 app.SubTabGroup.Visible = "on";                
-                app.Document.Layout.Column = 4;
+                app.Document.Layout.Column = 2;
             end
 
         end
 
+        % Callback function: LocationEditionCancel, LocationEditionConfirm,
+        % 
+        % ...and 4 other components
+        function Toolbar_PENDENTE_IMPLEMENTACAO(app, event)
+            
+            ui.Dialog(app.UIFigure, 'error', 'PENDENTE');
+
+        end
+
         % Image clicked function: tool_ExportVisibleTable
-        function tool_ExportVisibleTableImageClicked(app, event)
+        function Toolbar_ExportVisibleTableImageClicked(app, event)
             
             nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
             defaultName   = appEngine.util.DefaultFileName(app.General.fileFolder.userPath, 'SCH', -1);
@@ -1445,6 +1471,39 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             app.progressDialog.Visible = 'hidden';
+
+        end
+
+        % Image clicked function: tool_AddSelectedToBucket
+        function Toolbar_AddSelectedToBucketImageClicked(app, event)
+            
+            [~, ~, selectedRows] = misc_Table_SelectedRow(app);
+
+            if isempty(selectedRows)
+                app.tool_AddSelectedToBucket.Enable = 0;
+                msgWarning = 'Selecione ao menos um registro na tabela.';
+                ui.Dialog(app.UIFigure, 'warning', msgWarning);
+                return
+
+            else
+                addedHom = 0;
+                for selectedRow = selectedRows'
+                    [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.search_Table.UserData.primaryIndex(selectedRow));
+                    if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
+                        continue
+                    end
+                    
+                    addedHom = addedHom+1;
+                    updateInspectedProducts(app.projectData, 'add', productData)
+                end
+
+                if addedHom
+                    showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
+                    ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
+                else
+                    showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
+                end
+            end
 
         end
 
@@ -1534,48 +1593,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
         end
-
-        % Image clicked function: tool_AddSelectedToBucket
-        function tool_AddSelectedToBucketImageClicked(app, event)
-            
-            [~, ~, selectedRows] = misc_Table_SelectedRow(app);
-
-            if isempty(selectedRows)
-                app.tool_AddSelectedToBucket.Enable = 0;
-                msgWarning = 'Selecione ao menos um registro na tabela.';
-                ui.Dialog(app.UIFigure, 'warning', msgWarning);
-                return
-
-            else
-                addedHom = 0;
-                for selectedRow = selectedRows'
-                    [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.search_Table.UserData.primaryIndex(selectedRow));
-                    if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                        continue
-                    end
-                    
-                    addedHom = addedHom+1;
-                    updateInspectedProducts(app.projectData, 'add', productData)
-                end
-
-                if addedHom
-                    showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
-                    ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
-                else
-                    showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
-                end
-            end
-
-        end
-
-        % Callback function: LocationEditionCancel, LocationEditionConfirm,
-        % 
-        % ...and 4 other components
-        function PENDENTE_IMPLEMENTACAO(app, event)
-            
-            ui.Dialog(app.UIFigure, 'error', 'PENDENTE');
-
-        end
     end
 
     % Component initialization
@@ -1616,7 +1633,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Grid1
             app.Grid1 = uigridlayout(app.Tab1_Search);
-            app.Grid1.ColumnWidth = {10, 320, 10, '1x', 10};
+            app.Grid1.ColumnWidth = {10, '1x', 10, 320, 10};
             app.Grid1.RowHeight = {'1x', 34, 10, 34};
             app.Grid1.ColumnSpacing = 0;
             app.Grid1.RowSpacing = 0;
@@ -1625,56 +1642,49 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.Grid1);
-            app.Toolbar.ColumnWidth = {22, 22, 22, 5, 22, '1x', 18};
-            app.Toolbar.RowHeight = {4, 17, '1x'};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, 5, 22, '1x', 18};
+            app.Toolbar.RowHeight = {4, 17, '1x', '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
-            app.Toolbar.Padding = [5 5 10 5];
+            app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 4;
             app.Toolbar.Layout.Column = [1 5];
-
-            % Create tool_PanelVisibility
-            app.tool_PanelVisibility = uiimage(app.Toolbar);
-            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @misc_Panel_VisibilityImageClicked, true);
-            app.tool_PanelVisibility.Layout.Row = 2;
-            app.tool_PanelVisibility.Layout.Column = 1;
-            app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'ArrowLeft_32.png');
 
             % Create tool_AddAnnotationToSelected
             app.tool_AddAnnotationToSelected = uiimage(app.Toolbar);
             app.tool_AddAnnotationToSelected.ScaleMethod = 'none';
-            app.tool_AddAnnotationToSelected.ImageClickedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.tool_AddAnnotationToSelected.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.tool_AddAnnotationToSelected.Enable = 'off';
             app.tool_AddAnnotationToSelected.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
-            app.tool_AddAnnotationToSelected.Layout.Row = [2 3];
-            app.tool_AddAnnotationToSelected.Layout.Column = 2;
+            app.tool_AddAnnotationToSelected.Layout.Row = [2 4];
+            app.tool_AddAnnotationToSelected.Layout.Column = 3;
             app.tool_AddAnnotationToSelected.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
 
             % Create tool_ExportVisibleTable
             app.tool_ExportVisibleTable = uiimage(app.Toolbar);
             app.tool_ExportVisibleTable.ScaleMethod = 'none';
-            app.tool_ExportVisibleTable.ImageClickedFcn = createCallbackFcn(app, @tool_ExportVisibleTableImageClicked, true);
+            app.tool_ExportVisibleTable.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ExportVisibleTableImageClicked, true);
             app.tool_ExportVisibleTable.Enable = 'off';
             app.tool_ExportVisibleTable.Tooltip = {'Exporta resultados de busca em arquivo Excel (.xlsx)'};
-            app.tool_ExportVisibleTable.Layout.Row = [1 3];
-            app.tool_ExportVisibleTable.Layout.Column = 3;
+            app.tool_ExportVisibleTable.Layout.Row = [1 4];
+            app.tool_ExportVisibleTable.Layout.Column = 4;
             app.tool_ExportVisibleTable.ImageSource = 'Export_16.png';
 
             % Create tool_Separator
             app.tool_Separator = uiimage(app.Toolbar);
             app.tool_Separator.ScaleMethod = 'none';
             app.tool_Separator.Enable = 'off';
-            app.tool_Separator.Layout.Row = [1 3];
-            app.tool_Separator.Layout.Column = 4;
+            app.tool_Separator.Layout.Row = [1 4];
+            app.tool_Separator.Layout.Column = 5;
             app.tool_Separator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_AddSelectedToBucket
             app.tool_AddSelectedToBucket = uiimage(app.Toolbar);
-            app.tool_AddSelectedToBucket.ImageClickedFcn = createCallbackFcn(app, @tool_AddSelectedToBucketImageClicked, true);
+            app.tool_AddSelectedToBucket.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddSelectedToBucketImageClicked, true);
             app.tool_AddSelectedToBucket.Enable = 'off';
             app.tool_AddSelectedToBucket.Tooltip = {'Adiciona registros selecionados à lista de produtos sob análise'};
-            app.tool_AddSelectedToBucket.Layout.Row = [1 3];
-            app.tool_AddSelectedToBucket.Layout.Column = 5;
+            app.tool_AddSelectedToBucket.Layout.Row = [1 4];
+            app.tool_AddSelectedToBucket.Layout.Column = 6;
             app.tool_AddSelectedToBucket.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create tool_FilterInfo
@@ -1682,8 +1692,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_FilterInfo.HorizontalAlignment = 'right';
             app.tool_FilterInfo.FontSize = 10;
             app.tool_FilterInfo.FontColor = [0.502 0.502 0.502];
-            app.tool_FilterInfo.Layout.Row = [1 3];
-            app.tool_FilterInfo.Layout.Column = 6;
+            app.tool_FilterInfo.Layout.Row = [1 4];
+            app.tool_FilterInfo.Layout.Column = 7;
             app.tool_FilterInfo.Text = {'Filtragem primária orientada à(s) coluna(s): "Homologação", "Solicitante", "Fabricante", "Modelo", "Nome Comercial"'; 'Filtragem secundária: []'};
 
             % Create tool_FilterIcon
@@ -1691,14 +1701,31 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_FilterIcon.ScaleMethod = 'none';
             app.tool_FilterIcon.Enable = 'off';
             app.tool_FilterIcon.Layout.Row = 2;
-            app.tool_FilterIcon.Layout.Column = 7;
+            app.tool_FilterIcon.Layout.Column = 8;
             app.tool_FilterIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
+
+            % Create tool_Separator_2
+            app.tool_Separator_2 = uiimage(app.Toolbar);
+            app.tool_Separator_2.ScaleMethod = 'none';
+            app.tool_Separator_2.Enable = 'off';
+            app.tool_Separator_2.Layout.Row = [1 4];
+            app.tool_Separator_2.Layout.Column = 2;
+            app.tool_Separator_2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+
+            % Create tool_PanelVisibility
+            app.tool_PanelVisibility = uiimage(app.Toolbar);
+            app.tool_PanelVisibility.ScaleMethod = 'none';
+            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
+            app.tool_PanelVisibility.Tooltip = {''};
+            app.tool_PanelVisibility.Layout.Row = [1 4];
+            app.tool_PanelVisibility.Layout.Column = 1;
+            app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right-off.svg';
 
             % Create SubTabGroup
             app.SubTabGroup = uitabgroup(app.Grid1);
             app.SubTabGroup.AutoResizeChildren = 'off';
             app.SubTabGroup.Layout.Row = [1 2];
-            app.SubTabGroup.Layout.Column = 2;
+            app.SubTabGroup.Layout.Column = 4;
 
             % Create SubTab1
             app.SubTab1 = uitab(app.SubTabGroup);
@@ -1808,7 +1835,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create SecondaryColumn
             app.SecondaryColumn = uidropdown(app.SecondaryGrid);
             app.SecondaryColumn.Items = {};
-            app.SecondaryColumn.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.SecondaryColumn.ValueChangedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.SecondaryColumn.FontSize = 11;
             app.SecondaryColumn.BackgroundColor = [1 1 1];
             app.SecondaryColumn.Layout.Row = 1;
@@ -1818,7 +1845,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create SecondaryOperation
             app.SecondaryOperation = uidropdown(app.SecondaryGrid);
             app.SecondaryOperation.Items = {'=', '≠', '⊃', '⊅', '<', '≤', '>', '≥', '><', '<>'};
-            app.SecondaryOperation.ValueChangedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.SecondaryOperation.ValueChangedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.SecondaryOperation.FontName = 'Consolas';
             app.SecondaryOperation.BackgroundColor = [1 1 1];
             app.SecondaryOperation.Layout.Row = 2;
@@ -1878,7 +1905,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create LocationEditionCancel
             app.LocationEditionCancel = uiimage(app.SubGrid2);
-            app.LocationEditionCancel.ImageClickedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.LocationEditionCancel.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.LocationEditionCancel.Enable = 'off';
             app.LocationEditionCancel.Tooltip = {'Cancela edição'};
             app.LocationEditionCancel.Layout.Row = 3;
@@ -1888,7 +1915,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create LocationEditionConfirm
             app.LocationEditionConfirm = uiimage(app.SubGrid2);
-            app.LocationEditionConfirm.ImageClickedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.LocationEditionConfirm.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.LocationEditionConfirm.Enable = 'off';
             app.LocationEditionConfirm.Tooltip = {'Confirma edição'};
             app.LocationEditionConfirm.Layout.Row = 3;
@@ -1898,7 +1925,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create LocationEditionMode
             app.LocationEditionMode = uiimage(app.SubGrid2);
-            app.LocationEditionMode.ImageClickedFcn = createCallbackFcn(app, @PENDENTE_IMPLEMENTACAO, true);
+            app.LocationEditionMode.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
             app.LocationEditionMode.Tooltip = {'Habilita painel de edição'};
             app.LocationEditionMode.Layout.Row = 3;
             app.LocationEditionMode.Layout.Column = 2;
@@ -1921,7 +1948,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Document.RowSpacing = 0;
             app.Document.Padding = [0 0 0 0];
             app.Document.Layout.Row = [1 2];
-            app.Document.Layout.Column = 4;
+            app.Document.Layout.Column = 2;
             app.Document.BackgroundColor = [1 1 1];
 
             % Create search_entryPointPanel
@@ -1964,6 +1991,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_words2Search = uilabel(app.Document);
             app.search_words2Search.VerticalAlignment = 'bottom';
             app.search_words2Search.FontSize = 10;
+            app.search_words2Search.FontColor = [0.502 0.502 0.502];
             app.search_words2Search.Layout.Row = 2;
             app.search_words2Search.Layout.Column = 1;
             app.search_words2Search.Interpreter = 'html';
@@ -2055,7 +2083,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab1Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
             app.Tab1Button.Tag = 'SEARCH';
             app.Tab1Button.Tooltip = {''};
-            app.Tab1Button.Icon = 'Zoom_32Yellow.png';
+            app.Tab1Button.Icon = 'search-sparkle.svg';
             app.Tab1Button.IconAlignment = 'top';
             app.Tab1Button.Text = '';
             app.Tab1Button.BackgroundColor = [0.2 0.2 0.2];
@@ -2069,7 +2097,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
             app.Tab2Button.Tag = 'PRODUCTS';
             app.Tab2Button.Tooltip = {''};
-            app.Tab2Button.Icon = 'Detection_32White.png';
+            app.Tab2Button.Icon = 'checklist.svg';
             app.Tab2Button.IconAlignment = 'top';
             app.Tab2Button.Text = '';
             app.Tab2Button.BackgroundColor = [0.2 0.2 0.2];
@@ -2090,7 +2118,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @tabNavigatorButtonPushed, true);
             app.Tab3Button.Tag = 'CONFIG';
             app.Tab3Button.Tooltip = {''};
-            app.Tab3Button.Icon = 'Settings_36White.png';
+            app.Tab3Button.Icon = 'gear.svg';
             app.Tab3Button.IconAlignment = 'top';
             app.Tab3Button.Text = '';
             app.Tab3Button.BackgroundColor = [0.2 0.2 0.2];
