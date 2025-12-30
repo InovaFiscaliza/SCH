@@ -89,6 +89,7 @@ classdef winConfig_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         defaultValues
+        lockColumnStyle = uistyle('Icon', 'lock_20Gray.svg', 'FontColor', [.65,.65,.65], 'IconAlignment', 'leftmargin')
     end
 
 
@@ -243,15 +244,12 @@ classdef winConfig_exported < matlab.apps.AppBase
                     columnCheckedList(end+1) = treeNode;
                 end
             end
-
             app.config_SelectedTableColumns.CheckedNodes = columnCheckedList;
-            addStyle(app.config_SelectedTableColumns, class.Constants.configStyle5, 'node', columnStaticList)
 
-            if checkEdition(app, 'SEARCH')
-                app.config_SearchModeDefaultParameters.Visible = 1;
-            else
-                app.config_SearchModeDefaultParameters.Visible = 0;
-            end
+            s = app.lockColumnStyle;
+            addStyle(app.config_SelectedTableColumns, s, 'node', columnStaticList)
+
+            app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'SEARCH');
         end
 
         %-----------------------------------------------------------------%
@@ -260,11 +258,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             set(app.reportUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, 'Value', app.mainApp.General.Report.unit)
             app.reportDocType.Value = app.mainApp.General.Report.Document;
 
-            if checkEdition(app, 'REPORT')
-                app.eFiscalizaRefresh.Visible = 1;
-            else
-                app.eFiscalizaRefresh.Visible = 0;
-            end
+            app.eFiscalizaRefresh.Visible = checkEdition(app, 'REPORT');
         end
 
         %-----------------------------------------------------------------%
@@ -532,9 +526,15 @@ classdef winConfig_exported < matlab.apps.AppBase
                             
                             app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; staticTreeNodes];
                         end
+                        drawnow
                     end
 
                     % E depois atualiza "GeneralSettings.json"...
+
+                    % NÃO SALVAR NADA SE NÃO TIVER SIDO EVIDENCIADA
+                    % ALTERAÇÃO.
+
+
                     finalCheckedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
                     for jj = 1:height(app.mainApp.General.ui.searchTable)
                         app.mainApp.General.ui.searchTable.visible(jj) = ismember(app.mainApp.General.ui.searchTable.name{jj}, finalCheckedColumns);
