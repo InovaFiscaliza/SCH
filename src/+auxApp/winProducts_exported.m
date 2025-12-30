@@ -158,16 +158,11 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function applyJSCustomizations(app, tabIndex)
-            persistent customizationStatus
-            if isempty(customizationStatus)
-                customizationStatus = zeros(1, numel(app.SubTabGroup.Children), 'logical');
-            end
-
-            if customizationStatus(tabIndex)
+            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
                 return
             end
-    
-            customizationStatus(tabIndex) = true;
+            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
+            
             switch tabIndex
                 case 1
                     appName = class(app);
@@ -459,6 +454,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         function startupFcn(app, mainApp)
             
             try
+                Toolbar_PanelVisibilityImageClicked(app)
                 app.projectData = mainApp.projectData;
                 appEngine.boot(app, app.Role, mainApp)                
             catch ME
@@ -500,42 +496,65 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: tool_PanelVisibility
-        function Toolbar_InteractionImageClicked(app, event)
-            
-            switch event.Source
-                case app.tool_PanelVisibility
-                    if app.SubTabGroup.Visible
-                        app.tool_PanelVisibility.ImageSource = 'ArrowRight_32.png';
-                        app.SubTabGroup.Visible = 0;
-                        app.Document.Layout.Column = [2 5];
-                    else
-                        app.tool_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
-                        app.SubTabGroup.Visible = 1;
-                        app.Document.Layout.Column = [4 5];
-                    end
+        function Toolbar_PanelVisibilityImageClicked(app, event)
 
-                case app.tool_TableVisibility
-                    app.tool_TableVisibility.UserData = mod(app.tool_TableVisibility.UserData+1, 3);
-
-                    switch app.tool_TableVisibility.UserData
-                        case 0
-                            app.UITable.Visible = 0;
-                            app.Document.RowHeight = {24,'1x', 0, 0};
-                        case 1
-                            app.UITable.Visible = 1;
-                            app.Document.RowHeight = {24, '1x', 10, 186};
-                        case 2
-                            app.UITable.Visible = 1;
-                            app.Document.RowHeight = {0, 0, 0, '1x'};
-                    end
-
-                case app.tool_peakIcon
-                    if ~isempty(app.tool_peakIcon.UserData)
-                        ReferenceDistance_km = 1;
-                        plot.zoom(app.UIAxes, app.tool_peakIcon.UserData.Latitude, app.tool_peakIcon.UserData.Longitude, ReferenceDistance_km)
-                        plot.datatip.Create(app.UIAxes, 'Measures', app.tool_peakIcon.UserData.idxMax)
-                    end
+            if app.SubTabGroup.Visible
+                app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right-off.svg';
+                app.SubTabGroup.Visible = "off";                
+                app.Document.Layout.Column = [2 5];
+            else
+                app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right.svg';
+                app.SubTabGroup.Visible = "on";                
+                app.Document.Layout.Column = 2;
             end
+
+        end
+
+        % Callback function: ContextMenu_EditFcn, tool_EditSelectedProduct
+        function Toolbar_EditSelectedImageClicked(app, event)
+            
+            % Por alguma razão desconhecida, inseri algumas validações
+            % aqui! :)
+            % Enfim... a possibilidade de editar um registro não deve
+            % existir toda vez que a tabela esteja vazia ou que não
+            % esteja selecionada uma linha.
+            selectedRow = app.report_Table.Selection;
+
+            if isempty(selectedRow)
+                if isempty(app.report_Table.Data)
+                    app.tool_EditSelectedProduct.Enable  = 0;
+                    app.ContextMenu_EditFcn.Enable = 0;
+                    return
+                end
+
+                app.report_Table.Selection = 1;
+                report_TableSelectionChanged(app)
+            elseif ~isscalar(selectedRow)
+                app.report_Table.Selection = app.report_Table.Selection(1);
+            end
+
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo')
+
+        end
+
+        % Image clicked function: tool_AddNonCertificate
+        function Toolbar_AddNonCertificateImageClicked(app, event)
+            
+            [productData, productHash] = model.projectLib.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
+            if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
+                ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                return
+            end
+
+            updateInspectedProducts(app.projectData, 'add', productData)
+
+            % Atualizando a tabela e o número de linhas (do modo REPORT), nessa
+            % ordem. E depois forçando uma atualização dos paineis.
+            report_UpdatingTable(app)
+            report_TableSelectionChanged(app)
+
+            % Torna visível imagem de warning, caso aberto projeto.
+            report_ProjectWarnImageVisibility(app)
 
         end
 
@@ -691,54 +710,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             report_syncTableAndGui(app, 'tableViewChanged')
             
-        end
-
-        % Image clicked function: tool_AddNonCertificate
-        function tool_AddNonCertificateImageClicked(app, event)
-            
-            [productData, productHash] = model.projectLib.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
-            if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
-                return
-            end
-
-            updateInspectedProducts(app.projectData, 'add', productData)
-
-            % Atualizando a tabela e o número de linhas (do modo REPORT), nessa
-            % ordem. E depois forçando uma atualização dos paineis.
-            report_UpdatingTable(app)
-            report_TableSelectionChanged(app)
-
-            % Torna visível imagem de warning, caso aberto projeto.
-            report_ProjectWarnImageVisibility(app)
-
-        end
-
-        % Callback function: ContextMenu_EditFcn, tool_EditSelectedProduct
-        function search_FilterSetupClicked(app, event)
-            
-            % Por alguma razão desconhecida, inseri algumas validações
-            % aqui! :)
-            % Enfim... a possibilidade de editar um registro não deve
-            % existir toda vez que a tabela esteja vazia ou que não
-            % esteja selecionada uma linha.
-            selectedRow = app.report_Table.Selection;
-
-            if isempty(selectedRow)
-                if isempty(app.report_Table.Data)
-                    app.tool_EditSelectedProduct.Enable  = 0;
-                    app.ContextMenu_EditFcn.Enable = 0;
-                    return
-                end
-
-                app.report_Table.Selection = 1;
-                report_TableSelectionChanged(app)
-            elseif ~isscalar(selectedRow)
-                app.report_Table.Selection = app.report_Table.Selection(1);
-            end
-
-            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo')
-
         end
 
         % Menu selected function: ContextMenu_DeleteFcn
@@ -969,7 +940,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {10, 320, 10, '1x', 48, 8, 2};
+            app.GridLayout.ColumnWidth = {10, '1x', 10, 272, 48, 8, 2};
             app.GridLayout.RowHeight = {2, 8, 24, '1x', 10, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -978,24 +949,25 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 22, 5, 22, '1x', 22, 22};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, '1x', 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
-            app.Toolbar.Padding = [5 5 10 5];
+            app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 6;
             app.Toolbar.Layout.Column = [1 7];
 
             % Create tool_PanelVisibility
             app.tool_PanelVisibility = uiimage(app.Toolbar);
-            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_InteractionImageClicked, true);
+            app.tool_PanelVisibility.ScaleMethod = 'none';
+            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
             app.tool_PanelVisibility.Layout.Row = 2;
             app.tool_PanelVisibility.Layout.Column = 1;
-            app.tool_PanelVisibility.ImageSource = 'ArrowLeft_32.png';
+            app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right-off.svg';
 
             % Create tool_AddNonCertificate
             app.tool_AddNonCertificate = uiimage(app.Toolbar);
-            app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @tool_AddNonCertificateImageClicked, true);
+            app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddNonCertificateImageClicked, true);
             app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
             app.tool_AddNonCertificate.Layout.Row = [1 3];
             app.tool_AddNonCertificate.Layout.Column = 4;
@@ -1004,11 +976,11 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create tool_EditSelectedProduct
             app.tool_EditSelectedProduct = uiimage(app.Toolbar);
             app.tool_EditSelectedProduct.ScaleMethod = 'none';
-            app.tool_EditSelectedProduct.ImageClickedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.tool_EditSelectedProduct.ImageClickedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.tool_EditSelectedProduct.Enable = 'off';
             app.tool_EditSelectedProduct.Tooltip = {'Edita lista de produtos sob análise'};
             app.tool_EditSelectedProduct.Layout.Row = [2 3];
-            app.tool_EditSelectedProduct.Layout.Column = 2;
+            app.tool_EditSelectedProduct.Layout.Column = 3;
             app.tool_EditSelectedProduct.ImageSource = 'Variable_edit_16.png';
 
             % Create report_ReportGeneration
@@ -1035,7 +1007,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_Separator.ScaleMethod = 'none';
             app.tool_Separator.Enable = 'off';
             app.tool_Separator.Layout.Row = [1 3];
-            app.tool_Separator.Layout.Column = 3;
+            app.tool_Separator.Layout.Column = 2;
             app.tool_Separator.ImageSource = 'LineV.svg';
 
             % Create SubTabGroup
@@ -1043,7 +1015,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.SubTabGroup.AutoResizeChildren = 'off';
             app.SubTabGroup.SelectionChangedFcn = createCallbackFcn(app, @SubTabGroupSelectionChanged, true);
             app.SubTabGroup.Layout.Row = [3 4];
-            app.SubTabGroup.Layout.Column = 2;
+            app.SubTabGroup.Layout.Column = [4 6];
 
             % Create SubTab1
             app.SubTab1 = uitab(app.SubTabGroup);
@@ -1360,7 +1332,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Document.RowSpacing = 5;
             app.Document.Padding = [0 0 0 0];
             app.Document.Layout.Row = [3 4];
-            app.Document.Layout.Column = [4 5];
+            app.Document.Layout.Column = 2;
             app.Document.BackgroundColor = [1 1 1];
 
             % Create report_ViewType
@@ -1451,7 +1423,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create ContextMenu_EditFcn
             app.ContextMenu_EditFcn = uimenu(app.ContextMenu);
-            app.ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @search_FilterSetupClicked, true);
+            app.ContextMenu_EditFcn.MenuSelectedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.ContextMenu_EditFcn.Enable = 'off';
             app.ContextMenu_EditFcn.Text = '✏️ Editar';
 
