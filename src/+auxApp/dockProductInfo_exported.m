@@ -82,7 +82,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.Items = categories(app.projectData.inspectedProducts.("Infração"));
             app.Corrigible.Items    = categories(app.projectData.inspectedProducts.("Sanável?"));
 
-            idx = app.callingApp.report_Table.Selection;
+            idx = app.callingApp.UITable.Selection;
             updateForm(app, idx)
 
             % Customização de componentes, mas restrito ao modo "DOCK".

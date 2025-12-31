@@ -508,38 +508,44 @@ classdef winConfig_exported < matlab.apps.AppBase
                 case app.config_SelectedTableColumns
                     ipcEventName = 'searchVisibleColumnsChanged';
 
-                    % Inicialmente, certifica-se de que as colunas estáticas 
-                    % se mantém selecionadas.
-                    if ~isempty(app.config_SelectedTableColumns.CheckedNodes)
-                        checkedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
+                    previousCheckedNodes = event.PreviousCheckedNodes;
+                    currentCheckedNodes  = event.CheckedNodes;
+
+                    if isequal(previousCheckedNodes, currentCheckedNodes)
+                        return
+                    end
+
+                    if numel(currentCheckedNodes) >= numel(previousCheckedNodes)
+                        triggedCheckedNode = setdiff(currentCheckedNodes, previousCheckedNodes);
                     else
-                        checkedColumns = {};
+                        triggedCheckedNode = setdiff(previousCheckedNodes, currentCheckedNodes);
                     end
-        
-                    staticColumns = search_Table_ColumnInfo(app, 'staticColumns');
-                    staticColumns(ismember(staticColumns, checkedColumns)) = [];
                     
-                    if ~isempty(staticColumns)
-                        for ii = 1:numel(staticColumns)
-                            staticColumnName = staticColumns{ii};
-                            staticTreeNodes  = findobj(app.config_SelectedTableColumns, 'Text', staticColumnName);
-                            
-                            app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; staticTreeNodes];
+                    checkedNodesText = {triggedCheckedNode.Text};
+                    staticColumns = search_Table_ColumnInfo(app, 'staticColumns');
+
+                    onlyStaticColumnChanged = true;
+                    for ii = 1:numel(checkedNodesText)
+                        if ismember(checkedNodesText{ii}, staticColumns)
+                            checkedTreeNode = findobj(app.config_SelectedTableColumns, 'Text', checkedNodesText{ii});
+                            app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; checkedTreeNode];
+                            drawnow
+                        else
+                            onlyStaticColumnChanged = false;
                         end
-                        drawnow
+                    end
+                    checkedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
+
+                    if onlyStaticColumnChanged
+                        return
                     end
 
-                    % E depois atualiza "GeneralSettings.json"...
-
-                    % NÃO SALVAR NADA SE NÃO TIVER SIDO EVIDENCIADA
-                    % ALTERAÇÃO.
-
-
-                    finalCheckedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
                     for jj = 1:height(app.mainApp.General.ui.searchTable)
-                        app.mainApp.General.ui.searchTable.visible(jj) = ismember(app.mainApp.General.ui.searchTable.name{jj}, finalCheckedColumns);
+                        app.mainApp.General.ui.searchTable.visible(jj) = ismember(app.mainApp.General.ui.searchTable.name{jj}, checkedColumns);
                     end
             end
+
+            app.progressDialog.Visible = 'visible';
 
             app.mainApp.General_I.search = app.mainApp.General.search;
             app.mainApp.General_I.ui     = app.mainApp.General.ui;
@@ -550,6 +556,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             if ~isempty(ipcEventName)
                 ipcMainMatlabCallsHandler(app.mainApp, app, ipcEventName)
             end
+
+            app.progressDialog.Visible = 'hidden';
 
         end
 
