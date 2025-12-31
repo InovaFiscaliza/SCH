@@ -563,7 +563,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {10, 48, '1x', 412, '1x', 48, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 24, 19, '1x', 10, 34};
+            app.GridLayout.RowHeight = {2, 8, 24, 19, 3, '1x', 10, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
@@ -576,7 +576,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
-            app.Toolbar.Layout.Row = 7;
+            app.Toolbar.Layout.Row = 8;
             app.Toolbar.Layout.Column = [1 8];
 
             % Create tool_OpenPopupEdition
@@ -634,7 +634,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @TableCellEdit, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @TableSelectionChanged, true);
-            app.UITable.Layout.Row = 5;
+            app.UITable.Layout.Row = 6;
             app.UITable.Layout.Column = [2 6];
             app.UITable.FontSize = 10;
 
