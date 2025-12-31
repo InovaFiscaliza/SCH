@@ -49,34 +49,52 @@ classdef projectLib < handle
 
 
     properties (Constant)
-        %-----------------------------------------------------------------%
+    %---------------------------------------------------------------------%
+    % Lista de colunas e seus respectivos tipos que compõem a tabela
+    % "inspectedProducts".
+    %
+    % As colunas comentadas — "Mercadoria retida (R$)", "Mercadoria vendida (R$)" 
+    % e "Qtd. vistoriadas" — não fazem parte de "inspectedProducts", pois são 
+    % colunas calculadas. Seus valores são aferidos antes da exportação dos dados.
+    %
+    % A seguir, os diferentes contextos de uso de "inspectedProducts":
+    % • "vendorView" : visualização padrão da tabela no modo "auxApp.winProducts", 
+    %                  apresentada na GUI como "Fornecedor | Usuário".
+    % • "customsView": visualização da tabela no modo "auxApp.winProducts",
+    %                  apresentada na GUI como "Aduana".
+    % • "sharepoint" : planilha exportada para o SharePoint.
+    % • "eFiscaliza" : planilha exportada para o eFiscaliza.
+    %---------------------------------------------------------------------%
         INSPECTEDPRODUCTSSPECIFICATION = {
             'cell',        'Hash';
-            'cell',        'Homologação';
-            'cell',        'Importador';
-            'cell',        'Código aduaneiro';
-            'categorical', 'Tipo';
-            'cell',        'Subtipo';
-            'cell',        'Fabricante';
-            'cell',        'Modelo';
-            'logical',     'RF?';
-            'logical',     'Em uso?';
-            'logical',     'Interferência?';
-            'double',      'Valor Unit. (R$)';
-            'cell',        'Fonte do valor';
-            'uint32',      'Qtd. uso';
-            'uint32',      'Qtd. vendida';
-            'uint32',      'Qtd. estoque/aduana';
-            'uint32',      'Qtd. anunciada';
-            'uint32',      'Qtd. lacradas';
-            'uint32',      'Qtd. apreendidas';
-            'uint32',      'Qtd. retidas (RFB)';
-            'cell',        'Lacre';
-            'cell',        'PLAI';
-            'categorical', 'Situação';
-            'categorical', 'Infração';
-            'categorical', 'Sanável?';
-            'cell',        'Informações adicionais'
+            'cell',        'Homologação';           % vendorView customsView sharepoint
+            'cell',        'Importador';            %            customsView sharepoint
+            'cell',        'Código aduaneiro';      %            customsView sharepoint
+            'categorical', 'Tipo';                  % vendorView customsView sharepoint eFiscaliza
+            'cell',        'Subtipo';               %                        sharepoint eFiscaliza
+            'cell',        'Fabricante';            % vendorView customsView sharepoint eFiscaliza
+            'cell',        'Modelo';                % vendorView customsView sharepoint eFiscaliza
+            'logical',     'RF?';                   % vendorView customsView sharepoint eFiscaliza
+            'logical',     'Em uso?';               % vendorView             sharepoint eFiscaliza
+            'logical',     'Interferência?';        % vendorView             sharepoint eFiscaliza
+            'double',      'Valor Unit. (R$)';      % vendorView customsView sharepoint eFiscaliza
+            'cell',        'Fonte do valor';        % vendorView customsView sharepoint eFiscaliza
+        ... 'double',      'Mercadoria retida (R$);
+        ... 'double',      'Mercadoria vendida (R$);
+        ... 'uint32',      'Qtd. vistoriadas';      %                                   eFiscaliza
+            'uint32',      'Qtd. uso';              % vendorView             sharepoint eFiscaliza
+            'uint32',      'Qtd. vendida';          % vendorView             sharepoint eFiscaliza
+            'uint32',      'Qtd. estoque/aduana';   % vendorView customsView sharepoint eFiscaliza
+            'uint32',      'Qtd. anunciada';        % vendorView             sharepoint eFiscaliza
+            'uint32',      'Qtd. lacradas';         % vendorView             sharepoint eFiscaliza
+            'uint32',      'Qtd. apreendidas';      % vendorView             sharepoint eFiscaliza
+            'uint32',      'Qtd. retidas (RFB)';    % vendorView customsView sharepoint eFiscaliza
+            'cell',        'Lacre';                 %                        sharepoint eFiscaliza
+            'cell',        'PLAI';                  %                        sharepoint eFiscaliza
+            'categorical', 'Situação';              % vendorView customsView sharepoint eFiscaliza
+            'categorical', 'Infração';              % vendorView customsView sharepoint
+            'categorical', 'Sanável?';              %            customsView sharepoint
+            'cell',        'Informações adicionais' %                        sharepoint
         }
 
         WARNING_ENTRYEXIST = struct( ...
@@ -175,28 +193,29 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
+        % Função que valida a consistência e o preenchimento de dados da
+        % tabela "inspectedProducts". Atualmente são 11 as regras.
+        %
+        % #01 "Tipo" deve estar preenchido (≠ "-").
+        % #02 "Fabricante" deve estar preenchido.
+        % #03 "Modelo" deve estar preenchido.
+        % #04 "Valor Unit. (R$)" não pode ser negativo.
+        % #05 A soma da "Qtd. uso", "Qtd. vendida", "Qtd. estoque/aduana"
+        %     e "Qtd. anunciada" deve ser maior que zero.
+        % #06 A soma da "Qtd. uso" e "Qtd. estoque/aduana" não pode ser 
+        %     menor do que a soma "Qtd. lacradas", "Qtd. apreendidas" e
+        %     "Qtd. retidas (RFB)".
+        % #07 "Situação" deve estar preenchida (≠ "-").
+        % #08 "Situação" e "Infração" devem ser coerentes entre si, de
+        %     forma que: 
+        %     • situação regular → sem infração
+        %     • situação irregular → infração obrigatória
+        % #09 "Valor Unit. (R$)" válido (> 0) em situação irregular.
+        % #10 "Fonte do valor" deve estar preenchido em situação irregular.
+        % #11 A soma da "Qtd. lacradas", "Qtd. apreendidas" e "Qtd. retidas (RFB)"
+        %     não pode ser maior do que zero em situação regular.
+        %-----------------------------------------------------------------%
         function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
-            % Valida consistência e preenchimento na tabela inspectedProducts. 
-            % Regras:
-            % #01 "Tipo" deve estar preenchido (≠ "-").
-            % #02 "Fabricante" deve estar preenchido.
-            % #03 "Modelo" deve estar preenchido.
-            % #04 "Valor Unit. (R$)" não pode ser negativo.
-            % #05 A soma da "Qtd. uso", "Qtd. vendida", "Qtd. estoque/aduana"
-            %     e "Qtd. anunciada" deve ser maior que zero.
-            % #06 A soma da "Qtd. uso" e "Qtd. estoque/aduana" não pode ser 
-            %     menor do que a soma "Qtd. lacradas", "Qtd. apreendidas" e
-            %     "Qtd. retidas (RFB)".
-            % #07 "Situação" deve estar preenchida (≠ "-").
-            % #08 "Situação" e "Infração" devem ser coerentes entre si, de
-            %     forma que: 
-            %     • situação regular → sem infração
-            %     • situação irregular → infração obrigatória
-            % #09 "Valor Unit. (R$)" válido (> 0) em situação irregular.
-            % #10 "Fonte do valor" deve estar preenchido em situação irregular.
-            % #11 A soma da "Qtd. lacradas", "Qtd. apreendidas" e "Qtd. retidas (RFB)"
-            %     não pode ser maior do que zero em situação regular.
-
             ruleColumns = {                                                                                     ...
                 'Tipo',                                                                                         ... #01
                 'Fabricante',                                                                                   ... #02
