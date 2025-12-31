@@ -295,7 +295,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 580 660];
+                app.UIFigure.Position = [100 100 580 640];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -353,7 +353,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             % Create report_EditableInfoGrid
             app.report_EditableInfoGrid = uigridlayout(app.ParametersPanel);
             app.report_EditableInfoGrid.ColumnWidth = {'1x', '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.report_EditableInfoGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 1, 22, 22, 22, 17, 22, 26, 22, 17, 22, 17, 22, 17, '1x'};
+            app.report_EditableInfoGrid.RowHeight = {17, 22, 17, 22, 17, 22, 17, 22, 1, 17, 17, 17, 17, 22, 26, 22, 17, 22, 17, 22, 17, '1x'};
             app.report_EditableInfoGrid.RowSpacing = 5;
             app.report_EditableInfoGrid.Padding = [10 10 10 5];
             app.report_EditableInfoGrid.BackgroundColor = [1 1 1];

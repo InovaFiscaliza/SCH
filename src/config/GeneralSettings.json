@@ -1,5 +1,5 @@
 {
-    "version": 1.90,
+    "version": 1.91,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -327,7 +327,10 @@
                         "Situação",
                         "Infração",
                         "Sanável?",
-                        "Informações adicionais"
+                        "Informações adicionais",
+                        "Subtipo",
+                        "Lacre",
+                        "PLAI"
                     ],
                     "label": [
                         "homologacao", 
@@ -351,12 +354,16 @@
                         "situacao", 
                         "infracao", 
                         "sanavel", 
-                        "informacoesAdicionais"
+                        "informacoesAdicionais",
+                        "subtipo",
+                        "lacre",
+                        "plai"
                     ]
                 },
                 "eFiscaliza": {
                     "Columns": [
                         "Tipo",
+                        "Subtipo",
                         "Modelo",
                         "Fabricante",
                         "Fonte do valor",
@@ -372,13 +379,16 @@
                         "Qtd. uso",
                         "Qtd. estoque/aduana",
                         "Qtd. anunciada",
-                        "Mercadoria retida (R$)",
-                        "Mercadoria vendida (R$)",
-                        "Interferência?"
+                        "Interferência?",
+                        "Lacre",
+                        "PLAI"
                     ],
                     "Settings": [
                         {
                             "ColumnName": "TIPO_EQUIPAMENTO"
+                        },
+                        {
+                            "ColumnName": "SUBTIPO_EQUIPAMENTO"
                         },
                         {
                             "ColumnName": "MODELO_EQUIPAMENTO"
@@ -426,13 +436,13 @@
                             "ColumnName": "QT_UNIDADE_ANUNCIADA"
                         },
                         {
-                            "ColumnName": "VALOR_ESTIMADO_TOTAL"
-                        },
-                        {
-                            "ColumnName": "VALOR_COMERCIALIZADO"
-                        },
-                        {
                             "ColumnName": "CAUSOU_INTERFERENCIA"
+                        },
+                        {
+                            "ColumnName": "CO_LACRE_APREENSAO"
+                        },
+                        {
+                            "ColumnName": "NU_PROCESSO_LAI_SEI"
                         }
                     ]
                 }
@@ -691,50 +701,21 @@
                 "Importação",
                 "Uso"
             ]
-        },
-        "unit": {
-            "default": "",
-            "options": [
-                "",
-                "GR01", "GR01FI1", "GR01FI2", "GR01FI3",
-                "GR02", "GR02FI1", "GR02FI2", "GR02FI3",
-                "GR03", "GR03FI1", "GR03FI2",
-                "GR04", "GR04FI1", "GR04FI2", "GR04FI3",
-                "GR05", "GR05FI1", "GR05FI2",
-                "GR06", "GR06FI1", "GR06FI2",
-                "GR07", "GR07FI1", "GR07FI2",
-                "GR08", "GR08FI1", "GR08FI2",
-                "GR09", "GR09FI1", "GR09FI2",
-                "GR10", "GR10FI1", "GR10FI2",
-                "GR11", "GR11FI1", "GR11FI2",
-                "UO001",
-                "UO021", "UO021FI",
-                "UO031", "UO031FI",
-                "UO061",
-                "UO062",
-                "UO071",
-                "UO072", "UO072FI",
-                "UO073",
-                "UO081",
-                "UO091",
-                "UO092",
-                "UO101",
-                "UO102",
-                "UO111",
-                "UO112",
-                "UO113"
-            ]
         }
     },
     "Report": {
         "system": "eFiscaliza",
         "unit": "",
-        "Document": "Relatório de Atividades"
+        "Document": "Relatório de Atividades",
+        "outputCompressionMode": "Sim"
     },
     "eFiscaliza": {
         "internal": {
             "originId": "G",
-            "typeId": "306"
+            "typeIdMapping": [
+                {"type": "Relatório de Fiscalização", "id": "19"},
+                {"type": "Relatório de Atividades", "id": "306"}
+            ]
         },
         "external": {
             "originId": "R",
@@ -774,6 +755,35 @@
                 "UO111",
                 "UO112",
                 "UO113"
+            ],
+            "unitCityMapping": [
+              {"unit": "GR01", "city": "São Paulo/SP"},
+              {"unit": "GR02", "city": "Rio de Janeiro/RJ"},
+              {"unit": "GR03", "city": "Curitiba/PR"},
+              {"unit": "GR04", "city": "Belo Horizonte/MG"},
+              {"unit": "GR05", "city": "Porto Alegre/RS"},
+              {"unit": "GR06", "city": "Recife/PE"},
+              {"unit": "GR07", "city": "Goiânia/GO"},
+              {"unit": "GR08", "city": "Salvador/BA"},
+              {"unit": "GR09", "city": "Fortaleza/CE"},
+              {"unit": "GR10", "city": "Belém/PA"},
+              {"unit": "GR11", "city": "Manaus/AM"},            
+              {"unit": "UO001", "city": "Brasília/DF"},
+              {"unit": "UO021", "city": "Vitória/ES"},
+              {"unit": "UO031", "city": "Florianópolis/SC"},
+              {"unit": "UO061", "city": "Maceió/AL"},
+              {"unit": "UO062", "city": "João Pessoa/PB"},
+              {"unit": "UO071", "city": "Cuiabá/MT"},
+              {"unit": "UO072", "city": "Campo Grande/MS"},
+              {"unit": "UO073", "city": "Palmas/TO"},
+              {"unit": "UO081", "city": "Aracaju/SE"},
+              {"unit": "UO091", "city": "Natal/RN"},
+              {"unit": "UO092", "city": "Teresina/PI"},
+              {"unit": "UO101", "city": "São Luís/MA"},
+              {"unit": "UO102", "city": "Macapá/AP"},
+              {"unit": "UO111", "city": "Porto Velho/RO"},
+              {"unit": "UO112", "city": "Rio Branco/AC"},
+              {"unit": "UO113", "city": "Boa Vista/RR"}
             ],
             "servicos_da_inspecao": {
                 "value": [
@@ -886,6 +896,7 @@
                     "800 - COLETIVO - RETRANSMISSAO DE T.V.",
                     "801 - COLETIVO - RETRANSMISSÃO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
                     "802 - COLETIVO - PLANO BÁSICO DE RADIODIFUSÃO DE SONS E IMAGENS - DIGITAL",
+                    "805 - COLETIVO - RETRANSMISSÃO DE RÁDIO (RTR) NA AMAZÔNIA LEGAL",
                     "810 - COLETIVO - DISTRIBUICAO DE SINAIS DE TELEVISAO - DISTV",
                     "820 - RESTRITO - DE TELEV. EM CIRCUITO FECHADO (RADIOENLACE)",
                     "900 - COLETIVO - FUST",

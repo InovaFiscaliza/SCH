@@ -443,20 +443,26 @@ classdef winSCH_exported < matlab.apps.AppBase
                     screenHeight = 464;
                 case 'ProductInfo'
                     screenWidth  = 580;
-                    screenHeight = 660;
+                    screenHeight = 640;
             end
 
+            requestVisibilityChange(callingApp.progressDialog, 'visible', 'unlocked')
             ui.PopUpContainer(callingApp, class.Constants.appName, screenWidth, screenHeight)
 
             % Executa o app auxiliar.
             inputArguments = [{app, callingApp}, varargin];
+            auxDockAppName = sprintf('auxApp.dock%s', auxAppName);
             
             if app.General.operationMode.Debug
                 eval(sprintf('auxApp.dock%s(inputArguments{:})', auxAppName))
             else
-                eval(sprintf('auxApp.dock%s_exported(callingApp.popupContainer, inputArguments{:})', auxAppName))
+                eval([auxDockAppName '_exported(callingApp.popupContainer, inputArguments{:})'])
+
+                callingApp.popupContainer.UserData.auxDockAppName = auxDockAppName;
                 callingApp.popupContainer.Parent.Visible = 1;
-            end            
+            end
+
+            requestVisibilityChange(callingApp.progressDialog, 'hidden', 'unlocked')
         end
     end
 
