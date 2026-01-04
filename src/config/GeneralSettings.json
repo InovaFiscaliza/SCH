@@ -1,5 +1,5 @@
 {
-    "version": 1.91,
+    "version": 1.93,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -700,6 +700,15 @@
                 "Identificação homologação",
                 "Importação",
                 "Uso"
+            ]
+        },
+        "typeOfEntity": {
+            "default": "",
+            "options": [
+                "",
+                "Importador",
+                "Fornecedor",
+                "Usuário"
             ]
         }
     },

@@ -2,25 +2,27 @@ classdef winProducts_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                matlab.ui.Figure
-        GridLayout              matlab.ui.container.GridLayout
-        DockModule              matlab.ui.container.GridLayout
-        dockModule_Undock       matlab.ui.control.Image
-        dockModule_Close        matlab.ui.control.Image
-        UITable_ViewType        matlab.ui.container.ButtonGroup
-        UITable_CustomsView     matlab.ui.control.RadioButton
-        UITable_VendorView      matlab.ui.control.RadioButton
-        UITable_NumRows         matlab.ui.control.Label
-        UITable                 matlab.ui.control.Table
-        Toolbar                 matlab.ui.container.GridLayout
-        tool_UploadFinalFile    matlab.ui.control.Image
-        tool_GenerateReport     matlab.ui.control.Image
-        tool_OpenPopupProject   matlab.ui.control.Image
-        tool_AddNonCertificate  matlab.ui.control.Image
-        tool_OpenPopupEdition   matlab.ui.control.Image
-        ContextMenu             matlab.ui.container.ContextMenu
-        ContextMenu_EditFcn     matlab.ui.container.Menu
-        ContextMenu_DeleteFcn   matlab.ui.container.Menu
+        UIFigure                 matlab.ui.Figure
+        GridLayout               matlab.ui.container.GridLayout
+        DockModule               matlab.ui.container.GridLayout
+        dockModule_Undock        matlab.ui.control.Image
+        dockModule_Close         matlab.ui.control.Image
+        UITable_ViewType         matlab.ui.container.ButtonGroup
+        UITable_CustomsView      matlab.ui.control.RadioButton
+        UITable_VendorView       matlab.ui.control.RadioButton
+        UITable_NumRows          matlab.ui.control.Label
+        UITable                  matlab.ui.control.Table
+        Toolbar                  matlab.ui.container.GridLayout
+        tool_Separator           matlab.ui.control.Image
+        tool_OpenPopupEdition_2  matlab.ui.control.Image
+        tool_UploadFinalFile     matlab.ui.control.Image
+        tool_GenerateReport      matlab.ui.control.Image
+        tool_OpenPopupProject    matlab.ui.control.Image
+        tool_AddNonCertificate   matlab.ui.control.Image
+        tool_OpenPopupEdition    matlab.ui.control.Image
+        ContextMenu              matlab.ui.container.ContextMenu
+        ContextMenu_EditFcn      matlab.ui.container.Menu
+        ContextMenu_DeleteFcn    matlab.ui.container.Menu
     end
 
     
@@ -45,7 +47,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
     properties (Access = private, Constant)
         %-----------------------------------------------------------------%
-        warningIconStyle      = uistyle('Icon', 'warning_20Red.svg',  'IconAlignment', 'rightmargin')
+        warningIconStyle      = uistyle('Icon', 'warning-20px-red.svg', 'IconAlignment', 'rightmargin')
         warningHighlightStyle = uistyle('BackgroundColor', '#c80b0f', 'FontColor', 'white')
     end
 
@@ -56,19 +58,10 @@ classdef winProducts_exported < matlab.apps.AppBase
             try
                 switch event.HTMLEventName
                     case 'renderer'
-                        appEngine.activate(app, app.Role)
-
-                    case 'customForm'
-                        switch event.HTMLEventData.uuid
-                            case 'eFiscalizaSignInPage'
-                                report_uploadInfoController(app.mainApp, event.HTMLEventData, 'uploadDocument')
-
-                            otherwise
-                                error('UnexpectedEvent')
-                        end
+                        appEngine.activate(app, app.Role)                        
 
                     otherwise
-                        error('UnexpectedEvent')
+                        ipcMainJSEventsHandler(app.mainApp, event)
                 end
 
             catch ME
@@ -82,24 +75,30 @@ classdef winProducts_exported < matlab.apps.AppBase
                 switch class(callingApp)
                     case {'winSCH', 'winSCH_exported'}
                         switch operationType
-                            % winSCH >> auxApp.winProducts
-                            case 'updateInspectedProducts'
-                                syncInspectedTableWithUI(app, 'dataToGuiSync')
-
-                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
-                            case 'closeFcnCallFromDockModule'
+                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts
+                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
+                            case 'closeFcnCallFromPopupApp'
                                 app.popupContainer.Parent.Visible = 0;
-
-                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
-                            case 'TableCellEdit'
+                                
+                            % winSCH >> auxApp.winProducts
+                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
+                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts                            
+                            case {'updateInspectedProducts', ...
+                                  'onProjectRestart',        ...
+                                  'onProjectLoad',           ...
+                                  'onTableCellEdited'}
                                 syncInspectedTableWithUI(app, 'dataToGuiSync')
 
-                            % auxApp.docProductInfo >> winSCH >> auxApp.winProducts
-                            case 'TableSelectionChanged'
+                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts
+                            case 'onTableSelectionChanged'
                                 selectedRow = varargin{1};
 
                                 app.UITable.Selection = selectedRow;
-                                TableSelectionChanged(app)
+                                onTableSelectionChanged(app)
+
+                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
+                            case 'onFinalReportFileChanged'
+                                updateToolbar(app)
 
                             otherwise
                                 error('UnexpectedCall')
@@ -123,7 +122,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             switch tabIndex
                 case 1
-                    % ...
+                    ui.CustomizationBase.getElementsDataTag({app.UITable});
 
                 otherwise
                     % ...
@@ -173,7 +172,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 case 'tableViewChanged'
                     set(app.UITable, 'Data',        app.projectData.inspectedProducts(:, columnIndex),    ...
                                      'ColumnName',  app.mainApp.General.ui.reportTable.(viewType).label', ...
-                                     'ColumnWidth', app.mainApp.General.ui.reportTable.(viewType).columnWidth')                    
+                                     'ColumnWidth', app.mainApp.General.ui.reportTable.(viewType).columnWidth')
             end
 
             updateTableStyle(app)
@@ -296,6 +295,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             % Por alguma razão desconhecida, inseri algumas validações
             % aqui! :)
+            
             % Enfim... a possibilidade de editar um registro não deve
             % existir toda vez que a tabela esteja vazia ou que não
             % esteja selecionada uma linha.
@@ -308,7 +308,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 end
 
                 app.UITable.Selection = 1;
-                TableSelectionChanged(app)
+                onTableSelectionChanged(app)
             elseif ~isscalar(selectedRow)
                 app.UITable.Selection = app.UITable.Selection(1);
             end
@@ -451,14 +451,14 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         % Selection changed function: UITable
-        function TableSelectionChanged(app, event)
+        function onTableSelectionChanged(app, event)
             
             updateToolbar(app)
             
         end
 
         % Cell edit callback: UITable
-        function TableCellEdit(app, event)
+        function onTableCellEdited(app, event)
             
             % BUG "MATLAB R2024a Update 7":
             % Ao clicar no dropdown (colunas categóricas) e clicar fora do
@@ -524,6 +524,34 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
         end
+
+        % Image clicked function: tool_OpenPopupEdition_2
+        function tool_OpenPopupEdition_2ImageClicked(app, event)
+            
+            msg = [ ...
+                'As informações de tipo, fabricante, modelo e situação são obrigatórias. Além disso, a soma das quantidades em uso, vendida, em estoque/aduana e anunciada deve ser maior que zero.' ...
+                '<br><br>' ...
+                'Caso evidenciada situação <b>REGULAR</b>:<br>' ...
+                '•&thinsp;Não admite infração.<br>' ...
+                '•&thinsp;Não pode haver quantidades lacradas, apreendidas ou retidas.' ...    
+                '<br><br>' ...
+                'Caso evidenciada situação <b>IRREGULAR</b>:<br>' ...
+                '•&thinsp;A infração é obrigatória.<br>' ...
+                '•&thinsp;A soma das quantidades lacradas, apreendidas e retidas não pode exceder a soma das quantidades em uso e em estoque/aduana.<br>' ...
+                '•&thinsp;É obrigatória a estimativa do valor unitário, além da indicação da fonte da estimativa, como, por exemplo, nota fiscal, sistema de controle de estoque ou pesquisa de mercado.' ...
+            ];
+
+            ui.Dialog(app.UIFigure, 'none', msg);
+
+        end
+
+        % Image clicked function: tool_OpenPopupProject
+        function tool_OpenPopupProjectImageClicked(app, event)
+            
+            context = 'PRODUCTS';
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ReportLib', context)
+
+        end
     end
 
     % Component initialization
@@ -571,7 +599,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 22, '1x', 22, 22, 22};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, '1x', 22, 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -585,8 +613,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupEdition.ImageClickedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.tool_OpenPopupEdition.Enable = 'off';
             app.tool_OpenPopupEdition.Tooltip = {'Edita lista de produtos sob análise'};
-            app.tool_OpenPopupEdition.Layout.Row = [2 3];
-            app.tool_OpenPopupEdition.Layout.Column = 1;
+            app.tool_OpenPopupEdition.Layout.Row = [1 3];
+            app.tool_OpenPopupEdition.Layout.Column = 3;
             app.tool_OpenPopupEdition.ImageSource = 'Variable_edit_16.png';
 
             % Create tool_AddNonCertificate
@@ -594,16 +622,17 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddNonCertificateImageClicked, true);
             app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
             app.tool_AddNonCertificate.Layout.Row = [1 3];
-            app.tool_AddNonCertificate.Layout.Column = 2;
+            app.tool_AddNonCertificate.Layout.Column = 4;
             app.tool_AddNonCertificate.ImageSource = 'AddForbidden_32.png';
 
             % Create tool_OpenPopupProject
             app.tool_OpenPopupProject = uiimage(app.Toolbar);
             app.tool_OpenPopupProject.ScaleMethod = 'none';
+            app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @tool_OpenPopupProjectImageClicked, true);
             app.tool_OpenPopupProject.Tooltip = {'Projeto (fiscalizada, arquivo de backup etc)'};
             app.tool_OpenPopupProject.Layout.Row = [1 3];
-            app.tool_OpenPopupProject.Layout.Column = 4;
-            app.tool_OpenPopupProject.ImageSource = 'organization_20.svg';
+            app.tool_OpenPopupProject.Layout.Column = 6;
+            app.tool_OpenPopupProject.ImageSource = 'organization-20px-black.svg';
 
             % Create tool_GenerateReport
             app.tool_GenerateReport = uiimage(app.Toolbar);
@@ -612,7 +641,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_GenerateReport.Enable = 'off';
             app.tool_GenerateReport.Tooltip = {'Gera relatório'};
             app.tool_GenerateReport.Layout.Row = [1 3];
-            app.tool_GenerateReport.Layout.Column = 5;
+            app.tool_GenerateReport.Layout.Column = 7;
             app.tool_GenerateReport.ImageSource = 'Publish_HTML_16.png';
 
             % Create tool_UploadFinalFile
@@ -621,8 +650,25 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_UploadFinalFile.Enable = 'off';
             app.tool_UploadFinalFile.Tooltip = {'Upload relatório'};
             app.tool_UploadFinalFile.Layout.Row = 2;
-            app.tool_UploadFinalFile.Layout.Column = 6;
+            app.tool_UploadFinalFile.Layout.Column = 8;
             app.tool_UploadFinalFile.ImageSource = 'Up_24.png';
+
+            % Create tool_OpenPopupEdition_2
+            app.tool_OpenPopupEdition_2 = uiimage(app.Toolbar);
+            app.tool_OpenPopupEdition_2.ScaleMethod = 'fill';
+            app.tool_OpenPopupEdition_2.ImageClickedFcn = createCallbackFcn(app, @tool_OpenPopupEdition_2ImageClicked, true);
+            app.tool_OpenPopupEdition_2.Tooltip = {'Apresenta regras de validação'};
+            app.tool_OpenPopupEdition_2.Layout.Row = 2;
+            app.tool_OpenPopupEdition_2.Layout.Column = 1;
+            app.tool_OpenPopupEdition_2.ImageSource = 'warning-20px-red.svg';
+
+            % Create tool_Separator
+            app.tool_Separator = uiimage(app.Toolbar);
+            app.tool_Separator.ScaleMethod = 'none';
+            app.tool_Separator.Enable = 'off';
+            app.tool_Separator.Layout.Row = [1 3];
+            app.tool_Separator.Layout.Column = 2;
+            app.tool_Separator.ImageSource = 'LineV.svg';
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
@@ -632,8 +678,9 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable.RowName = {};
             app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
-            app.UITable.CellEditCallback = createCallbackFcn(app, @TableCellEdit, true);
-            app.UITable.SelectionChangedFcn = createCallbackFcn(app, @TableSelectionChanged, true);
+            app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
+            app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
+            app.UITable.Tooltip = {''};
             app.UITable.Layout.Row = 6;
             app.UITable.Layout.Column = [2 6];
             app.UITable.FontSize = 10;
