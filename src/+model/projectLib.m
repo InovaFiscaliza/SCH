@@ -2,42 +2,19 @@ classdef projectLib < handle
 
     properties
         %-----------------------------------------------------------------%
-        name (1,:) char = ''
-        file (1,:) char = ''
+        name
+        file
+        hash
 
-        report  = struct( ...
-            'templates', [], ...
-            'settings',  [] ...
-        )
-
-        modules = struct( ...
-            'SEARCH',   struct('annotationTable', [], ...
-                               'generatedFiles',  struct('rawFiles', {{}}, 'lastHTMLDocFullPath', '', 'lastTableFullPath', '', 'lastZIPFullPath', ''), ...
-                               'ui',              struct('system',        '',  ...
-                                                         'unit',          '',  ...
-                                                         'issue',         -1,  ...
-                                                         'templates',    {{}}, ...
-                                                         'reportModel',   '',  ...
-                                                         'reportVersion', 'Preliminar', ...
-                                                         'entity', struct('type', '', 'name', '', 'id', ''))), ...
-            'PRODUCTS', struct('annotationTable', [], ...
-                               'generatedFiles',  struct('rawFiles', {{}}, 'lastHTMLDocFullPath', '', 'lastTableFullPath', '', 'lastZIPFullPath', ''), ...
-                               'ui',              struct('system',        '',  ...
-                                                         'unit',          '',  ...
-                                                         'issue',         -1,  ...
-                                                         'templates',    {{}}, ...
-                                                         'reportModel',   '',  ...
-                                                         'reportVersion', 'Preliminar', ...
-                                                         'entity', struct('type', '', 'name', '', 'id', ''))) ...
-        )
+        modules
+        report = struct('templates', [], 'settings',  [])
+        
+        issueDetails = struct('system', {}, 'issue', {}, 'details', {}, 'timestamp', {})
+        entityDetails = struct('id', {}, 'details', {}, 'timestamp', {})
 
         inspectedProducts
-        typeSubtypeProductsMapping
-        
-        regulatronData = struct( ...
-            'urlPreffix', '', ...
-            'addsTable', [] ...
-        )
+        typeSubtypeProductsMapping        
+        regulatronData = struct('urlPreffix', '', 'addsTable', [])
     end
 
     
@@ -119,77 +96,171 @@ classdef projectLib < handle
             obj.mainApp    = mainApp;
             obj.rootFolder = rootFolder;
 
-            ReadReportTemplates(obj, rootFolder)
+            Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General, rootFolder)
             ReadRegulatronData(obj, rootFolder)
-            CreateInspectedProductsTable(obj, mainApp.General)
 
             obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
         end
 
         %-----------------------------------------------------------------%
-        function Restart(obj)
-            % ...
+        function Initialization(obj, contextList, generalSettings, rootFolder)
+            % O "id", do "generatedFiles", é a lista ordenada de "hashs" dos registros 
+            % que compõem "inspectedProducts".
 
-            updateGeneratedFiles(obj, 'File')
-            updateGeneratedFiles(obj, 'ECD')
+            obj.name = '';
+            obj.file = '';
+            obj.hash = '';
+
+            for ii = 1:numel(contextList)
+                context = contextList{ii};
+                obj.modules.(context) = struct( ...
+                    'annotationTable', [], ...
+                    'generatedFiles',  struct('id', '', 'rawFiles', {{}}, 'lastHTMLDocFullPath', '', 'lastTableFullPath', '', 'lastZIPFullPath', ''), ...
+                    'ui',              struct('system',        '',  ...
+                                              'unit',          '',  ...
+                                              'issue',         -1,  ...
+                                              'templates',    {{}}, ...
+                                              'reportModel',   '',  ...
+                                              'reportVersion', 'Preliminar', ...
+                                              'entityTypes', {{}},  ...
+                                              'entity', struct('type', '', 'name', '', 'id', '', 'status', false)) ...
+                );
+            end
+
+            ReadReportTemplates(obj, rootFolder)            
+            CreateInspectedProductsTable(obj, generalSettings);
         end
 
         %-----------------------------------------------------------------%
-        function ReadReportTemplates(obj, rootFolder)
-            [projectFolder, ...
-             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            projectFilePath  = fullfile(projectFolder,     'ReportTemplates.json');
-            externalFilePath = fullfile(programDataFolder, 'ReportTemplates.json');
-
-            try
-                if ~isdeployed()
-                    error('ForceDebugMode')
-                end
-                obj.report.templates = jsondecode(fileread(externalFilePath));
-            catch
-                obj.report.templates = jsondecode(fileread(projectFilePath));
-            end
-
-            % Identifica lista de templates por módulo...
-            moduleNameList   = fieldnames(obj.modules);
-            templateNameList = {obj.report.templates.Name};
-
-            for ii = 1:numel(moduleNameList)
-                templateIndexes = ismember({obj.report.templates.Module}, moduleNameList(ii));
-                obj.modules.(moduleNameList{ii}).ui.templates = [{''}, templateNameList(templateIndexes)];
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function ReadRegulatronData(obj, rootFolder)
-            [projectFolder, ...
-             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            projectFilePath  = fullfile(projectFolder,     'DataBase', 'RegulatronAdds.xlsx');
-            externalFilePath = fullfile(programDataFolder, 'DataBase', 'RegulatronAdds.xlsx');
-
-            try
-                urlPreffix = util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds');
-                addsTable  = readtable(externalFilePath);
-            catch
-                addsTable  = readtable(projectFilePath);
-            end
-
-            obj.regulatronData.urlPreffix = urlPreffix;
-            obj.regulatronData.addsTable  = addsTable;
-        end
-
-        %-----------------------------------------------------------------%
-        function CreateInspectedProductsTable(obj, generalSettings)
-            obj.inspectedProducts = table( ...
-                'Size', [0, height(model.projectLib.INSPECTEDPRODUCTSSPECIFICATION)], ...
-                'VariableTypes', model.projectLib.INSPECTEDPRODUCTSSPECIFICATION(:, 1), ...
-                'VariableNames', model.projectLib.INSPECTEDPRODUCTSSPECIFICATION(:, 2) ...
-            );
+        function updateNeeded = CheckIfUpdateNeeded(obj)
+            updateNeeded = false;
             
-            obj.inspectedProducts.("Tipo")     = categorical(obj.inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options);
-            obj.inspectedProducts.("Situação") = categorical(obj.inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options);
-            obj.inspectedProducts.("Infração") = categorical(obj.inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options);
-            obj.inspectedProducts.("Sanável?") = categorical(obj.inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'});
+            if ~isempty(obj.name)
+                currentPrjHash = model.projectLib.computeProjectHash(obj.name, obj.file, obj.inspectedProducts);
+                updateNeeded   = ~isequal(obj.hash, currentPrjHash);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function Save(obj, context, prjName, prjFile, outputFileCompressionMode)
+            arguments
+                obj
+                context char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                prjName
+                prjFile
+                outputFileCompressionMode
+            end
+
+            appName  = class.Constants.appName;
+            prjHash  = model.projectLib.computeProjectHash(prjName, prjFile, obj.inspectedProducts);
+            prjData  = struct('version', 1, ...
+                              'name',    prjName, ...
+                              'hash',    prjHash, ...
+                              'context', context, ...
+                              'generatedFiles', struct('id', obj.modules.(context).generatedFiles.id, 'lastZIPFullPath', obj.modules.(context).generatedFiles.lastZIPFullPath), ...
+                              'ui',      struct('system',       obj.modules.(context).ui.system, ...
+                                                'unit',         obj.modules.(context).ui.unit,  ...
+                                                'issue',        obj.modules.(context).ui.issue, ...
+                                                'reportModel',  obj.modules.(context).ui.reportModel, ...
+                                                'entity',       obj.modules.(context).ui.entity), ...
+                              'issueDetails',  obj.issueDetails, ...
+                              'entityDetails', obj.entityDetails, ...
+                              'inspectedProducts', obj.inspectedProducts);
+
+            compressionMode = '';
+            if strcmp(outputFileCompressionMode, 'Não')
+                compressionMode = '-nocompression';
+            end
+
+            save(prjFile, 'appName', 'prjData', '-mat', '-v7', compressionMode)
+
+            obj.name = prjName;
+            obj.file = prjFile;
+            obj.hash = prjHash;
+        end
+
+        %-----------------------------------------------------------------%
+        function msg = Load(obj, fileName, generalSettings)
+            % Em 01/01/2026, a versão 1 do projeto contempla instância da 
+            % classe model.projectLib. Ao ler um arquivo .mat, usando função 
+            % "load", o MATLAB realiza validações simples, como adicionar 
+            % novas propriedades (com valores padrão) ou remover outras que 
+            % não existem mais (independentemente do seu conteúdo). 
+
+            % A seguir lista com principais propriedades da classe.
+            % • model.projectLib
+            %   "name", "file", "report", "modules" e "inspectedProducts".
+
+            % A alteração da forma de organização da informação no app pode 
+            % demandar a criação de outras versões (2, 3...) do arquivo de 
+            % projeto (.mat), o que deve vir acompanhado de parsers para manter 
+            % compatibilidade, caso viável.
+
+            required = {'appName', 'prjData'};
+
+            try
+                varsInFile = who('-file', fileName);
+                if any(~ismember(required, varsInFile))
+                    missing = setdiff(required, varsInFile);
+                    error('Missing required variables: %s', strjoin(missing, ', '))
+                end
+                
+                load(fileName, '-mat', required{:})
+                
+                if ~strcmp(class.Constants.appName, appName)
+                    error('File generated by a different application. Expected: %s. Found: %s.', class.Constants.appName, appName)
+                end
+    
+                switch prjData.version
+                    case 1
+                        obj.name = prjData.name;
+                        obj.file = fileName;
+                        obj.hash = prjData.hash;
+    
+                        context = prjData.context;
+
+                        if isfile(prjData.generatedFiles.lastZIPFullPath)
+                            try
+                                unzipFiles = unzip(prjData.generatedFiles.lastZIPFullPath, generalSettings.fileFolder.tempPath);
+                                for ii = 1:numel(unzipFiles)
+                                    [~, ~, unzipFileExt] = fileparts(unzipFiles{ii});
+
+                                    switch lower(unzipFileExt)
+                                        case '.html'
+                                            obj.modules.(context).generatedFiles.lastHTMLDocFullPath = unzipFiles{ii};
+                                        case '.json'
+                                            obj.modules.(context).generatedFiles.lastTableFullPath   = unzipFiles{ii};
+                                    end
+                                end
+                                
+                                obj.modules.(context).generatedFiles.id              = prjData.generatedFiles.id;
+                                obj.modules.(context).generatedFiles.lastZIPFullPath = prjData.generatedFiles.lastZIPFullPath;
+                            catch 
+                            end
+                        end
+
+                        obj.modules.(context).ui.system = prjData.ui.system;
+                        obj.modules.(context).ui.unit   = prjData.ui.unit;
+                        obj.modules.(context).ui.issue  = prjData.ui.issue;
+                        obj.modules.(context).ui.entity = prjData.ui.entity;
+
+                        reportModel = prjData.ui.reportModel;
+                        if ismember(reportModel, obj.modules.(context).ui.templates)
+                            obj.modules.(context).ui.reportModel = reportModel;
+                        end
+
+                        obj.issueDetails  = [obj.issueDetails, prjData.issueDetails];
+                        obj.entityDetails = [obj.entityDetails, prjData.entityDetails];
+                        obj.inspectedProducts = unique([obj.inspectedProducts; prjData.inspectedProducts], "rows");
+    
+                    otherwise
+                        error('UnexpectedVersion')
+                end
+                msg = '';
+
+            catch ME
+                msg = ME.message;
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -260,16 +331,18 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function updateGeneratedFiles(obj, context, rawFiles, htmlFile, tableFile, zipFile)
+        function updateGeneratedFiles(obj, context, id, rawFiles, htmlFile, tableFile, zipFile)
             arguments
                 obj
-                context   (1,:) char {mustBeMember(context, {'File', 'ECD'})}
+                context   (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                id        char = ''
                 rawFiles  cell = {}
                 htmlFile  char = ''
                 tableFile char = ''
                 zipFile   char = ''
             end
 
+            obj.modules.(context).generatedFiles.id                  = id;
             obj.modules.(context).generatedFiles.rawFiles            = rawFiles;
             obj.modules.(context).generatedFiles.lastHTMLDocFullPath = htmlFile;
             obj.modules.(context).generatedFiles.lastTableFullPath   = tableFile;
@@ -277,34 +350,51 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function updateUiInfo(obj, context, fieldName, fieldValue)
+        function fileName = getGeneratedDocumentFileName(obj, fileExt, context)
             arguments
                 obj
-                context    (1,:) char {mustBeMember(context, {'File', 'ECD'})}
-                fieldName  (1,:) char
-                fieldValue
-            end
-
-            obj.modules.(context).ui.(fieldName) = fieldValue;
-        end
-
-        %-----------------------------------------------------------------%
-        function filename = getGeneratedDocumentFileName(obj, fileExt, context)
-            arguments
-                obj
-                fileExt (1,:) char {mustBeMember(fileExt, {'rawFiles', '.html', '.xlsx', '.zip'})}
-                context (1,:) char {mustBeMember(context, {'File', 'ECD'})}
+                fileExt (1,:) char {mustBeMember(fileExt, {'.html', '.xlsx', '.zip'})}
+                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
             end
 
             switch fileExt
-                case 'rawFiles'
-                    filename = obj.modules.(context).generatedFiles.rawFiles;
                 case '.html'
-                    filename = obj.modules.(context).generatedFiles.lastHTMLDocFullPath;
+                    fileName = obj.modules.(context).generatedFiles.lastHTMLDocFullPath;
                 case '.xlsx'
-                    filename = obj.modules.(context).generatedFiles.lastTableFullPath;
+                    fileName = obj.modules.(context).generatedFiles.lastTableFullPath;
                 case '.zip'
-                    filename = obj.modules.(context).generatedFiles.lastZIPFullPath;
+                    fileName = obj.modules.(context).generatedFiles.lastZIPFullPath;
+            end
+
+            if ~isfile(fileName)
+                fileName = '';
+                updateGeneratedFiles(obj, context)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function details = getIssueDetails(obj, system, issue)
+            detailsIndex = find(strcmp({obj.issueDetails.system}, system) & [obj.issueDetails.issue] == issue, 1);
+            
+            if isempty(detailsIndex)
+                details  = '';
+            else
+                details  = obj.issueDetails(detailsIndex).details;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function details = getEntityDetails(obj, id)
+            [~, entityIndex] = ismember(id, {obj.entityDetails.id});
+            
+            if entityIndex
+                details = obj.entityDetails(entityIndex).details;
+            else
+                [entityId, ~, details] = checkCNPJOrCPF(id, 'PublicAPI');
+
+                if ~isempty(details)
+                    obj.entityDetails(end+1) = struct('id', entityId, 'details', details, 'timestamp', datestr(now));
+                end                
             end
         end
 
@@ -345,10 +435,109 @@ classdef projectLib < handle
                     obj.inspectedProducts(indexes, :) = [];
             end
         end
+
+        %-----------------------------------------------------------------%
+        function updateUiInfo(obj, context, fieldName, fieldValue)
+            arguments
+                obj
+                context    (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                fieldName  (1,:) char
+                fieldValue
+            end
+
+            switch fieldName
+                case 'name'
+                    obj.name = fieldValue;
+
+                case 'issueDetails'
+                    [~, issueIndex] = ismember(fieldValue.issue, [obj.issueDetails.issue]);
+                    if ~issueIndex
+                        issueIndex = numel(obj.issueDetails) + 1;
+                    end                    
+                    obj.issueDetails(issueIndex) = fieldValue;
+
+                case 'entityDetails'
+                    [~, entityIdIndex] = ismember(fieldValue.id, {obj.entityDetails.id});
+                    if ~entityIdIndex
+                        entityIdIndex = numel(obj.entityDetails) + 1;
+                    end                    
+                    obj.entityDetails(entityIdIndex) = fieldValue;
+
+                otherwise
+                    obj.modules.(context).ui.(fieldName) = fieldValue;
+            end
+        end
+    end
+
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        function ReadReportTemplates(obj, rootFolder)
+            [projectFolder, ...
+             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
+            projectFilePath  = fullfile(projectFolder,     'ReportTemplates.json');
+            externalFilePath = fullfile(programDataFolder, 'ReportTemplates.json');
+
+            try
+                if ~isdeployed()
+                    error('ForceDebugMode')
+                end
+                obj.report.templates = jsondecode(fileread(externalFilePath));
+            catch
+                obj.report.templates = jsondecode(fileread(projectFilePath));
+            end
+
+            % Identifica lista de templates por módulo...
+            contextList = fieldnames(obj.modules);
+            templateNameList = {obj.report.templates.Name};
+
+            for ii = 1:numel(contextList)
+                templateIndexes = ismember({obj.report.templates.Module}, contextList(ii));
+                obj.modules.(contextList{ii}).ui.templates = [{''}, templateNameList(templateIndexes)];
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function ReadRegulatronData(obj, rootFolder)
+            [projectFolder, ...
+             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
+            projectFilePath  = fullfile(projectFolder,     'DataBase', 'RegulatronAdds.xlsx');
+            externalFilePath = fullfile(programDataFolder, 'DataBase', 'RegulatronAdds.xlsx');
+
+            try
+                urlPreffix = util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds');
+                addsTable  = readtable(externalFilePath);
+            catch
+                addsTable  = readtable(projectFilePath);
+            end
+
+            obj.regulatronData.urlPreffix = urlPreffix;
+            obj.regulatronData.addsTable  = addsTable;
+        end
+
+        %-----------------------------------------------------------------%
+        function CreateInspectedProductsTable(obj, generalSettings)
+            obj.inspectedProducts = table( ...
+                'Size', [0, height(model.projectLib.INSPECTEDPRODUCTSSPECIFICATION)], ...
+                'VariableTypes', model.projectLib.INSPECTEDPRODUCTSSPECIFICATION(:, 1), ...
+                'VariableNames', model.projectLib.INSPECTEDPRODUCTSSPECIFICATION(:, 2) ...
+            );
+            
+            obj.inspectedProducts.("Tipo")     = categorical(obj.inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options);
+            obj.inspectedProducts.("Situação") = categorical(obj.inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options);
+            obj.inspectedProducts.("Infração") = categorical(obj.inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options);
+            obj.inspectedProducts.("Sanável?") = categorical(obj.inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'});
+        end
     end
 
 
     methods (Static = true)
+        %-----------------------------------------------------------------%
+        function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts)
+            hashList = sort(inspectedProducts.('Hash'));
+            prjHash = Hash.sha1(sprintf('%s - %s - %s', prjName, prjFile, strjoin(hashList, ' - ')));
+        end
+
         %-----------------------------------------------------------------%
         function hash = computeInspectedProductHash(homologation, manufacturer, model)
             hash = Hash.base64encode(strjoin({homologation, manufacturer, model}, ' - '));

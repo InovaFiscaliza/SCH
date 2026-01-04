@@ -176,8 +176,8 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
         % Callback function: UIFigure, btnClose
         function closeFcn(app, event)
-            
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', "PRODUCTS")
+
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcnCallFromPopupApp', 'PRODUCTS', 'auxApp.dockProductInfo')
             delete(app)
             
         end
@@ -254,7 +254,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             };
 
             updateInspectedProducts(app.projectData, 'edit', app.Index.Value, productData(:, 1), productData(:, 2)')
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'TableCellEdit', "PRODUCTS", app.Index.Value)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableCellEdited', "PRODUCTS", app.Index.Value)
             
         end
 
@@ -276,7 +276,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                 idxNewRowSelection = 1;
             end
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'TableSelectionChanged', "PRODUCTS", idxNewRowSelection)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableSelectionChanged', "PRODUCTS", idxNewRowSelection)
             updateForm(app, idxNewRowSelection)
 
         end

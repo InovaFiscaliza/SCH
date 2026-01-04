@@ -120,6 +120,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcnCallFromPopupApp', 'mainApp', 'auxApp.dockFilterSetup')
             delete(app)
             
         end
