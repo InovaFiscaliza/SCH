@@ -61,6 +61,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         isDocked = true        
         mainApp
         callingApp
+        jsBackDoor
         progressDialog
         projectData
     end
@@ -100,7 +101,12 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             end
             app.prjFile.Text = prjFileText;
 
-            app.prjLastReport.Value = getGeneratedDocumentFileName(app.projectData, '.html', context);
+            lastHTMLDocFullPath = getGeneratedDocumentFileName(app.projectData, '.html', context);
+            if isfile(lastHTMLDocFullPath)
+                [~, fileName, fileExt] = fileparts(lastHTMLDocFullPath);
+                lastHTMLDocFullPath = [fileName, fileExt];
+            end
+            app.prjLastReport.Value = lastHTMLDocFullPath;
             set([app.prjLastReportView, app.prjLastReportDelete], 'Enable', ~isempty(app.prjLastReport.Value))
 
             % eFISCALIZA PANEL
@@ -191,9 +197,14 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             d = ui.Dialog(app.UIFigure, "progressdlg", "Em andamento...");
             
             try
-                Load(app.projectData, fileFullPath, app.mainApp.General);
+                msg = Load(app.projectData, fileFullPath, app.mainApp.General);
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectLoad', context)
                 updatePanel(app, context)
+
+                if ~isempty(msg)
+                    ui.Dialog(app.UIFigure, "warning", msg)
+                end
+
             catch ME
                 ui.Dialog(app.UIFigure, "error", ME.message);
             end
@@ -209,9 +220,11 @@ classdef dockReportLib_exported < matlab.apps.AppBase
 
             if isfile(app.projectData.file)
                 if ~CheckIfUpdateNeeded(app.projectData)
-                    msg = sprintf('O projeto "<b>%s</b>" não sofreu alterações.', app.projectData.name);
-                    ui.Dialog(app.UIFigure, "info", msg);
-                    return
+                    msgQuestion = sprintf('Ao que parece, o projeto "<b>%s</b>" não sofreu alterações.<br><br>Deseja continuar mesmo assim?', app.projectData.name);
+                    selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
+                    if strcmp(selection, 'Não')
+                        return
+                    end
                 end
 
                 [defaultPath, defaultFile] = fileparts(app.projectData.file);
@@ -221,7 +234,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             end
             
             projectName = app.projectData.name;
-            projectFile = ui.Dialog(app.UIFigure, 'uiputfile', '', {'*.mat', 'monitorSPED (*.mat)'}, defaultName);
+            projectFile = ui.Dialog(app.UIFigure, 'uiputfile', '', {'*.mat', 'SCH (*.mat)'}, defaultName);
             if isempty(projectFile)
                 return
             end
@@ -283,15 +296,10 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             
             % <VALIDAÇÕES>
             context = app.inputArgs.context;
+            issue = app.projectData.modules.(context).ui.issue;
             
-            msg = '';
-            if ~report_checkEFiscalizaIssueId(app.mainApp, app.projectData.modules.(context).ui.issue)
-                msg = sprintf('O número da inspeção "%.0f" é inválido.', app.projectData.modules.(context).ui.issue);
-            elseif isempty(app.projectData.modules.(context).ui.system)
-                msg = 'Ambiente do eFiscaliza precisa ser selecionado.';
-            end
-
-            if ~isempty(msg)
+            if ~validateReportRequirements(app.projectData, context, 'issue')
+                msg = sprintf('O número da inspeção "%.0f" é inválido.', issue);
                 ui.Dialog(app.UIFigure, 'warning', msg);
                 return
             end
@@ -299,21 +307,19 @@ classdef dockReportLib_exported < matlab.apps.AppBase
 
             % <PROCESSO>
             system  = app.projectData.modules.(context).ui.system;
-            issue   = app.projectData.modules.(context).ui.issue;
-            details = getIssueDetails(app.projectData, system, issue);
+            details = getIssueDetailsFromCache(app.projectData, system, issue);
 
             if ~isempty(details)
-                dataStruct = struct('group', 'ATIVIDADE DE INSPEÇÃO', 'value', details);
-                msg = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', '', 'popup');
+                msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
                 ui.Dialog(app.UIFigure, 'info', msg);
 
             else
                 if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
                     dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
                     dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
-                    sendEventToHTMLSource(app.callingApp.jsBackDoor, 'customForm', struct('UUID', 'eFiscalizaSignInPage:IssueQuery', 'Fields', dialogBox, 'Context', context))
+                    sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'onFetchIssueDetails', 'Fields', dialogBox, 'Context', context))
                 else
-                    ipcMainMatlabCallsHandler(app.mainApp, app, 'onFetchIssueDetails', 'PRODUCTS')
+                    ipcMainMatlabCallsHandler(app.mainApp, app, 'onFetchIssueDetails', context)
                 end
             end
             % </PROCESSO>
@@ -325,14 +331,15 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             
             context = app.inputArgs.context;
             updateNeeded = false;
+            lastHTMLDocFullPath = getGeneratedDocumentFileName(app.projectData, '.html', context);
 
             try
                 switch event.Source
-                    case app.prjLastReportView
-                        web(app.prjLastReportView.Value, '-new')
+                    case app.prjLastReportView                        
+                        web(lastHTMLDocFullPath, '-new')
 
                     case app.prjLastReportDelete
-                        delete(app.prjLastReportView.Value)
+                        delete(lastHTMLDocFullPath)
 
                         updateNeeded = true;
                         updateGeneratedFiles(app.projectData, context)                        
@@ -345,7 +352,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
 
             if updateNeeded
                 updatePanel(app, context)
-                ipcMainMatlabCallsHandler(app.mainApp, app, 'onFinalReportFileChanged', 'PRODUCTS')
+                ipcMainMatlabCallsHandler(app.mainApp, app, 'onFinalReportFileChanged', context)
             end
 
         end

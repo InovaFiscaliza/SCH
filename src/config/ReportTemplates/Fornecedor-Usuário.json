@@ -525,8 +525,8 @@
                                 "Width": "60px"
                             }
                         ],
-                        "Intro": "{\"Type\":\"ItemN3\",\"Text\":\"Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados e classificados como regulares.\"}",
-                        "Error": "{\"Type\":\"ItemN3\",\"Text\":\"Nenhum dos produtos para telecomunicações inspecionados foi classificado como regular.\"}",
+                        "Intro": "{\"Type\":\"ItemN2\",\"Text\":\"Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados e classificados como regulares.\"}",
+                        "Error": "{\"Type\":\"ItemN2\",\"Text\":\"Nenhum dos produtos para telecomunicações inspecionados foi classificado como regular.\"}",
                         "LineBreak": 0
                     }
                 }

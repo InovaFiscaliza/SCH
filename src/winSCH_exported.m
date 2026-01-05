@@ -2,48 +2,47 @@ classdef winSCH_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                        matlab.ui.Figure
-        GridLayout                      matlab.ui.container.GridLayout
-        NavBar                          matlab.ui.container.GridLayout
-        AppInfo                         matlab.ui.control.Image
-        FigurePosition                  matlab.ui.control.Image
-        DataHubLamp                     matlab.ui.control.Image
-        Tab3Button                      matlab.ui.control.StateButton
-        ButtonsSeparator                matlab.ui.control.Image
-        Tab2Button                      matlab.ui.control.StateButton
-        Tab1Button                      matlab.ui.control.StateButton
-        AppName                         matlab.ui.control.Label
-        AppIcon                         matlab.ui.control.Image
-        TabGroup                        matlab.ui.container.TabGroup
-        Tab1_Search                     matlab.ui.container.Tab
-        Grid1                           matlab.ui.container.GridLayout
-        search_Suggestions              matlab.ui.control.ListBox
-        search_entryPointGrid           matlab.ui.container.GridLayout
-        search_entryPointImage          matlab.ui.control.Image
-        search_entryPoint               matlab.ui.control.EditField
-        PopupTempWarning                matlab.ui.control.Label
-        Document                        matlab.ui.container.GridLayout
-        SubGrid1                        matlab.ui.container.GridLayout
-        jsBackDoor                      matlab.ui.control.HTML
-        search_WordCloudPanel           matlab.ui.container.Panel
-        search_ProductInfo              matlab.ui.control.Label
-        search_ProductInfoImage         matlab.ui.control.Image
-        search_Table                    matlab.ui.control.Table
-        search_nRows                    matlab.ui.control.Label
-        search_words2Search             matlab.ui.control.Label
-        Toolbar                         matlab.ui.container.GridLayout
-        tool_AddAnnotationToSelected_2  matlab.ui.control.Image
-        search_ToolbarWordCloud         matlab.ui.control.Image
-        tool_PanelVisibility            matlab.ui.control.Image
-        tool_Separator_2                matlab.ui.control.Image
-        tool_FilterIcon                 matlab.ui.control.Image
-        tool_FilterInfo                 matlab.ui.control.Label
-        tool_AddSelectedToBucket        matlab.ui.control.Image
-        tool_Separator                  matlab.ui.control.Image
-        tool_ExportVisibleTable         matlab.ui.control.Image
-        tool_AddAnnotationToSelected    matlab.ui.control.Image
-        Tab2_Report                     matlab.ui.container.Tab
-        Tab3_Config                     matlab.ui.container.Tab
+        UIFigure                  matlab.ui.Figure
+        GridLayout                matlab.ui.container.GridLayout
+        NavBar                    matlab.ui.container.GridLayout
+        AppInfo                   matlab.ui.control.Image
+        FigurePosition            matlab.ui.control.Image
+        DataHubLamp               matlab.ui.control.Image
+        Tab3Button                matlab.ui.control.StateButton
+        ButtonsSeparator          matlab.ui.control.Image
+        Tab2Button                matlab.ui.control.StateButton
+        Tab1Button                matlab.ui.control.StateButton
+        AppName                   matlab.ui.control.Label
+        AppIcon                   matlab.ui.control.Image
+        TabGroup                  matlab.ui.container.TabGroup
+        Tab1_Search               matlab.ui.container.Tab
+        Grid1                     matlab.ui.container.GridLayout
+        search_Suggestions        matlab.ui.control.ListBox
+        search_entryPointGrid     matlab.ui.container.GridLayout
+        search_entryPointImage    matlab.ui.control.Image
+        search_entryPoint         matlab.ui.control.EditField
+        PopupTempWarning          matlab.ui.control.Label
+        Document                  matlab.ui.container.GridLayout
+        SubGrid1                  matlab.ui.container.GridLayout
+        jsBackDoor                matlab.ui.control.HTML
+        search_WordCloudPanel     matlab.ui.container.Panel
+        search_ProductInfo        matlab.ui.control.Label
+        search_ProductInfoImage   matlab.ui.control.Image
+        UITable                   matlab.ui.control.Table
+        search_nRows              matlab.ui.control.Label
+        search_words2Search       matlab.ui.control.Label
+        Toolbar                   matlab.ui.container.GridLayout
+        tool_FilterInfo           matlab.ui.control.Label
+        tool_AddSelectedToBucket  matlab.ui.control.Image
+        tool_Separator2           matlab.ui.control.Image
+        tool_ExportVisibleTable   matlab.ui.control.Image
+        tool_OpenPopupAnnotation  matlab.ui.control.Image
+        tool_OpenPopupFilter      matlab.ui.control.Image
+        tool_Separator1           matlab.ui.control.Image
+        tool_WordCloudVisibility  matlab.ui.control.Image
+        tool_PanelVisibility      matlab.ui.control.Image
+        Tab2_Report               matlab.ui.container.Tab
+        Tab3_Config               matlab.ui.container.Tab
     end
 
 
@@ -158,13 +157,17 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
-                            case 'eFiscalizaSignInPage'
+                            case 'onFetchIssueDetails'
                                 context = event.HTMLEventData.context;
-                                report_uploadInfoController(app, event.HTMLEventData, 'uploadDocument', context)
+                                reportFetchIssueDetails(app, context, event.HTMLEventData)
 
-                            case 'eFiscalizaSignInPage:IssueQuery'
+                            case 'onReportGenerate'
                                 context = event.HTMLEventData.context;
-                                report_queryIssueDetails(app, event.HTMLEventData, context)
+                                reportGenerate(app, context, event.HTMLEventData)
+
+                            case 'onUploadArtifacts'
+                                context = event.HTMLEventData.context;
+                                reportUploadArtifacts(app, context, event.HTMLEventData, 'uploadDocument')
 
                             case 'openDevTools'
                                 if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
@@ -336,12 +339,12 @@ classdef winSCH_exported < matlab.apps.AppBase
         
                                     case 'searchVisibleColumnsChanged'
                                         [columnNames, columnWidth] = search_Table_ColumnNames(app);
-                                        set(app.search_Table, 'ColumnName', upper(columnNames), 'ColumnWidth', columnWidth)
+                                        set(app.UITable, 'ColumnName', upper(columnNames), 'ColumnWidth', columnWidth)
                             
-                                        if ~isempty(app.search_Table.Data)
-                                            if (numel(columnNames) ~= width(app.search_Table.Data)) || any(~ismember(app.search_Table.ColumnName, upper(columnNames)))
-                                                secondaryIndex = app.search_Table.UserData.secondaryIndex;
-                                                app.search_Table.Data = app.rawDataTable(secondaryIndex, columnNames);
+                                        if ~isempty(app.UITable.Data)
+                                            if (numel(columnNames) ~= width(app.UITable.Data)) || any(~ismember(app.UITable.ColumnName, upper(columnNames)))
+                                                secondaryIndex = app.UITable.UserData.secondaryIndex;
+                                                app.UITable.Data = app.rawDataTable(secondaryIndex, columnNames);
                                             end
                                         end
 
@@ -355,7 +358,16 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 end
         
                             % auxApp.winProducts (PRODUCTS)
-                            % ...
+                            case {'auxApp.winProducts', 'auxApp.winProducts_exported'}
+                                switch operationType
+                                    case 'onReportGenerate'
+                                        context = varargin{1};
+                                        reportGenerate(app, context, [])
+
+                                    case 'onUploadArtifacts'
+                                        context = varargin{1};
+                                        reportUploadArtifacts(app, context, [], 'uploadDocument')
+                                end
         
                             % DOCKS:OTHERS
                             case {'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
@@ -363,7 +375,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                   'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported'}
                                 switch operationType
                                     case 'closeFcnCallFromPopupApp'
-                                        context   = varargin{1};
+                                        context = varargin{1};
                                         moduleTag = varargin{2};
         
                                         switch context
@@ -401,7 +413,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                                     case 'onFetchIssueDetails'
                                         context  = varargin{1};
-                                        report_queryIssueDetails(app, [], context)
+                                        reportFetchIssueDetails(app, context, [])
 
                                     % auxApp.dockFilterSetup
                                     % ...
@@ -627,12 +639,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Salva na propriedade "UserData" as opções de ícone e o índice
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.search_ToolbarWordCloud.UserData      = false;
+            app.tool_WordCloudVisibility.UserData      = false;
 
             % Inicialização da propriedade "UserData" da tabela.
             app.search_entryPointImage.UserData       = struct('value2Search', '', 'words2Search', '');
-            app.search_Table.UserData                 = struct('primaryIndex', [], 'secondaryIndex', [], 'cacheColumns', {{}});
-            app.search_Table.RowName                  = 'numbered';
+            app.UITable.UserData                 = struct('primaryIndex', [], 'secondaryIndex', [], 'cacheColumns', {{}});
+            app.UITable.RowName                  = 'numbered';
 
             % Os painéis de metadados do registro selecionado nas tabelas já 
             % tem, na sua propriedade "UserData", a chave "id" que armazena 
@@ -774,7 +786,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             primaryIndex       = run(app.filteringObj, 'words2Search', app.rawDataTable, {'Homologação'}, sortOrder, 'strcmp', primaryHomProducts);
             GUIColumns         = search_Table_ColumnNames(app);
 
-            set(app.search_Table, 'Data',      app.rawDataTable(primaryIndex, GUIColumns), ...
+            set(app.UITable, 'Data',      app.rawDataTable(primaryIndex, GUIColumns), ...
                 'UserData',  struct('primaryIndex', primaryIndex, 'secondaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
 
             % Cria chart para a nuvem de palavras...
@@ -795,7 +807,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function search_Filtering_secondaryFilter(app)
-            primaryIndex = app.search_Table.UserData.primaryIndex;
+            primaryIndex = app.UITable.UserData.primaryIndex;
             GUIColumns   = search_Table_ColumnNames(app);
 
             if ~isempty(app.filteringObj.filterRules)
@@ -805,8 +817,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 secondaryIndex = primaryIndex;
             end
 
-            app.search_Table.Data = app.rawDataTable(secondaryIndex, GUIColumns);
-            app.search_Table.UserData.secondaryIndex = secondaryIndex;
+            app.UITable.Data = app.rawDataTable(secondaryIndex, GUIColumns);
+            app.UITable.UserData.secondaryIndex = secondaryIndex;
 
             % Renderiza em tela o número de linhas, além de selecionar a primeira
             % linha da tabela, caso a pesquisa retorne algo.
@@ -946,17 +958,15 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function search_Table_InitialSelection(app, focusFlag)
-            if isempty(app.search_Table.Data)
-                app.search_Table.Selection    = [];
-                app.tool_ExportVisibleTable.Enable = 0;
+            if isempty(app.UITable.Data)
+                app.UITable.Selection = [];
             else
-                app.search_Table.Selection    = [1, 1];
-                app.tool_ExportVisibleTable.Enable = 1;
+                app.UITable.Selection = [1, 1];
             end
-            search_Table_SelectionChanged(app)
+            UITable_SelectionChanged(app)
 
             if focusFlag
-                focus(app.search_Table)
+                focus(app.UITable)
             end
         end
 
@@ -965,11 +975,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             search_Table_RemoveStyle(app, 'all')
 
             % Row striping
-            [~, ~, uniqueHomIndex] = unique(app.search_Table.Data.("Homologação"), 'stable');
+            [~, ~, uniqueHomIndex] = unique(app.UITable.Data.("Homologação"), 'stable');
             listOfRows             = find(~mod(uniqueHomIndex, 2));
             if ~isempty(listOfRows)
                 s = app.rowStripingStyle;
-                addStyle(app.search_Table, s, 'row', listOfRows)
+                addStyle(app.UITable, s, 'row', listOfRows)
             end
 
             % Table annotation icon
@@ -981,12 +991,12 @@ classdef winSCH_exported < matlab.apps.AppBase
         function search_Table_RemoveStyle(app, styleType)
             switch styleType
                 case 'all'
-                    removeStyle(app.search_Table)
+                    removeStyle(app.UITable)
 
                 otherwise
-                    styleTypeIndex  = find(strcmp(cellstr(app.search_Table.StyleConfigurations.Target), styleType));
+                    styleTypeIndex  = find(strcmp(cellstr(app.UITable.StyleConfigurations.Target), styleType));
                     if ~isempty(styleTypeIndex)
-                        removeStyle(app.search_Table, styleTypeIndex)
+                        removeStyle(app.UITable, styleTypeIndex)
                     end
             end
         end
@@ -994,11 +1004,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function search_Table_AnnotationIcon(app)
             % Posição da coluna "Homologação".
-            homColumnIndex    = find(strcmp(app.search_Table.Data.Properties.VariableNames, 'Homologação'), 1);
+            homColumnIndex    = find(strcmp(app.UITable.Data.Properties.VariableNames, 'Homologação'), 1);
 
             % Valores únicos de homologação e seus índices...
             [listOfHom, ...
-             lisOfHomIndex]   = unique(app.search_Table.Data.("Homologação"), 'stable');
+             lisOfHomIndex]   = unique(app.UITable.Data.("Homologação"), 'stable');
 
             % Identifica registros para os quais existe anotação registrada,
             % aplicando o estilo.
@@ -1008,7 +1018,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if ~isempty(listOfCells)
                 s = app.annotationStyle;
-                addStyle(app.search_Table, s, "cell", listOfCells)
+                addStyle(app.UITable, s, "cell", listOfCells)
             end
         end
 
@@ -1075,9 +1085,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function word2Search = search_WordCloud_Word2Search(app, showedHom)
-            selectedRow = find(strcmp(app.search_Table.Data.("Homologação"), showedHom), 1);
-            listOfWords = {char(app.search_Table.Data.("Modelo")(selectedRow)), ...
-                char(app.search_Table.Data.("Nome Comercial")(selectedRow))};
+            selectedRow = find(strcmp(app.UITable.Data.("Homologação"), showedHom), 1);
+            listOfWords = {char(app.UITable.Data.("Modelo")(selectedRow)), ...
+                char(app.UITable.Data.("Nome Comercial")(selectedRow))};
 
             switch app.General.search.wordCloud.column
                 case 'Modelo';         idx1 = 1;
@@ -1100,9 +1110,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function [selectedHom, showedHom, selectedRows] = misc_Table_SelectedRow(app)
-            if ~isempty(app.search_Table.Selection)
-                selectedRows = unique(app.search_Table.Selection(:,1));
-                selectedHom  = unique(app.search_Table.Data.("Homologação")(selectedRows), 'stable');
+            if ~isempty(app.UITable.Selection)
+                selectedRows = unique(app.UITable.Selection(:,1));
+                selectedHom  = unique(app.UITable.Data.("Homologação")(selectedRows), 'stable');
             else
                 selectedRows = [];
                 selectedHom  = {};
@@ -1113,8 +1123,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function misc_Table_NumberOfRows(app)
-            nHom  = numel(unique(app.search_Table.Data.("Homologação")));
-            nRows = height(app.search_Table.Data);
+            nHom  = numel(unique(app.UITable.Data.("Homologação")));
+            nRows = height(app.UITable.Data);
             app.search_nRows.Text = sprintf('%d <font style="font-size: 10px;">HOMOLOGAÇÕES </font><br>%d <font style="font-size: 10px;">REGISTROS </font>', nHom, nRows);
         end
 
@@ -1163,6 +1173,22 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function updateToolbar(app)
+            nonEmptyTable     = ~isempty(app.UITable.Data);
+            nonEmptySelection = ~isempty(app.UITable.Selection);
+            visibleSidePanel  = app.SubGrid1.Visible;
+
+            app.tool_WordCloudVisibility.Enable = visibleSidePanel;
+            app.tool_OpenPopupAnnotation.Enable = nonEmptySelection;
+            app.tool_ExportVisibleTable.Enable  = nonEmptyTable;
+
+            if app.PopupTempWarning.Visible
+                matlab.waitfor(app.PopupTempWarning, 'Visible', @(propValue) ~logical(propValue), .5, 5, 'propValue')
+            end
+            app.tool_AddSelectedToBucket.Enable = nonEmptySelection;
+        end
+
+        %-----------------------------------------------------------------%
         function updateLastVisitedFolder(app, filePath)
             app.General_I.fileFolder.lastVisited = filePath;
             app.General.fileFolder.lastVisited   = filePath;
@@ -1172,123 +1198,144 @@ classdef winSCH_exported < matlab.apps.AppBase
     end
 
 
-    methods (Access = public)
+    methods (Access = private)
         %-----------------------------------------------------------------%
         % SISTEMA DE GESTÃO DA FISCALIZAÇÃO (eFiscaliza/SEI)
         %-----------------------------------------------------------------%
-        function status = report_checkEFiscalizaIssueId(app, issue)
-            status = (issue > 0) && (issue < inf);
+        function createEFiscalizaObject(app, credentials)
+            if ~isempty(credentials)
+                app.eFiscalizaObj = ws.eFiscaliza(credentials.login, credentials.password);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function reportFetchIssueDetails(app, context, credentials)
+            callingApp = getAppHandle(app.tabGroupController, context);
+            if isempty(callingApp)
+                callingApp = app;
+            end
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            system = app.projectData.modules.(context).ui.system;
+            issue  = app.projectData.modules.(context).ui.issue;
+            [details, msgError] = getOrFetchIssueDetails(app.projectData, system, issue, app.eFiscalizaObj);
+
+            if app ~= callingApp
+                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', 'onFetchIssueDetails', system, issue, details, msgError)
+            end
+
+            callingApp.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function reportGenerate(app, context, credentials)
+            callingApp = getAppHandle(app.tabGroupController, context);
+            if isempty(callingApp)
+                callingApp = app;
+            end
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            try
+                reportLibConnection.Controller.Run(app, callingApp, context)
+                if app == callingApp
+                    updateToolbar(app)
+                else
+                    ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', 'onReportGenerate')
+                end
+            catch ME
+                ui.Dialog(callingApp.UIFigure, 'error', getReport(ME));
+            end
+
+            callingApp.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function reportUploadArtifacts(app, context, credentials, operation)
+            callingApp = getAppHandle(app.tabGroupController, context);
+            if isempty(callingApp)
+                callingApp = app;
+            end
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            [status1, icon1, msg1] = reportUploadToSEI(app, context, operation);
+            ui.Dialog(callingApp.UIFigure, icon1, msg1);
+
+            callingApp.progressDialog.Visible = 'hidden';
+
+            if status1 && strcmp(app.projectData.modules.(context).ui.system, 'eFiscaliza')
+                [status2, msg2] = reportUploadJsonToSharepoint(app);
+
+                if ~status2
+                    ui.Dialog(callingApp.UIFigure, 'error', msg2);
+                end
+            end
         end
 
         %-------------------------------------------------------------------------%
-        function report_queryIssueDetails(app, credentials, context)
-            app.progressDialog.Visible = 'visible';
-
+        function [status, icon, msg] = reportUploadToSEI(app, context, operation)
             try
-                if ~isempty(credentials)
-                    app.eFiscalizaObj = ws.eFiscaliza(credentials.login, credentials.password);
-                end
-
                 env = strsplit(app.projectData.modules.(context).ui.system);
-                if numel(env) < 2
+                if isscalar(env)
                     env = 'PD';
                 else
                     env = env{2};
                 end
 
-                issue = struct( ...
+                system = app.projectData.modules.(context).ui.system;
+                unit = app.projectData.modules.(context).ui.unit;
+                issue = app.projectData.modules.(context).ui.issue;
+                issueInfo = struct( ...
                     'type', 'ATIVIDADE DE INSPEÇÃO', ...
-                    'id', app.projectData.modules.(context).ui.issue ...
+                    'id', issue ...
                 );
-                
-                msg = run(app.eFiscalizaObj, env, 'queryIssue', issue);
-                if isstruct(msg)
-                    issueDetails = struct( ...
-                        'system', app.projectData.modules.(context).ui.system, ...
-                        'issue', app.projectData.modules.(context).ui.issue, ...
-                        'details', msg, ...
-                        'timestamp', datestr(now) ...
-                    );
-                    updateUiInfo(app.projectData, context, 'issueDetails', issueDetails)
-
-                else
-                    error(msg)
-                end
-
-            catch ME
-                ui.Dialog(app.UIFigure, 'error', ME.message);
-            end
-
-            app.progressDialog.Visible = 'hidden';
-        end
-
-        %-----------------------------------------------------------------%
-        function report_uploadInfoController(app, credentials, operation)
-            communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation);
-            if communicationStatus && strcmp(app.report_system.Value, 'eFiscaliza')
-                report_sendJSONFileToSharepoint(app)
-            end
-        end
-
-        %-------------------------------------------------------------------------%
-        function communicationStatus = report_sendHTMLDocToSEIviaEFiscaliza(app, credentials, operation)
-            app.progressDialog.Visible = 'visible';
-            communicationStatus = false;
-
-            try
-                if ~isempty(credentials)
-                    app.eFiscalizaObj = ws.eFiscaliza(credentials.login, credentials.password);
-                end
 
                 switch operation
                     case 'uploadDocument'
-                        env = strsplit(app.report_system.Value);
-                        if numel(env) < 2
-                            env = 'PD';
-                        else
-                            env = env{2};
-                        end
+                        HTMLFile = getGeneratedDocumentFileName(app.projectData, '.html', context);
 
-                        issue    = struct('type', 'ATIVIDADE DE INSPEÇÃO', 'id', app.report_Issue.Value);
-                        unit     = app.report_Unit.Value;
-                        fileName = app.projectData.generatedFiles.lastHTMLDocFullPath;
-                        docSpec  = app.General.eFiscaliza;
+                        [~, modelIdx]   = ismember(app.projectData.modules.(context).ui.reportModel, {app.projectData.report.templates.Name});
+                        docType         = app.projectData.report.templates(modelIdx).DocumentType;
+                        [~, docTypeIdx] = ismember(docType, {app.General.eFiscaliza.internal.typeIdMapping.type});
+
+                        docSpec = app.General.eFiscaliza;
                         docSpec.originId = docSpec.internal.originId;
-                        docSpec.typeId   = docSpec.internal.typeId;
+                        docSpec.typeId = app.General.eFiscaliza.internal.typeIdMapping(docTypeIdx).id;
 
-                        msg = run(app.eFiscalizaObj, env, operation, issue, unit, docSpec, fileName);
-        
+                        response = run(app.eFiscalizaObj, env, operation, issueInfo, unit, docSpec, HTMLFile);
+
                     otherwise
                         error('Unexpected call')
                 end
-                
-                if ~contains(msg, 'Documento cadastrado no SEI', 'IgnoreCase', true)
-                    error(msg)
+
+                if ~contains(response, 'Documento cadastrado no SEI', 'IgnoreCase', true)
+                    error(response)
                 end
 
-                modalWindowIcon     = 'success';
-                modalWindowMessage  = msg;
-                communicationStatus = true;
+                updateUploadedFiles(app.projectData, context, system, issue, response)
+
+                status = true;
+                icon   = 'success';
+                msg    = response;
 
             catch ME
-                app.eFiscalizaObj   = [];
+                app.eFiscalizaObj = [];
                 
-                modalWindowIcon     = 'error';
-                modalWindowMessage  = ME.message;
+                status = false;
+                icon   = 'error';
+                msg    = ME.message;
             end
-
-            ui.Dialog(app.UIFigure, modalWindowIcon, modalWindowMessage);
-            app.progressDialog.Visible = 'hidden';
         end
 
         %------------------------------------------------------------------------%
-        function report_sendJSONFileToSharepoint(app)
-            JSONFile = app.projectData.generatedFiles.lastTableFullPath;            
+        function [status, msg] = reportUploadJsonToSharepoint(app)
+            JSONFile = getGeneratedDocumentFileName(app.projectData, '.json', context);
             [status, msg] = copyfile(JSONFile, app.General.fileFolder.DataHub_POST, 'f');
-
-            if ~status
-                ui.Dialog(app.UIFigure, 'error', msg);
-            end
         end
     end
 
@@ -1347,7 +1394,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: UIFigure, search_Table
+        % Callback function: UIFigure, UITable
         function UIFigureWindowButtonDown(app, event)
 
             % O listener que captura cliques do mouse só é aplicável no
@@ -1468,16 +1515,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             if app.SubGrid1.Visible
                 app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right-off.svg';
                 app.SubGrid1.Visible = 0;
-                app.search_Table.Layout.Column = [1 2];
+                app.UITable.Layout.Column = [1 2];
             else
                 app.tool_PanelVisibility.ImageSource = 'layout-sidebar-right.svg';
                 app.SubGrid1.Visible = 1;
-                app.search_Table.Layout.Column = 1;
+                app.UITable.Layout.Column = 1;
             end
 
         end
 
-        % Image clicked function: tool_AddAnnotationToSelected, 
+        % Image clicked function: tool_OpenPopupAnnotation, 
         % ...and 1 other component
         function Toolbar_PENDENTE_IMPLEMENTACAO(app, event)
             
@@ -1498,7 +1545,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.progressDialog.Visible = 'visible';
 
             try
-                idxSCH = app.search_Table.UserData.secondaryIndex;
+                idxSCH = app.UITable.UserData.secondaryIndex;
                 writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
             catch ME
                 ui.Dialog(app.UIFigure, 'warning', getReport(ME));
@@ -1512,37 +1559,32 @@ classdef winSCH_exported < matlab.apps.AppBase
         function Toolbar_AddSelectedToBucketImageClicked(app, event)
             
             [~, ~, selectedRows] = misc_Table_SelectedRow(app);
-
             if isempty(selectedRows)
-                app.tool_AddSelectedToBucket.Enable = 0;
-                msgWarning = 'Selecione ao menos um registro na tabela.';
-                ui.Dialog(app.UIFigure, 'warning', msgWarning);
                 return
+            end
 
+            addedHom = 0;
+            for selectedRow = selectedRows'
+                [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.UITable.UserData.primaryIndex(selectedRow));
+                if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
+                    continue
+                end
+                
+                addedHom = addedHom+1;
+                updateInspectedProducts(app.projectData, 'add', productData)
+            end
+
+            if addedHom
+                showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
+                ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
             else
-                addedHom = 0;
-                for selectedRow = selectedRows'
-                    [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.search_Table.UserData.primaryIndex(selectedRow));
-                    if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                        continue
-                    end
-                    
-                    addedHom = addedHom+1;
-                    updateInspectedProducts(app.projectData, 'add', productData)
-                end
-
-                if addedHom
-                    showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
-                    ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
-                else
-                    showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
-                end
+                showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
             end
 
         end
 
-        % Selection changed function: search_Table
-        function search_Table_SelectionChanged(app, event)
+        % Selection changed function: UITable
+        function UITable_SelectionChanged(app, event)
             
             [selectedHom, showedHom, selectedRow] = misc_Table_SelectedRow(app);
 
@@ -1557,7 +1599,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     misc_SelectedHomPanel_InfoUpdate(app, htmlSource, selectedRow(1), selected2showedHom)
 
                     % Apresenta a nuvem de palavras apenas se visível...
-                    if app.search_ToolbarWordCloud.UserData
+                    if app.tool_WordCloudVisibility.UserData
                         if search_WordCloud_CheckCache(app, selected2showedHom, relatedAnnotationTable)
                             status = search_WordCloud_PlotUpdate(app, selectedRow(1), selected2showedHom, false);
                             if ~status
@@ -1572,14 +1614,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                             app.wordCloudObj.Table = [];
                         end
                     end
-
-                    app.tool_AddAnnotationToSelected.Enable = 1;
-                    app.search_ToolbarWordCloud.Enable      = 1;
-
-                    if app.PopupTempWarning.Visible
-                        matlab.waitfor(app.PopupTempWarning, 'Visible', @(propValue) ~logical(propValue), .5, 5, 'propValue')
-                    end
-                    app.tool_AddSelectedToBucket.Enable = 1;
                 end
 
             else
@@ -1590,24 +1624,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.wordCloudObj.Table        = [];
                     app.search_WordCloudPanel.Tag = '';
                 end
-
-                app.tool_AddAnnotationToSelected.Enable = 0;
-                app.search_ToolbarWordCloud.Enable      = 0;
-
-                if app.PopupTempWarning.Visible
-                    matlab.waitfor(app.PopupTempWarning, 'Visible', @(propValue) ~logical(propValue), .5, 5, 'propValue')
-                end
-                app.tool_AddSelectedToBucket.Enable = 0;
             end
+
+            updateToolbar(app)
 
         end
 
-        % Image clicked function: search_ToolbarWordCloud
-        function search_ToolbarWordCloudImageClicked(app, event)
+        % Image clicked function: tool_WordCloudVisibility
+        function tool_WordCloudVisibilityImageClicked(app, event)
             
-            app.search_ToolbarWordCloud.UserData = ~app.search_ToolbarWordCloud.UserData;
+            app.tool_WordCloudVisibility.UserData = ~app.tool_WordCloudVisibility.UserData;
     
-            if app.search_ToolbarWordCloud.UserData
+            if app.tool_WordCloudVisibility.UserData
                 % O "drawnow nocallbacks" aqui é ESSENCIAL porque o
                 % MATLAB precisa renderizar em tela o container do
                 % WordCloud (um objeto uihtml).
@@ -1676,7 +1704,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.Grid1);
-            app.Toolbar.ColumnWidth = {22, 22, 5, 22, 22, 22, 5, 22, '1x', 18};
+            app.Toolbar.ColumnWidth = {22, 22, 5, 22, 22, 22, 5, 22, '1x'};
             app.Toolbar.RowHeight = {4, 17, '1x', '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -1684,15 +1712,51 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Toolbar.Layout.Row = 7;
             app.Toolbar.Layout.Column = [1 5];
 
-            % Create tool_AddAnnotationToSelected
-            app.tool_AddAnnotationToSelected = uiimage(app.Toolbar);
-            app.tool_AddAnnotationToSelected.ScaleMethod = 'none';
-            app.tool_AddAnnotationToSelected.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
-            app.tool_AddAnnotationToSelected.Enable = 'off';
-            app.tool_AddAnnotationToSelected.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
-            app.tool_AddAnnotationToSelected.Layout.Row = [1 4];
-            app.tool_AddAnnotationToSelected.Layout.Column = 5;
-            app.tool_AddAnnotationToSelected.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
+            % Create tool_PanelVisibility
+            app.tool_PanelVisibility = uiimage(app.Toolbar);
+            app.tool_PanelVisibility.ScaleMethod = 'none';
+            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
+            app.tool_PanelVisibility.Tooltip = {''};
+            app.tool_PanelVisibility.Layout.Row = [1 4];
+            app.tool_PanelVisibility.Layout.Column = 1;
+            app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right-off.svg');
+
+            % Create tool_WordCloudVisibility
+            app.tool_WordCloudVisibility = uiimage(app.Toolbar);
+            app.tool_WordCloudVisibility.ImageClickedFcn = createCallbackFcn(app, @tool_WordCloudVisibilityImageClicked, true);
+            app.tool_WordCloudVisibility.Enable = 'off';
+            app.tool_WordCloudVisibility.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
+            app.tool_WordCloudVisibility.Layout.Row = 2;
+            app.tool_WordCloudVisibility.Layout.Column = 2;
+            app.tool_WordCloudVisibility.VerticalAlignment = 'bottom';
+            app.tool_WordCloudVisibility.ImageSource = 'Cloud_32x32Gray.png';
+
+            % Create tool_Separator1
+            app.tool_Separator1 = uiimage(app.Toolbar);
+            app.tool_Separator1.ScaleMethod = 'none';
+            app.tool_Separator1.Enable = 'off';
+            app.tool_Separator1.Layout.Row = [1 4];
+            app.tool_Separator1.Layout.Column = 3;
+            app.tool_Separator1.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+
+            % Create tool_OpenPopupFilter
+            app.tool_OpenPopupFilter = uiimage(app.Toolbar);
+            app.tool_OpenPopupFilter.ScaleMethod = 'none';
+            app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
+            app.tool_OpenPopupFilter.Tooltip = {'Configura estratégia de filtragem'};
+            app.tool_OpenPopupFilter.Layout.Row = [1 4];
+            app.tool_OpenPopupFilter.Layout.Column = 4;
+            app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
+
+            % Create tool_OpenPopupAnnotation
+            app.tool_OpenPopupAnnotation = uiimage(app.Toolbar);
+            app.tool_OpenPopupAnnotation.ScaleMethod = 'none';
+            app.tool_OpenPopupAnnotation.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
+            app.tool_OpenPopupAnnotation.Enable = 'off';
+            app.tool_OpenPopupAnnotation.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
+            app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
+            app.tool_OpenPopupAnnotation.Layout.Column = 5;
+            app.tool_OpenPopupAnnotation.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
 
             % Create tool_ExportVisibleTable
             app.tool_ExportVisibleTable = uiimage(app.Toolbar);
@@ -1704,13 +1768,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_ExportVisibleTable.Layout.Column = 6;
             app.tool_ExportVisibleTable.ImageSource = 'Export_16.png';
 
-            % Create tool_Separator
-            app.tool_Separator = uiimage(app.Toolbar);
-            app.tool_Separator.ScaleMethod = 'none';
-            app.tool_Separator.Enable = 'off';
-            app.tool_Separator.Layout.Row = [1 4];
-            app.tool_Separator.Layout.Column = 7;
-            app.tool_Separator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+            % Create tool_Separator2
+            app.tool_Separator2 = uiimage(app.Toolbar);
+            app.tool_Separator2.ScaleMethod = 'none';
+            app.tool_Separator2.Enable = 'off';
+            app.tool_Separator2.Layout.Row = [1 4];
+            app.tool_Separator2.Layout.Column = 7;
+            app.tool_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_AddSelectedToBucket
             app.tool_AddSelectedToBucket = uiimage(app.Toolbar);
@@ -1729,51 +1793,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_FilterInfo.Layout.Row = [1 4];
             app.tool_FilterInfo.Layout.Column = 9;
             app.tool_FilterInfo.Text = {'Filtragem primária orientada à(s) coluna(s): "Homologação", "Solicitante", "Fabricante", "Modelo", "Nome Comercial"'; 'Filtragem secundária: []'};
-
-            % Create tool_FilterIcon
-            app.tool_FilterIcon = uiimage(app.Toolbar);
-            app.tool_FilterIcon.ScaleMethod = 'none';
-            app.tool_FilterIcon.Enable = 'off';
-            app.tool_FilterIcon.Layout.Row = 2;
-            app.tool_FilterIcon.Layout.Column = 10;
-            app.tool_FilterIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
-
-            % Create tool_Separator_2
-            app.tool_Separator_2 = uiimage(app.Toolbar);
-            app.tool_Separator_2.ScaleMethod = 'none';
-            app.tool_Separator_2.Enable = 'off';
-            app.tool_Separator_2.Layout.Row = [1 4];
-            app.tool_Separator_2.Layout.Column = 3;
-            app.tool_Separator_2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
-
-            % Create tool_PanelVisibility
-            app.tool_PanelVisibility = uiimage(app.Toolbar);
-            app.tool_PanelVisibility.ScaleMethod = 'none';
-            app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
-            app.tool_PanelVisibility.Tooltip = {''};
-            app.tool_PanelVisibility.Layout.Row = [1 4];
-            app.tool_PanelVisibility.Layout.Column = 1;
-            app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right-off.svg');
-
-            % Create search_ToolbarWordCloud
-            app.search_ToolbarWordCloud = uiimage(app.Toolbar);
-            app.search_ToolbarWordCloud.ImageClickedFcn = createCallbackFcn(app, @search_ToolbarWordCloudImageClicked, true);
-            app.search_ToolbarWordCloud.Enable = 'off';
-            app.search_ToolbarWordCloud.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
-            app.search_ToolbarWordCloud.Layout.Row = 2;
-            app.search_ToolbarWordCloud.Layout.Column = 2;
-            app.search_ToolbarWordCloud.VerticalAlignment = 'bottom';
-            app.search_ToolbarWordCloud.ImageSource = 'Cloud_32x32Gray.png';
-
-            % Create tool_AddAnnotationToSelected_2
-            app.tool_AddAnnotationToSelected_2 = uiimage(app.Toolbar);
-            app.tool_AddAnnotationToSelected_2.ScaleMethod = 'none';
-            app.tool_AddAnnotationToSelected_2.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
-            app.tool_AddAnnotationToSelected_2.Enable = 'off';
-            app.tool_AddAnnotationToSelected_2.Tooltip = {'Configura estratégia de filtragem'};
-            app.tool_AddAnnotationToSelected_2.Layout.Row = [1 4];
-            app.tool_AddAnnotationToSelected_2.Layout.Column = 4;
-            app.tool_AddAnnotationToSelected_2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
 
             % Create Document
             app.Document = uigridlayout(app.Grid1);
@@ -1806,18 +1825,18 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.search_nRows.Interpreter = 'html';
             app.search_nRows.Text = {'0 <font style="font-size: 10px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '0 <font style="font-size: 10px;">REGISTROS </font>'};
 
-            % Create search_Table
-            app.search_Table = uitable(app.Document);
-            app.search_Table.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
-            app.search_Table.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SOLICITANTE'; 'FABRICANTE'; 'MODELO'; 'NOME COMERCIAL'; 'SITUAÇÃO'};
-            app.search_Table.ColumnWidth = {110, 300, 'auto', 'auto', 150, 150, 150};
-            app.search_Table.RowName = {};
-            app.search_Table.RowStriping = 'off';
-            app.search_Table.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
-            app.search_Table.SelectionChangedFcn = createCallbackFcn(app, @search_Table_SelectionChanged, true);
-            app.search_Table.Layout.Row = [2 3];
-            app.search_Table.Layout.Column = 1;
-            app.search_Table.FontSize = 10;
+            % Create UITable
+            app.UITable = uitable(app.Document);
+            app.UITable.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
+            app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SOLICITANTE'; 'FABRICANTE'; 'MODELO'; 'NOME COMERCIAL'; 'SITUAÇÃO'};
+            app.UITable.ColumnWidth = {110, 300, 'auto', 'auto', 150, 150, 150};
+            app.UITable.RowName = {};
+            app.UITable.RowStriping = 'off';
+            app.UITable.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
+            app.UITable.SelectionChangedFcn = createCallbackFcn(app, @UITable_SelectionChanged, true);
+            app.UITable.Layout.Row = [2 3];
+            app.UITable.Layout.Column = 1;
+            app.UITable.FontSize = 10;
 
             % Create SubGrid1
             app.SubGrid1 = uigridlayout(app.Document);

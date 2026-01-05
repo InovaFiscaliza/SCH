@@ -87,6 +87,48 @@ classdef projectLib < handle
                 'e evitar duplicidades.' ...
             ] ...
         )
+
+        WARNING_VALIDATIONSRULES = struct( ...
+            'SEARCH', [], ...
+            'PRODUCTS', struct( ...
+                'inspectedProducts', [ ...
+                    'As informações de tipo, fabricante, modelo e situação são obrigatórias. ' ...
+                    'Além disso, a soma das quantidades em uso, vendida, em estoque/aduana e ' ...
+                    'anunciada deve ser maior que zero.' ...
+                    '<br><br>' ...
+                    'Caso evidenciada situação <b>REGULAR</b>:<br>' ...
+                    '•&thinsp;Não admite infração.<br>' ...
+                    '•&thinsp;Não pode haver quantidades lacradas, apreendidas ou retidas.' ...
+                    '<br><br>' ...
+                    'Caso evidenciada situação <b>IRREGULAR</b>:<br>' ...
+                    '•&thinsp;A infração é obrigatória.<br>' ...
+                    '•&thinsp;A soma das quantidades lacradas, apreendidas e retidas não pode ' ...
+                    'exceder a soma das quantidades em uso e em estoque/aduana.<br>' ...
+                    '•&thinsp;É obrigatória a estimativa do valor unitário, além da indicação ' ...
+                    'da fonte da estimativa, como, por exemplo, nota fiscal, sistema de ' ...
+                    'controle de estoque ou pesquisa de mercado.' ...
+                ], ...
+                'entity', [ ...
+                    '____________<br>' ...
+                    'Em relação à <b>ATIVIDADE DE INSPEÇÃO</b>:<br>' ...
+                    '•&thinsp;O número deve ser válido (inteiro, positivo e finito).<br><br>' ...
+                    'Em relação à qualificação da <b>FISCALIZADA</b>:<br>' ...
+                    '•&thinsp;O tipo não pode ser vazio;<br>' ...
+                    '•&thinsp;O nome deve ser preenchido; e<br>' ...
+                    '•&thinsp;O número do CPF/CNPJ deve ser válido.<br><br>' ...
+                    'Por fim, em relação à <b>LISTA DE PRODUTOS SOB ANÁLISE</b>:<br>' ...
+                    '•&thinsp;As informações de tipo, fabricante, modelo e situação são obrigatórias, ' ...
+                    'assim como a existência de ao menos uma quantidade informada (em uso, ' ...
+                    'vendida, em estoque/aduana ou anunciada).<br>' ...
+                    '•&thinsp;Em situação regular, não se admite infração nem a existência de ' ...
+                    'quantidades lacradas, apreendidas ou retidas.<br>' ...
+                    '•&thinsp;Já em situação irregular, a infração é obrigatória, as ' ...
+                    'quantidades lacradas, apreendidas e retidas não podem exceder as ' ...
+                    'quantidades em uso e em estoque/aduana, e deve ser informada a estimativa ' ...
+                    'do valor unitário, acompanhada da respectiva fonte.' ...
+                ] ...
+            ) ...
+        );
     end
 
 
@@ -97,7 +139,7 @@ classdef projectLib < handle
             obj.rootFolder = rootFolder;
 
             Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General, rootFolder)
-            ReadRegulatronData(obj, rootFolder)
+            ReadRegulatronData(obj, rootFolder, mainApp.General.fileFolder.DataHub_GET)
 
             obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
         end
@@ -115,15 +157,36 @@ classdef projectLib < handle
                 context = contextList{ii};
                 obj.modules.(context) = struct( ...
                     'annotationTable', [], ...
-                    'generatedFiles',  struct('id', '', 'rawFiles', {{}}, 'lastHTMLDocFullPath', '', 'lastTableFullPath', '', 'lastZIPFullPath', ''), ...
-                    'ui',              struct('system',        '',  ...
-                                              'unit',          '',  ...
-                                              'issue',         -1,  ...
-                                              'templates',    {{}}, ...
-                                              'reportModel',   '',  ...
-                                              'reportVersion', 'Preliminar', ...
-                                              'entityTypes', {{}},  ...
-                                              'entity', struct('type', '', 'name', '', 'id', '', 'status', false)) ...
+                    'generatedFiles', struct( ...
+                        'id', '', ...
+                        'rawFiles', {{}}, ...
+                        'lastHTMLDocFullPath', '', ...
+                        'lastJSONFullPath', '', ...
+                        'lastTableFullPath', '', ...
+                        'lastZIPFullPath', '' ...
+                    ), ...
+                    'uploadedFiles', struct( ...
+                        'hash', {}, ...
+                        'system', {}, ...
+                        'issue', {}, ...
+                        'status', {}, ...
+                        'timestamp', {} ...
+                    ), ...
+                    'ui', struct( ...
+                        'system', '', ...
+                        'unit',   '',  ...
+                        'issue',  -1,  ...
+                        'templates', {{}}, ...
+                        'reportModel', '',  ...
+                        'reportVersion', 'Preliminar', ...
+                        'entityTypes', {{}},  ...
+                        'entity', struct( ...
+                            'type', '', ...
+                            'name', '', ...
+                            'id',   '', ...
+                            'status', false ...
+                        ) ...
+                    ) ...
                 );
             end
 
@@ -158,6 +221,7 @@ classdef projectLib < handle
                               'hash',    prjHash, ...
                               'context', context, ...
                               'generatedFiles', struct('id', obj.modules.(context).generatedFiles.id, 'lastZIPFullPath', obj.modules.(context).generatedFiles.lastZIPFullPath), ...
+                              'uploadedFiles', obj.modules.(context).uploadedFiles, ...
                               'ui',      struct('system',       obj.modules.(context).ui.system, ...
                                                 'unit',         obj.modules.(context).ui.unit,  ...
                                                 'issue',        obj.modules.(context).ui.issue, ...
@@ -229,6 +293,8 @@ classdef projectLib < handle
                                         case '.html'
                                             obj.modules.(context).generatedFiles.lastHTMLDocFullPath = unzipFiles{ii};
                                         case '.json'
+                                            obj.modules.(context).generatedFiles.lastJSONFullPath    = unzipFiles{ii};
+                                        case '.xlsx'
                                             obj.modules.(context).generatedFiles.lastTableFullPath   = unzipFiles{ii};
                                     end
                                 end
@@ -249,9 +315,13 @@ classdef projectLib < handle
                             obj.modules.(context).ui.reportModel = reportModel;
                         end
 
-                        obj.issueDetails  = [prjData.issueDetails, obj.issueDetails];                        
-                        obj.entityDetails = [prjData.entityDetails, obj.entityDetails];
+                        obj.modules.(context).uploadedFiles = [prjData.uploadedFiles, obj.modules.(context).uploadedFiles];
+                        [~, uniqueUploadedFilesIndexes] = unique({obj.modules.(context).uploadedFiles.hash});
+                        obj.modules.(context).uploadedFiles = obj.modules.(context).uploadedFiles(uniqueUploadedFilesIndexes);
+
+                        obj.issueDetails = [prjData.issueDetails, obj.issueDetails];                        
                         
+                        obj.entityDetails = [prjData.entityDetails, obj.entityDetails];                        
                         [~, uniqueDetailsIndexes] = unique({obj.entityDetails.id});
                         obj.entityDetails = obj.entityDetails(uniqueDetailsIndexes);
 
@@ -335,13 +405,37 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function updateGeneratedFiles(obj, context, id, rawFiles, htmlFile, tableFile, zipFile)
+        function status = validateReportRequirements(obj, context, requirement)
+            arguments
+                obj 
+                context 
+                requirement {mustBeMember(requirement, {'inspectedProducts', 'issue', 'unit', 'reportModel', 'entity'})}
+            end
+            switch requirement
+                case 'inspectedProducts'
+                    status = ~isempty(obj.inspectedProducts);
+                case 'issue'
+                    issue  = obj.modules.(context).ui.issue;
+                    status = (issue > 0) && (issue < inf);
+                case 'unit'
+                    status = ~isempty(obj.modules.(context).ui.unit);
+                case 'reportModel'
+                    status = ~isempty(obj.modules.(context).ui.reportModel);
+                case 'entity'
+                    entity = obj.modules.(context).ui.entity;
+                    status = ~isempty(entity.type) && ~isempty(entity.name) && (strcmp(entity.type, 'Importador') || entity.status);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function updateGeneratedFiles(obj, context, id, rawFiles, htmlFile, jsonFile, tableFile, zipFile)
             arguments
                 obj
                 context   (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
                 id        char = ''
                 rawFiles  cell = {}
                 htmlFile  char = ''
+                jsonFile  char = ''
                 tableFile char = ''
                 zipFile   char = ''
             end
@@ -349,8 +443,41 @@ classdef projectLib < handle
             obj.modules.(context).generatedFiles.id                  = id;
             obj.modules.(context).generatedFiles.rawFiles            = rawFiles;
             obj.modules.(context).generatedFiles.lastHTMLDocFullPath = htmlFile;
+            obj.modules.(context).generatedFiles.lastJSONFullPath    = jsonFile;
             obj.modules.(context).generatedFiles.lastTableFullPath   = tableFile;
             obj.modules.(context).generatedFiles.lastZIPFullPath     = zipFile;
+        end
+
+        %-----------------------------------------------------------------%
+        function updateUploadedFiles(obj, context, system, issue, status)
+            arguments
+                obj
+                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                system
+                issue
+                status
+            end
+
+            obj.modules.(context).uploadedFiles(end+1) = struct( ...
+                'hash', model.projectLib.computeUploadedFileHash(system, issue, status), ...
+                'system', system, ...
+                'issue', issue, ...
+                'status', status, ...
+                'timestamp', datestr(now) ...
+            );
+        end
+
+        %-----------------------------------------------------------------%
+        function uploadedFiles = getUploadedFiles(obj, context, system, issue)
+            arguments
+                obj
+                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                system
+                issue
+            end
+
+            uploadedFiles = obj.modules.(context).uploadedFiles;
+            uploadedFiles = uploadedFiles(strcmp({uploadedFiles.system}, system) & [uploadedFiles.issue] == issue);
         end
 
         %-----------------------------------------------------------------%
@@ -364,6 +491,8 @@ classdef projectLib < handle
             switch fileExt
                 case '.html'
                     fileName = obj.modules.(context).generatedFiles.lastHTMLDocFullPath;
+                case '.json'
+                    fileName = obj.modules.(context).generatedFiles.lastJSONFullPath;
                 case '.xlsx'
                     fileName = obj.modules.(context).generatedFiles.lastTableFullPath;
                 case '.zip'
@@ -377,13 +506,51 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function details = getIssueDetails(obj, system, issue)
+        function details = getIssueDetailsFromCache(obj, system, issue)
             detailsIndex = find(strcmp({obj.issueDetails.system}, system) & [obj.issueDetails.issue] == issue, 1);
             
-            if isempty(detailsIndex)
-                details  = '';
-            else
+            if ~isempty(detailsIndex)
                 details  = obj.issueDetails(detailsIndex).details;
+            else
+                details  = '';
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function [details, msgError] = getOrFetchIssueDetails(obj, system, issue, eFiscalizaObj)
+            details  = getIssueDetailsFromCache(obj, system, issue);
+            msgError = '';
+
+            if isempty(details)
+                try
+                    env = strsplit(system);
+                    if isscalar(env)
+                        env = 'PD';
+                    else
+                        env = env{2};
+                    end
+    
+                    issueInfo = struct( ...
+                        'type', 'ATIVIDADE DE INSPEÇÃO', ...
+                        'id', issue ...
+                    );
+                    
+                    response = run(eFiscalizaObj, env, 'queryIssue', issueInfo);
+                    if isstruct(response)
+                        details = struct( ...
+                            'system', system, ...
+                            'issue', issue, ...
+                            'details', response, ...
+                            'timestamp', datestr(now) ...
+                        );
+                        updateUiInfo(obj, 'self', 'issueDetails', details)
+    
+                    else
+                        error(response)
+                    end    
+                catch ME
+                    msgError = ME.message;
+                end              
             end
         end
 
@@ -399,14 +566,15 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function details = getOrFetchEntityDetails(obj, id)
-            details = getEntityDetailsFromCache(obj, id);
+        function [details, msgError] = getOrFetchEntityDetails(obj, id)
+            details  = getEntityDetailsFromCache(obj, id);
+            msgError = '';
 
             if isempty(details)
-                [entityId, ~, details] = checkCNPJOrCPF(id, 'PublicAPI');
+                [entityId, ~, details, msgError] = checkCNPJOrCPF(id, 'PublicAPI');
 
                 if ~isempty(details)
-                    obj.entityDetails(end+1) = struct('id', entityId, 'details', details, 'timestamp', datestr(now));
+                    updateUiInfo(obj, 'self', 'entityDetails', struct('id', entityId, 'details', details, 'timestamp', datestr(now)))
                 end                
             end
         end
@@ -453,7 +621,7 @@ classdef projectLib < handle
         function updateUiInfo(obj, context, fieldName, fieldValue)
             arguments
                 obj
-                context    (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                context    (1,:) char {mustBeMember(context, {'self', 'SEARCH', 'PRODUCTS'})}
                 fieldName  (1,:) char
                 fieldValue
             end
@@ -511,21 +679,9 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function ReadRegulatronData(obj, rootFolder)
-            [projectFolder, ...
-             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            projectFilePath  = fullfile(projectFolder,     'DataBase', 'RegulatronAdds.xlsx');
-            externalFilePath = fullfile(programDataFolder, 'DataBase', 'RegulatronAdds.xlsx');
-
-            try
-                urlPreffix = util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds');
-                addsTable  = readtable(externalFilePath);
-            catch
-                addsTable  = readtable(projectFilePath);
-            end
-
-            obj.regulatronData.urlPreffix = urlPreffix;
-            obj.regulatronData.addsTable  = addsTable;
+        function ReadRegulatronData(obj, rootFolder, cloudFolder)
+            obj.regulatronData.urlPreffix = util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds');
+            obj.regulatronData.addsTable  = util.readExternalFile.RegulatronData(rootFolder, cloudFolder);
         end
 
         %-----------------------------------------------------------------%
@@ -546,6 +702,11 @@ classdef projectLib < handle
 
     methods (Static = true)
         %-----------------------------------------------------------------%
+        function hash = computeUploadedFileHash(system, issue, status)
+            hash = Hash.sha1(strjoin({system, num2str(issue), status}, ' - '));
+        end
+
+        %-----------------------------------------------------------------%
         function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts, issueDetails, entityDetails)
             hashList = sort(inspectedProducts.('Hash'));
             prjHash = Hash.sha1(sprintf('%s - %s - %s - %s - %s', prjName, prjFile, strjoin(hashList, ' - '), jsonencode(issueDetails), jsonencode(entityDetails)));
@@ -553,7 +714,7 @@ classdef projectLib < handle
 
         %-----------------------------------------------------------------%
         function hash = computeInspectedProductHash(homologation, manufacturer, model)
-            hash = Hash.base64encode(strjoin({homologation, manufacturer, model}, ' - '));
+            hash = Hash.sha1(strjoin({homologation, manufacturer, model}, ' - '));
         end
 
         %-----------------------------------------------------------------%
