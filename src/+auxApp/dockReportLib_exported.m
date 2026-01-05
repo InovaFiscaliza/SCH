@@ -5,30 +5,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         UIFigure                matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
         Document                matlab.ui.container.GridLayout
-        prjLabel                matlab.ui.control.Label
-        prjNewProjectButton     matlab.ui.control.Image
-        prjOpenFileButton       matlab.ui.control.Image
-        prjSaveButton           matlab.ui.control.Image
-        prjPanel                matlab.ui.container.Panel
-        prjGrid                 matlab.ui.container.GridLayout
-        prjLastReportDelete     matlab.ui.control.Image
-        prjLastReportView       matlab.ui.control.Image
-        prjLastReport           matlab.ui.control.EditField
-        prjLastReportLabel      matlab.ui.control.Label
-        prjFile                 matlab.ui.control.Label
-        prjName                 matlab.ui.control.EditField
-        prjNameLabel            matlab.ui.control.Label
-        eFiscalizaLabel         matlab.ui.control.Label
-        eFiscalizaPanel         matlab.ui.container.Panel
-        eFiscalizaGrid          matlab.ui.container.GridLayout
-        eFiscalizaIssueDetails  matlab.ui.control.Image
-        eFiscalizaIssue         matlab.ui.control.NumericEditField
-        eFiscalizaIssueLabel    matlab.ui.control.Label
-        eFiscalizaUnit          matlab.ui.control.DropDown
-        eFiscalizaUnitLabel     matlab.ui.control.Label
-        eFiscalizaSystem        matlab.ui.control.DropDown
-        eFiscalizaSystemLabel   matlab.ui.control.Label
-        reportLabel             matlab.ui.control.Label
         reportPanel             matlab.ui.container.Panel
         reportGrid              matlab.ui.container.GridLayout
         reportEntityPanel       matlab.ui.container.Panel
@@ -45,6 +21,30 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         reportVersionLabel      matlab.ui.control.Label
         reportModel             matlab.ui.control.DropDown
         reportModelLabel        matlab.ui.control.Label
+        reportLabel             matlab.ui.control.Label
+        eFiscalizaPanel         matlab.ui.container.Panel
+        eFiscalizaGrid          matlab.ui.container.GridLayout
+        eFiscalizaIssueDetails  matlab.ui.control.Image
+        eFiscalizaIssue         matlab.ui.control.NumericEditField
+        eFiscalizaIssueLabel    matlab.ui.control.Label
+        eFiscalizaUnit          matlab.ui.control.DropDown
+        eFiscalizaUnitLabel     matlab.ui.control.Label
+        eFiscalizaSystem        matlab.ui.control.DropDown
+        eFiscalizaSystemLabel   matlab.ui.control.Label
+        eFiscalizaLabel         matlab.ui.control.Label
+        prjPanel                matlab.ui.container.Panel
+        prjGrid                 matlab.ui.container.GridLayout
+        prjLastReportDelete     matlab.ui.control.Image
+        prjLastReportView       matlab.ui.control.Image
+        prjLastReport           matlab.ui.control.EditField
+        prjLastReportLabel      matlab.ui.control.Label
+        prjFile                 matlab.ui.control.Label
+        prjName                 matlab.ui.control.EditField
+        prjNameLabel            matlab.ui.control.Label
+        prjNewProjectButton     matlab.ui.control.Image
+        prjSaveButton           matlab.ui.control.Image
+        prjOpenFileButton       matlab.ui.control.Image
+        prjLabel                matlab.ui.control.Label
         btnClose                matlab.ui.control.Image
     end
 
@@ -61,13 +61,14 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         isDocked = true        
         mainApp
         callingApp
+        progressDialog
+        projectData
     end
 
 
     properties (Access = private)
         %-----------------------------------------------------------------%
         inputArgs
-        projectData
     end
     
     
@@ -141,8 +142,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
 
-                app.inputArgs   = struct('context', context);
-                app.projectData = app.mainApp.projectData;    
+                app.inputArgs = struct('context', context);
                 updatePanel(app, context)
                 
             catch ME
@@ -165,7 +165,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         function onProjectRestart(app, event)
             
             msgQuestion = 'Deseja excluir todas as referências do projeto (incluindo a lista de produtos sob análise) e iniciar um novo projeto?';
-            selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
+            selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2, {'Icon', 'error'});
             if strcmp(selection, 'Não')
                 return
             end
@@ -353,13 +353,20 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         % Image clicked function: reportEntityIdCheck
         function reportEntityIdCheckImageClicked(app, event)
             
-            details = getEntityDetails(app.projectData, app.reportEntityId.Value);
-            if ~isempty(details)
-                msg = util.HtmlTextGenerator.entityDetails(app.reportEntityId.Value, details);
-            else
-                msg = 'Pesquisa aplicável apenas a CNPJs válidos...';
+            details = getEntityDetailsFromCache(app.projectData, app.reportEntityId.Value);
+
+            if isempty(details)
+                app.progressDialog.Visible = 'visible';
+                details = getOrFetchEntityDetails(app.projectData, app.reportEntityId.Value);
+                app.progressDialog.Visible = 'hidden';
             end
 
+            if ~isempty(details)                
+                msg = util.HtmlTextGenerator.entityDetails(app.reportEntityId.Value, details);                
+            else
+                msg = 'Esta pesquisa está disponível apenas para CNPJs válidos.';
+            end
+            
             ui.Dialog(app.UIFigure, "none", msg);
 
         end
@@ -419,7 +426,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {'1x', 9, 22, 22, 22};
+            app.Document.ColumnWidth = {'1x', 22, 22, 22};
             app.Document.RowHeight = {17, 136, 22, 100, 22, 230};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
@@ -427,12 +434,216 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.Document.Layout.Column = [1 2];
             app.Document.BackgroundColor = [1 1 1];
 
+            % Create prjLabel
+            app.prjLabel = uilabel(app.Document);
+            app.prjLabel.VerticalAlignment = 'bottom';
+            app.prjLabel.FontSize = 10;
+            app.prjLabel.Layout.Row = 1;
+            app.prjLabel.Layout.Column = 1;
+            app.prjLabel.Text = 'PROJETO';
+
+            % Create prjOpenFileButton
+            app.prjOpenFileButton = uiimage(app.Document);
+            app.prjOpenFileButton.ScaleMethod = 'none';
+            app.prjOpenFileButton.ImageClickedFcn = createCallbackFcn(app, @onProjectLoad, true);
+            app.prjOpenFileButton.Tooltip = {'Abre projeto'};
+            app.prjOpenFileButton.Layout.Row = 1;
+            app.prjOpenFileButton.Layout.Column = 2;
+            app.prjOpenFileButton.VerticalAlignment = 'bottom';
+            app.prjOpenFileButton.ImageSource = 'Import_16.png';
+
+            % Create prjSaveButton
+            app.prjSaveButton = uiimage(app.Document);
+            app.prjSaveButton.ScaleMethod = 'none';
+            app.prjSaveButton.ImageClickedFcn = createCallbackFcn(app, @onProjectSave, true);
+            app.prjSaveButton.Enable = 'off';
+            app.prjSaveButton.Tooltip = {'Salva projeto'};
+            app.prjSaveButton.Layout.Row = 1;
+            app.prjSaveButton.Layout.Column = 3;
+            app.prjSaveButton.VerticalAlignment = 'bottom';
+            app.prjSaveButton.ImageSource = 'save.svg';
+
+            % Create prjNewProjectButton
+            app.prjNewProjectButton = uiimage(app.Document);
+            app.prjNewProjectButton.ScaleMethod = 'none';
+            app.prjNewProjectButton.ImageClickedFcn = createCallbackFcn(app, @onProjectRestart, true);
+            app.prjNewProjectButton.Tooltip = {'Cria novo projeto'};
+            app.prjNewProjectButton.Layout.Row = 1;
+            app.prjNewProjectButton.Layout.Column = 4;
+            app.prjNewProjectButton.VerticalAlignment = 'bottom';
+            app.prjNewProjectButton.ImageSource = 'new-project.svg';
+
+            % Create prjPanel
+            app.prjPanel = uipanel(app.Document);
+            app.prjPanel.AutoResizeChildren = 'off';
+            app.prjPanel.Layout.Row = 2;
+            app.prjPanel.Layout.Column = [1 4];
+
+            % Create prjGrid
+            app.prjGrid = uigridlayout(app.prjPanel);
+            app.prjGrid.ColumnWidth = {130, '1x', 18, 18};
+            app.prjGrid.RowHeight = {17, 22, 15, 17, 22};
+            app.prjGrid.ColumnSpacing = 5;
+            app.prjGrid.RowSpacing = 5;
+            app.prjGrid.BackgroundColor = [1 1 1];
+
+            % Create prjNameLabel
+            app.prjNameLabel = uilabel(app.prjGrid);
+            app.prjNameLabel.FontSize = 11;
+            app.prjNameLabel.Layout.Row = 1;
+            app.prjNameLabel.Layout.Column = 1;
+            app.prjNameLabel.Text = 'Nome do projeto:';
+
+            % Create prjName
+            app.prjName = uieditfield(app.prjGrid, 'text');
+            app.prjName.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
+            app.prjName.FontSize = 11;
+            app.prjName.Layout.Row = 2;
+            app.prjName.Layout.Column = [1 4];
+
+            % Create prjFile
+            app.prjFile = uilabel(app.prjGrid);
+            app.prjFile.VerticalAlignment = 'top';
+            app.prjFile.FontSize = 10;
+            app.prjFile.FontColor = [0.502 0.502 0.502];
+            app.prjFile.Layout.Row = 3;
+            app.prjFile.Layout.Column = [1 4];
+            app.prjFile.Text = '(projeto ainda não exportado)';
+
+            % Create prjLastReportLabel
+            app.prjLastReportLabel = uilabel(app.prjGrid);
+            app.prjLastReportLabel.VerticalAlignment = 'bottom';
+            app.prjLastReportLabel.FontSize = 11;
+            app.prjLastReportLabel.Layout.Row = 4;
+            app.prjLastReportLabel.Layout.Column = [1 3];
+            app.prjLastReportLabel.Text = 'Último relatório gerado:';
+
+            % Create prjLastReport
+            app.prjLastReport = uieditfield(app.prjGrid, 'text');
+            app.prjLastReport.Editable = 'off';
+            app.prjLastReport.FontSize = 11;
+            app.prjLastReport.Layout.Row = 5;
+            app.prjLastReport.Layout.Column = [1 2];
+
+            % Create prjLastReportView
+            app.prjLastReportView = uiimage(app.prjGrid);
+            app.prjLastReportView.ScaleMethod = 'none';
+            app.prjLastReportView.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
+            app.prjLastReportView.Enable = 'off';
+            app.prjLastReportView.Tooltip = {'Visualiza relatório'};
+            app.prjLastReportView.Layout.Row = 5;
+            app.prjLastReportView.Layout.Column = 3;
+            app.prjLastReportView.ImageSource = 'eye.svg';
+
+            % Create prjLastReportDelete
+            app.prjLastReportDelete = uiimage(app.prjGrid);
+            app.prjLastReportDelete.ScaleMethod = 'none';
+            app.prjLastReportDelete.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
+            app.prjLastReportDelete.Enable = 'off';
+            app.prjLastReportDelete.Tooltip = {'Exclui relatório'};
+            app.prjLastReportDelete.Layout.Row = 5;
+            app.prjLastReportDelete.Layout.Column = 4;
+            app.prjLastReportDelete.ImageSource = 'close-16px-red.svg';
+
+            % Create eFiscalizaLabel
+            app.eFiscalizaLabel = uilabel(app.Document);
+            app.eFiscalizaLabel.VerticalAlignment = 'bottom';
+            app.eFiscalizaLabel.FontSize = 10;
+            app.eFiscalizaLabel.Layout.Row = 3;
+            app.eFiscalizaLabel.Layout.Column = 1;
+            app.eFiscalizaLabel.Text = 'eFISCALIZA';
+
+            % Create eFiscalizaPanel
+            app.eFiscalizaPanel = uipanel(app.Document);
+            app.eFiscalizaPanel.AutoResizeChildren = 'off';
+            app.eFiscalizaPanel.Layout.Row = 4;
+            app.eFiscalizaPanel.Layout.Column = [1 4];
+
+            % Create eFiscalizaGrid
+            app.eFiscalizaGrid = uigridlayout(app.eFiscalizaPanel);
+            app.eFiscalizaGrid.ColumnWidth = {'1x', 123, 18};
+            app.eFiscalizaGrid.RowHeight = {22, 22, 22};
+            app.eFiscalizaGrid.ColumnSpacing = 5;
+            app.eFiscalizaGrid.RowSpacing = 5;
+            app.eFiscalizaGrid.BackgroundColor = [1 1 1];
+
+            % Create eFiscalizaSystemLabel
+            app.eFiscalizaSystemLabel = uilabel(app.eFiscalizaGrid);
+            app.eFiscalizaSystemLabel.FontSize = 11;
+            app.eFiscalizaSystemLabel.Layout.Row = 1;
+            app.eFiscalizaSystemLabel.Layout.Column = 1;
+            app.eFiscalizaSystemLabel.Text = 'Ambiente do sistema de gestão à fiscalização:';
+
+            % Create eFiscalizaSystem
+            app.eFiscalizaSystem = uidropdown(app.eFiscalizaGrid);
+            app.eFiscalizaSystem.Items = {'eFiscaliza', 'eFiscaliza TS', 'eFiscaliza HM', 'eFiscaliza DS'};
+            app.eFiscalizaSystem.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
+            app.eFiscalizaSystem.FontSize = 11;
+            app.eFiscalizaSystem.BackgroundColor = [1 1 1];
+            app.eFiscalizaSystem.Layout.Row = 1;
+            app.eFiscalizaSystem.Layout.Column = [2 3];
+            app.eFiscalizaSystem.Value = 'eFiscaliza';
+
+            % Create eFiscalizaUnitLabel
+            app.eFiscalizaUnitLabel = uilabel(app.eFiscalizaGrid);
+            app.eFiscalizaUnitLabel.FontSize = 11;
+            app.eFiscalizaUnitLabel.Layout.Row = 2;
+            app.eFiscalizaUnitLabel.Layout.Column = 1;
+            app.eFiscalizaUnitLabel.Text = 'Unidade responsável pela fiscalização:';
+
+            % Create eFiscalizaUnit
+            app.eFiscalizaUnit = uidropdown(app.eFiscalizaGrid);
+            app.eFiscalizaUnit.Items = {};
+            app.eFiscalizaUnit.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
+            app.eFiscalizaUnit.FontSize = 11;
+            app.eFiscalizaUnit.BackgroundColor = [1 1 1];
+            app.eFiscalizaUnit.Layout.Row = 2;
+            app.eFiscalizaUnit.Layout.Column = [2 3];
+            app.eFiscalizaUnit.Value = {};
+
+            % Create eFiscalizaIssueLabel
+            app.eFiscalizaIssueLabel = uilabel(app.eFiscalizaGrid);
+            app.eFiscalizaIssueLabel.FontSize = 11;
+            app.eFiscalizaIssueLabel.Layout.Row = 3;
+            app.eFiscalizaIssueLabel.Layout.Column = 1;
+            app.eFiscalizaIssueLabel.Text = 'Atividade de inspeção (# ID):';
+
+            % Create eFiscalizaIssue
+            app.eFiscalizaIssue = uieditfield(app.eFiscalizaGrid, 'numeric');
+            app.eFiscalizaIssue.Limits = [-1 Inf];
+            app.eFiscalizaIssue.RoundFractionalValues = 'on';
+            app.eFiscalizaIssue.ValueDisplayFormat = '%d';
+            app.eFiscalizaIssue.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
+            app.eFiscalizaIssue.FontSize = 11;
+            app.eFiscalizaIssue.FontColor = [0.149 0.149 0.149];
+            app.eFiscalizaIssue.Layout.Row = 3;
+            app.eFiscalizaIssue.Layout.Column = 2;
+            app.eFiscalizaIssue.Value = -1;
+
+            % Create eFiscalizaIssueDetails
+            app.eFiscalizaIssueDetails = uiimage(app.eFiscalizaGrid);
+            app.eFiscalizaIssueDetails.ScaleMethod = 'none';
+            app.eFiscalizaIssueDetails.ImageClickedFcn = createCallbackFcn(app, @onFetchIssueDetails, true);
+            app.eFiscalizaIssueDetails.Enable = 'off';
+            app.eFiscalizaIssueDetails.Tooltip = {'Detalhes da inspeção'};
+            app.eFiscalizaIssueDetails.Layout.Row = 3;
+            app.eFiscalizaIssueDetails.Layout.Column = 3;
+            app.eFiscalizaIssueDetails.ImageSource = 'eye.svg';
+
+            % Create reportLabel
+            app.reportLabel = uilabel(app.Document);
+            app.reportLabel.VerticalAlignment = 'bottom';
+            app.reportLabel.FontSize = 10;
+            app.reportLabel.Layout.Row = 5;
+            app.reportLabel.Layout.Column = 1;
+            app.reportLabel.Text = 'RELATÓRIO';
+
             % Create reportPanel
             app.reportPanel = uipanel(app.Document);
             app.reportPanel.AutoResizeChildren = 'off';
             app.reportPanel.BackgroundColor = [1 1 1];
             app.reportPanel.Layout.Row = 6;
-            app.reportPanel.Layout.Column = [1 5];
+            app.reportPanel.Layout.Column = [1 4];
 
             % Create reportGrid
             app.reportGrid = uigridlayout(app.reportPanel);
@@ -560,210 +771,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportEntityName.FontSize = 11;
             app.reportEntityName.Layout.Row = 4;
             app.reportEntityName.Layout.Column = [1 3];
-
-            % Create reportLabel
-            app.reportLabel = uilabel(app.Document);
-            app.reportLabel.VerticalAlignment = 'bottom';
-            app.reportLabel.FontSize = 10;
-            app.reportLabel.Layout.Row = 5;
-            app.reportLabel.Layout.Column = 1;
-            app.reportLabel.Text = 'RELATÓRIO';
-
-            % Create eFiscalizaPanel
-            app.eFiscalizaPanel = uipanel(app.Document);
-            app.eFiscalizaPanel.AutoResizeChildren = 'off';
-            app.eFiscalizaPanel.Layout.Row = 4;
-            app.eFiscalizaPanel.Layout.Column = [1 5];
-
-            % Create eFiscalizaGrid
-            app.eFiscalizaGrid = uigridlayout(app.eFiscalizaPanel);
-            app.eFiscalizaGrid.ColumnWidth = {'1x', 123, 18};
-            app.eFiscalizaGrid.RowHeight = {22, 22, 22};
-            app.eFiscalizaGrid.ColumnSpacing = 5;
-            app.eFiscalizaGrid.RowSpacing = 5;
-            app.eFiscalizaGrid.BackgroundColor = [1 1 1];
-
-            % Create eFiscalizaSystemLabel
-            app.eFiscalizaSystemLabel = uilabel(app.eFiscalizaGrid);
-            app.eFiscalizaSystemLabel.FontSize = 11;
-            app.eFiscalizaSystemLabel.Layout.Row = 1;
-            app.eFiscalizaSystemLabel.Layout.Column = 1;
-            app.eFiscalizaSystemLabel.Text = 'Ambiente do sistema de gestão à fiscalização:';
-
-            % Create eFiscalizaSystem
-            app.eFiscalizaSystem = uidropdown(app.eFiscalizaGrid);
-            app.eFiscalizaSystem.Items = {'eFiscaliza', 'eFiscaliza TS', 'eFiscaliza HM', 'eFiscaliza DS'};
-            app.eFiscalizaSystem.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
-            app.eFiscalizaSystem.FontSize = 11;
-            app.eFiscalizaSystem.BackgroundColor = [1 1 1];
-            app.eFiscalizaSystem.Layout.Row = 1;
-            app.eFiscalizaSystem.Layout.Column = [2 3];
-            app.eFiscalizaSystem.Value = 'eFiscaliza';
-
-            % Create eFiscalizaUnitLabel
-            app.eFiscalizaUnitLabel = uilabel(app.eFiscalizaGrid);
-            app.eFiscalizaUnitLabel.FontSize = 11;
-            app.eFiscalizaUnitLabel.Layout.Row = 2;
-            app.eFiscalizaUnitLabel.Layout.Column = 1;
-            app.eFiscalizaUnitLabel.Text = 'Unidade responsável pela fiscalização:';
-
-            % Create eFiscalizaUnit
-            app.eFiscalizaUnit = uidropdown(app.eFiscalizaGrid);
-            app.eFiscalizaUnit.Items = {};
-            app.eFiscalizaUnit.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
-            app.eFiscalizaUnit.FontSize = 11;
-            app.eFiscalizaUnit.BackgroundColor = [1 1 1];
-            app.eFiscalizaUnit.Layout.Row = 2;
-            app.eFiscalizaUnit.Layout.Column = [2 3];
-            app.eFiscalizaUnit.Value = {};
-
-            % Create eFiscalizaIssueLabel
-            app.eFiscalizaIssueLabel = uilabel(app.eFiscalizaGrid);
-            app.eFiscalizaIssueLabel.FontSize = 11;
-            app.eFiscalizaIssueLabel.Layout.Row = 3;
-            app.eFiscalizaIssueLabel.Layout.Column = 1;
-            app.eFiscalizaIssueLabel.Text = 'Atividade de inspeção (# ID):';
-
-            % Create eFiscalizaIssue
-            app.eFiscalizaIssue = uieditfield(app.eFiscalizaGrid, 'numeric');
-            app.eFiscalizaIssue.Limits = [-1 Inf];
-            app.eFiscalizaIssue.RoundFractionalValues = 'on';
-            app.eFiscalizaIssue.ValueDisplayFormat = '%d';
-            app.eFiscalizaIssue.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
-            app.eFiscalizaIssue.FontSize = 11;
-            app.eFiscalizaIssue.FontColor = [0.149 0.149 0.149];
-            app.eFiscalizaIssue.Layout.Row = 3;
-            app.eFiscalizaIssue.Layout.Column = 2;
-            app.eFiscalizaIssue.Value = -1;
-
-            % Create eFiscalizaIssueDetails
-            app.eFiscalizaIssueDetails = uiimage(app.eFiscalizaGrid);
-            app.eFiscalizaIssueDetails.ScaleMethod = 'none';
-            app.eFiscalizaIssueDetails.ImageClickedFcn = createCallbackFcn(app, @onFetchIssueDetails, true);
-            app.eFiscalizaIssueDetails.Enable = 'off';
-            app.eFiscalizaIssueDetails.Tooltip = {'Detalhes da inspeção'};
-            app.eFiscalizaIssueDetails.Layout.Row = 3;
-            app.eFiscalizaIssueDetails.Layout.Column = 3;
-            app.eFiscalizaIssueDetails.ImageSource = 'eye.svg';
-
-            % Create eFiscalizaLabel
-            app.eFiscalizaLabel = uilabel(app.Document);
-            app.eFiscalizaLabel.VerticalAlignment = 'bottom';
-            app.eFiscalizaLabel.FontSize = 10;
-            app.eFiscalizaLabel.Layout.Row = 3;
-            app.eFiscalizaLabel.Layout.Column = 1;
-            app.eFiscalizaLabel.Text = 'eFISCALIZA';
-
-            % Create prjPanel
-            app.prjPanel = uipanel(app.Document);
-            app.prjPanel.AutoResizeChildren = 'off';
-            app.prjPanel.Layout.Row = 2;
-            app.prjPanel.Layout.Column = [1 5];
-
-            % Create prjGrid
-            app.prjGrid = uigridlayout(app.prjPanel);
-            app.prjGrid.ColumnWidth = {130, '1x', 18, 18};
-            app.prjGrid.RowHeight = {17, 22, 15, 17, 22};
-            app.prjGrid.ColumnSpacing = 5;
-            app.prjGrid.RowSpacing = 5;
-            app.prjGrid.BackgroundColor = [1 1 1];
-
-            % Create prjNameLabel
-            app.prjNameLabel = uilabel(app.prjGrid);
-            app.prjNameLabel.FontSize = 11;
-            app.prjNameLabel.Layout.Row = 1;
-            app.prjNameLabel.Layout.Column = 1;
-            app.prjNameLabel.Text = 'Nome do projeto:';
-
-            % Create prjName
-            app.prjName = uieditfield(app.prjGrid, 'text');
-            app.prjName.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
-            app.prjName.FontSize = 11;
-            app.prjName.Layout.Row = 2;
-            app.prjName.Layout.Column = [1 4];
-
-            % Create prjFile
-            app.prjFile = uilabel(app.prjGrid);
-            app.prjFile.VerticalAlignment = 'top';
-            app.prjFile.FontSize = 10;
-            app.prjFile.FontColor = [0.502 0.502 0.502];
-            app.prjFile.Layout.Row = 3;
-            app.prjFile.Layout.Column = [1 4];
-            app.prjFile.Text = '(projeto ainda não exportado)';
-
-            % Create prjLastReportLabel
-            app.prjLastReportLabel = uilabel(app.prjGrid);
-            app.prjLastReportLabel.VerticalAlignment = 'bottom';
-            app.prjLastReportLabel.FontSize = 11;
-            app.prjLastReportLabel.Layout.Row = 4;
-            app.prjLastReportLabel.Layout.Column = [1 3];
-            app.prjLastReportLabel.Text = 'Último relatório gerado:';
-
-            % Create prjLastReport
-            app.prjLastReport = uieditfield(app.prjGrid, 'text');
-            app.prjLastReport.Editable = 'off';
-            app.prjLastReport.FontSize = 11;
-            app.prjLastReport.Layout.Row = 5;
-            app.prjLastReport.Layout.Column = [1 2];
-
-            % Create prjLastReportView
-            app.prjLastReportView = uiimage(app.prjGrid);
-            app.prjLastReportView.ScaleMethod = 'none';
-            app.prjLastReportView.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
-            app.prjLastReportView.Enable = 'off';
-            app.prjLastReportView.Tooltip = {'Visualiza relatório'};
-            app.prjLastReportView.Layout.Row = 5;
-            app.prjLastReportView.Layout.Column = 3;
-            app.prjLastReportView.ImageSource = 'eye.svg';
-
-            % Create prjLastReportDelete
-            app.prjLastReportDelete = uiimage(app.prjGrid);
-            app.prjLastReportDelete.ScaleMethod = 'none';
-            app.prjLastReportDelete.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
-            app.prjLastReportDelete.Enable = 'off';
-            app.prjLastReportDelete.Tooltip = {'Exclui relatório'};
-            app.prjLastReportDelete.Layout.Row = 5;
-            app.prjLastReportDelete.Layout.Column = 4;
-            app.prjLastReportDelete.ImageSource = 'close-16px-red.svg';
-
-            % Create prjSaveButton
-            app.prjSaveButton = uiimage(app.Document);
-            app.prjSaveButton.ScaleMethod = 'none';
-            app.prjSaveButton.ImageClickedFcn = createCallbackFcn(app, @onProjectSave, true);
-            app.prjSaveButton.Enable = 'off';
-            app.prjSaveButton.Tooltip = {'Salva projeto'};
-            app.prjSaveButton.Layout.Row = 1;
-            app.prjSaveButton.Layout.Column = 5;
-            app.prjSaveButton.VerticalAlignment = 'bottom';
-            app.prjSaveButton.ImageSource = 'save.svg';
-
-            % Create prjOpenFileButton
-            app.prjOpenFileButton = uiimage(app.Document);
-            app.prjOpenFileButton.ScaleMethod = 'none';
-            app.prjOpenFileButton.ImageClickedFcn = createCallbackFcn(app, @onProjectLoad, true);
-            app.prjOpenFileButton.Tooltip = {'Abre projeto'};
-            app.prjOpenFileButton.Layout.Row = 1;
-            app.prjOpenFileButton.Layout.Column = 4;
-            app.prjOpenFileButton.VerticalAlignment = 'bottom';
-            app.prjOpenFileButton.ImageSource = 'Import_16.png';
-
-            % Create prjNewProjectButton
-            app.prjNewProjectButton = uiimage(app.Document);
-            app.prjNewProjectButton.ScaleMethod = 'none';
-            app.prjNewProjectButton.ImageClickedFcn = createCallbackFcn(app, @onProjectRestart, true);
-            app.prjNewProjectButton.Tooltip = {'Cria novo projeto'};
-            app.prjNewProjectButton.Layout.Row = 1;
-            app.prjNewProjectButton.Layout.Column = 3;
-            app.prjNewProjectButton.VerticalAlignment = 'bottom';
-            app.prjNewProjectButton.ImageSource = 'new-file.svg';
-
-            % Create prjLabel
-            app.prjLabel = uilabel(app.Document);
-            app.prjLabel.VerticalAlignment = 'bottom';
-            app.prjLabel.FontSize = 10;
-            app.prjLabel.Layout.Row = 1;
-            app.prjLabel.Layout.Column = 1;
-            app.prjLabel.Text = 'PROJETO';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
