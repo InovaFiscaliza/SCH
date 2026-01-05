@@ -1,5 +1,5 @@
 {
-    "version": 1.93,
+    "version": 1.95,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -306,6 +306,7 @@
             "exportedFiles": {
                 "sharepoint": {
                     "name": [
+                        "Hash",
                         "Homologação",
                         "Importador",
                         "Código aduaneiro",
@@ -333,6 +334,7 @@
                         "PLAI"
                     ],
                     "label": [
+                        "hash",
                         "homologacao", 
                         "importador", 
                         "codigoAduaneiro", 

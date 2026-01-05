@@ -9,14 +9,6 @@ classdef (Abstract) readExternalFile
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function [type, source, variables, userData] = MAT(fileName)
-            % Variável "version" será útil quando tivermos mais de uma versão,
-            % tratando os dados de forma diferente.
-
-            load(fileName, '-mat', 'version', 'type', 'source', 'variables', 'userData')
-        end
-
-        %-----------------------------------------------------------------%
         function [rawDataTable, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
             fileName = sprintf('SCHData%s.mat', generalSettings.search.dataBaseVersion);
 
@@ -31,6 +23,29 @@ classdef (Abstract) readExternalFile
                 cacheColumns = cacheData(1).Column;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function addsTable = RegulatronData(rootFolder, cloudFolder)
+            [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
+            fileName = 'RegulatronAdds.xlsx';
+
+            try
+                cloudFilePath = fullfile(cloudFolder, fileName);
+                if ~isempty(cloudFolder) && isfile(cloudFilePath)
+                    addsTable = readTable(cloudFilePath);
+                else
+                    localCacheFilePath = fullfile(localCacheFolder, 'DataBase', fileName);
+                    addsTable = readTable(localCacheFilePath);
+                end
+            catch
+                projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
+                addsTable = readTable(projectFilePath);
+            end
+
+            function output = readTable(filePath)
+                output = readtable(filePath, 'VariableNamingRule', 'preserve', 'UseExcel', false);
+            end
+        end        
 
         %-----------------------------------------------------------------%
         function [annotationTable, msgWarning] = Annotation(rootFolder, cloudFolder)

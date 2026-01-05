@@ -96,9 +96,23 @@ classdef winProducts_exported < matlab.apps.AppBase
                                 app.UITable.Selection = selectedRow;
                                 onTableSelectionChanged(app)
 
+                            % winSCH >> auxApp.winProducts
                             % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
-                            case 'onFinalReportFileChanged'
+                            case {'onReportGenerate', 'onFinalReportFileChanged'}
                                 updateToolbar(app)
+
+                            case 'onFetchIssueDetails'
+                                system   = varargin{1};
+                                issue    = varargin{2};
+                                details  = varargin{3};
+                                msgError = varargin{4};
+
+                                if ~isempty(msgError)
+                                    error(msgError)
+                                end
+
+                                msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
+                                ui.Dialog(app.UIFigure, 'info', msg);
 
                             otherwise
                                 error('UnexpectedCall')
@@ -240,6 +254,19 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_GenerateReport.Enable   = nonEmptyListOfProducts;
             app.tool_UploadFinalFile.Enable  = reportFinalVersionGenerated;
         end
+
+        %-----------------------------------------------------------------%
+        function reportController(app, eventName)
+            context = 'PRODUCTS';
+            
+            if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
+                dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
+                dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
+                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', eventName, 'Fields', dialogBox, 'Context', context))
+            else
+                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, context)
+            end
+        end
     end
     
 
@@ -334,72 +361,89 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: tool_GenerateReport
         function Toolbar_GenerateReportImageClicked(app, event)
             
-            % context = 'ExternalRequest';
-            % indexes = FileIndex(app);
-            % 
-            % if ~isempty(indexes)
-            %     % <VALIDAÇÕES>
-            %     if numel(indexes) < numel(app.measData)
-            %         initialQuestion  = 'Deseja gerar relatório que contemple informações de TODAS as localidades de agrupamento, ou apenas da SELECIONADA?';
-            %         initialSelection = ui.Dialog(app.UIFigure, 'uiconfirm', initialQuestion, {'Todas', 'Selecionada', 'Cancelar'}, 1, 3);
-            % 
-            %         switch initialSelection
-            %             case 'Cancelar'
-            %                 return
-            %             case 'Todas'
-            %                 indexes = 1:numel(app.measData);
-            %         end
-            %     end
-            % 
-            %     warningMessages = {};
-            %     if ~report_checkEFiscalizaIssueId(app.mainApp, app.projectData.modules.(context).ui.issue)
-            %         warningMessages{end+1} = sprintf('O número da inspeção "%.0f" é inválido.', app.projectData.modules.(context).ui.issue);
-            %     end
-            % 
-            %     if ~isempty(layout_searchUnexpectedTableValues(app))
-            %         warningMessages{end+1} = ['Há registro de pontos críticos localizados na(s) localidade(s) sob análise para os quais '     ...
-            %                                   'não foram identificadas medidas no entorno. Nesse caso específico, deve-se preencher ' ...
-            %                                   'o campo "Justificativa" e anotar os registros, caso aplicável.'];
-            %     end
-            % 
-            %     if ~isempty(warningMessages)
-            %         warningMessages = strjoin(warningMessages, '<br><br>');
-            % 
-            %         switch app.reportVersion.Value
-            %             case 'Definitiva'
-            %                 warningMessages = [warningMessages, '<br><br>Isso impossibilita a geração da versão DEFINITIVA do relatório.'];
-            %                 ui.Dialog(app.UIFigure, "warning", warningMessages);
-            %                 return
-            % 
-            %             otherwise % 'Preliminar'
-            %                 warningMessages = [warningMessages, '<br><br>Deseja ignorar esse alerta, gerando a versão PRÉVIA do relatório?'];
-            %                 userSelection   = ui.Dialog(app.UIFigure, 'uiconfirm', warningMessages, {'Sim', 'Não'}, 2, 2);
-            %                 if userSelection == "Não"
-            %                     return
-            %                 end
-            %         end
-            %     end
-            %     % </VALIDAÇÕES>
-            % 
-            %     % <PROCESSO>
-            %     app.progressDialog.Visible = 'visible';
-            % 
-            %     try
-            %         reportSettings = struct('system',        app.reportSystem.Value, ...
-            %                                 'unit',          app.reportUnit.Value, ...
-            %                                 'issue',         app.reportIssue.Value, ...
-            %                                 'model',         app.report_ModelName.Value, ...
-            %                                 'reportVersion', app.reportVersion.Value);
-            %         reportLibConnection.Controller.Run(app, app.projectData, app.measData(indexes), reportSettings, app.mainApp.General)
-            %     catch ME
-            %         ui.Dialog(app.UIFigure, 'error', getReport(ME));
-            %     end
-            % 
-            %     updateToolbar(app)
-            % 
-            %     app.progressDialog.Visible = 'hidden';
-            %     % </PROCESSO>
-            % end
+            % <VALIDAÇÕES>
+            context = 'PRODUCTS';
+            issue = app.projectData.modules.(context).ui.issue;
+            reportVersion = app.projectData.modules.(context).ui.reportVersion;
+
+            if ~validateReportRequirements(app.projectData, context, 'inspectedProducts')
+                ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos sob análise está vazia.');
+                return
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'reportModel')
+                ui.Dialog(app.UIFigure, 'warning', 'Pendente escolha do modelo de relatório.');
+                return
+            end
+
+            msgWarning = {};
+            if ~validateReportRequirements(app.projectData, context, 'issue')
+                msgWarning{end+1} = sprintf('• O número da inspeção "%.0f" é inválido.', issue);
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'unit')
+                msgWarning{end+1} = '• Unidade geradora do documento precisa ser selecionada.';
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'entity')
+                msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
+            end
+
+            invalidRowIndexes = validateInspectedProducts(app.projectData);
+            if ~isempty(invalidRowIndexes)
+                msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(invalidRowIndexes), ', '));
+            end
+
+            if isempty(msgWarning)
+                switch reportVersion
+                    case 'Definitiva'
+                        msgQuestion = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', issue);
+                        userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        if userSelection == "Não"
+                            return
+                        end
+                        
+                    case 'Preliminar'
+                        % ...
+                end
+
+            else
+                msgInfo = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.entity;
+
+                switch reportVersion
+                    case 'Definitiva'
+                        msgInfo = sprintf([ ...
+                                'Foi(ram) identificado(s) a(s) pendência(s):<br>%s' ...
+                                '<br><br>' ...
+                                '<b>Essa(s) pendência(s) precisa(m) ser resolvida(s) ' ...
+                                'antes de ser gerada a versão "Definitiva" do relatório</b>. ' ...
+                                '<br><br>' ...
+                                '<font style="color: gray; font-size: 11px;">%s</font></p>' ...
+                            ], strjoin(msgWarning, '<br>'), msgInfo ...
+                        );
+                        ui.Dialog(app.UIFigure, 'warning', msgInfo);
+                        return
+
+                    case 'Preliminar'
+                        msgQuestion = sprintf([ ...
+                                'Foi(ram) identificado(s) a(s) pendência(s):<br>%s' ...
+                                '<br><br>' ...
+                                '<b>Continuar mesmo assim?</b>' ...
+                                '<br><br>' ...
+                                '<font style="color: gray; font-size: 11px;">%s</font></p>' ...
+                            ], strjoin(msgWarning, '<br>'), msgInfo ...
+                        );
+                        selection = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        if strcmp(selection, 'Não')
+                            return
+                        end
+                end
+            end
+            % </VALIDAÇÕES>
+
+            % <PROCESSO>
+            reportController(app, 'onReportGenerate')
+            % </PROCESSO>
 
         end
 
@@ -407,38 +451,67 @@ classdef winProducts_exported < matlab.apps.AppBase
         function Toolbar_UploadFinalFileImageClicked(app, event)
             
             % <VALIDAÇÕES>
-            context = 'Products';
-            lastHTMLDocFullPath = getGeneratedDocumentFileName(app.projectData, '.html', context);
+            context = 'PRODUCTS';
+            
+            system = app.projectData.modules.(context).ui.system;
+            issue = app.projectData.modules.(context).ui.issue;
+
+            generatedHtmlFilePath = getGeneratedDocumentFileName(app.projectData, '.html', context);
+            reportGenerationId = app.projectData.modules.(context).generatedFiles.id;
+            currentProjectHash = model.projectLib.computeProjectHash('', '', app.projectData.inspectedProducts, [], []);            
 
             msg = '';
-            if isempty(lastHTMLDocFullPath)
+            if isempty(generatedHtmlFilePath)
                 msg = 'A versão definitiva do relatório ainda não foi gerada.';
-            elseif ~isfile(lastHTMLDocFullPath)
-                msg = sprintf('O arquivo "%s" não foi encontrado.', lastHTMLDocFullPath);
+            elseif ~isfile(generatedHtmlFilePath)
+                msg = sprintf('O arquivo "%s" não foi encontrado.', generatedHtmlFilePath);
+            elseif ~strcmp(reportGenerationId, currentProjectHash)
+                msg = [ ...
+                    'A lista de produtos sob análise foi modificada após a ' ...
+                    'geração do relatório. Por essa razão, é necessário gerar ' ...
+                    'novamente a versão definitiva do relatório antes do seu ' ...
+                    '<i>upload</i> para o SEI' ...
+                ];
             elseif ~isfolder(app.mainApp.General.fileFolder.DataHub_POST)
                 msg = 'Pendente mapear pasta do Sharepoint';
-            elseif ~report_checkEFiscalizaIssueId(app.mainApp, app.projectData.modules.(context).ui.issue)
-                msg = sprintf('O número da inspeção "%.0f" é inválido.', app.projectData.modules.(context).ui.issue);
-            elseif isempty(app.projectData.modules.(context).ui.system)
-                msg = 'Ambiente do eFiscaliza precisa ser selecionado.';
-            elseif isempty(app.projectData.modules.(context).ui.unit)
+            elseif ~validateReportRequirements(app.projectData, context, 'issue')
+                msg = sprintf('O número da inspeção "%.0f" é inválido.', issue);
+            elseif ~validateReportRequirements(app.projectData, context, 'unit')
                 msg = 'Unidade geradora do documento precisa ser selecionada.';
+            elseif isempty(system)
+                msg = 'Ambiente do eFiscaliza precisa ser selecionado.';
             end
 
             if ~isempty(msg)
                 ui.Dialog(app.UIFigure, 'warning', msg);
                 return
             end
+
+            uploadedFiles = getUploadedFiles(app.projectData, context, system, issue);
+            if ~isempty(uploadedFiles)
+                uploadedStatus = extractAfter({uploadedFiles.status}, 'Documento cadastrado no SEI sob o nº ');
+
+                if isscalar(uploadedStatus)
+                    uploadedStatus = uploadedStatus{1};
+                else                    
+                    uploadedStatus = strjoin([{strjoin(uploadedStatus(1:end-1), ', ')}, uploadedStatus(end)], ' e ');
+                end
+
+                msgQuestion = sprintf([ ...
+                    'Já foi realizado <i>upload</i> para o SEI de relatório que engloba ' ...
+                    'a presente lista de produtos sob análise - SEI nº %s.<br><br>' ...
+                    'Deseja realizar um novo <i>upload</i> para o SEI?' ...
+                ], uploadedStatus);
+                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+
+                if strcmp(userSelection, 'Não')
+                    return
+                end
+            end
             % </VALIDAÇÕES>
 
             % <PROCESSO>
-            if isempty(app.mainApp.eFiscalizaObj)
-                dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
-                dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
-                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'eFiscalizaSignInPage', 'Fields', dialogBox, 'Context', context))
-            else
-                report_uploadInfoController(app.mainApp, [], 'uploadDocument', context)
-            end
+            reportController(app, 'onUploadArtifacts')
             % </PROCESSO>
 
         end
@@ -528,20 +601,8 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: tool_OpenPopupEdition_2
         function tool_OpenPopupEdition_2ImageClicked(app, event)
             
-            msg = [ ...
-                'As informações de tipo, fabricante, modelo e situação são obrigatórias. Além disso, a soma das quantidades em uso, vendida, em estoque/aduana e anunciada deve ser maior que zero.' ...
-                '<br><br>' ...
-                'Caso evidenciada situação <b>REGULAR</b>:<br>' ...
-                '•&thinsp;Não admite infração.<br>' ...
-                '•&thinsp;Não pode haver quantidades lacradas, apreendidas ou retidas.' ...    
-                '<br><br>' ...
-                'Caso evidenciada situação <b>IRREGULAR</b>:<br>' ...
-                '•&thinsp;A infração é obrigatória.<br>' ...
-                '•&thinsp;A soma das quantidades lacradas, apreendidas e retidas não pode exceder a soma das quantidades em uso e em estoque/aduana.<br>' ...
-                '•&thinsp;É obrigatória a estimativa do valor unitário, além da indicação da fonte da estimativa, como, por exemplo, nota fiscal, sistema de controle de estoque ou pesquisa de mercado.' ...
-            ];
-
-            ui.Dialog(app.UIFigure, 'none', msg);
+            msg = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
+            ui.Dialog(app.UIFigure, 'info', msg);
 
         end
 
