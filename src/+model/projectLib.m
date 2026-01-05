@@ -136,7 +136,7 @@ classdef projectLib < handle
             updateNeeded = false;
             
             if ~isempty(obj.name)
-                currentPrjHash = model.projectLib.computeProjectHash(obj.name, obj.file, obj.inspectedProducts);
+                currentPrjHash = model.projectLib.computeProjectHash(obj.name, obj.file, obj.inspectedProducts, obj.issueDetails, obj.entityDetails);
                 updateNeeded   = ~isequal(obj.hash, currentPrjHash);
             end
         end
@@ -152,7 +152,7 @@ classdef projectLib < handle
             end
 
             appName  = class.Constants.appName;
-            prjHash  = model.projectLib.computeProjectHash(prjName, prjFile, obj.inspectedProducts);
+            prjHash  = model.projectLib.computeProjectHash(prjName, prjFile, obj.inspectedProducts, obj.issueDetails, obj.entityDetails);
             prjData  = struct('version', 1, ...
                               'name',    prjName, ...
                               'hash',    prjHash, ...
@@ -249,9 +249,13 @@ classdef projectLib < handle
                             obj.modules.(context).ui.reportModel = reportModel;
                         end
 
-                        obj.issueDetails  = [obj.issueDetails, prjData.issueDetails];
-                        obj.entityDetails = [obj.entityDetails, prjData.entityDetails];
-                        obj.inspectedProducts = unique([obj.inspectedProducts; prjData.inspectedProducts], "rows");
+                        obj.issueDetails  = [prjData.issueDetails, obj.issueDetails];                        
+                        obj.entityDetails = [prjData.entityDetails, obj.entityDetails];
+                        
+                        [~, uniqueDetailsIndexes] = unique({obj.entityDetails.id});
+                        obj.entityDetails = obj.entityDetails(uniqueDetailsIndexes);
+
+                        obj.inspectedProducts = unique([prjData.inspectedProducts; obj.inspectedProducts], "rows");
     
                     otherwise
                         error('UnexpectedVersion')
@@ -384,12 +388,21 @@ classdef projectLib < handle
         end
 
         %-----------------------------------------------------------------%
-        function details = getEntityDetails(obj, id)
+        function details = getEntityDetailsFromCache(obj, id)
             [~, entityIndex] = ismember(id, {obj.entityDetails.id});
             
             if entityIndex
                 details = obj.entityDetails(entityIndex).details;
             else
+                details = '';      
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function details = getOrFetchEntityDetails(obj, id)
+            details = getEntityDetailsFromCache(obj, id);
+
+            if isempty(details)
                 [entityId, ~, details] = checkCNPJOrCPF(id, 'PublicAPI');
 
                 if ~isempty(details)
@@ -533,9 +546,9 @@ classdef projectLib < handle
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts)
+        function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts, issueDetails, entityDetails)
             hashList = sort(inspectedProducts.('Hash'));
-            prjHash = Hash.sha1(sprintf('%s - %s - %s', prjName, prjFile, strjoin(hashList, ' - ')));
+            prjHash = Hash.sha1(sprintf('%s - %s - %s - %s - %s', prjName, prjFile, strjoin(hashList, ' - '), jsonencode(issueDetails), jsonencode(entityDetails)));
         end
 
         %-----------------------------------------------------------------%

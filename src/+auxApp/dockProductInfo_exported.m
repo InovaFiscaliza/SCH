@@ -64,9 +64,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     
     properties (Access = private)
         %-----------------------------------------------------------------%
-        Container
-        isDocked = true
+        Role = 'secondaryDockApp'
+    end
 
+
+    properties (Access = public)
+        %-----------------------------------------------------------------%
+        Container
+        isDocked = true        
         mainApp
         callingApp
         projectData
@@ -166,11 +171,13 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         % Code that executes after component creation
         function startupFcn(app, mainApp, callingApp)
             
-            app.mainApp     = mainApp;
-            app.callingApp  = callingApp;
-            app.projectData = mainApp.projectData;
-            
-            initialValues(app)
+            try
+                appEngine.boot(app, app.Role, mainApp, callingApp)
+                initialValues(app)
+                
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
+            end            
             
         end
 
