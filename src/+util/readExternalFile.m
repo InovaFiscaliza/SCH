@@ -10,12 +10,20 @@ classdef (Abstract) readExternalFile
     methods (Static = true)
         %-----------------------------------------------------------------%
         function [rawDataTable, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
+            [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             fileName = sprintf('SCHData%s.mat', generalSettings.search.dataBaseVersion);
 
             try
-                load(fullfile(cloudFolder,                      fileName), 'rawDataTable', 'releasedData', 'cacheData')
+                cloudFilePath = fullfile(cloudFolder, fileName);
+                if ~isempty(cloudFolder) && isfile(cloudFilePath)
+                    load(cloudFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+                else
+                    localCacheFilePath = fullfile(localCacheFolder, 'DataBase', fileName);
+                    load(localCacheFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+                end
             catch
-                load(fullfile(rootFolder, 'config', 'DataBase', fileName), 'rawDataTable', 'releasedData', 'cacheData')
+                projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
+                load(projectFilePath, 'rawDataTable', 'releasedData', 'cacheData')
             end
 
             cacheColumns = util.readExternalFile.cacheDefaultColumns;

@@ -138,14 +138,14 @@ classdef projectLib < handle
             obj.mainApp    = mainApp;
             obj.rootFolder = rootFolder;
 
-            Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General, rootFolder)
+            Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
             ReadRegulatronData(obj, rootFolder, mainApp.General.fileFolder.DataHub_GET)
 
             obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
         end
 
         %-----------------------------------------------------------------%
-        function Initialization(obj, contextList, generalSettings, rootFolder)
+        function Initialization(obj, contextList, generalSettings)
             % O "id", do "generatedFiles", é a lista ordenada de "hashs" dos registros 
             % que compõem "inspectedProducts".
 
@@ -188,9 +188,12 @@ classdef projectLib < handle
                         ) ...
                     ) ...
                 );
+
+                obj.modules.(context).ui.entityTypes = generalSettings.ui.typeOfEntity.options;
+                obj.modules.(context).ui.entity.type = generalSettings.ui.typeOfEntity.default;
             end
 
-            ReadReportTemplates(obj, rootFolder)            
+            ReadReportTemplates(obj, obj.rootFolder)
             CreateInspectedProductsTable(obj, generalSettings);
         end
 
@@ -214,29 +217,46 @@ classdef projectLib < handle
                 outputFileCompressionMode
             end
 
-            appName  = class.Constants.appName;
-            prjHash  = model.projectLib.computeProjectHash(prjName, prjFile, obj.inspectedProducts, obj.issueDetails, obj.entityDetails);
-            prjData  = struct('version', 1, ...
-                              'name',    prjName, ...
-                              'hash',    prjHash, ...
-                              'context', context, ...
-                              'generatedFiles', struct('id', obj.modules.(context).generatedFiles.id, 'lastZIPFullPath', obj.modules.(context).generatedFiles.lastZIPFullPath), ...
-                              'uploadedFiles', obj.modules.(context).uploadedFiles, ...
-                              'ui',      struct('system',       obj.modules.(context).ui.system, ...
-                                                'unit',         obj.modules.(context).ui.unit,  ...
-                                                'issue',        obj.modules.(context).ui.issue, ...
-                                                'reportModel',  obj.modules.(context).ui.reportModel, ...
-                                                'entity',       obj.modules.(context).ui.entity), ...
-                              'issueDetails',  obj.issueDetails, ...
-                              'entityDetails', obj.entityDetails, ...
-                              'inspectedProducts', obj.inspectedProducts);
+            % Trata-se da versão 2 do arquivo de projeto do SCH. A versão 1,
+            % disponível até SCH v. 1.01.5, era composta por cinco variáveis
+            % - "source", "type", "userData", "variables" e "version". 
+
+            % Manteve-se a mesma estrutura de variáveis, mas o conteúdo de
+            % "variables" é diferente.
+
+            source    = class.Constants.appName;
+            type      = 'ProjectData';
+            version   = 2;
+            userData  = [];
+
+            prjHash   = model.projectLib.computeProjectHash(prjName, prjFile, obj.inspectedProducts, obj.issueDetails, obj.entityDetails);
+            variables = struct( ...
+                'name', prjName, ...
+                'hash', prjHash, ...
+                'context', context, ...
+                'ui', struct( ...
+                    'system', obj.modules.(context).ui.system, ...
+                    'unit', obj.modules.(context).ui.unit,  ...
+                    'issue', obj.modules.(context).ui.issue, ...
+                    'reportModel', obj.modules.(context).ui.reportModel, ...
+                    'entity', obj.modules.(context).ui.entity ...
+                ), ...
+                'generatedFiles', struct( ...
+                    'id', obj.modules.(context).generatedFiles.id, ...
+                    'lastZIPFullPath', obj.modules.(context).generatedFiles.lastZIPFullPath ...
+                ), ...
+                'uploadedFiles', obj.modules.(context).uploadedFiles, ...
+                'issueDetails', obj.issueDetails, ...
+                'entityDetails', obj.entityDetails, ...
+                'inspectedProducts', obj.inspectedProducts ...
+            );
 
             compressionMode = '';
             if strcmp(outputFileCompressionMode, 'Não')
                 compressionMode = '-nocompression';
             end
 
-            save(prjFile, 'appName', 'prjData', '-mat', '-v7', compressionMode)
+            save(prjFile, 'source', 'type', 'version', 'variables', 'userData', '-mat', '-v7', compressionMode)
 
             obj.name = prjName;
             obj.file = prjFile;
@@ -245,22 +265,13 @@ classdef projectLib < handle
 
         %-----------------------------------------------------------------%
         function msg = Load(obj, fileName, generalSettings)
-            % Em 01/01/2026, a versão 1 do projeto contempla instância da 
-            % classe model.projectLib. Ao ler um arquivo .mat, usando função 
-            % "load", o MATLAB realiza validações simples, como adicionar 
-            % novas propriedades (com valores padrão) ou remover outras que 
-            % não existem mais (independentemente do seu conteúdo). 
-
-            % A seguir lista com principais propriedades da classe.
-            % • model.projectLib
-            %   "name", "file", "report", "modules" e "inspectedProducts".
-
             % A alteração da forma de organização da informação no app pode 
             % demandar a criação de outras versões (2, 3...) do arquivo de 
             % projeto (.mat), o que deve vir acompanhado de parsers para manter 
             % compatibilidade, caso viável.
 
-            required = {'appName', 'prjData'};
+            msg = '';
+            required = {'source', 'version', 'variables'};
 
             try
                 varsInFile = who('-file', fileName);
@@ -269,23 +280,26 @@ classdef projectLib < handle
                     error('Missing required variables: %s', strjoin(missing, ', '))
                 end
                 
-                load(fileName, '-mat', required{:})
+                prjData = load(fileName, '-mat', required{:});
                 
-                if ~strcmp(class.Constants.appName, appName)
-                    error('File generated by a different application. Expected: %s. Found: %s.', class.Constants.appName, appName)
+                if ~strcmp(class.Constants.appName, prjData.source)
+                    error('File generated by a different application. Expected: %s. Found: %s.', class.Constants.appName, prjData.source)
                 end
     
                 switch prjData.version
                     case 1
-                        obj.name = prjData.name;
-                        obj.file = fileName;
-                        obj.hash = prjData.hash;
-    
-                        context = prjData.context;
+                        model.upgradeLegacyProject(obj, fileName, prjData.variables, generalSettings)
 
-                        if isfile(prjData.generatedFiles.lastZIPFullPath)
+                    case 2
+                        obj.name = prjData.variables.name;
+                        obj.file = fileName;
+                        obj.hash = prjData.variables.hash;
+    
+                        context = prjData.variables.context;
+
+                        if isfile(prjData.variables.generatedFiles.lastZIPFullPath)
                             try
-                                unzipFiles = unzip(prjData.generatedFiles.lastZIPFullPath, generalSettings.fileFolder.tempPath);
+                                unzipFiles = unzip(prjData.variables.generatedFiles.lastZIPFullPath, generalSettings.fileFolder.tempPath);
                                 for ii = 1:numel(unzipFiles)
                                     [~, ~, unzipFileExt] = fileparts(unzipFiles{ii});
 
@@ -299,38 +313,37 @@ classdef projectLib < handle
                                     end
                                 end
                                 
-                                obj.modules.(context).generatedFiles.id              = prjData.generatedFiles.id;
-                                obj.modules.(context).generatedFiles.lastZIPFullPath = prjData.generatedFiles.lastZIPFullPath;
+                                obj.modules.(context).generatedFiles.id              = prjData.variables.generatedFiles.id;
+                                obj.modules.(context).generatedFiles.lastZIPFullPath = prjData.variables.generatedFiles.lastZIPFullPath;
                             catch 
                             end
                         end
 
-                        obj.modules.(context).ui.system = prjData.ui.system;
-                        obj.modules.(context).ui.unit   = prjData.ui.unit;
-                        obj.modules.(context).ui.issue  = prjData.ui.issue;
-                        obj.modules.(context).ui.entity = prjData.ui.entity;
+                        obj.modules.(context).ui.system = prjData.variables.ui.system;
+                        obj.modules.(context).ui.unit   = prjData.variables.ui.unit;
+                        obj.modules.(context).ui.issue  = prjData.variables.ui.issue;
+                        obj.modules.(context).ui.entity = prjData.variables.ui.entity;
 
-                        reportModel = prjData.ui.reportModel;
+                        reportModel = prjData.variables.ui.reportModel;
                         if ismember(reportModel, obj.modules.(context).ui.templates)
                             obj.modules.(context).ui.reportModel = reportModel;
                         end
 
-                        obj.modules.(context).uploadedFiles = [prjData.uploadedFiles, obj.modules.(context).uploadedFiles];
+                        obj.modules.(context).uploadedFiles = [prjData.variables.uploadedFiles, obj.modules.(context).uploadedFiles];
                         [~, uniqueUploadedFilesIndexes] = unique({obj.modules.(context).uploadedFiles.hash});
                         obj.modules.(context).uploadedFiles = obj.modules.(context).uploadedFiles(uniqueUploadedFilesIndexes);
 
-                        obj.issueDetails = [prjData.issueDetails, obj.issueDetails];                        
+                        obj.issueDetails = [prjData.variables.issueDetails, obj.issueDetails];                        
                         
-                        obj.entityDetails = [prjData.entityDetails, obj.entityDetails];                        
+                        obj.entityDetails = [prjData.variables.entityDetails, obj.entityDetails];                        
                         [~, uniqueDetailsIndexes] = unique({obj.entityDetails.id});
                         obj.entityDetails = obj.entityDetails(uniqueDetailsIndexes);
 
-                        obj.inspectedProducts = unique([prjData.inspectedProducts; obj.inspectedProducts], "rows");
+                        obj.inspectedProducts = unique([prjData.variables.inspectedProducts; obj.inspectedProducts], "rows");
     
                     otherwise
                         error('UnexpectedVersion')
                 end
-                msg = '';
 
             catch ME
                 msg = ME.message;
@@ -627,8 +640,8 @@ classdef projectLib < handle
             end
 
             switch fieldName
-                case 'name'
-                    obj.name = fieldValue;
+                case {'name', 'file', 'hash'}
+                    obj.(fieldName) = fieldValue;
 
                 case 'issueDetails'
                     [~, issueIndex] = ismember(fieldValue.issue, [obj.issueDetails.issue]);
@@ -741,7 +754,7 @@ classdef projectLib < handle
                         modelName ...
                     );
 
-                otherwise
+                case 'Homologado'
                     rawDataTable = varargin{1};
                     indexRow = varargin{2};
 
@@ -773,14 +786,14 @@ classdef projectLib < handle
             end
 
             productData = {
-                'Hash',                  productHash;
-                'Homologação',           homologation;
-                'Tipo',                  generalSettings.ui.typeOfProduct.default;
-                'Fabricante',            manufacturer;
-                'Modelo',                modelName;
-                'Situação',              generalSettings.ui.typeOfSituation.default;
-                'Infração',              generalSettings.ui.typeOfViolation.default;
-                'Sanável?',              '-';
+                'Hash', productHash;
+                'Homologação', homologation;
+                'Tipo', generalSettings.ui.typeOfProduct.default;
+                'Fabricante', manufacturer;
+                'Modelo', modelName;
+                'Situação', generalSettings.ui.typeOfSituation.default;
+                'Infração', generalSettings.ui.typeOfViolation.default;
+                'Sanável?', '-';
                 'Informações adicionais', optionalNote
             };
 

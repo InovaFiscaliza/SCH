@@ -130,7 +130,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
                 backgroundColor = [1,1,1];
                 fontColor       = [0,0,0];
             else
-                backgroundColor = [1,0,0];
+                backgroundColor = '#c80b0f';
                 fontColor       = [1,1,1];
             end
             set(app.reportEntityId, 'Value', app.projectData.modules.(context).ui.entity.id, 'BackgroundColor', backgroundColor, 'FontColor', fontColor)
@@ -177,7 +177,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             end
     
             context = app.inputArgs.context;
-            Initialization(app.projectData, {context}, app.mainApp.General, app.mainApp.rootFolder)
+            Initialization(app.projectData, {context}, app.mainApp.General)
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectRestart', context)
             updatePanel(app, context)
 

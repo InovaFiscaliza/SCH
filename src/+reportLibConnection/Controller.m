@@ -195,6 +195,7 @@ classdef (Abstract) Controller
 
                     xlsxFileConfig  = generalSettings.ui.reportTable.exportedFiles.eFiscaliza;
                     xlsxFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, xlsxFileConfig);
+                    xlsxFileContent = renamevars(xlsxFileContent, xlsxFileConfig.Columns, {xlsxFileConfig.Settings.ColumnName});
 
                     writematrix(jsonencode(jsonFileContent, 'PrettyPrint', true), JSONFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
                     writetable(xlsxFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
