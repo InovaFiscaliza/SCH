@@ -2,27 +2,27 @@ classdef winProducts_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                 matlab.ui.Figure
-        GridLayout               matlab.ui.container.GridLayout
-        DockModule               matlab.ui.container.GridLayout
-        dockModule_Undock        matlab.ui.control.Image
-        dockModule_Close         matlab.ui.control.Image
-        UITable_ViewType         matlab.ui.container.ButtonGroup
-        UITable_CustomsView      matlab.ui.control.RadioButton
-        UITable_VendorView       matlab.ui.control.RadioButton
-        UITable_NumRows          matlab.ui.control.Label
-        UITable                  matlab.ui.control.Table
-        Toolbar                  matlab.ui.container.GridLayout
-        tool_Separator           matlab.ui.control.Image
-        tool_OpenPopupEdition_2  matlab.ui.control.Image
-        tool_UploadFinalFile     matlab.ui.control.Image
-        tool_GenerateReport      matlab.ui.control.Image
-        tool_OpenPopupProject    matlab.ui.control.Image
-        tool_AddNonCertificate   matlab.ui.control.Image
-        tool_OpenPopupEdition    matlab.ui.control.Image
-        ContextMenu              matlab.ui.container.ContextMenu
-        ContextMenu_EditFcn      matlab.ui.container.Menu
-        ContextMenu_DeleteFcn    matlab.ui.container.Menu
+        UIFigure                matlab.ui.Figure
+        GridLayout              matlab.ui.container.GridLayout
+        DockModule              matlab.ui.container.GridLayout
+        dockModule_Undock       matlab.ui.control.Image
+        dockModule_Close        matlab.ui.control.Image
+        UITable_ViewType        matlab.ui.container.ButtonGroup
+        UITable_CustomsView     matlab.ui.control.RadioButton
+        UITable_VendorView      matlab.ui.control.RadioButton
+        UITable_NumRows         matlab.ui.control.Label
+        UITable                 matlab.ui.control.Table
+        Toolbar                 matlab.ui.container.GridLayout
+        tool_UploadFinalFile    matlab.ui.control.Image
+        tool_GenerateReport     matlab.ui.control.Image
+        tool_OpenPopupProject   matlab.ui.control.Image
+        tool_AddNonCertificate  matlab.ui.control.Image
+        tool_OpenPopupEdition   matlab.ui.control.Image
+        tool_Separator          matlab.ui.control.Image
+        tool_ShowRules          matlab.ui.control.Image
+        ContextMenu             matlab.ui.container.ContextMenu
+        ContextMenu_EditFcn     matlab.ui.container.Menu
+        ContextMenu_DeleteFcn   matlab.ui.container.Menu
     end
 
     
@@ -317,6 +317,14 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
+        % Image clicked function: tool_ShowRules
+        function Toolbar_ShowRulesImageClicked(app, event)
+            
+            msg = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
+            ui.Dialog(app.UIFigure, 'info', msg);
+
+        end
+
         % Callback function: ContextMenu_EditFcn, tool_OpenPopupEdition
         function Toolbar_EditSelectedImageClicked(app, event)
             
@@ -355,6 +363,14 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             updateInspectedProducts(app.projectData, 'add', productData)
             syncInspectedTableWithUI(app, 'dataToGuiSync')
+
+        end
+
+        % Image clicked function: tool_OpenPopupProject
+        function Toolbar_OpenPopupProjectImageClicked(app, event)
+            
+            context = 'PRODUCTS';
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ReportLib', context)
 
         end
 
@@ -517,7 +533,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         % Selection changed function: UITable_ViewType
-        function TableViewChanged(app, event)
+        function onTableViewChanged(app, event)
             
             syncInspectedTableWithUI(app, 'tableViewChanged')
             
@@ -587,7 +603,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         % Menu selected function: ContextMenu_DeleteFcn
-        function ContextMenu_Delete(app, event)
+        function onTableRowDeleted(app, event)
             
             selectedTableIndex = app.UITable.Selection;
 
@@ -595,22 +611,6 @@ classdef winProducts_exported < matlab.apps.AppBase
                 updateInspectedProducts(app.projectData, 'delete', selectedTableIndex)
                 syncInspectedTableWithUI(app, 'dataToGuiSync')
             end
-
-        end
-
-        % Image clicked function: tool_OpenPopupEdition_2
-        function tool_OpenPopupEdition_2ImageClicked(app, event)
-            
-            msg = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
-            ui.Dialog(app.UIFigure, 'info', msg);
-
-        end
-
-        % Image clicked function: tool_OpenPopupProject
-        function tool_OpenPopupProjectImageClicked(app, event)
-            
-            context = 'PRODUCTS';
-            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ReportLib', context)
 
         end
     end
@@ -668,6 +668,23 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Toolbar.Layout.Row = 8;
             app.Toolbar.Layout.Column = [1 8];
 
+            % Create tool_ShowRules
+            app.tool_ShowRules = uiimage(app.Toolbar);
+            app.tool_ShowRules.ScaleMethod = 'fill';
+            app.tool_ShowRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
+            app.tool_ShowRules.Tooltip = {'Apresenta regras de validação'};
+            app.tool_ShowRules.Layout.Row = 2;
+            app.tool_ShowRules.Layout.Column = 1;
+            app.tool_ShowRules.ImageSource = 'warning-20px-red.svg';
+
+            % Create tool_Separator
+            app.tool_Separator = uiimage(app.Toolbar);
+            app.tool_Separator.ScaleMethod = 'none';
+            app.tool_Separator.Enable = 'off';
+            app.tool_Separator.Layout.Row = [1 3];
+            app.tool_Separator.Layout.Column = 2;
+            app.tool_Separator.ImageSource = 'LineV.svg';
+
             % Create tool_OpenPopupEdition
             app.tool_OpenPopupEdition = uiimage(app.Toolbar);
             app.tool_OpenPopupEdition.ScaleMethod = 'none';
@@ -689,7 +706,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create tool_OpenPopupProject
             app.tool_OpenPopupProject = uiimage(app.Toolbar);
             app.tool_OpenPopupProject.ScaleMethod = 'none';
-            app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @tool_OpenPopupProjectImageClicked, true);
+            app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupProjectImageClicked, true);
             app.tool_OpenPopupProject.Tooltip = {'Projeto (fiscalizada, arquivo de backup etc)'};
             app.tool_OpenPopupProject.Layout.Row = [1 3];
             app.tool_OpenPopupProject.Layout.Column = 6;
@@ -713,23 +730,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_UploadFinalFile.Layout.Row = 2;
             app.tool_UploadFinalFile.Layout.Column = 8;
             app.tool_UploadFinalFile.ImageSource = 'Up_24.png';
-
-            % Create tool_OpenPopupEdition_2
-            app.tool_OpenPopupEdition_2 = uiimage(app.Toolbar);
-            app.tool_OpenPopupEdition_2.ScaleMethod = 'fill';
-            app.tool_OpenPopupEdition_2.ImageClickedFcn = createCallbackFcn(app, @tool_OpenPopupEdition_2ImageClicked, true);
-            app.tool_OpenPopupEdition_2.Tooltip = {'Apresenta regras de validação'};
-            app.tool_OpenPopupEdition_2.Layout.Row = 2;
-            app.tool_OpenPopupEdition_2.Layout.Column = 1;
-            app.tool_OpenPopupEdition_2.ImageSource = 'warning-20px-red.svg';
-
-            % Create tool_Separator
-            app.tool_Separator = uiimage(app.Toolbar);
-            app.tool_Separator.ScaleMethod = 'none';
-            app.tool_Separator.Enable = 'off';
-            app.tool_Separator.Layout.Row = [1 3];
-            app.tool_Separator.Layout.Column = 2;
-            app.tool_Separator.ImageSource = 'LineV.svg';
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
@@ -760,7 +760,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create UITable_ViewType
             app.UITable_ViewType = uibuttongroup(app.GridLayout);
             app.UITable_ViewType.AutoResizeChildren = 'off';
-            app.UITable_ViewType.SelectionChangedFcn = createCallbackFcn(app, @TableViewChanged, true);
+            app.UITable_ViewType.SelectionChangedFcn = createCallbackFcn(app, @onTableViewChanged, true);
             app.UITable_ViewType.BorderType = 'none';
             app.UITable_ViewType.TitlePosition = 'centertop';
             app.UITable_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
@@ -828,7 +828,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create ContextMenu_DeleteFcn
             app.ContextMenu_DeleteFcn = uimenu(app.ContextMenu);
-            app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @ContextMenu_Delete, true);
+            app.ContextMenu_DeleteFcn.MenuSelectedFcn = createCallbackFcn(app, @onTableRowDeleted, true);
             app.ContextMenu_DeleteFcn.Enable = 'off';
             app.ContextMenu_DeleteFcn.Text = '❌ Excluir';
             
