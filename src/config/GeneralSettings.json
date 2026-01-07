@@ -1,5 +1,5 @@
 {
-    "version": 1.95,
+    "version": 1.97,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -195,6 +195,7 @@
                 "name": [
                     "Homologação",
                     "Tipo",
+                    "Subtipo",
                     "Fabricante",
                     "Modelo",
                     "RF?",
@@ -215,6 +216,7 @@
                 "label": [
                     "HOMOLOGAÇÃO",
                     "TIPO",
+                    "SUBTIPO",
                     "FABRICANTE",
                     "MODELO",
                     "RF?",
@@ -234,6 +236,7 @@
                 ],
                 "columnWidth": [
                     110,
+                    "auto",
                     "auto",
                     "auto",
                     "auto",
@@ -257,6 +260,7 @@
                 "name": [
                     "Homologação",
                     "Tipo",
+                    "Subtipo",
                     "Fabricante",
                     "Modelo",
                     "RF?",
@@ -273,6 +277,7 @@
                 "label": [
                     "HOMOLOGAÇÃO",
                     "TIPO",
+                    "SUBTIPO",
                     "FABRICANTE",
                     "MODELO",
                     "RF?",
@@ -288,6 +293,7 @@
                 ],
                 "columnWidth": [
                     110,
+                    "auto",
                     "auto",
                     "auto",
                     "auto",
@@ -718,7 +724,11 @@
         "system": "eFiscaliza",
         "unit": "",
         "Document": "Relatório de Atividades",
-        "outputCompressionMode": "Sim"
+        "outputCompressionMode": "Sim",
+        "indexedDBCache": {
+            "status": true,
+            "intervalMinutes": 1
+        }
     },
     "eFiscaliza": {
         "internal": {

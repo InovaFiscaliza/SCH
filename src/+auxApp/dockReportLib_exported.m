@@ -78,15 +78,15 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         function updatePanel(app, context)
             % PROJECT INITIALIZATION
             if isempty(app.projectData.modules.(context).ui.system) && ~isequal(app.projectData.modules.(context).ui.system, app.mainApp.General.Report.system)
-                app.projectData.modules.(context).ui.system = app.mainApp.General.Report.system;
+                updateUiInfo(app.projectData, context, 'system', app.mainApp.General.Report.system)
             end
             
             if isempty(app.projectData.modules.(context).ui.unit) && ~isequal(app.projectData.modules.(context).ui.unit, app.mainApp.General.Report.unit)
-                app.projectData.modules.(context).ui.unit = app.mainApp.General.Report.unit;
+                updateUiInfo(app.projectData, context, 'unit', app.mainApp.General.Report.unit)
             end
 
             if isempty(app.projectData.modules.(context).ui.entityTypes)
-                app.projectData.modules.(context).ui.entityTypes = app.mainApp.General.ui.typeOfEntity.options;
+                updateUiInfo(app.projectData, context, 'entityTypes', app.mainApp.General.ui.typeOfEntity.options)
                 app.projectData.modules.(context).ui.entity.type = app.mainApp.General.ui.typeOfEntity.default;
             end
 
@@ -197,7 +197,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             d = ui.Dialog(app.UIFigure, "progressdlg", "Em andamento...");
             
             try
-                msg = Load(app.projectData, fileFullPath, app.mainApp.General);
+                msg = Load(app.projectData, 'file', fileFullPath, app.mainApp.General);
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectLoad', context)
                 updatePanel(app, context)
 

@@ -203,7 +203,7 @@ classdef (Abstract) Controller
                     ZIPFileList = {HTMLFile, JSONFile, XLSXFile};
                     zip(ZIPFile, ZIPFileList)
 
-                    id = model.projectLib.computeProjectHash('', '', projectData.inspectedProducts, [], []);
+                    id = model.ProjectBase.computeProjectHash('', '', projectData.inspectedProducts, [], []);
                     updateGeneratedFiles(projectData, context, id, {}, HTMLFile, JSONFile, XLSXFile, ZIPFile)
             end
         end

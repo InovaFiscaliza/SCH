@@ -291,6 +291,52 @@ classdef winSCH_exported < matlab.apps.AppBase
                             case 'Escape'
                                 set(app.searchSuggestions, Visible=0, Value={})
                         end
+
+                    case 'indexedDB'
+                        switch event.HTMLEventData.operation
+                            case 'openDB'
+                                if strcmp(event.HTMLEventData.status, 'success')
+                                    appEngine.indexedDB.loadData(app.jsBackDoor, class.Constants.appName, 'prjData')
+                                end
+
+                            case 'saveData'
+                                % ...
+
+                            case 'loadData'
+                                if isfield(event.HTMLEventData, 'data') && ~isempty(event.HTMLEventData.data)
+                                    prjData = event.HTMLEventData.data;
+
+                                    if numel(prjData.inspectedProducts) > 0
+                                        if isempty(prjData.name)
+                                            prjData.name = '(NÃO DEFINIDO)';
+                                        end
+    
+                                        msgQuestion = sprintf([ ...
+                                            'Foram encontrados dados salvos localmente de uma sessão anterior.<br><br>' ...
+                                            'Última atualização: <b>%s</b><br>' ...
+                                            'Nome do projeto: "<b>%s</b>"<br>' ...
+                                            'Quantidade de produtos sob análise: <b>%d</b><br><br>' ...
+                                            'Deseja continuar o trabalho com esses dados ou iniciar uma nova sessão?' ...
+                                        ], prjData.timestamp, prjData.name, numel(prjData.inspectedProducts));
+        
+                                        userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Usar dados salvos', 'Apagar e iniciar nova sessão'}, 1, 2);
+                                        switch userSelection
+                                            case 'Usar dados salvos'
+                                                msg = Load(app.projectData, "indexedDB", prjData);
+    
+                                                if ~isempty(msg)
+                                                    ui.Dialog(app.UIFigure, 'error', msg);
+                                                end
+        
+                                            case 'Apagar e iniciar nova sessão'
+                                                appEngine.indexedDB.deleteData(app.jsBackDoor, class.Constants.appName, 'prjData')
+                                        end
+                                    end
+                                end
+
+                            case 'deleteData'
+                                % ...
+                        end
     
                     otherwise
                         error('UnexpectedEvent')
@@ -625,7 +671,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
-            app.projectData = model.projectLib(app, app.rootFolder);
+            app.projectData = model.Project(app, app.rootFolder);
+            
+            if app.General.Report.indexedDBCache.status
+                appEngine.indexedDB.openDB(app.jsBackDoor, class.Constants.appName)
+            end
+
             readDataBaseExternalFiles(app)
         end
 
@@ -1296,9 +1347,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                 msgQuestion = sprintf([ ...
                     'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
                     'lista de produtos sob análise). Caso o aplicativo seja encerrado ' ...
-                    'agora, todas as alterações serão descartadas.\n\n' ...
+                    'agora, as alterações não serão registradas em arquivo.\n\n' ...
                     'Deseja realmente fechar o aplicativo?' ...
-                    ], app.projectData.name);
+                ], app.projectData.name);
             
             elseif ~strcmp(app.executionMode, 'webApp')
                 msgQuestion = 'Deseja fechar o aplicativo?';
@@ -1312,6 +1363,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             try
+                IndexedDBCache(app.projectData, 'forceUpdate')
                 util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             catch
             end
@@ -1603,7 +1655,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             addedHom = 0;
             for selectedRow = selectedRows'
-                [productData, productHash] = model.projectLib.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.UITable.UserData.primaryIndex(selectedRow));
+                [productData, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.UITable.UserData.primaryIndex(selectedRow));
                 if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
                     continue
                 end
@@ -1616,7 +1668,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 showPopupTempWarning(app, sprintf('Incluído(s) %d registro(s) na lista de produtos sob análise.', addedHom))
                 ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
             else
-                showPopupTempWarning(app, model.projectLib.WARNING_ENTRYEXIST.SEARCH)
+                showPopupTempWarning(app, model.ProjectBase.WARNING_ENTRYEXIST.SEARCH)
             end
 
         end
