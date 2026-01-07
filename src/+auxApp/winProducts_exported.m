@@ -320,7 +320,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: tool_ShowRules
         function Toolbar_ShowRulesImageClicked(app, event)
             
-            msg = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
+            msg = model.ProjectBase.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
             ui.Dialog(app.UIFigure, 'info', msg);
 
         end
@@ -355,9 +355,9 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Image clicked function: tool_AddNonCertificate
         function Toolbar_AddNonCertificateImageClicked(app, event)
             
-            [productData, productHash] = model.projectLib.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
+            [productData, productHash] = model.ProjectBase.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
             if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
                 return
             end
 
@@ -424,7 +424,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 end
 
             else
-                msgInfo = model.projectLib.WARNING_VALIDATIONSRULES.PRODUCTS.entity;
+                msgInfo = model.ProjectBase.WARNING_VALIDATIONSRULES.PRODUCTS.entity;
 
                 switch reportVersion
                     case 'Definitiva'
@@ -474,7 +474,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             generatedHtmlFilePath = getGeneratedDocumentFileName(app.projectData, '.html', context);
             reportGenerationId = app.projectData.modules.(context).generatedFiles.id;
-            currentProjectHash = model.projectLib.computeProjectHash('', '', app.projectData.inspectedProducts, [], []);            
+            currentProjectHash = model.ProjectBase.computeProjectHash('', '', app.projectData.inspectedProducts, [], []);            
 
             msg = '';
             if isempty(generatedHtmlFilePath)
@@ -588,11 +588,11 @@ classdef winProducts_exported < matlab.apps.AppBase
                 end
 
                 if strcmp(event.Source.Data.("Homologação"){event.Indices(1)}, '-') && ismember(editedGUIColumn, {'FABRICANTE', 'MODELO'})
-                    newProductHash = model.projectLib.computeInspectedProductHash('-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)});
+                    newProductHash = model.ProjectBase.computeInspectedProductHash('-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)});
 
                     if ismember(newProductHash, app.projectData.inspectedProducts.("Hash"))
                         event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};                        
-                        ui.Dialog(app.UIFigure, 'warning', model.projectLib.WARNING_ENTRYEXIST.PRODUCTS);
+                        ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
                         return
                     end
                 end
@@ -734,11 +734,11 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create UITable
             app.UITable = uitable(app.GridLayout);
             app.UITable.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
-            app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
-            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
+            app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
+            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
             app.UITable.RowName = {};
             app.UITable.SelectionType = 'row';
-            app.UITable.ColumnEditable = [false true true true true true true true true true true true true true true true true true];
+            app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Tooltip = {''};
