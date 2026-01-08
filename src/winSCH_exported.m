@@ -1342,6 +1342,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                 return
             end
 
+            try
+                IndexedDBCache(app.projectData, 'forceUpdate')
+                util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
+            catch
+            end
+
             msgQuestion = '';
             if CheckIfUpdateNeeded(app.projectData)
                 msgQuestion = sprintf([ ...
@@ -1360,12 +1366,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 if userSelection == "Não"
                     return
                 end
-            end
-
-            try
-                IndexedDBCache(app.projectData, 'forceUpdate')
-                util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
-            catch
             end
 
             % Aspectos gerais (comum em todos os apps):

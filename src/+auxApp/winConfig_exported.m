@@ -654,6 +654,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                             app.DataHubGET.Value = selectedFolder;
                             app.mainApp.General.fileFolder.DataHub_GET = selectedFolder;
     
+                            initializeUIComponents(app)
                             ipcMainMatlabCallsHandler(app.mainApp, app, 'updateDataHubGetFolder')
                             ipcMainMatlabCallsHandler(app.mainApp, app, 'checkDataHubLampStatus')
                         end

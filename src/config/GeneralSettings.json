@@ -1,5 +1,5 @@
 {
-    "version": 1.97,
+    "version": 2.01,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -245,13 +245,13 @@
                     96,
                     90,
                     "auto",
-                    90,
-                    90,
-                    90,
-                    90,
-                    90,
-                    90,
-                    90,
+                    66,
+                    66,
+                    66,
+                    80,
+                    70,
+                    80,
+                    80,
                     "auto",
                     "auto"
                 ]
@@ -302,8 +302,8 @@
                     "auto",
                     90,
                     "auto",
-                    90,
-                    90,
+                    66,
+                    80,
                     "auto",
                     "auto",
                     70
@@ -704,10 +704,16 @@
             "default": "-",
             "options": [
                 "-",
-                "Comercialização",
-                "Identificação homologação",
-                "Importação",
-                "Uso"
+                "Comercialização – não homologado",
+                "Comercialização – suspenso",
+                "Comercialização – cancelado",
+                "Identificação – ausência de selo",
+                "Identificação – selo incorreto",
+                "Identificação – selo falso",
+                "Importação – não homologado",
+                "Importação – sem selo",
+                "Uso – não homologado",
+                "Uso – características diferentes"
             ]
         },
         "typeOfEntity": {
