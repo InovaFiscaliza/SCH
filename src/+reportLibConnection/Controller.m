@@ -177,7 +177,7 @@ classdef (Abstract) Controller
                 case 'final'
                     JSONFile = [baseFullFileName '.json'];
                     XLSXFile = [baseFullFileName '.xlsx'];
-                    ZIPFile  = ui.Dialog(callingApp.UIFigure, 'uiputfile', '', {'*.zip', 'SCH (*.zip)'}, fullfile(generalSettings.fileFolder.userPath, [baseFileName '.zip']));
+                    ZIPFile  = ui.Dialog(callingApp.UIFigure, 'uiputfile', '', {'*.zip', 'SCH'}, fullfile(generalSettings.fileFolder.userPath, [baseFileName '.zip']));
                     if isempty(ZIPFile)
                         return
                     end
