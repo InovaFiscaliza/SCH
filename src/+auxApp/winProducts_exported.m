@@ -549,7 +549,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Cell edit callback: UITable
         function onTableCellEdited(app, event)
             
-            % BUG "MATLAB R2024a Update 7":
+            % BUG "MATLAB R2024a Update 7"
             % Ao clicar no dropdown (colunas categóricas) e clicar fora do
             % painel (do dropdown) ou selecionar o valor já selecionado, o
             % MATLAB dispara esse callback. A primeira validação evita fazer
@@ -587,14 +587,21 @@ classdef winProducts_exported < matlab.apps.AppBase
                     return
                 end
 
-                if strcmp(event.Source.Data.("Homologação"){event.Indices(1)}, '-') && ismember(editedGUIColumn, {'FABRICANTE', 'MODELO'})
-                    newProductHash = model.ProjectBase.computeInspectedProductHash('-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)});
+                switch editedGUIColumn
+                    case 'TIPO'
+                        subtype = checkTypeSubtypeProductsMapping(app.projectData, event.Source.Data.("Tipo")(event.Indices(1)), event.Source.Data.("Subtipo"){event.Indices(1)});
+                        event.Source.Data.("Subtipo"){event.Indices(1)} = subtype;
 
-                    if ismember(newProductHash, app.projectData.inspectedProducts.("Hash"))
-                        event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};                        
-                        ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
-                        return
-                    end
+                    case {'FABRICANTE', 'MODELO'}
+                        if strcmp(event.Source.Data.("Homologação"){event.Indices(1)}, '-')
+                            newProductHash = model.ProjectBase.computeInspectedProductHash('-', event.Source.Data.("Fabricante"){event.Indices(1)}, event.Source.Data.("Modelo"){event.Indices(1)});
+        
+                            if ismember(newProductHash, app.projectData.inspectedProducts.("Hash"))
+                                event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};                        
+                                ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
+                                return
+                            end
+                        end
                 end
             end
 
