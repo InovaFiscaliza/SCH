@@ -188,7 +188,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             
             context = app.inputArgs.context;
             
-            [fileFullPath, fileFolder] = ui.Dialog(app.UIFigure, 'uigetfile', '', {'*.mat', 'SCH (.mat)'}, app.mainApp.General.fileFolder.lastVisited, {'MultiSelect', 'off'});
+            [fileFullPath, fileFolder] = ui.Dialog(app.UIFigure, 'uigetfile', '', {'*.mat', 'SCH'}, app.mainApp.General.fileFolder.lastVisited, {'MultiSelect', 'off'});
             if isempty(fileFullPath)
                 return
             end

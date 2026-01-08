@@ -1625,7 +1625,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: tool_ExportVisibleTable
         function Toolbar_ExportVisibleTableImageClicked(app, event)
             
-            nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
+            nameFormatMap = {'*.xlsx', 'Excel'};
             defaultName   = appEngine.util.DefaultFileName(app.General.fileFolder.userPath, 'SCH', -1);
             fileFullPath  = ui.Dialog(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
             if isempty(fileFullPath)

@@ -549,7 +549,7 @@ classdef Project < handle
 
             ruleViolationMatrix = zeros(height(obj.inspectedProducts), 10, 'logical');
 
-            ruleViolationMatrix(:, 1) = string(obj.inspectedProducts.("Tipo")) == "-" | string(obj.inspectedProducts.("Subtipo")) == "-";
+            ruleViolationMatrix(:, 1) = string(obj.inspectedProducts.("Tipo")) == "-" | ismember(obj.inspectedProducts.("Subtipo"), {'', '-'});
             ruleViolationMatrix(:, 2) = string(obj.inspectedProducts.("Fabricante")) == "";
             ruleViolationMatrix(:, 3) = string(obj.inspectedProducts.("Modelo")) == "";
             ruleViolationMatrix(:, 4) = obj.inspectedProducts.("Valor Unit. (R$)") <= 0;

@@ -399,7 +399,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.exportTable
-                    nameFormatMap = {'*.xlsx', 'Excel (*.xlsx)'};
+                    nameFormatMap = {'*.xlsx', 'Excel'};
                     defaultName   = appEngine.util.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
                     fileFullPath  = ui.Dialog(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
                     if isempty(fileFullPath)

@@ -41,7 +41,7 @@ classdef (Abstract) writeExternalFile
                 if any(idx1)
                     % A versão submetida à pasta do Sharepoint POST...
                     annotationTable.("Situação")(idx1) = 0;
-                    writetable(annotationTable(idx1,:), cloudFilePath)
+                    writetable(annotationTable(idx1,:), cloudFilePath, "UseExcel", false)
             
                     % O backup local...
                     annotationTable.("Situação")(idx1) = 2;
@@ -55,7 +55,7 @@ classdef (Abstract) writeExternalFile
         
             try
                 if any(idx2)
-                    writetable(annotationTable(idx2,:), externalFilePath, 'WriteMode', 'replacefile')
+                    writetable(annotationTable(idx2,:), externalFilePath, 'WriteMode', 'replacefile', 'UseExcel', false)
                 else
                     if isfile(externalFilePath)
                         delete(externalFilePath)
