@@ -11,6 +11,8 @@ classdef winProducts_exported < matlab.apps.AppBase
         UITable_CustomsView     matlab.ui.control.RadioButton
         UITable_VendorView      matlab.ui.control.RadioButton
         UITable_NumRows         matlab.ui.control.Label
+        tool_ShowDataRules      matlab.ui.control.Image
+        tool_EditionLimitation  matlab.ui.control.Label
         UITable                 matlab.ui.control.Table
         Toolbar                 matlab.ui.container.GridLayout
         tool_UploadFinalFile    matlab.ui.control.Image
@@ -18,8 +20,6 @@ classdef winProducts_exported < matlab.apps.AppBase
         tool_OpenPopupProject   matlab.ui.control.Image
         tool_AddNonCertificate  matlab.ui.control.Image
         tool_OpenPopupEdition   matlab.ui.control.Image
-        tool_Separator          matlab.ui.control.Image
-        tool_ShowRules          matlab.ui.control.Image
         ContextMenu             matlab.ui.container.ContextMenu
         ContextMenu_EditFcn     matlab.ui.container.Menu
         ContextMenu_DeleteFcn   matlab.ui.container.Menu
@@ -317,7 +317,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_ShowRules
+        % Image clicked function: tool_ShowDataRules
         function Toolbar_ShowRulesImageClicked(app, event)
             
             msg = model.ProjectBase.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
@@ -651,8 +651,8 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {10, 48, '1x', 412, '1x', 48, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 24, 19, 3, '1x', 10, 34};
+            app.GridLayout.ColumnWidth = {10, 22, 4, 22, '1x', 412, '1x', 48, 8, 2};
+            app.GridLayout.RowHeight = {2, 8, 16, 8, 19, 3, '1x', 10, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
@@ -660,30 +660,14 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 5, 22, 22, '1x', 22, 22, 22};
+            app.Toolbar.ColumnWidth = {22, 22, '1x', 22, 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
-            app.Toolbar.Layout.Row = 8;
-            app.Toolbar.Layout.Column = [1 8];
-
-            % Create tool_ShowRules
-            app.tool_ShowRules = uiimage(app.Toolbar);
-            app.tool_ShowRules.ScaleMethod = 'fill';
-            app.tool_ShowRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
-            app.tool_ShowRules.Tooltip = {'Apresenta regras de validação'};
-            app.tool_ShowRules.Layout.Row = 2;
-            app.tool_ShowRules.Layout.Column = 1;
-            app.tool_ShowRules.ImageSource = 'warning-20px-red.svg';
-
-            % Create tool_Separator
-            app.tool_Separator = uiimage(app.Toolbar);
-            app.tool_Separator.ScaleMethod = 'none';
-            app.tool_Separator.Enable = 'off';
-            app.tool_Separator.Layout.Row = [1 3];
-            app.tool_Separator.Layout.Column = 2;
-            app.tool_Separator.ImageSource = 'LineV.svg';
+            app.Toolbar.Layout.Row = 9;
+            app.Toolbar.Layout.Column = [1 10];
+            app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create tool_OpenPopupEdition
             app.tool_OpenPopupEdition = uiimage(app.Toolbar);
@@ -692,7 +676,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupEdition.Enable = 'off';
             app.tool_OpenPopupEdition.Tooltip = {'Edita lista de produtos sob análise'};
             app.tool_OpenPopupEdition.Layout.Row = [1 3];
-            app.tool_OpenPopupEdition.Layout.Column = 3;
+            app.tool_OpenPopupEdition.Layout.Column = 1;
             app.tool_OpenPopupEdition.ImageSource = 'Variable_edit_16.png';
 
             % Create tool_AddNonCertificate
@@ -700,7 +684,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddNonCertificateImageClicked, true);
             app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
             app.tool_AddNonCertificate.Layout.Row = [1 3];
-            app.tool_AddNonCertificate.Layout.Column = 4;
+            app.tool_AddNonCertificate.Layout.Column = 2;
             app.tool_AddNonCertificate.ImageSource = 'AddForbidden_32.png';
 
             % Create tool_OpenPopupProject
@@ -709,7 +693,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupProjectImageClicked, true);
             app.tool_OpenPopupProject.Tooltip = {'Projeto (fiscalizada, arquivo de backup etc)'};
             app.tool_OpenPopupProject.Layout.Row = [1 3];
-            app.tool_OpenPopupProject.Layout.Column = 6;
+            app.tool_OpenPopupProject.Layout.Column = 4;
             app.tool_OpenPopupProject.ImageSource = 'organization-20px-black.svg';
 
             % Create tool_GenerateReport
@@ -719,7 +703,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_GenerateReport.Enable = 'off';
             app.tool_GenerateReport.Tooltip = {'Gera relatório'};
             app.tool_GenerateReport.Layout.Row = [1 3];
-            app.tool_GenerateReport.Layout.Column = 7;
+            app.tool_GenerateReport.Layout.Column = 5;
             app.tool_GenerateReport.ImageSource = 'Publish_HTML_16.png';
 
             % Create tool_UploadFinalFile
@@ -728,23 +712,42 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_UploadFinalFile.Enable = 'off';
             app.tool_UploadFinalFile.Tooltip = {'Upload relatório'};
             app.tool_UploadFinalFile.Layout.Row = 2;
-            app.tool_UploadFinalFile.Layout.Column = 8;
+            app.tool_UploadFinalFile.Layout.Column = 6;
             app.tool_UploadFinalFile.ImageSource = 'Up_24.png';
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
             app.UITable.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
             app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
-            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 90, 90, 90, 90, 90, 90, 90, 'auto', 'auto'};
+            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
             app.UITable.RowName = {};
             app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Tooltip = {''};
-            app.UITable.Layout.Row = 6;
-            app.UITable.Layout.Column = [2 6];
+            app.UITable.Layout.Row = 7;
+            app.UITable.Layout.Column = [2 8];
             app.UITable.FontSize = 10;
+
+            % Create tool_EditionLimitation
+            app.tool_EditionLimitation = uilabel(app.GridLayout);
+            app.tool_EditionLimitation.FontSize = 10;
+            app.tool_EditionLimitation.FontColor = [0.502 0.502 0.502];
+            app.tool_EditionLimitation.Layout.Row = [4 5];
+            app.tool_EditionLimitation.Layout.Column = [4 5];
+            app.tool_EditionLimitation.Interpreter = 'html';
+            app.tool_EditionLimitation.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b> editável <font style="color: red;">apenas</font> em formulário.'};
+
+            % Create tool_ShowDataRules
+            app.tool_ShowDataRules = uiimage(app.GridLayout);
+            app.tool_ShowDataRules.ScaleMethod = 'stretch';
+            app.tool_ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
+            app.tool_ShowDataRules.Tooltip = {'Apresenta regras de validação'};
+            app.tool_ShowDataRules.Layout.Row = [4 5];
+            app.tool_ShowDataRules.Layout.Column = 2;
+            app.tool_ShowDataRules.VerticalAlignment = 'top';
+            app.tool_ShowDataRules.ImageSource = 'info-16px-gray.svg';
 
             % Create UITable_NumRows
             app.UITable_NumRows = uilabel(app.GridLayout);
@@ -752,8 +755,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable_NumRows.VerticalAlignment = 'bottom';
             app.UITable_NumRows.FontSize = 11;
             app.UITable_NumRows.FontColor = [0.502 0.502 0.502];
-            app.UITable_NumRows.Layout.Row = 4;
-            app.UITable_NumRows.Layout.Column = [5 6];
+            app.UITable_NumRows.Layout.Row = 5;
+            app.UITable_NumRows.Layout.Column = [7 8];
             app.UITable_NumRows.Interpreter = 'html';
             app.UITable_NumRows.Text = '0 <font style="font-size: 10px;">REGISTROS </font>';
 
@@ -765,8 +768,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable_ViewType.TitlePosition = 'centertop';
             app.UITable_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
             app.UITable_ViewType.BackgroundColor = [1 1 1];
-            app.UITable_ViewType.Layout.Row = [3 4];
-            app.UITable_ViewType.Layout.Column = 4;
+            app.UITable_ViewType.Layout.Row = [3 5];
+            app.UITable_ViewType.Layout.Column = 6;
             app.UITable_ViewType.FontWeight = 'bold';
             app.UITable_ViewType.FontSize = 10;
 
@@ -791,8 +794,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.ColumnSpacing = 2;
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
-            app.DockModule.Layout.Row = [2 3];
-            app.DockModule.Layout.Column = [6 7];
+            app.DockModule.Layout.Row = [2 4];
+            app.DockModule.Layout.Column = [8 9];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Close
