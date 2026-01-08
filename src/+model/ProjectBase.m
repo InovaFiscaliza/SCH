@@ -204,6 +204,7 @@ classdef (Abstract) ProjectBase
             end
 
             productType = generalSettings.ui.typeOfProduct.default;
+            subtype     = '-';
             situation   = generalSettings.ui.typeOfSituation.default;
             violation   = generalSettings.ui.typeOfViolation.default;
             corrigible  = '-';
@@ -254,12 +255,13 @@ classdef (Abstract) ProjectBase
                 case 'LegacyProject'
                     homologation = varargin{1};
                     productType  = varargin{2};
-                    manufacturer = varargin{3};
-                    modelName    = varargin{4};
-                    situation    = varargin{5};
-                    violation    = varargin{6};
-                    corrigible   = varargin{7};
-                    optionalNote = varargin{8};
+                    subtype      = varargin{3};
+                    manufacturer = varargin{4};
+                    modelName    = varargin{5};
+                    situation    = varargin{6};
+                    violation    = varargin{7};
+                    corrigible   = varargin{8};
+                    optionalNote = varargin{9};
 
                     productHash = model.ProjectBase.computeInspectedProductHash( ...
                         homologation, ...
@@ -272,6 +274,7 @@ classdef (Abstract) ProjectBase
                 'Hash', productHash;
                 'Homologação', homologation;
                 'Tipo', productType;
+                'Subtipo', subtype;
                 'Fabricante', manufacturer;
                 'Modelo', modelName;
                 'Situação', situation;

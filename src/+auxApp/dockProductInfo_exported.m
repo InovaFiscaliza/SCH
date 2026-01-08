@@ -150,17 +150,10 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateTypeSubtypeMapping(app, type, subtype)
-            subtypeList = checkTypeSubtypeProductsMapping(app.projectData, type);
+            [subtype, subtypeList] = checkTypeSubtypeProductsMapping(app.projectData, type, subtype);
+            subtypeEnableList = ~isequal(subtypeList, {'-'});
 
-            if isempty(subtypeList)
-                set(app.Subtype, 'Enable', 'off', 'Items', subtypeList)
-
-            else
-                if isempty(subtype) || ~ismember(subtype, subtypeList)
-                    subtype = subtypeList{1};
-                end
-                set(app.Subtype, 'Enable', 'on', 'Items', subtypeList, 'Value', subtype)
-            end
+            set(app.Subtype, 'Enable', subtypeEnableList, 'Items', subtypeList, 'Value', subtype)
         end
     end
     

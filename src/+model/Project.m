@@ -345,6 +345,9 @@ classdef Project < handle
                                     if ~ismember(listOfProducts.("Sanável?")(ii), {'-', 'Sim', 'Não'})
                                         listOfProducts.("Sanável?")(ii) = '-';
                                     end
+
+                                    % Atenção ao mapeamento Tipo x Subtipo...
+                                    subtype = checkTypeSubtypeProductsMapping(obj, listOfProducts.("Tipo")(ii));
                                 
                                     % Inicializa o registro do produto, gerando o respectivo hash, usando 
                                     % a função local "initializeInspectedProduct" ao invés do método com
@@ -354,6 +357,7 @@ classdef Project < handle
                                         generalSettings, ...
                                         listOfProducts.("Homologação"){ii}, ...
                                         listOfProducts.("Tipo")(ii), ...
+                                        subtype, ...
                                         listOfProducts.("Fabricante"){ii}, ...
                                         listOfProducts.("Modelo"){ii}, ...
                                         listOfProducts.("Situação")(ii), ...
@@ -566,12 +570,23 @@ classdef Project < handle
         end
 
         %-----------------------------------------------------------------%
-        function subtypeList = checkTypeSubtypeProductsMapping(obj, type)
-            [~, typeIndex]  = ismember(type, {obj.typeSubtypeProductsMapping.type});
-            if typeIndex
-                subtypeList = obj.typeSubtypeProductsMapping(typeIndex).sybtype;
+        function [subtype, subtypeList] = checkTypeSubtypeProductsMapping(obj, type, subtype)
+            arguments
+                obj
+                type
+                subtype = '-'
+            end
+
+            [~, typeIndex] = ismember(type, {obj.typeSubtypeProductsMapping.type});
+            
+            if ~typeIndex
+                subtype = '-';
+                subtypeList = {subtype};                
             else
-                subtypeList = {};
+                subtypeList = obj.typeSubtypeProductsMapping(typeIndex).sybtype;
+                if ~ismember(subtype, subtypeList)
+                    subtype = subtypeList{1};
+                end
             end
         end
 
