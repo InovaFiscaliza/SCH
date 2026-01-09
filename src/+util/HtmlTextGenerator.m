@@ -171,17 +171,32 @@ classdef (Abstract) HtmlTextGenerator
         end
 
         %-----------------------------------------------------------------%
-        function htmlContent = ProductInfoUnderAnnotation(varargin)
-            referenceDB = varargin{1};
-
-            homologation = char(referenceDB.("Homologação")(1));
-            status = char(referenceDB.("Situação")(1));
+        % AUXAPP.DOCKANNOTATION
+        %-----------------------------------------------------------------%
+        function htmlContent = ProductInfoUnderAnnotation(relatedSCHTable, relatedAnnotationTable)
+            homologation = char(relatedSCHTable.("Homologação")(1));
+            status = char(relatedSCHTable.("Situação")(1));
             color  = '';
             if ismember(status, {'Homologação Anulada', 'Homologação Cancelada', 'Homologação Suspensa', 'Requerimento - Cancelado'})
                 color = 'color:red; ';
             end
 
-            htmlContent = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', homologation, color, upper(status));
+            numWordCloud = sum(strcmp(relatedAnnotationTable.("Atributo"), 'WordCloud'));
+            numOthers    = height(relatedAnnotationTable) - numWordCloud;
+
+            manufacturer = upper(char(relatedSCHTable.("Fabricante")(1)));
+            model        = MergedModel(relatedSCHTable);
+
+            htmlContent = sprintf([ ...
+                '<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br>' ...
+                '%s<br>%s<br>☁️%d  🏷️%d'], homologation, color, upper(status), manufacturer, model, numWordCloud, numOthers);
+
+            function model = MergedModel(referenceTable)
+                modelList = strtrim({referenceTable.("Modelo"){1}, referenceTable.("Nome Comercial"){1}});
+                modelList(cellfun(@isempty, modelList)) = [];
+
+                model = strjoin(unique(modelList, 'stable'), ' - ');
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -225,7 +240,7 @@ classdef (Abstract) HtmlTextGenerator
         end
 
         %-----------------------------------------------------------------%
-        % AUXAPP.DOCKREPORTLIB: CNPJ
+        % AUXAPP.DOCKREPORTLIB
         %-----------------------------------------------------------------%
         function htmlContent = issueDetails(system, issue, details)
             dataStruct      = struct('group', 'CADASTRO', 'value', details);
