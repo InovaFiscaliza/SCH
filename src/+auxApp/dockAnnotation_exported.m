@@ -33,7 +33,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
     
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function initialValues(app, focusedHomologation)
+        function updateForm(app, focusedHomologation)
             rawHomMask = strcmp(app.mainApp.rawDataTable.("Homologação"), focusedHomologation);
             annotationHomMask = strcmp(app.mainApp.annotationTable.("Homologação"), focusedHomologation);
 
@@ -45,6 +45,10 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
                 'Text', util.HtmlTextGenerator.ProductInfoUnderAnnotation(relatedSCHTable, relatedAnnotationTable), ...
                 'Tag', focusedHomologation ...
             )
+
+            app.attributeName.Value  = '';
+            app.attributeValue.Value = '';
+            app.btnOK.Enable = false;
         end
     end
     
@@ -57,7 +61,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
-                initialValues(app, focusedHomologation)
+                updateForm(app, focusedHomologation)
                 
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -95,7 +99,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
                 currentAttribute = app.attributeName.Value;
 
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProductAnnotationAdded', focusedHomologation, currentAttribute, currentValue)
-                closeFcn(app)
+                updateForm(app, focusedHomologation)
             end
 
         end
@@ -114,7 +118,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 412 320];
+                app.UIFigure.Position = [100 100 412 300];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -166,6 +170,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             % Create homologationInfo
             app.homologationInfo = uilabel(app.Document);
             app.homologationInfo.VerticalAlignment = 'top';
+            app.homologationInfo.WordWrap = 'on';
             app.homologationInfo.Layout.Row = 1;
             app.homologationInfo.Layout.Column = [1 2];
             app.homologationInfo.Interpreter = 'html';
@@ -181,12 +186,12 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
 
             % Create attributeName
             app.attributeName = uidropdown(app.Document);
-            app.attributeName.Items = {'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
+            app.attributeName.Items = {'', 'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
             app.attributeName.FontSize = 11;
             app.attributeName.BackgroundColor = [1 1 1];
             app.attributeName.Layout.Row = 3;
             app.attributeName.Layout.Column = [1 2];
-            app.attributeName.Value = 'Fornecedor';
+            app.attributeName.Value = '';
 
             % Create attributeValueLabel
             app.attributeValueLabel = uilabel(app.Document);

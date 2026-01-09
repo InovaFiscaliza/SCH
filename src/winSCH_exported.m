@@ -34,12 +34,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         Toolbar                         matlab.ui.container.GridLayout
         tool_FilterInfo                 matlab.ui.control.Label
         tool_AddSelectedToBucket        matlab.ui.control.Image
-        tool_Separator2                 matlab.ui.control.Image
+        tool_Separator3                 matlab.ui.control.Image
         tool_ExportVisibleTable         matlab.ui.control.Image
-        tool_OpenPopupAnnotation        matlab.ui.control.Image
         tool_OpenPopupFilter            matlab.ui.control.Image
-        tool_Separator1                 matlab.ui.control.Image
+        tool_Separator2                 matlab.ui.control.Image
         tool_WordCloudVisibility        matlab.ui.control.Image
+        tool_OpenPopupAnnotation        matlab.ui.control.Hyperlink
+        tool_Separator1                 matlab.ui.control.Image
         tool_PanelVisibility            matlab.ui.control.Image
         Tab2_Products                   matlab.ui.container.Tab
         Tab3_Config                     matlab.ui.container.Tab
@@ -524,7 +525,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     screenHeight = 464;
                 case 'Annotation'
                     screenWidth  = 412;
-                    screenHeight = 320;
+                    screenHeight = 300;
                 case 'ProductInfo'
                     screenWidth  = 580;
                     screenHeight = 640;
@@ -762,7 +763,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             annotationHomIndexes = find(strcmp(app.annotationTable.("Homologação"), focusedHomologation));
             if ~isempty(annotationHomIndexes) && any(strcmp(app.annotationTable.("Atributo")(annotationHomIndexes), attributeName) & strcmpi(app.annotationTable.("Valor")(annotationHomIndexes), attributeValue))
-                ui.Dialog(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', focusedHomologation));
+                ui.Dialog(app.UIFigure, 'uiconfirm', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', focusedHomologation), {'OK'}, 1, 1, 'Icon', 'warning');
                 return
             else
                 app.annotationTable(end+1,:) = newRowTable;
@@ -1592,11 +1593,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                 
                 app.tool_WordCloudVisibility.ImageSource = 'cloud-on.svg';
 
-                focusedHomologation    = app.selectedProductPanelInfo.UserData.focusedHomologation;
-                relatedAnnotationTable = annotationRelatedTable(app, focusedHomologation);
-    
-                if wordCloudCheckCache(app, focusedHomologation, relatedAnnotationTable)
-                    wordCloudUpdatePlot(app, focusedHomologation);
+                focusedHomologation = app.selectedProductPanelInfo.UserData.focusedHomologation;
+                if ~isempty(focusedHomologation)
+                    relatedAnnotationTable = annotationRelatedTable(app, focusedHomologation);
+        
+                    if wordCloudCheckCache(app, focusedHomologation, relatedAnnotationTable)
+                        wordCloudUpdatePlot(app, focusedHomologation);
+                    end
                 end
     
             else
@@ -1606,8 +1609,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_OpenPopupAnnotation, 
-        % ...and 1 other component
+        % Callback function: tool_OpenPopupAnnotation, tool_OpenPopupFilter
         function Toolbar_OpenPopupAppImageClicked(app, event)
             
             switch event.Source
@@ -1720,7 +1722,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.Tab1Grid);
-            app.Toolbar.ColumnWidth = {22, 22, 5, 22, 22, 22, 5, 22, '1x'};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, 5, 22, 22, 5, 22, '1x'};
             app.Toolbar.RowHeight = {4, 17, '1x', '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -1737,22 +1739,41 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_PanelVisibility.Layout.Column = 1;
             app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right-off.svg');
 
-            % Create tool_WordCloudVisibility
-            app.tool_WordCloudVisibility = uiimage(app.Toolbar);
-            app.tool_WordCloudVisibility.ScaleMethod = 'scaleup';
-            app.tool_WordCloudVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_WordCloudVisibilityImageClicked, true);
-            app.tool_WordCloudVisibility.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
-            app.tool_WordCloudVisibility.Layout.Row = [2 4];
-            app.tool_WordCloudVisibility.Layout.Column = 2;
-            app.tool_WordCloudVisibility.ImageSource = 'cloud-off.svg';
-
             % Create tool_Separator1
             app.tool_Separator1 = uiimage(app.Toolbar);
             app.tool_Separator1.ScaleMethod = 'none';
             app.tool_Separator1.Enable = 'off';
             app.tool_Separator1.Layout.Row = [1 4];
-            app.tool_Separator1.Layout.Column = 3;
+            app.tool_Separator1.Layout.Column = 2;
             app.tool_Separator1.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+
+            % Create tool_OpenPopupAnnotation
+            app.tool_OpenPopupAnnotation = uihyperlink(app.Toolbar);
+            app.tool_OpenPopupAnnotation.HyperlinkClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
+            app.tool_OpenPopupAnnotation.VisitedColor = [0 0 0];
+            app.tool_OpenPopupAnnotation.FontSize = 14;
+            app.tool_OpenPopupAnnotation.FontColor = [0 0 0];
+            app.tool_OpenPopupAnnotation.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
+            app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
+            app.tool_OpenPopupAnnotation.Layout.Column = 3;
+            app.tool_OpenPopupAnnotation.Text = '✍️';
+
+            % Create tool_WordCloudVisibility
+            app.tool_WordCloudVisibility = uiimage(app.Toolbar);
+            app.tool_WordCloudVisibility.ScaleMethod = 'scaleup';
+            app.tool_WordCloudVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_WordCloudVisibilityImageClicked, true);
+            app.tool_WordCloudVisibility.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
+            app.tool_WordCloudVisibility.Layout.Row = [1 4];
+            app.tool_WordCloudVisibility.Layout.Column = 4;
+            app.tool_WordCloudVisibility.ImageSource = 'cloud-off.svg';
+
+            % Create tool_Separator2
+            app.tool_Separator2 = uiimage(app.Toolbar);
+            app.tool_Separator2.ScaleMethod = 'none';
+            app.tool_Separator2.Enable = 'off';
+            app.tool_Separator2.Layout.Row = [1 4];
+            app.tool_Separator2.Layout.Column = 5;
+            app.tool_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_OpenPopupFilter
             app.tool_OpenPopupFilter = uiimage(app.Toolbar);
@@ -1760,18 +1781,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
             app.tool_OpenPopupFilter.Tooltip = {'Configura estratégia de filtragem'};
             app.tool_OpenPopupFilter.Layout.Row = [1 4];
-            app.tool_OpenPopupFilter.Layout.Column = 4;
+            app.tool_OpenPopupFilter.Layout.Column = 6;
             app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
-
-            % Create tool_OpenPopupAnnotation
-            app.tool_OpenPopupAnnotation = uiimage(app.Toolbar);
-            app.tool_OpenPopupAnnotation.ScaleMethod = 'none';
-            app.tool_OpenPopupAnnotation.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
-            app.tool_OpenPopupAnnotation.Enable = 'off';
-            app.tool_OpenPopupAnnotation.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
-            app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
-            app.tool_OpenPopupAnnotation.Layout.Column = 5;
-            app.tool_OpenPopupAnnotation.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Variable_edit_16.png');
 
             % Create tool_ExportVisibleTable
             app.tool_ExportVisibleTable = uiimage(app.Toolbar);
@@ -1780,16 +1791,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_ExportVisibleTable.Enable = 'off';
             app.tool_ExportVisibleTable.Tooltip = {'Exporta resultados de busca em arquivo Excel (.xlsx)'};
             app.tool_ExportVisibleTable.Layout.Row = [1 4];
-            app.tool_ExportVisibleTable.Layout.Column = 6;
+            app.tool_ExportVisibleTable.Layout.Column = 7;
             app.tool_ExportVisibleTable.ImageSource = 'Export_16.png';
 
-            % Create tool_Separator2
-            app.tool_Separator2 = uiimage(app.Toolbar);
-            app.tool_Separator2.ScaleMethod = 'none';
-            app.tool_Separator2.Enable = 'off';
-            app.tool_Separator2.Layout.Row = [1 4];
-            app.tool_Separator2.Layout.Column = 7;
-            app.tool_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
+            % Create tool_Separator3
+            app.tool_Separator3 = uiimage(app.Toolbar);
+            app.tool_Separator3.ScaleMethod = 'none';
+            app.tool_Separator3.Enable = 'off';
+            app.tool_Separator3.Layout.Row = [1 4];
+            app.tool_Separator3.Layout.Column = 8;
+            app.tool_Separator3.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_AddSelectedToBucket
             app.tool_AddSelectedToBucket = uiimage(app.Toolbar);
@@ -1797,7 +1808,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_AddSelectedToBucket.Enable = 'off';
             app.tool_AddSelectedToBucket.Tooltip = {'Adiciona registros selecionados à lista de produtos sob análise'};
             app.tool_AddSelectedToBucket.Layout.Row = [1 4];
-            app.tool_AddSelectedToBucket.Layout.Column = 8;
+            app.tool_AddSelectedToBucket.Layout.Column = 9;
             app.tool_AddSelectedToBucket.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create tool_FilterInfo
@@ -1806,7 +1817,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_FilterInfo.FontSize = 10;
             app.tool_FilterInfo.FontColor = [0.502 0.502 0.502];
             app.tool_FilterInfo.Layout.Row = [1 4];
-            app.tool_FilterInfo.Layout.Column = 9;
+            app.tool_FilterInfo.Layout.Column = 10;
             app.tool_FilterInfo.Text = {'Filtragem primária orientada à(s) coluna(s): "Homologação", "Solicitante", "Fabricante", "Modelo", "Nome Comercial"'; 'Filtragem secundária: []'};
 
             % Create Document
