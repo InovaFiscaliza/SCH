@@ -171,6 +171,20 @@ classdef (Abstract) HtmlTextGenerator
         end
 
         %-----------------------------------------------------------------%
+        function htmlContent = ProductInfoUnderAnnotation(varargin)
+            referenceDB = varargin{1};
+
+            homologation = char(referenceDB.("Homologação")(1));
+            status = char(referenceDB.("Situação")(1));
+            color  = '';
+            if ismember(status, {'Homologação Anulada', 'Homologação Cancelada', 'Homologação Suspensa', 'Requerimento - Cancelado'})
+                color = 'color:red; ';
+            end
+
+            htmlContent = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', homologation, color, upper(status));
+        end
+
+        %-----------------------------------------------------------------%
         % AUXAPP.WINCONFIG: CHECKUPDATE
         %-----------------------------------------------------------------%
         function htmlContent = checkUpdate(appGeneral, rootFolder)

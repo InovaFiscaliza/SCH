@@ -681,7 +681,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupEdition.ScaleMethod = 'none';
             app.tool_OpenPopupEdition.ImageClickedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.tool_OpenPopupEdition.Enable = 'off';
-            app.tool_OpenPopupEdition.Tooltip = {'Edita lista de produtos sob análise'};
+            app.tool_OpenPopupEdition.Tooltip = {'Abre formulário para edição de lista de produtos sob análise'};
             app.tool_OpenPopupEdition.Layout.Row = [1 3];
             app.tool_OpenPopupEdition.Layout.Column = 1;
             app.tool_OpenPopupEdition.ImageSource = 'Variable_edit_16.png';
@@ -744,7 +744,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_EditionLimitation.Layout.Row = [4 5];
             app.tool_EditionLimitation.Layout.Column = [4 5];
             app.tool_EditionLimitation.Interpreter = 'html';
-            app.tool_EditionLimitation.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b> editável <font style="color: red;">apenas</font> em formulário.'};
+            app.tool_EditionLimitation.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b>, <b>LACRE</b> e <b>PLAI</b> editáveis <font style="color: red;">apenas</font> em formulário.'};
 
             % Create tool_ShowDataRules
             app.tool_ShowDataRules = uiimage(app.GridLayout);
