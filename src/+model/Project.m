@@ -518,53 +518,59 @@ classdef Project < handle
         %-----------------------------------------------------------------%
         function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
             % Função que valida a consistência e o preenchimento de dados da
-            % tabela "inspectedProducts". Atualmente são 11 as regras.
+            % tabela "inspectedProducts", respeitando regras estabelecidas no
+            % eFiscaliza p/ upload de tabela com lista de produtos sob análise.
             %
             % #01 "Tipo" e "Subtipo" devem estar preenchidos (≠ "-").
             % #02 "Fabricante" deve estar preenchido.
             % #03 "Modelo" deve estar preenchido.
-            % #04 "Valor Unit. (R$)" não pode ser menor ou igual a zero.
-            % #05 A soma da "Qtd. uso", "Qtd. vendida", "Qtd. estoque/aduana"
-            %     e "Qtd. anunciada" deve ser maior que zero.
-            % #06 A soma da "Qtd. uso" e "Qtd. estoque/aduana" não pode ser 
-            %     menor do que a soma "Qtd. lacradas", "Qtd. apreendidas" e
-            %     "Qtd. retidas (RFB)".
+            % #04 "Valor Unit. (R$)" não pode ser menor do que zero.
+            % #05 A soma da "Qtd. uso", "Qtd. vendida", "Qtd. estoque/aduana" e "Qtd. anunciada" deve ser maior que zero.
+            % #06 A soma da "Qtd. uso" e "Qtd. estoque/aduana" não pode ser menor do que a soma "Qtd. lacradas", "Qtd. apreendidas" e "Qtd. retidas (RFB)".
             % #07 "Situação" deve estar preenchida (≠ "-").
-            % #08 "Situação" e "Infração" devem ser coerentes entre si, de
-            %     forma que: 
+            % #08 "Situação" e "Infração" devem ser coerentes entre si, de forma que: 
             %     • situação regular → sem infração
             %     • situação irregular → infração obrigatória
-            % #09 "Fonte do valor" deve estar preenchido em situação irregular.
-            % #10 A soma da "Qtd. lacradas", "Qtd. apreendidas" e "Qtd. retidas (RFB)"
-            %     não pode ser maior do que zero em situação regular.
+            % #09 "Valor Unit. (R$)" válido (> 0) em situação irregular.
+            % #10 "Fonte do valor" deve estar preenchido em situação irregular.
+            % #11 A soma da "Qtd. lacradas", "Qtd. apreendidas" e "Qtd. retidas (RFB)" não pode ser maior que zero em situação regular.
+            % #12 Se a soma "Qtd. lacradas" e "Qtd. apreendidas" for maior que zero, então "PLAI"  deve ser preenchido.
+            % #13 Se a soma "Qtd. lacradas" e "Qtd. apreendidas" for maior que zero, então "Lacre" deve ser preenchido.
 
             ruleColumns = {                                                                                     ...
                 {'Tipo', 'Subtipo'},                                                                            ... #01
                 'Fabricante',                                                                                   ... #02
-                'Modelo',                                                                                       ... #03
+                'Modelo',                                                                                       ... #03    
                 'Valor Unit. (R$)',                                                                             ... #04
                 {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'},                          ... #05
                 {'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ... #06
                 'Situação',                                                                                     ... #07
                 {'Situação', 'Infração'}                                                                        ... #08
-                {'Situação', 'Fonte do valor'},                                                                 ... #09
-                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'},                        ... #10
+                {'Situação', 'Valor Unit. (R$)'},                                                               ... #09
+                {'Situação', 'Fonte do valor'},                                                                 ... #10
+                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'},                        ... #11
+                {'Qtd. lacradas', 'Qtd. apreendidas', 'Lacre'},                                                 ... #12
+                {'Qtd. lacradas', 'Qtd. apreendidas', 'PLAI'}                                                   ... #13
             };
 
-            ruleViolationMatrix = zeros(height(obj.inspectedProducts), 10, 'logical');
+            ruleViolationMatrix = zeros(height(obj.inspectedProducts), numel(ruleColumns), 'logical');
 
-            ruleViolationMatrix(:, 1) = string(obj.inspectedProducts.("Tipo")) == "-" | ismember(obj.inspectedProducts.("Subtipo"), {'', '-'});
-            ruleViolationMatrix(:, 2) = string(obj.inspectedProducts.("Fabricante")) == "";
-            ruleViolationMatrix(:, 3) = string(obj.inspectedProducts.("Modelo")) == "";
-            ruleViolationMatrix(:, 4) = obj.inspectedProducts.("Valor Unit. (R$)") <= 0;
+            ruleViolationMatrix(:,  1) = string(obj.inspectedProducts.("Tipo")) == "-" | string(obj.inspectedProducts.("Subtipo")) == "-";
+            ruleViolationMatrix(:,  2) = string(obj.inspectedProducts.("Fabricante")) == "";
+            ruleViolationMatrix(:,  3) = string(obj.inspectedProducts.("Modelo")) == "";
             
-            ruleViolationMatrix(:, 5) = sum(obj.inspectedProducts{:, {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}}, 2) <= 0;
-            ruleViolationMatrix(:, 6) = sum(obj.inspectedProducts{:, {'Qtd. uso', 'Qtd. estoque/aduana'}}, 2) < sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);
+            ruleViolationMatrix(:,  4) = obj.inspectedProducts.("Valor Unit. (R$)") < 0;            
+            ruleViolationMatrix(:,  5) = sum(obj.inspectedProducts{:, {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}}, 2) <= 0;
+            ruleViolationMatrix(:,  6) = sum(obj.inspectedProducts{:, {'Qtd. uso', 'Qtd. estoque/aduana'}}, 2) < sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2);            
             
-            ruleViolationMatrix(:, 7) =   string(obj.inspectedProducts.("Situação")) == "-";
-            ruleViolationMatrix(:, 8) = ((string(obj.inspectedProducts.("Situação")) == "Regular")   & (string(obj.inspectedProducts.("Infração")) ~= "-")) | ((string(obj.inspectedProducts.("Situação")) == "Irregular") & (string(obj.inspectedProducts.("Infração")) == "-"));
-            ruleViolationMatrix(:, 9) =  (string(obj.inspectedProducts.("Situação")) == "Irregular") & (string(obj.inspectedProducts.("Fonte do valor")) == "");
-            ruleViolationMatrix(:,10) =  (string(obj.inspectedProducts.("Situação")) == "Regular")   & (sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2) > 0);
+            ruleViolationMatrix(:,  7) = string(obj.inspectedProducts.("Situação")) == "-";
+            ruleViolationMatrix(:,  8) = ((string(obj.inspectedProducts.("Situação")) == "Regular")  & (string(obj.inspectedProducts.("Infração")) ~= "-")) | ((string(obj.inspectedProducts.("Situação")) == "Irregular") & (string(obj.inspectedProducts.("Infração")) == "-"));            
+            ruleViolationMatrix(:,  9) = (string(obj.inspectedProducts.("Situação")) == "Irregular") & (obj.inspectedProducts.("Valor Unit. (R$)") == 0);
+            ruleViolationMatrix(:, 10) = (string(obj.inspectedProducts.("Situação")) == "Irregular") & (string(obj.inspectedProducts.("Fonte do valor")) == "");
+            ruleViolationMatrix(:, 11) = (string(obj.inspectedProducts.("Situação")) == "Regular")   & (sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}}, 2) > 0);
+            
+            ruleViolationMatrix(:, 12) = sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas'}}, 2) > 0 & (string(obj.inspectedProducts.("Lacre")) == "");
+            ruleViolationMatrix(:, 13) = sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas'}}, 2) > 0 & (string(obj.inspectedProducts.("PLAI")) == "");
 
             invalidRowIndexes = find(any(ruleViolationMatrix, 2));
         end

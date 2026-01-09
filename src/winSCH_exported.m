@@ -417,8 +417,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         
                             % DOCKS:OTHERS
                             case {'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
-                                  'auxApp.dockReportLib',   'auxApp.dockReportLib_exported', ...
-                                  'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported'}
+                                  'auxApp.dockReportLib',   'auxApp.dockReportLib_exported',   ...
+                                  'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ...
+                                  'auxApp.dockAnnotation',  'auxApp.dockAnnotation_exported'}
                                 switch operationType
                                     case 'closeFcnCallFromPopupApp'
                                         context = varargin{1};
@@ -461,6 +462,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         context  = varargin{1};
                                         reportFetchIssueDetails(app, context, [])
 
+                                    % auxApp.dockAnnotation
+                                    case 'onProductAnnotationAdded'
+                                        focusedHomologation = varargin{1};
+                                        attributeName = varargin{2};
+                                        attributeValue = varargin{3};
+
+                                        annotationAddToCache(app, focusedHomologation, attributeName, attributeValue)                                        
+
                                     % auxApp.dockFilterSetup
                                     % ...
         
@@ -499,7 +508,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'ReportLib', 'FilterSetup', 'ProductInfo'})}
+                auxAppName char {mustBeMember(auxAppName, {'ReportLib', 'FilterSetup', 'Annotation', 'ProductInfo'})}
             end
 
             arguments (Repeating)
@@ -513,6 +522,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case 'FilterSetup'
                     screenWidth  = 412;
                     screenHeight = 464;
+                case 'Annotation'
+                    screenWidth  = 412;
+                    screenHeight = 320;
                 case 'ProductInfo'
                     screenWidth  = 580;
                     screenHeight = 640;
@@ -701,8 +713,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % tem, na sua propriedade "UserData", a chave "id" que armazena 
             % o "data-tag" que identifica o componente no código HTML. 
             % Adicionam-se duas novas chaves: "showedRow" e "showedHom".
-            app.selectedProductPanelInfo.UserData.selectedRow = [];
-            app.selectedProductPanelInfo.UserData.showedHom   = '';
+            app.selectedProductPanelInfo.UserData.focusedHomologation = '';
         end
 
         %-----------------------------------------------------------------%
@@ -730,42 +741,31 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % ANOTAÇÃO
         %-----------------------------------------------------------------%
-        function relatedAnnotationTable = annotationRelatedTable(app, showedHom)
-            annotationLogical      = strcmp(app.annotationTable.("Homologação"), showedHom);
+        function relatedAnnotationTable = annotationRelatedTable(app, focusedHomologation)
+            annotationLogical      = strcmp(app.annotationTable.("Homologação"), focusedHomologation);
             relatedAnnotationTable = app.annotationTable(annotationLogical, :);
         end
 
         %-----------------------------------------------------------------%
-        function annotationAddToCache(app, selectedRow, showedHom, attributeName, attributeValue, wourdCloudRefreshTag)
+        function annotationAddToCache(app, focusedHomologation, attributeName, attributeValue)
             newRowTable = table( ...
                 {char(matlab.lang.internal.uuid())}, ...
                 {datestr(now, 'dd/mm/yyyy HH:MM:SS')}, ...
                 {appEngine.util.OperationSystem('computerName')}, ...
                 {appEngine.util.OperationSystem('userName')}, ...
-                {showedHom}, ...
+                {focusedHomologation}, ...
                 {attributeName}, ...
                 {attributeValue}, ...
                 1, ...
                 'VariableNames', util.readExternalFile.annotationColumns ...
             );
 
-            idx1 = find(strcmp(app.annotationTable.("Homologação"), showedHom))';
-            if isempty(idx1) || wourdCloudRefreshTag
-                app.annotationTable(end+1,:) = newRowTable;
-
+            annotationHomIndexes = find(strcmp(app.annotationTable.("Homologação"), focusedHomologation));
+            if ~isempty(annotationHomIndexes) && any(strcmp(app.annotationTable.("Atributo")(annotationHomIndexes), attributeName) & strcmpi(app.annotationTable.("Valor")(annotationHomIndexes), attributeValue))
+                ui.Dialog(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', focusedHomologation));
+                return
             else
-                if any(strcmp(app.annotationTable.("Atributo")(idx1), attributeName) & strcmp(app.annotationTable.("Valor")(idx1), attributeValue))
-                    ui.Dialog(app.UIFigure, 'warning', sprintf('Conjunto atributo/valor já consta como anotação do registro %s.', showedHom));
-                    return
-
-                else
-                    app.annotationTable(end+1,:) = newRowTable;
-                end
-            end
-
-            if wourdCloudRefreshTag
-                idx2 = find(strcmp(app.annotationTable.("Homologação"), showedHom) & strcmp(app.annotationTable.("Atributo"), 'WordCloud'));
-                app.annotationTable(idx2(1:end-1), :) = [];
+                app.annotationTable(end+1,:) = newRowTable;
             end
 
             % A cada nova inserção, gera-se uma planilha que é submetida à
@@ -776,10 +776,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             % Atualizando o painel com os metadados do registro selecionado...
-            relatedAnnotationTable   = annotationRelatedTable(app, showedHom);
-            htmlSource = selectedProductPanelInfoCreate(app, showedHom, relatedAnnotationTable);
-            selectedProductPanelInfoUpdate(app, htmlSource, selectedRow, showedHom);
-
+            app.selectedProductPanelInfo.UserData.focusedHomologation = '';
+            onTableSelectionChanged(app)
             updateTableStyle(app)
         end
 
@@ -961,16 +959,16 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function [selectedHom, showedHom, selectedRows] = checkTableSelection(app)
+        function [selectedHomologations, focusedHomologation, selectedTableRows] = checkTableSelection(app)
             if ~isempty(app.UITable.Selection)
-                selectedRows = unique(app.UITable.Selection(:,1));
-                selectedHom  = unique(app.UITable.Data.("Homologação")(selectedRows), 'stable');
+                selectedTableRows     = unique(app.UITable.Selection(:,1));
+                selectedHomologations = unique(app.UITable.Data.("Homologação")(selectedTableRows), 'stable');
             else
-                selectedRows = [];
-                selectedHom  = {};
+                selectedTableRows     = [];
+                selectedHomologations = {};
             end
 
-            showedHom = app.selectedProductPanelInfo.UserData.showedHom;
+            focusedHomologation = app.selectedProductPanelInfo.UserData.focusedHomologation;
         end
 
         %-----------------------------------------------------------------%
@@ -1025,18 +1023,18 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % PAINEL TEXTUAL À DIREITA
         %-----------------------------------------------------------------%
-        function htmlSource = selectedProductPanelInfoCreate(app, selected2showedHom, relatedAnnotationTable)
-            if isempty(selected2showedHom)
+        function htmlSource = selectedProductPanelInfoCreate(app, selected2focusedHom, relatedAnnotationTable)
+            if isempty(selected2focusedHom)
                 htmlSource = '';
             else
-                selectedHomRawTableIndex = find(strcmp(app.rawDataTable.("Homologação"), selected2showedHom));
+                selectedHomRawTableIndex = find(strcmp(app.rawDataTable.("Homologação"), selected2focusedHom));
                 htmlSource = util.HtmlTextGenerator.ProductInfo('ProdutoHomologado', app.rawDataTable(selectedHomRawTableIndex, :), relatedAnnotationTable, app.projectData.regulatronData);
             end
         end
 
         %-----------------------------------------------------------------%
-        function selectedProductPanelInfoUpdate(app, htmlSource, selectedRow, selected2showedHom)
-            userData = struct('selectedRow', selectedRow, 'showedHom', selected2showedHom);
+        function selectedProductPanelInfoUpdate(app, htmlSource, selected2focusedHomologation)
+            userData = struct('focusedHomologation', selected2focusedHomologation);
             ui.TextView.update(app.selectedProductPanelInfo, htmlSource, userData, app.selectedProductPanelBackground);
         end
 
@@ -1051,19 +1049,19 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function status = wordCloudCheckCache(app, selectedHom, relatedTable)
+        function status = wordCloudCheckCache(app, selectedHom, relatedAnnotationTable)
             status = false;
 
-            wordCloudLogical = strcmp(relatedTable.("Atributo"), 'WordCloud');
-            relatedTable     = relatedTable(wordCloudLogical, :);
+            wordCloudMask = strcmp(relatedAnnotationTable.("Atributo"), 'WordCloud');
+            relatedAnnotationTable = relatedAnnotationTable(wordCloudMask, :);
 
-            if isempty(relatedTable) || any(wordCloudLogical) && ~strcmp(app.wordCloudPanel.Tag, selectedHom)
+            if isempty(relatedAnnotationTable) || any(wordCloudMask) && ~strcmp(app.wordCloudPanel.Tag, selectedHom)
                 status = true;
             end
         end
 
         %-----------------------------------------------------------------%
-        function status = wordCloudUpdatePlot(app, selectedRow, showedHom, wourdCloudRefreshTag)
+        function status = wordCloudUpdatePlot(app, showedHom)
             status = true;
 
             % O wordcloud, do MATLAB, é lento, demandando uma tela de progresso
@@ -1072,12 +1070,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.progressDialog.Visible = 'visible';
             end
 
-            if wourdCloudRefreshTag
-                wordCloudIndex = [];
-            else
-                relatedAnnotationTable = annotationRelatedTable(app, showedHom);
-                wordCloudIndex = find(strcmp(relatedAnnotationTable.("Atributo"), 'WordCloud'), 1);
-            end
+            relatedAnnotationTable = annotationRelatedTable(app, showedHom);
+            wordCloudIndex = find(strcmp(relatedAnnotationTable.("Atributo"), 'WordCloud'), 1);
 
             if ~isempty(wordCloudIndex)
                 wordCloudAnnotation = relatedAnnotationTable.("Valor"){wordCloudIndex};
@@ -1091,7 +1085,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     [wordCloudTable, wordCloudInfo] = util.getWordCloudFromWeb(word2Search, nMaxWords);
                     if ~isempty(wordCloudTable)
-                        annotationAddToCache(app, selectedRow, showedHom, 'WordCloud', wordCloudInfo, wourdCloudRefreshTag)
+                        annotationAddToCache(app, showedHom, 'WordCloud', wordCloudInfo)
                     end
 
                 catch ME
@@ -1510,23 +1504,22 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Selection changed function: UITable
         function onTableSelectionChanged(app, event)
             
-            [selectedHom, showedHom, selectedRow] = checkTableSelection(app);
+            [selectedHomologations, focusedHomologation] = checkTableSelection(app);
 
-            if ~isempty(selectedHom)
-                if ~ismember(showedHom, selectedHom)
+            if ~isempty(selectedHomologations)
+                if ~ismember(focusedHomologation, selectedHomologations)
                     % Escolhe o primeiro registro da lista de homologações selecionadas
                     % em tabela.
-                    selected2showedHom     = selectedHom{1};
-                    relatedAnnotationTable = annotationRelatedTable(app, selected2showedHom);
+                    selected2focusedHom    = selectedHomologations{1};
+                    relatedAnnotationTable = annotationRelatedTable(app, selected2focusedHom);
 
-                    htmlSource = selectedProductPanelInfoCreate(app, selected2showedHom, relatedAnnotationTable);
-                    selectedProductPanelInfoUpdate(app, htmlSource, selectedRow(1), selected2showedHom)
+                    htmlSource = selectedProductPanelInfoCreate(app, selected2focusedHom, relatedAnnotationTable);
+                    selectedProductPanelInfoUpdate(app, htmlSource, selected2focusedHom)
 
                     % Apresenta a nuvem de palavras apenas se visível...
                     if app.tool_WordCloudVisibility.UserData
-                        if wordCloudCheckCache(app, selected2showedHom, relatedAnnotationTable)
-                            status = wordCloudUpdatePlot(app, selectedRow(1), selected2showedHom, false);
-                            if ~status
+                        if wordCloudCheckCache(app, selected2focusedHom, relatedAnnotationTable)
+                            if ~wordCloudUpdatePlot(app, selected2focusedHom)
                                 if ~isempty(app.wordCloudObj.Table)
                                     app.wordCloudObj.Table = [];
                                 end
@@ -1542,7 +1535,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             else
                 htmlSource = selectedProductPanelInfoCreate(app, '', []);
-                selectedProductPanelInfoUpdate(app, htmlSource, [], '')
+                selectedProductPanelInfoUpdate(app, htmlSource, '')
                 wordCloudInitialize(app)
             end
 
@@ -1598,13 +1591,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                 pause(0.010)
                 
                 app.tool_WordCloudVisibility.ImageSource = 'cloud-on.svg';
+
+                focusedHomologation    = app.selectedProductPanelInfo.UserData.focusedHomologation;
+                relatedAnnotationTable = annotationRelatedTable(app, focusedHomologation);
     
-                selectedRow = app.selectedProductPanelInfo.UserData.selectedRow;
-                showedHom   = app.selectedProductPanelInfo.UserData.showedHom;
-                relatedAnnotationTable = annotationRelatedTable(app, showedHom);
-    
-                if wordCloudCheckCache(app, showedHom, relatedAnnotationTable)
-                    wordCloudUpdatePlot(app, selectedRow, showedHom, false);
+                if wordCloudCheckCache(app, focusedHomologation, relatedAnnotationTable)
+                    wordCloudUpdatePlot(app, focusedHomologation);
                 end
     
             else
@@ -1616,9 +1608,16 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         % Image clicked function: tool_OpenPopupAnnotation, 
         % ...and 1 other component
-        function Toolbar_PENDENTE_IMPLEMENTACAO(app, event)
+        function Toolbar_OpenPopupAppImageClicked(app, event)
             
-            ui.Dialog(app.UIFigure, 'error', 'PENDENTE');
+            switch event.Source
+                case app.tool_OpenPopupFilter
+                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup')
+
+                case app.tool_OpenPopupAnnotation
+                    selectedHomologation = app.selectedProductPanelInfo.UserData.focusedHomologation;
+                    ipcMainMatlabOpenPopupApp(app, app, 'Annotation', selectedHomologation)
+            end
 
         end
 
@@ -1648,13 +1647,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: tool_AddSelectedToBucket
         function Toolbar_AddSelectedToBucketImageClicked(app, event)
             
-            [~, ~, selectedRows] = checkTableSelection(app);
-            if isempty(selectedRows)
+            [~, ~, selectedTableRows] = checkTableSelection(app);
+            if isempty(selectedTableRows)
                 return
             end
 
             addedHom = 0;
-            for selectedRow = selectedRows'
+            for selectedRow = selectedTableRows'
                 [productData, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.UITable.UserData.primaryIndex(selectedRow));
                 if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
                     continue
@@ -1758,7 +1757,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create tool_OpenPopupFilter
             app.tool_OpenPopupFilter = uiimage(app.Toolbar);
             app.tool_OpenPopupFilter.ScaleMethod = 'none';
-            app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
+            app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
             app.tool_OpenPopupFilter.Tooltip = {'Configura estratégia de filtragem'};
             app.tool_OpenPopupFilter.Layout.Row = [1 4];
             app.tool_OpenPopupFilter.Layout.Column = 4;
@@ -1767,7 +1766,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create tool_OpenPopupAnnotation
             app.tool_OpenPopupAnnotation = uiimage(app.Toolbar);
             app.tool_OpenPopupAnnotation.ScaleMethod = 'none';
-            app.tool_OpenPopupAnnotation.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PENDENTE_IMPLEMENTACAO, true);
+            app.tool_OpenPopupAnnotation.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
             app.tool_OpenPopupAnnotation.Enable = 'off';
             app.tool_OpenPopupAnnotation.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
             app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
