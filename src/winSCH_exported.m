@@ -74,7 +74,8 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         projectData
         
-        rawDataTable
+        schDataTable
+        schDataCategories
         releasedData
         cacheData
         cacheColumns
@@ -376,22 +377,19 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
                                         sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'openDevTools', 'Fields', dialogBox))
         
-                                    case 'searchModeChanged'
-                                        searchComponentsInitialState(app)
-        
-                                    case 'wordCloudAlgorithmChanged'
+                                    case 'onWordCloudAlgorithmChanged'
                                         if ~isempty(app.wordCloudObj)
                                             onAlgorithmValueChanged(app.wordCloudObj, app.General.search.wordCloud.algorithm);
                                         end
         
-                                    case 'searchVisibleColumnsChanged'
+                                    case 'onSearchVisibleColumnsChanged'
                                         [columnNames, columnWidth] = UITableColumnNames(app);
                                         set(app.UITable, 'ColumnName', upper(columnNames), 'ColumnWidth', columnWidth)
                             
                                         if ~isempty(app.UITable.Data)
                                             if (numel(columnNames) ~= width(app.UITable.Data)) || any(~ismember(app.UITable.ColumnName, upper(columnNames)))
                                                 secondaryIndex = app.UITable.UserData.secondaryIndex;
-                                                app.UITable.Data = app.rawDataTable(secondaryIndex, columnNames);
+                                                app.UITable.Data = app.schDataTable(secondaryIndex, columnNames);
                                             end
                                         end
 
@@ -472,7 +470,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         annotationAddToCache(app, focusedHomologation, attributeName, attributeValue)                                        
 
                                     % auxApp.dockFilterSetup
-                                    % ...
+                                    case 'onSearchModeChanged'
+                                        searchComponentsInitialState(app)
+
+                                    case 'onColumnFilterChanged'
+                                        'onColumnFilterChanged'
+                                        % PENDENTE
         
                                     otherwise
                                         error('UnexpectedCall')
@@ -521,8 +524,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                     screenWidth  = 460;
                     screenHeight = 602;
                 case 'FilterSetup'
-                    screenWidth  = 412;
-                    screenHeight = 464;
+                    screenWidth  = 460;
+                    screenHeight = 486;
                 case 'Annotation'
                     screenWidth  = 412;
                     screenHeight = 300;
@@ -732,7 +735,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         % BASES DE DADOS: SCHDATA E ANNOTATIONTABLE
         %-----------------------------------------------------------------%
         function readDataBaseExternalFiles(app)
-            [app.rawDataTable, ...
+            [app.schDataTable, ...
+             app.schDataCategories, ...
              app.releasedData, ...
              app.cacheData,    ...
              app.cacheColumns]  = util.readExternalFile.SCHData(app.rootFolder, app.General.fileFolder.DataHub_GET, app.General);
@@ -806,13 +810,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             listOfCacheColumns = cellfun(@(x) sprintf('_%s', x), cacheColumnNames, 'UniformOutput', false);
             searchFunction     = app.General.search.function;
 
-            primaryTempIndex   = run(app.filteringObj, 'words2Search', app.rawDataTable, listOfCacheColumns, sortOrder, searchFunction, words2Search);
-            primaryHomProducts = unique(app.rawDataTable(primaryTempIndex,:).("Homologação"), 'stable');
+            primaryTempIndex   = run(app.filteringObj, 'words2Search', app.schDataTable, listOfCacheColumns, sortOrder, searchFunction, words2Search);
+            primaryHomProducts = unique(app.schDataTable(primaryTempIndex,:).("Homologação"), 'stable');
 
-            primaryIndex       = run(app.filteringObj, 'words2Search', app.rawDataTable, {'Homologação'}, sortOrder, 'strcmp', primaryHomProducts);
+            primaryIndex       = run(app.filteringObj, 'words2Search', app.schDataTable, {'Homologação'}, sortOrder, 'strcmp', primaryHomProducts);
             GUIColumns         = UITableColumnNames(app);
 
-            set(app.UITable, 'Data',      app.rawDataTable(primaryIndex, GUIColumns), ...
+            set(app.UITable, 'Data',      app.schDataTable(primaryIndex, GUIColumns), ...
                 'UserData',  struct('primaryIndex', primaryIndex, 'secondaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
 
             % Cria chart para a nuvem de palavras...
@@ -837,13 +841,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             GUIColumns   = UITableColumnNames(app);
 
             if ~isempty(app.filteringObj.filterRules)
-                logicalArray   = run(app.filteringObj, 'filterRules', app.rawDataTable(primaryIndex,:));
+                logicalArray   = run(app.filteringObj, 'filterRules', app.schDataTable(primaryIndex,:));
                 secondaryIndex = primaryIndex(logicalArray);
             else
                 secondaryIndex = primaryIndex;
             end
 
-            app.UITable.Data = app.rawDataTable(secondaryIndex, GUIColumns);
+            app.UITable.Data = app.schDataTable(secondaryIndex, GUIColumns);
             app.UITable.UserData.secondaryIndex = secondaryIndex;
 
             % Renderiza em tela o número de linhas, além de selecionar a primeira
@@ -1028,8 +1032,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             if isempty(selected2focusedHom)
                 htmlSource = '';
             else
-                selectedHomRawTableIndex = find(strcmp(app.rawDataTable.("Homologação"), selected2focusedHom));
-                htmlSource = util.HtmlTextGenerator.ProductInfo('ProdutoHomologado', app.rawDataTable(selectedHomRawTableIndex, :), relatedAnnotationTable, app.projectData.regulatronData);
+                selectedHomRawTableIndex = find(strcmp(app.schDataTable.("Homologação"), selected2focusedHom));
+                htmlSource = util.HtmlTextGenerator.ProductInfo('ProdutoHomologado', app.schDataTable(selectedHomRawTableIndex, :), relatedAnnotationTable, app.projectData.regulatronData);
             end
         end
 
@@ -1430,7 +1434,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.rootFolder, ...
                         app.executionMode, ...
                         app.renderCount, ...
-                        app.rawDataTable, ...
+                        app.schDataTable, ...
                         app.releasedData, ...
                         app.cacheData, ...
                         app.annotationTable, ...
@@ -1637,7 +1641,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             try
                 idxSCH = app.UITable.UserData.secondaryIndex;
-                writetable(app.rawDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
+                writetable(app.schDataTable(idxSCH, 1:19), fileFullPath, 'WriteMode', 'overwritesheet')
             catch ME
                 ui.Dialog(app.UIFigure, 'warning', getReport(ME));
             end
@@ -1656,7 +1660,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             addedHom = 0;
             for selectedRow = selectedTableRows'
-                [productData, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.General, app.rawDataTable, app.UITable.UserData.primaryIndex(selectedRow));
+                [productData, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.General, app.schDataTable, app.UITable.UserData.primaryIndex(selectedRow));
                 if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
                     continue
                 end
@@ -1782,7 +1786,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupFilter.Tooltip = {'Configura estratégia de filtragem'};
             app.tool_OpenPopupFilter.Layout.Row = [1 4];
             app.tool_OpenPopupFilter.Layout.Column = 6;
-            app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Filter_18x18.png');
+            app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'filter-18px.png');
 
             % Create tool_ExportVisibleTable
             app.tool_ExportVisibleTable = uiimage(app.Toolbar);

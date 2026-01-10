@@ -17,11 +17,6 @@ classdef winConfig_exported < matlab.apps.AppBase
         versionInfoLabel                matlab.ui.control.Label
         SubTab2                         matlab.ui.container.Tab
         SubGrid2                        matlab.ui.container.GridLayout
-        config_SearchModeLabel          matlab.ui.control.Label
-        config_SearchModePanel          matlab.ui.container.ButtonGroup
-        config_SearchModeListOfWords    matlab.ui.control.RadioButton
-        config_SearchModeTokenSuggestion  matlab.ui.control.RadioButton
-        config_SearchModeDefaultParameters  matlab.ui.control.Image
         config_SelectedTableColumns     matlab.ui.container.CheckBoxTree
         config_SelectedTableColumnsLabel  matlab.ui.control.Label
         config_MiscelaneousPanel2       matlab.ui.container.Panel
@@ -37,6 +32,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_nMinWordsLabel           matlab.ui.control.Label
         config_nMinCharacters           matlab.ui.control.Spinner
         config_nMinCharactersLabel      matlab.ui.control.Label
+        config_SearchModeDefaultParameters  matlab.ui.control.Image
         config_MiscelaneousLabel1       matlab.ui.control.Label
         SubTab3                         matlab.ui.container.Tab
         SubGrid3                        matlab.ui.container.GridLayout
@@ -184,7 +180,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                 app.mainApp.rootFolder, ...
                 app.mainApp.executionMode, ...
                 app.mainApp.renderCount, ...
-                app.mainApp.rawDataTable, ...
+                app.mainApp.schDataTable, ...
                 app.mainApp.releasedData, ...
                 app.mainApp.cacheData, ...
                 app.mainApp.annotationTable, ...
@@ -202,14 +198,6 @@ classdef winConfig_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function updatePanel_Analysis(app)
-            % MODO
-            switch app.mainApp.General.search.mode
-                case 'tokens'
-                    app.config_SearchModeTokenSuggestion.Value = 1;
-                otherwise
-                    app.config_SearchModeListOfWords.Value     = 1;
-            end
-
             % ALGORITMO SUGESTÃO DE TOKENS
             app.config_nMinCharacters.Value     = app.mainApp.General.search.minCharacters;
 
@@ -445,16 +433,12 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             else
                 ipcEventName = {};
-                if ~isequal(app.mainApp.General.search.mode, projectFileContent.search.mode)
-                    ipcEventName{end+1} = 'searchModeChanged';
-                end
-
                 if ~isequal(app.mainApp.General.search.wordCloud.algorithm, projectFileContent.search.wordCloud.algorithm)
-                    ipcEventName{end+1} = 'wordCloudAlgorithmChanged';
+                    ipcEventName{end+1} = 'onWordCloudAlgorithmChanged';
                 end
 
                 if ~isequal(app.mainApp.General.ui.searchTable, projectFileContent.ui.searchTable)
-                    ipcEventName{end+1} = 'searchVisibleColumnsChanged';
+                    ipcEventName{end+1} = 'onSearchVisibleColumnsChanged';
                 end
 
                 app.mainApp.General.search   = projectFileContent.search;
@@ -473,25 +457,13 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: config_SearchModePanel, 
-        % ...and 5 other components
+        % Callback function: config_SelectedTableColumns, 
+        % ...and 4 other components
         function Analysis_ParameterValueChanged(app, event)
             
             ipcEventName = '';
 
             switch event.Source
-                case app.config_SearchModePanel
-                    ipcEventName = 'searchModeChanged';
-
-                    switch app.config_SearchModePanel.SelectedObject
-                        case app.config_SearchModeTokenSuggestion
-                            app.mainApp.General.search.mode     = 'tokens';
-                            app.mainApp.General.search.function = 'strcmp';
-                        case app.config_SearchModeListOfWords
-                            app.mainApp.General.search.mode     = 'words';
-                            app.mainApp.General.search.function = 'contains';
-                    end
-
                 case app.config_nMinCharacters
                     app.mainApp.General.search.minCharacters = app.config_nMinCharacters.Value;
 
@@ -499,14 +471,14 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.mainApp.General.search.minDisplayedTokens = str2double(app.config_nMinWords.Value);
 
                 case app.config_WordCloudAlgorithm
-                    ipcEventName = 'wordCloudAlgorithmChanged';
+                    ipcEventName = 'onWordCloudAlgorithmChanged';
                     app.mainApp.General.search.wordCloud.algorithm = app.config_WordCloudAlgorithm.Value;
 
                 case app.config_WordCloudColumn
                     app.mainApp.General.search.wordCloud.column = app.config_WordCloudColumn.Value;
 
                 case app.config_SelectedTableColumns
-                    ipcEventName = 'searchVisibleColumnsChanged';
+                    ipcEventName = 'onSearchVisibleColumnsChanged';
 
                     previousCheckedNodes = event.PreviousCheckedNodes;
                     currentCheckedNodes  = event.CheckedNodes;
@@ -838,7 +810,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 70, 22, 64, 22, 64, 22, '1x', 1};
+            app.SubGrid2.RowHeight = {17, 64, 22, 64, 22, '1x', 1};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -846,14 +818,25 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousLabel1 = uilabel(app.SubGrid2);
             app.config_MiscelaneousLabel1.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel1.FontSize = 10;
-            app.config_MiscelaneousLabel1.Layout.Row = 3;
+            app.config_MiscelaneousLabel1.Layout.Row = 1;
             app.config_MiscelaneousLabel1.Layout.Column = 1;
             app.config_MiscelaneousLabel1.Text = 'ALGORITMO SUGESTÃO DE TOKENS';
+
+            % Create config_SearchModeDefaultParameters
+            app.config_SearchModeDefaultParameters = uiimage(app.SubGrid2);
+            app.config_SearchModeDefaultParameters.ScaleMethod = 'none';
+            app.config_SearchModeDefaultParameters.ImageClickedFcn = createCallbackFcn(app, @Analysis_DefaultParametersClicked, true);
+            app.config_SearchModeDefaultParameters.Visible = 'off';
+            app.config_SearchModeDefaultParameters.Tooltip = {'Retorna às configurações iniciais'};
+            app.config_SearchModeDefaultParameters.Layout.Row = 1;
+            app.config_SearchModeDefaultParameters.Layout.Column = 2;
+            app.config_SearchModeDefaultParameters.VerticalAlignment = 'bottom';
+            app.config_SearchModeDefaultParameters.ImageSource = 'Refresh_18.png';
 
             % Create config_MiscelaneousPanel1
             app.config_MiscelaneousPanel1 = uipanel(app.SubGrid2);
             app.config_MiscelaneousPanel1.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel1.Layout.Row = 4;
+            app.config_MiscelaneousPanel1.Layout.Row = 2;
             app.config_MiscelaneousPanel1.Layout.Column = [1 2];
 
             % Create config_MiscelaneousGrid1
@@ -908,14 +891,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousLabel2 = uilabel(app.SubGrid2);
             app.config_MiscelaneousLabel2.VerticalAlignment = 'bottom';
             app.config_MiscelaneousLabel2.FontSize = 10;
-            app.config_MiscelaneousLabel2.Layout.Row = 5;
+            app.config_MiscelaneousLabel2.Layout.Row = 3;
             app.config_MiscelaneousLabel2.Layout.Column = 1;
             app.config_MiscelaneousLabel2.Text = 'ANOTAÇÃO DO TIPO "WORDCLOUD"';
 
             % Create config_MiscelaneousPanel2
             app.config_MiscelaneousPanel2 = uipanel(app.SubGrid2);
             app.config_MiscelaneousPanel2.AutoResizeChildren = 'off';
-            app.config_MiscelaneousPanel2.Layout.Row = 6;
+            app.config_MiscelaneousPanel2.Layout.Row = 4;
             app.config_MiscelaneousPanel2.Layout.Column = [1 2];
 
             % Create config_MiscelaneousGrid2
@@ -969,62 +952,18 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SelectedTableColumnsLabel = uilabel(app.SubGrid2);
             app.config_SelectedTableColumnsLabel.VerticalAlignment = 'bottom';
             app.config_SelectedTableColumnsLabel.FontSize = 10;
-            app.config_SelectedTableColumnsLabel.Layout.Row = 7;
+            app.config_SelectedTableColumnsLabel.Layout.Row = 5;
             app.config_SelectedTableColumnsLabel.Layout.Column = 1;
             app.config_SelectedTableColumnsLabel.Text = 'VISIBILIDADE DE COLUNAS';
 
             % Create config_SelectedTableColumns
             app.config_SelectedTableColumns = uitree(app.SubGrid2, 'checkbox');
             app.config_SelectedTableColumns.FontSize = 11;
-            app.config_SelectedTableColumns.Layout.Row = 8;
+            app.config_SelectedTableColumns.Layout.Row = 6;
             app.config_SelectedTableColumns.Layout.Column = [1 2];
 
             % Assign Checked Nodes
             app.config_SelectedTableColumns.CheckedNodesChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
-
-            % Create config_SearchModeDefaultParameters
-            app.config_SearchModeDefaultParameters = uiimage(app.SubGrid2);
-            app.config_SearchModeDefaultParameters.ScaleMethod = 'none';
-            app.config_SearchModeDefaultParameters.ImageClickedFcn = createCallbackFcn(app, @Analysis_DefaultParametersClicked, true);
-            app.config_SearchModeDefaultParameters.Visible = 'off';
-            app.config_SearchModeDefaultParameters.Tooltip = {'Volta à configuração inicial'};
-            app.config_SearchModeDefaultParameters.Layout.Row = 1;
-            app.config_SearchModeDefaultParameters.Layout.Column = 2;
-            app.config_SearchModeDefaultParameters.VerticalAlignment = 'bottom';
-            app.config_SearchModeDefaultParameters.ImageSource = 'Refresh_18.png';
-
-            % Create config_SearchModePanel
-            app.config_SearchModePanel = uibuttongroup(app.SubGrid2);
-            app.config_SearchModePanel.AutoResizeChildren = 'off';
-            app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
-            app.config_SearchModePanel.BackgroundColor = [1 1 1];
-            app.config_SearchModePanel.Layout.Row = 2;
-            app.config_SearchModePanel.Layout.Column = [1 2];
-
-            % Create config_SearchModeTokenSuggestion
-            app.config_SearchModeTokenSuggestion = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeTokenSuggestion.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à palavra que está sendo escrita, sugerindo <i>tokens</i> relacionados.</p>';
-            app.config_SearchModeTokenSuggestion.WordWrap = 'on';
-            app.config_SearchModeTokenSuggestion.FontSize = 11;
-            app.config_SearchModeTokenSuggestion.Interpreter = 'html';
-            app.config_SearchModeTokenSuggestion.Position = [11 34 840 29];
-            app.config_SearchModeTokenSuggestion.Value = true;
-
-            % Create config_SearchModeListOfWords
-            app.config_SearchModeListOfWords = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeListOfWords.Text = '<p style="text-align:justify; line-height:1.1;">Pesquisa orientada à uma lista de palavras separadas por vírgulas. Não há sugestão de <i>tokens</i> relacionados.</p>';
-            app.config_SearchModeListOfWords.WordWrap = 'on';
-            app.config_SearchModeListOfWords.FontSize = 11;
-            app.config_SearchModeListOfWords.Interpreter = 'html';
-            app.config_SearchModeListOfWords.Position = [12 7 837 29];
-
-            % Create config_SearchModeLabel
-            app.config_SearchModeLabel = uilabel(app.SubGrid2);
-            app.config_SearchModeLabel.VerticalAlignment = 'bottom';
-            app.config_SearchModeLabel.FontSize = 10;
-            app.config_SearchModeLabel.Layout.Row = 1;
-            app.config_SearchModeLabel.Layout.Column = 1;
-            app.config_SearchModeLabel.Text = 'MODO';
 
             % Create SubTab3
             app.SubTab3 = uitab(app.SubTabGroup);

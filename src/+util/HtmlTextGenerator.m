@@ -17,13 +17,13 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % SCH:INFO
         %-----------------------------------------------------------------%
-        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, renderCount, rawDataTable, releasedData, cacheData, annotationTable, outputFormat)
+        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, renderCount, schDataTable, releasedData, cacheData, annotationTable, outputFormat)
             arguments
                 appGeneral 
                 rootFolder 
                 executionMode 
                 renderCount
-                rawDataTable
+                schDataTable
                 releasedData
                 cacheData
                 annotationTable
@@ -55,7 +55,7 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(end+1) = struct('group', 'RENDERIZAÇÕES','value', renderCount);
             dataStruct(end+1) = struct('group', 'APLICATIVO', 'value', appVersion.application);
 
-            dataStruct(end+1) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(rawDataTable), 'numberOfUniqueHom', numel(unique(rawDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
+            dataStruct(end+1) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(schDataTable), 'numberOfUniqueHom', numel(unique(schDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
             dataStruct(end+1) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
 
             freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Laboratório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
