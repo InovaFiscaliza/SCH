@@ -1,5 +1,5 @@
 {
-    "version": 2.01,
+    "version": 2.02,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -24,6 +24,7 @@
     },
     "search": {
         "dataBaseVersion": "_v2",
+        "type": "FreeText+ColumnFilter",
         "mode": "tokens",
         "function": "strcmp",
         "minCharacters": 2,

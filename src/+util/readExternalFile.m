@@ -2,6 +2,7 @@ classdef (Abstract) readExternalFile
 
     properties (Constant)
         %-----------------------------------------------------------------%
+        numMaxCategories    = 500
         cacheDefaultColumns = 'Homologação | Solicitante | Fabricante | Modelo | Nome Comercial'
         annotationColumns   = {'ID', 'DataHora', 'Computador', 'Usuário', 'Homologação', 'Atributo', 'Valor', 'Situação'}
     end
@@ -9,7 +10,7 @@ classdef (Abstract) readExternalFile
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function [rawDataTable, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
+        function [schDataTable, schDataCategories, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
             [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             fileName = sprintf('SCHData%s.mat', generalSettings.search.dataBaseVersion);
 
@@ -24,6 +25,29 @@ classdef (Abstract) readExternalFile
             catch
                 projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
                 load(projectFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+            end
+
+            schDataTable = rawDataTable;
+            schDataCategories = struct('columnName', {}, 'numCategories', {}, 'categories', {});
+
+            schColumnTypes = matlab.Compatibility.resolveTableVariableTypes(schDataTable);
+            schColumnNames = schDataTable.Properties.VariableNames(strcmp(schColumnTypes, 'categorical'));
+            
+            for ii = 1:numel(schColumnNames)
+                columnName = schColumnNames{ii};
+                categories = unique(cellstr(schDataTable.(columnName)));
+                categories = textAnalysis.sort(categories);
+                numCategories = numel(categories);
+
+                if numCategories > util.readExternalFile.numMaxCategories
+                    categories = {};
+                end
+
+                schDataCategories(end+1) = struct( ...
+                    'columnName', columnName, ...
+                    'numCategories', numCategories, ...
+                    'categories', {categories} ...
+                );
             end
 
             cacheColumns = util.readExternalFile.cacheDefaultColumns;
