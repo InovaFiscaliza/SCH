@@ -55,12 +55,16 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initialLayout(app)
             % DROPDOWN "COLUNAS"
-            columnNames   = app.mainApp.schDataTable.Properties.VariableNames;
-            columnTypes   = matlab.Compatibility.resolveTableVariableTypes(app.mainApp.schDataTable);
+            columnRawNames = app.mainApp.schDataTable.Properties.VariableNames;
+            columnRawTypes = matlab.Compatibility.resolveTableVariableTypes(app.mainApp.schDataTable);
+
+            filterableMask = ~startsWith(columnRawNames, '_');
+            columnRawNames = columnRawNames(filterableMask);
+            columnRawTypes = columnRawTypes(filterableMask);
+
+            [columnNames, sortedIdxs] = textAnalysis.sort(columnRawNames);
+            columnTypes = columnRawTypes(sortedIdxs);
             
-            columnCached  = ~startsWith(columnNames, '_');
-            columnNames   = columnNames(columnCached);
-            columnTypes   = columnTypes(columnCached);
             pseudoClasses = tableFiltering.getPseudoClasses(columnTypes);
             symbolicNames = tableFiltering.mergedSymbolWithColumnNames(columnNames, columnTypes);
             
@@ -119,7 +123,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
                 checkedNodes = [];
     
                 for ii = 1:numel(filterList)
-                    childNode = uitreenode(app.columnFilterList, 'Text', filterList{ii}, 'NodeData', ii);
+                    childNode = uitreenode(app.columnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
     
                     if app.mainApp.filteringObj.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];

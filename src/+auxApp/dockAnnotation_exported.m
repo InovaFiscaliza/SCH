@@ -34,10 +34,10 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function updateForm(app, focusedHomologation)
-            rawHomMask = strcmp(app.mainApp.rawDataTable.("Homologação"), focusedHomologation);
+            homMask = strcmp(app.mainApp.schDataTable.("Homologação"), focusedHomologation);
             annotationHomMask = strcmp(app.mainApp.annotationTable.("Homologação"), focusedHomologation);
 
-            relatedSCHTable = app.mainApp.rawDataTable(rawHomMask, :);
+            relatedSCHTable = app.mainApp.schDataTable(homMask, :);
             relatedAnnotationTable = app.mainApp.annotationTable(annotationHomMask, :);
 
             set( ...

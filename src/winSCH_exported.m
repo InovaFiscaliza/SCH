@@ -30,7 +30,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         selectedProductPanelBackground  matlab.ui.control.Image
         UITable                         matlab.ui.control.Table
         UITable_NumRows                 matlab.ui.control.Label
-        wordList2Search                 matlab.ui.control.Label
+        wordListToSearch                matlab.ui.control.Label
         Toolbar                         matlab.ui.container.GridLayout
         tool_FilterInfo                 matlab.ui.control.Label
         tool_AddSelectedToBucket        matlab.ui.control.Image
@@ -81,8 +81,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         cacheColumns
         annotationTable
 
-        previousSearch   = ''
-        previousItemData = 0
+        previousSuggestionIdx = 0
     end
 
 
@@ -219,7 +218,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     switch keydownPressed
                                         case 'ArrowDown'
                                             if strcmp(app.General.search.mode, 'tokens')
-                                                app.previousItemData = 1;
+                                                app.previousSuggestionIdx = 1;
     
                                                 set(app.searchSuggestions, 'Visible', 1, 'Value', 1)
                                                 scroll(app.searchSuggestions, "top")
@@ -230,7 +229,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                             if strcmp(app.General.search.mode, 'tokens')
                                                 nMaxValues = numel(app.searchSuggestions.Items);
     
-                                                app.previousItemData = nMaxValues;
+                                                app.previousSuggestionIdx = nMaxValues;
                                                 set(app.searchSuggestions, 'Visible', 1, 'Value', nMaxValues)
                                                 scroll(app.searchSuggestions, "bottom")
                                                 focus(app.searchSuggestions)
@@ -251,30 +250,30 @@ classdef winSCH_exported < matlab.apps.AppBase
                             case 'ArrowDown'
                                 nMaxValues = numel(app.searchSuggestions.Items);
     
-                                if (app.previousItemData == nMaxValues) && (app.searchSuggestions.Value == nMaxValues)
-                                    app.previousItemData = 0;
+                                if (app.previousSuggestionIdx == nMaxValues) && (app.searchSuggestions.Value == nMaxValues)
+                                    app.previousSuggestionIdx = 0;
     
                                     set(app.searchSuggestions, Visible=0, Value={})
                                     sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.searchEntryPoint.UserData.id));
                                 else
                                     if isnumeric(app.searchSuggestions.Value)
-                                        app.previousItemData = app.searchSuggestions.Value;
+                                        app.previousSuggestionIdx = app.searchSuggestions.Value;
                                     else
-                                        app.previousItemData = 0;
+                                        app.previousSuggestionIdx = 0;
                                     end
                                 end
     
                             case 'ArrowUp'
-                                if (app.previousItemData == 1) && (app.searchSuggestions.Value == 1)
-                                    app.previousItemData = 0;
+                                if (app.previousSuggestionIdx == 1) && (app.searchSuggestions.Value == 1)
+                                    app.previousSuggestionIdx = 0;
     
                                     set(app.searchSuggestions, Visible=0, Value={})
                                     sendEventToHTMLSource(app.jsBackDoor, 'setFocus', struct('dataTag', app.searchEntryPoint.UserData.id));
                                 else
                                     if isnumeric(app.searchSuggestions.Value)
-                                        app.previousItemData = app.searchSuggestions.Value;
+                                        app.previousSuggestionIdx = app.searchSuggestions.Value;
                                     else
-                                        app.previousItemData = 0;
+                                        app.previousSuggestionIdx = 0;
                                     end
                                 end
     
@@ -474,8 +473,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         searchComponentsInitialState(app)
 
                                     case 'onColumnFilterChanged'
-                                        'onColumnFilterChanged'
-                                        % PENDENTE
+                                        applyFiltering(app)
         
                                     otherwise
                                         error('UnexpectedCall')
@@ -688,6 +686,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
             app.projectData = model.Project(app, app.rootFolder);
+            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
             
             if app.General.Report.indexedDBCache.status
                 appEngine.indexedDB.openDB(app.jsBackDoor, class.Constants.appName)
@@ -706,12 +705,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Salva na propriedade "UserData" as opções de ícone e o índice
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.tool_WordCloudVisibility.UserData      = false;
+            app.tool_WordCloudVisibility.UserData = false;
 
             % Inicialização da propriedade "UserData" da tabela.
-            app.searchEntryButton.UserData       = struct('value2Search', '', 'words2Search', '');
-            app.UITable.UserData                 = struct('primaryIndex', [], 'secondaryIndex', [], 'cacheColumns', {{}});
-            app.UITable.RowName                  = 'numbered';
+            app.searchEntryButton.UserData = struct('valueToSearch', {}, 'wordsToSearch', {});
+            app.UITable.UserData = struct('primaryIndex', [], 'secondaryIndex', [], 'cacheColumns', {{}});
+            app.UITable.RowName  = 'numbered';
 
             % Os painéis de metadados do registro selecionado nas tabelas já 
             % tem, na sua propriedade "UserData", a chave "id" que armazena 
@@ -725,7 +724,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             updateWarningLampVisibility(app)
 
             searchComponentsInitialState(app)
-            updateFilterSpecificationToolbar(app)
+            updateFilteringContext(app)
         end
     end
 
@@ -789,80 +788,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         % FILTRAGEM
         %-----------------------------------------------------------------%
-        function searchFilteringPrimaryFilter(app, words2Search)
-            app.progressDialog.Visible = 'visible';
-
-            % O "primaryTempIndex" retorna os registros da tabela que deram match
-            % com "words2Search". Uma homologação, contudo, pode estar relacionada
-            % a vários registros da base de dados, por isso devem ser buscados
-            % os demais.
-
-            % A order dos registros é importante APENAS se foi usado o algoritmo
-            % Levenshtein p/ cálculo da distância entre as strings.
-            switch app.General.search.mode
-                case 'tokens'
-                    sortOrder = 'stable';
-                otherwise
-                    sortOrder = 'unstable';
-            end
-
-            cacheColumnNames   = UITablePrimaryColumnNames(app);
-            listOfCacheColumns = cellfun(@(x) sprintf('_%s', x), cacheColumnNames, 'UniformOutput', false);
-            searchFunction     = app.General.search.function;
-
-            primaryTempIndex   = run(app.filteringObj, 'words2Search', app.schDataTable, listOfCacheColumns, sortOrder, searchFunction, words2Search);
-            primaryHomProducts = unique(app.schDataTable(primaryTempIndex,:).("Homologação"), 'stable');
-
-            primaryIndex       = run(app.filteringObj, 'words2Search', app.schDataTable, {'Homologação'}, sortOrder, 'strcmp', primaryHomProducts);
-            GUIColumns         = UITableColumnNames(app);
-
-            set(app.UITable, 'Data',      app.schDataTable(primaryIndex, GUIColumns), ...
-                'UserData',  struct('primaryIndex', primaryIndex, 'secondaryIndex', primaryIndex, 'cacheColumns', {cacheColumnNames}))
-
-            % Cria chart para a nuvem de palavras...
-            if isempty(app.wordCloudObj)
-                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
-            end
-
-            % Renderiza em tela o número de linhas, além de selecionar a primeira
-            % linha da tabela, caso a pesquisa retorne algo.
-            updateTableNumRows(app)
-            UITableInitialSelection(app, true)
-
-            % Aplica estilo na tabela e verifica se a tabela está visível...
-            updateTableStyle(app)
-
-            app.progressDialog.Visible = 'hidden';
-        end
-
-        %-----------------------------------------------------------------%
-        function searchFilteringSecondaryFilter(app)
-            primaryIndex = app.UITable.UserData.primaryIndex;
-            GUIColumns   = UITableColumnNames(app);
-
-            if ~isempty(app.filteringObj.filterRules)
-                logicalArray   = run(app.filteringObj, 'filterRules', app.schDataTable(primaryIndex,:));
-                secondaryIndex = primaryIndex(logicalArray);
-            else
-                secondaryIndex = primaryIndex;
-            end
-
-            app.UITable.Data = app.schDataTable(secondaryIndex, GUIColumns);
-            app.UITable.UserData.secondaryIndex = secondaryIndex;
-
-            % Renderiza em tela o número de linhas, além de selecionar a primeira
-            % linha da tabela, caso a pesquisa retorne algo.
-            updateTableNumRows(app)
-            UITableInitialSelection(app, false)
-
-            % Aplica estilo na tabela...
-            updateTableStyle(app)
-        end
-
-        %-----------------------------------------------------------------%
         function searchComponentsInitialState(app)
-            app.previousSearch   = '';
-            app.previousItemData = 0;
+            app.previousSuggestionIdx = 0;
 
             entryPointAndButtonInitialState(app)
             searchSuggestionsInitialState(app)
@@ -877,6 +804,154 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function searchSuggestionsInitialState(app)
             set(app.searchSuggestions, Visible=0, Items={}, ItemsData=[])
+        end
+        
+        %-----------------------------------------------------------------%
+        function applyFiltering(app)
+            app.progressDialog.Visible = 'visible';
+
+            switch app.General.search.type
+                case 'FreeText'
+                    matchRowIdxs = applyTextFilter(app);
+
+                case 'ColumnFilter'
+                    matchRowIdxs = (1:height(app.schDataTable))';            
+                    matchRowIdxs = applyColumnFilter(app, matchRowIdxs);
+        
+                case 'FreeText+ColumnFilter'
+                    matchRowIdxs = applyTextFilter(app);
+                    matchRowIdxs = applyColumnFilter(app, matchRowIdxs);
+            end
+
+            updateTable(app, matchRowIdxs)
+
+            app.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function matchRowIdxs = applyTextFilter(app)
+            switch app.General.search.mode
+                case 'tokens'
+                    sortOrder = 'stable';
+                otherwise
+                    sortOrder = 'unstable';
+            end
+
+            cacheColumnNames = strcat({'_'}, strsplit(app.cacheColumns, ' | '));
+            searchFunction   = app.General.search.function;
+            wordsToSearch    = app.searchEntryButton.UserData.wordsToSearch;
+            
+            matchRowTempIdxs = run(app.filteringObj, 'wordsToSearch', app.schDataTable, cacheColumnNames, sortOrder, searchFunction, wordsToSearch);
+            matchHomList     = unique(app.schDataTable(matchRowTempIdxs,:).("Homologação"), 'stable');
+            matchRowIdxs     = run(app.filteringObj, 'wordsToSearch', app.schDataTable, {'Homologação'}, sortOrder, 'strcmp', matchHomList);
+        end
+
+        %-----------------------------------------------------------------%
+        function matchRowIdxs = applyColumnFilter(app, matchRowIdxs)
+            if ~isempty(app.filteringObj.filterRules)
+                matchRowTempIdxs = run(app.filteringObj, 'filterRules', app.schDataTable(matchRowIdxs, :));
+                matchRowIdxs = matchRowIdxs(matchRowTempIdxs);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function updateTable(app, matchMask)
+            app.UITable.Data = app.schDataTable(matchMask, UITableColumnNames(app));
+            UITableInitialSelection(app, true)
+
+            updateTableStyle(app)
+            updateResultsContext(app)
+            updateTableNumRows(app)
+            updateFilteringContext(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function updateTableStyle(app)
+            removeStyle(app.UITable)
+
+            % Row striping (by homologation group)
+            [homValues, homFirstRowIdx, homGroupIdx] = unique(app.UITable.Data.("Homologação"), 'stable');            
+            evenGroupRows = find(mod(homGroupIdx, 2) == 0);
+
+            if ~isempty(evenGroupRows)
+                s = app.rowStripingStyle;
+                addStyle(app.UITable, s, 'row', evenGroupRows)
+            end
+
+            % Annotation indicator
+            annotatedHomMask = ismember(homValues, unique(app.annotationTable.("Homologação")));
+            annotatedRowIdx  = homFirstRowIdx(annotatedHomMask);            
+            annotationCells  = [annotatedRowIdx, ones(numel(annotatedRowIdx), 1)];
+
+            if ~isempty(annotationCells)
+                s = app.annotationStyle;
+                addStyle(app.UITable, s, "cell", annotationCells)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function updateResultsContext(app)
+            wordListToShowInfo = '';
+            
+            if ismember(app.General.search.type, {'FreeText', 'FreeText+ColumnFilter'})
+                valueToSearch = app.searchEntryButton.UserData.valueToSearch;
+                wordsToSearch = app.searchEntryButton.UserData.wordsToSearch;
+    
+                switch app.General.search.mode
+                    case 'tokens'
+                        if ~isempty(wordsToSearch)
+                            numWordsToSearch  = numel(wordsToSearch);
+                            numWordsContains = sum(contains(wordsToSearch, valueToSearch));
+        
+                            searchNote = '';
+                            if numWordsContains < numWordsToSearch
+                                searchNote = ' e similares';
+                            end            
+                            wordListToShowInfo = sprintf('Resultados para "<b>%s</b>"%s', valueToSearch, searchNote);
+                        end
+    
+                    case 'search'
+                        if ~isempty(wordsToSearch)
+                            wordListToShowInfo = sprintf('Resultados para %s', strjoin("""<b>" + string(wordsToSearch) + "</b>""", ', '));
+                        end
+                end
+            end
+
+            app.wordListToSearch.Text = wordListToShowInfo;
+        end
+
+        %-----------------------------------------------------------------%
+        function updateTableNumRows(app)
+            numHomValues = numel(unique(app.UITable.Data.("Homologação")));
+            numTableRows = height(app.UITable.Data);
+            app.UITable_NumRows.Text = sprintf('%d <font style="font-size: 10px;">HOMOLOGAÇÕES </font><br>%d <font style="font-size: 10px;">REGISTROS </font>', numHomValues, numTableRows);
+        end
+
+        %-----------------------------------------------------------------%
+        function updateFilteringContext(app)
+            columnFilterList = getFilterList(app.filteringObj, 'SCH', 'on');
+
+            if ismember(app.General.search.type, {'FreeText', 'FreeText+ColumnFilter'})
+                switch app.General.search.mode
+                    case 'tokens'
+                        filterSpec = 'Busca textual por similaridade';
+                    case 'search'
+                        filterSpec = 'Busca textual exata';
+                end
+
+                if strcmp(app.General.search.type, 'FreeText+ColumnFilter') && ~isempty(columnFilterList)
+                    filterSpec = [filterSpec, ' + filtros por coluna'];
+                end
+
+            else
+                filterSpec = 'Filtragem por coluna';
+            end
+
+            if ismember(app.General.search.type, {'ColumnFilter', 'FreeText+ColumnFilter'})
+                filterSpec = sprintf('%s\n%s', filterSpec, strjoin(columnFilterList, ', '));
+            end
+
+            app.tool_FilterInfo.Text = filterSpec;
         end
 
         %-----------------------------------------------------------------%
@@ -920,11 +995,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function cacheColumns = UITablePrimaryColumnNames(app)
-            cacheColumns = strsplit(app.cacheColumns, ' | ');
-        end
-
-        %-----------------------------------------------------------------%
         function UITableInitialSelection(app, focusFlag)
             if isempty(app.UITable.Data)
                 app.UITable.Selection = [];
@@ -939,31 +1009,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function updateTableStyle(app)
-            removeStyle(app.UITable)
-
-            % Row striping
-            [uniqueHom, uniqueHomFirstIndex, uniqueHomIndexes] = unique(app.UITable.Data.("Homologação"), 'stable');
-            
-            listOfRows = find(~mod(uniqueHomIndexes, 2));
-            if ~isempty(listOfRows)
-                s = app.rowStripingStyle;
-                addStyle(app.UITable, s, 'row', listOfRows)
-            end
-
-            % Table annotation icon
-            homColumnIndex = find(strcmp(app.UITable.Data.Properties.VariableNames, 'Homologação'), 1);
-            annotationLogical = ismember(uniqueHom, unique(app.annotationTable.("Homologação")));
-            annotationIndex = uniqueHomFirstIndex(annotationLogical);
-            
-            listOfCells = [annotationIndex, repmat(homColumnIndex, numel(annotationIndex), 1)];
-            if ~isempty(listOfCells)
-                s = app.annotationStyle;
-                addStyle(app.UITable, s, "cell", listOfCells)
-            end
-        end
-
-        %-----------------------------------------------------------------%
         function [selectedHomologations, focusedHomologation, selectedTableRows] = checkTableSelection(app)
             if ~isempty(app.UITable.Selection)
                 selectedTableRows     = unique(app.UITable.Selection(:,1));
@@ -974,55 +1019,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             focusedHomologation = app.selectedProductPanelInfo.UserData.focusedHomologation;
-        end
-
-        %-----------------------------------------------------------------%
-        function updateTableNumRows(app)
-            nHom  = numel(unique(app.UITable.Data.("Homologação")));
-            nRows = height(app.UITable.Data);
-            app.UITable_NumRows.Text = sprintf('%d <font style="font-size: 10px;">HOMOLOGAÇÕES </font><br>%d <font style="font-size: 10px;">REGISTROS </font>', nHom, nRows);
-        end
-
-        %-----------------------------------------------------------------%
-        function updateFilterSpecification(app)
-            value2Search = app.searchEntryButton.UserData.value2Search;
-            words2Search = app.searchEntryButton.UserData.words2Search;
-
-            switch app.General.search.mode
-                case 'tokens'
-                    if ~isempty(words2Search)
-                        nWords2Search  = numel(words2Search);
-                        nWordsContains = sum(contains(words2Search, value2Search));
-    
-                        % Inserindo o texto "e similiares" caso exista alguma
-                        % palavra-chave que não contenha o termo a procurar.
-                        if nWordsContains < nWords2Search
-                            searchNote = ' e similares';
-                        else
-                            searchNote = '';
-                        end
-    
-                        app.wordList2Search.Text = sprintf('Resultados para "<b>%s</b>"%s', value2Search, searchNote);
-                        updateFilterSpecificationToolbar(app)
-                    end
-
-                otherwise
-                    if ~isempty(words2Search)
-                        app.wordList2Search.Text = sprintf('Resultados para %s', strjoin("""<b>" + string(words2Search) + "</b>""", ', '));
-                        updateFilterSpecificationToolbar(app)
-                    end
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function updateFilterSpecificationToolbar(app)
-            primaryTag   = sprintf('Filtragem primária orientada à(s) coluna(s) %s', textFormatGUI.cellstr2ListWithQuotes(UITablePrimaryColumnNames(app), 'none'));
-            secondaryTag = strjoin(getFilterList(app.filteringObj, 'SCH', 'on'), ', ');
-            if isempty(secondaryTag)
-                secondaryTag = '[]';
-            end
-
-            app.tool_FilterInfo.Text = sprintf('%s\nFiltragem secundária: %s', primaryTag, secondaryTag);
         end
 
         %-----------------------------------------------------------------%
@@ -1448,9 +1444,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Value changing function: searchEntryPoint
         function onEntryPointChanging(app, event)
 
-            value2Search = textAnalysis.preProcessedData(event.Value, false);
+            valueToSearch = textAnalysis.preProcessedData(event.Value, false);
 
-            if numel(value2Search) < app.General.search.minCharacters
+            if numel(valueToSearch) < app.General.search.minCharacters
                 app.searchEntryButton.Enable = 0;
                 searchSuggestionsInitialState(app)
             else
@@ -1458,8 +1454,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             if strcmp(app.General.search.mode, 'tokens')
-                if numel(value2Search) >= app.General.search.minCharacters
-                    [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, value2Search, app.General.search.minDisplayedTokens);
+                if numel(valueToSearch) >= app.General.search.minCharacters
+                    [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, valueToSearch, app.General.search.minDisplayedTokens);
                     
                     set(app.searchSuggestions, ...
                         'Visible', ~isfield(event, 'ListBoxVisibility'), ...
@@ -1474,8 +1470,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                         fontColor = [0,0,0];
                     end
                     app.searchEntryPoint.FontColor = fontColor;
-
-                    app.previousSearch = event.Value;
                 end
             end
             
@@ -1484,25 +1478,22 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: searchEntryButton
         function onEntryButtonPushed(app, event)
             
-            value2Search = textAnalysis.preProcessedData(app.searchEntryPoint.Value, false);
+            valueToSearch = textAnalysis.preProcessedData(app.searchEntryPoint.Value, false);
 
             switch app.General.search.mode
                 case 'tokens'
-                    words2Search = app.searchSuggestions.Items;
-                    if ~isempty(words2Search)
-                        searchFilteringPrimaryFilter(app, words2Search)
-                        app.searchEntryButton.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
-                        updateFilterSpecification(app)
-                    end
-
-                otherwise
-                    words2Search = textAnalysis.preProcessedData(strsplit(app.searchEntryPoint.Value, ','));
-                    if ~isempty(words2Search)
-                        searchFilteringPrimaryFilter(app, words2Search)
-                        app.searchEntryButton.UserData = struct('value2Search', value2Search, 'words2Search', {words2Search});
-                        updateFilterSpecification(app)
-                    end
+                    wordsToSearch = app.searchSuggestions.Items;
+                case 'search'
+                    wordsToSearch = textAnalysis.preProcessedData(strsplit(app.searchEntryPoint.Value, ','));
             end
+
+            newSearchEntry = struct('valueToSearch', valueToSearch, 'wordsToSearch', {wordsToSearch});
+            if isequal(app.searchEntryButton.UserData, newSearchEntry)
+                return
+            end
+            app.searchEntryButton.UserData = newSearchEntry;
+
+            applyFiltering(app)
 
         end
 
@@ -1578,7 +1569,9 @@ classdef winSCH_exported < matlab.apps.AppBase
     
             if app.tool_WordCloudVisibility.UserData
                 app.selectedProductPanelGrid.RowHeight{2} = 150;
-                
+                 % drawnow
+                pause(0.010)
+
                 % Esse drawnow abaixo (ou um pause mínimo) é ESSENCIAL, 
                 % resolvendo BUG intermitente do MATLAB que se manifesta
                 % quando:
@@ -1591,9 +1584,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 % (5) Abre-se painel de produto, clica-se no botão. Aqui
                 %     o MATLAB congela, intermitentemente, a não ser que 
                 %     exista o drawnow.
-                
-                % drawnow
-                pause(0.010)
                 
                 app.tool_WordCloudVisibility.ImageSource = 'cloud-on.svg';
 
@@ -1822,7 +1812,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_FilterInfo.FontColor = [0.502 0.502 0.502];
             app.tool_FilterInfo.Layout.Row = [1 4];
             app.tool_FilterInfo.Layout.Column = 10;
-            app.tool_FilterInfo.Text = {'Filtragem primária orientada à(s) coluna(s): "Homologação", "Solicitante", "Fabricante", "Modelo", "Nome Comercial"'; 'Filtragem secundária: []'};
+            app.tool_FilterInfo.Text = '';
 
             % Create Document
             app.Document = uigridlayout(app.Tab1Grid);
@@ -1834,15 +1824,15 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Document.Layout.Column = [2 4];
             app.Document.BackgroundColor = [1 1 1];
 
-            % Create wordList2Search
-            app.wordList2Search = uilabel(app.Document);
-            app.wordList2Search.VerticalAlignment = 'bottom';
-            app.wordList2Search.FontSize = 10;
-            app.wordList2Search.FontColor = [0.502 0.502 0.502];
-            app.wordList2Search.Layout.Row = 1;
-            app.wordList2Search.Layout.Column = 1;
-            app.wordList2Search.Interpreter = 'html';
-            app.wordList2Search.Text = '';
+            % Create wordListToSearch
+            app.wordListToSearch = uilabel(app.Document);
+            app.wordListToSearch.VerticalAlignment = 'bottom';
+            app.wordListToSearch.FontSize = 10;
+            app.wordListToSearch.FontColor = [0.502 0.502 0.502];
+            app.wordListToSearch.Layout.Row = 1;
+            app.wordListToSearch.Layout.Column = 1;
+            app.wordListToSearch.Interpreter = 'html';
+            app.wordListToSearch.Text = '';
 
             % Create UITable_NumRows
             app.UITable_NumRows = uilabel(app.Document);
