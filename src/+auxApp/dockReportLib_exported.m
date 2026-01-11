@@ -244,6 +244,14 @@ classdef dockReportLib_exported < matlab.apps.AppBase
 
         end
 
+        % Value changing function: prjName
+        function onProjectNameChanging(app, event)
+            
+            changingValue = event.Value;
+            app.prjSaveButton.Enable = ~isempty(strtrim(changingValue));
+            
+        end
+
         % Value changed function: eFiscalizaIssue, eFiscalizaSystem, 
         % ...and 7 other components
         function onProjectInfoUpdate(app, event)
@@ -504,6 +512,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             % Create prjName
             app.prjName = uieditfield(app.prjGrid, 'text');
             app.prjName.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
+            app.prjName.ValueChangingFcn = createCallbackFcn(app, @onProjectNameChanging, true);
             app.prjName.FontSize = 11;
             app.prjName.Layout.Row = 2;
             app.prjName.Layout.Column = [1 4];
