@@ -24,11 +24,9 @@
     <fileset.resources>
       <file>C:\InovaFiscaliza\SCH\src\+auxApp</file>
       <file>C:\InovaFiscaliza\SCH\src\+class</file>
-      <file>C:\InovaFiscaliza\SCH\src\+readFile</file>
+      <file>C:\InovaFiscaliza\SCH\src\+model</file>
       <file>C:\InovaFiscaliza\SCH\src\+reportLibConnection</file>
-      <file>C:\InovaFiscaliza\SCH\src\+suggestion</file>
       <file>C:\InovaFiscaliza\SCH\src\+util</file>
-      <file>C:\InovaFiscaliza\SCH\src\+writeFile</file>
       <file>C:\InovaFiscaliza\SCH\src\config</file>
       <file>C:\InovaFiscaliza\SCH\src\resources</file>
       <file>C:\SupportPackages\src\Anatel</file>
