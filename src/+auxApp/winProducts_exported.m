@@ -750,7 +750,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_ShowDataRules = uiimage(app.GridLayout);
             app.tool_ShowDataRules.ScaleMethod = 'stretch';
             app.tool_ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
-            app.tool_ShowDataRules.Tooltip = {'Apresenta regras de validação'};
+            app.tool_ShowDataRules.Tooltip = {''};
             app.tool_ShowDataRules.Layout.Row = [4 5];
             app.tool_ShowDataRules.Layout.Column = 2;
             app.tool_ShowDataRules.VerticalAlignment = 'top';
