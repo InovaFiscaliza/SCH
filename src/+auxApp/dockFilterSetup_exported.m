@@ -379,7 +379,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 460 486];
+                app.UIFigure.Position = [100 100 518 486];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -420,8 +420,8 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
             % Create Document
             app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {217, 218};
-            app.Document.RowHeight = {22, 22, 22, 64, 22, 264};
+            app.Document.ColumnWidth = {247, 246};
+            app.Document.RowHeight = {22, 22, 22, 88, 22, '100x'};
             app.Document.ColumnSpacing = 5;
             app.Document.RowSpacing = 5;
             app.Document.Padding = [10 10 10 5];
@@ -457,6 +457,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
             % Create columnFilterPanel
             app.columnFilterPanel = uipanel(app.Document);
+            app.columnFilterPanel.AutoResizeChildren = 'off';
             app.columnFilterPanel.Layout.Row = 6;
             app.columnFilterPanel.Layout.Column = [1 2];
 
@@ -623,16 +624,18 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
             % Create config_SearchModeTokenSuggestion
             app.config_SearchModeTokenSuggestion = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeTokenSuggestion.Text = 'Busca incremental com sugestão de tokens relacionados.';
+            app.config_SearchModeTokenSuggestion.Text = {'[TS] Texto por Similaridade'; '<font style="color: gray; font-size:10px">Apresenta sugestões conforme o texto é digitado e retorna resultados com base nos termos sugeridos.</font>'};
             app.config_SearchModeTokenSuggestion.FontSize = 11;
-            app.config_SearchModeTokenSuggestion.Position = [11 31 368 24];
+            app.config_SearchModeTokenSuggestion.Interpreter = 'html';
+            app.config_SearchModeTokenSuggestion.Position = [11 43 486 43];
             app.config_SearchModeTokenSuggestion.Value = true;
 
             % Create config_SearchModeListOfWords
             app.config_SearchModeListOfWords = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeListOfWords.Text = 'Busca por lista de termos (separados por vírgula, sem sugestões).';
+            app.config_SearchModeListOfWords.Text = {'[TE] Texto Exato'; '<font style="color: gray; font-size:10px">Busca um ou mais termos, separados por vírgulas, sem apresentação de sugestões.</font>'};
             app.config_SearchModeListOfWords.FontSize = 11;
-            app.config_SearchModeListOfWords.Position = [12 7 370 24];
+            app.config_SearchModeListOfWords.Interpreter = 'html';
+            app.config_SearchModeListOfWords.Position = [12 3 485 41];
 
             % Create columnFilterLabel_2
             app.columnFilterLabel_2 = uilabel(app.Document);

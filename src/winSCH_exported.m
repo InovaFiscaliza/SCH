@@ -147,8 +147,23 @@ classdef winSCH_exported < matlab.apps.AppBase
                         if ~app.renderCount
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         else
+                            selection = app.UITable.Selection;
+                            if ~isempty(selection)
+                                app.UITable.Selection = [];
+                                onTableSelectionChanged(app)
+                            end
+
+                            delete(app.wordCloudObj)
+
                             appEngine.beforeReload(app, app.Role)
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
+
+                            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
+
+                            if ~isempty(selection)
+                                app.UITable.Selection = selection;
+                                onTableSelectionChanged(app)
+                            end
                         end
                         
                         app.renderCount = app.renderCount+1;
@@ -463,7 +478,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     % auxApp.dockFilterSetup
                                     case 'onSearchModeChanged'
                                         searchComponentsInitialState(app)
-                                        applyFiltering(app)
 
                                     case 'onColumnFilterChanged'
                                         applyFiltering(app)
@@ -515,7 +529,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     screenWidth  = 460;
                     screenHeight = 602;
                 case 'FilterSetup'
-                    screenWidth  = 460;
+                    screenWidth  = 518;
                     screenHeight = 486;
                 case 'Annotation'
                     screenWidth  = 412;
@@ -694,7 +708,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', '', 'Off', ''), matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      2)
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      3)
-            convertToInlineSVG(app.tabGroupController, app.jsBackDoor)
+            app.tabGroupController.inlineSVG = true;
 
             % Atualiza relação de colunas visíveis.
             updateTableColumnNames(app)
@@ -793,21 +807,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                     enable = true;
                     value = app.searchEntryButton.UserData.valueToSearch;
                     placeholder = 'O que você quer pesquisar?';
-
-                    set(app.searchEntryPoint, 'Enable', enable, 'Value', value, 'Placeholder', placeholder)
-                    onEntryPointChanging(app, struct('Value', value, 'ListBoxVisibility', false))
-
                 otherwise
                     enable = false;
                     value = '';
                     placeholder = 'Busca por texto indisponível neste modo';
-
-                    set(app.searchEntryPoint, 'Enable', enable, 'Value', value, 'Placeholder', placeholder, 'FontColor', [0,0,0])
-                    entryButtonInitialState(app)
-                    searchSuggestionsInitialState(app)
             end
 
+            set(app.searchEntryPoint, 'Enable', enable, 'Value', value, 'Placeholder', placeholder, 'FontColor', [0,0,0])
+            app.searchSuggestions.Visible = 0;
             app.previousSuggestionIdx = 0;
+
+            onEntryPointChanging(app, struct('Value', value, 'ListBoxVisibility', false))
+            onEntryButtonPushed(app)           
         end
 
         %-----------------------------------------------------------------%
@@ -862,7 +873,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             switch app.General.search.mode
                 case 'tokens'
                     sortOrder = 'stable';
-                otherwise
+                otherwise % 'words'
                     sortOrder = 'unstable';
             end
 
@@ -935,7 +946,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             resultsContext = sprintf('Resultados para "<b>%s</b>"', valueToSearch);
                         end
 
-                    case 'search'
+                    otherwise % 'words'
                         searchSpecInfo = '[TE]';
 
                         if ~isempty(wordsToSearch)
@@ -1489,12 +1500,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             if numel(valueToSearch) < app.General.search.minCharacters
                 app.searchEntryButton.Enable = 0;
                 searchSuggestionsInitialState(app)
+
             else
                 app.searchEntryButton.Enable = 1;
-            end
 
-            if strcmp(app.General.search.mode, 'tokens')
-                if numel(valueToSearch) >= app.General.search.minCharacters
+                if strcmp(app.General.search.mode, 'tokens')
                     [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, valueToSearch, app.General.search.minDisplayedTokens);
                     
                     set(app.searchSuggestions, ...
@@ -1503,7 +1513,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         'Items', similarStrings, ...
                         'ItemsData', 1:numel(idxFiltered) ...
                     )
-
+        
                     if redFontFlag
                         fontColor = [1,0,0];
                     else
@@ -1522,8 +1532,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             switch app.General.search.mode
                 case 'tokens'
+                    if isempty(app.searchSuggestions.Items)
+                        onEntryPointChanging(app, struct('Value', app.searchEntryPoint.Value, 'ListBoxVisibility', false))
+                    end
                     wordsToSearch = app.searchSuggestions.Items;
-                case 'search'
+
+                otherwise % 'words'
                     wordsToSearch = textAnalysis.preProcessedData(strsplit(app.searchEntryPoint.Value, ','));
             end
 
@@ -1715,9 +1729,9 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             msg = [ ...
                 'Estratégia de filtragem:<br>' ...
-                '• TS: texto por similaridade<br>' ...
-                '• TE: texto exato<br>' ...
-                '• FC: filtro por coluna<br><br>' ...
+                '•&thinsp;[TS] Texto por Similaridade: apresenta sugestões conforme o texto é digitado e retorna resultados com base nos termos sugeridos.<br>' ...
+                '•&thinsp;[TE] Texto Exato: busca um ou mais termos, separados por vírgulas, sem apresentação de sugestões.<br>' ...
+                '•&thinsp;[FC] Filtro por Coluna: aplica filtros diretos sobre campos específicos.<br><br>' ...
                 'A filtragem pode usar apenas texto, apenas filtros por coluna ou ambos em conjunto.' ...
             ];
             ui.Dialog(app.UIFigure, 'info', msg);
@@ -1982,7 +1996,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.searchEntryPoint = uieditfield(app.searchEntryPointGrid, 'text');
             app.searchEntryPoint.CharacterLimits = [0 128];
             app.searchEntryPoint.ValueChangingFcn = createCallbackFcn(app, @onEntryPointChanging, true);
-            app.searchEntryPoint.BusyAction = 'cancel';
             app.searchEntryPoint.Tag = 'PROMPT';
             app.searchEntryPoint.FontSize = 14;
             app.searchEntryPoint.Placeholder = 'O que você quer pesquisar?';

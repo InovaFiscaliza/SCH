@@ -1,17 +1,17 @@
-function [similarStrings, idxFiltered, redFontFlag] = getSimilarStrings(cacheData, value2Search, nMinValues)
+function [similarStrings, idxFiltered, redFontFlag] = getSimilarStrings(cacheData, valueToSearch, numMinValues)
     valueReferenceList = cacheData(1).uniqueValues;
     tokenList = cacheData(1).uniqueTokens;
     tokenListLength = cacheData(1).uniqueTokensLength;
     
-    algorithmsOrder = {'startsWith', 'Contains', 'Levenshtein_Optimazed'};
+    algorithmsOrder = {'startsWith', 'Contains', 'Levenshtein'};
     redFontFlag     = false;
     idxFiltered     = [];
 
     for kk = algorithmsOrder
         methodName = char(kk);
         
-        if strcmp(methodName, 'Levenshtein_Optimazed')
-            if numel(idxFiltered) >= nMinValues
+        if strcmp(methodName, 'Levenshtein')
+            if numel(idxFiltered) >= numMinValues
                 break
             end
 
@@ -20,14 +20,14 @@ function [similarStrings, idxFiltered, redFontFlag] = getSimilarStrings(cacheDat
             end
         end
 
-        idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, tokenList, tokenListLength, value2Search, idxFiltered, nMinValues);
+        idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, tokenList, tokenListLength, valueToSearch, idxFiltered, numMinValues);
     end
 
     similarStrings = valueReferenceList(idxFiltered);
 end
 
 %-------------------------------------------------------------------------%
-function idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, tokenList, tokenListLength, value2Search, idxFiltered, nMinValues)
+function idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, tokenList, tokenListLength, valueToSearch, idxFiltered, numMinValues)
     % As funções "startsWith" e "contains" não precisam do argumento opcional 
     % "IgnoreCase" igual a true porque os valores sob análise já estão nas suas 
     % versões lowcase.
@@ -37,44 +37,68 @@ function idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, to
 
     switch methodName
         case 'startsWith'
-            idxLogical  = startsWith(valueReferenceList, value2Search);
+            idxLogical  = startsWith(valueReferenceList, valueToSearch);
             idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
     
         case 'Contains'
-            idxLogical  = contains(valueReferenceList, value2Search);
+            idxLogical  = contains(valueReferenceList, valueToSearch);
             idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
 
-        case 'Levenshtein_Optimazed'
-            % Calcula comprimento das palavras (tokenListLength vai ser
-            % sempre igual, então pré-calcular na estrutura do cache).
-            value2SearchLength = numel(value2Search);
+        % case 'Levenshtein'
+        %     persistent nTokens
+        %     persistent levDistance
+        % 
+        %     if isempty(nTokens)
+        %         nTokens     = numel(tokenList);
+        %         levDistance = zeros(nTokens, 1);
+        %     end
+        % 
+        %     parpoolCheck()
+        %     parfor ii = 1:nTokens
+        %         levDistance(ii) = LevenshteinDistance(tokenList{ii}, valueToSearch);
+        %     end
+        %     [~, sortedIndex] = sort(levDistance);
+        % 
+        %     kk = 0;
+        %     while numel(idxFiltered) < nMinValues
+        %         kk = kk+1;
+        %         if kk > nTokens
+        %             break
+        %         end
+        % 
+        %         idxLogical  = contains(valueReferenceList, tokenList{sortedIndex(kk)});
+        %         idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
+        %     end
+        %     idxFiltered = idxFiltered(1:min([numel(idxFiltered), nMinValues]));
+
+        case 'Levenshtein'
+            numValueToSearch = numel(valueToSearch);
 
             % Identifica os candidatos, que é um conjunto com um tamanho
             % mínimo.
-            nMinCandidates = nMinValues - numel(idxFiltered);
-            initialMaxLengthDiff = 5;
-            while true
-                candidateMask = abs(tokenListLength - value2SearchLength) <= initialMaxLengthDiff;
-                candidateIdx  = find(candidateMask);
+            nMinCandidates = numMinValues - numel(idxFiltered);
+            initialMaxLengthDiff = 3;
 
-                if nMinCandidates < numel(candidateIdx)
+            while true
+                candidateMask = abs(tokenListLength - numValueToSearch) <= initialMaxLengthDiff;
+                if nMinCandidates < sum(candidateMask)
                     break
                 end
                 initialMaxLengthDiff = initialMaxLengthDiff+1;
             end
         
-            candidatesList = tokenList(candidateIdx);
-            numCandidates  = numel(candidateIdx);
+            candidatesList = tokenList(candidateMask);
+            numCandidates  = sum(candidateMask);
             localDistances = zeros(numCandidates, 1);
 
             parpoolCheck()
             parfor ii = 1:numCandidates
-                localDistances(ii) = LevenshteinDistance(candidatesList{ii}, value2Search);
+                localDistances(ii) = LevenshteinDistance(candidatesList{ii}, valueToSearch);
             end
-            [~, sortedIndex] = mink(localDistances, nMinCandidates);         
+            [~, sortedIndex] = mink(localDistances, nMinCandidates);
         
             kk = 0;
-            while numel(idxFiltered) < nMinValues
+            while numel(idxFiltered) < numMinValues
                 kk = kk+1;
                 if kk > nMinCandidates
                     break
@@ -83,34 +107,7 @@ function idxFiltered = getSimilarStringsIndex(methodName, valueReferenceList, to
                 idxLogical  = contains(valueReferenceList, candidatesList{sortedIndex(kk)});
                 idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
             end
-            idxFiltered = idxFiltered(1:min([numel(idxFiltered), nMinValues]));
-    
-        case 'Levenshtein'
-            persistent nTokens
-            persistent levDistance
-
-            if isempty(nTokens)
-                nTokens     = numel(tokenList);
-                levDistance = zeros(nTokens, 1);
-            end
-
-            parpoolCheck()
-            parfor ii = 1:nTokens
-                levDistance(ii) = LevenshteinDistance(tokenList{ii}, value2Search);
-            end
-            [~, sortedIndex] = sort(levDistance);
-    
-            kk = 0;
-            while numel(idxFiltered) < nMinValues
-                kk = kk+1;
-                if kk > nTokens
-                    break
-                end
-    
-                idxLogical  = contains(valueReferenceList, tokenList{sortedIndex(kk)});
-                idxFiltered = unique([idxFiltered; find(idxLogical)], 'stable');
-            end
-            idxFiltered = idxFiltered(1:min([numel(idxFiltered), nMinValues]));
+            idxFiltered = idxFiltered(1:min([numel(idxFiltered), numMinValues]));
     end
 end
 

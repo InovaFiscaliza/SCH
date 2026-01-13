@@ -1,5 +1,5 @@
 {
-    "version": 2.02,
+    "version": 2.03,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -28,7 +28,7 @@
         "mode": "tokens",
         "function": "strcmp",
         "minCharacters": 2,
-        "minDisplayedTokens": 50,
+        "minDisplayedTokens": 20,
         "cacheColumns": "Homologação | Solicitante | Fabricante | Modelo | Nome Comercial",
         "wordCloud": {
             "algorithm": "D3.js",

@@ -879,7 +879,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_nMinWords
             app.config_nMinWords = uidropdown(app.config_MiscelaneousGrid1);
-            app.config_nMinWords.Items = {'20', '50', '100'};
+            app.config_nMinWords.Items = {'20', '50'};
             app.config_nMinWords.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinWords.FontSize = 11;
             app.config_nMinWords.BackgroundColor = [1 1 1];
