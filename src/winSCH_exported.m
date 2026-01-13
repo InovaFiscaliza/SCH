@@ -681,7 +681,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.projectData = model.Project(app, app.rootFolder);
             app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
             
-            if app.General.Report.indexedDBCache.status
+            if ~strcmp(app.executionMode, 'desktopStandaloneApp') && app.General.Report.indexedDBCache.status
                 appEngine.indexedDB.openDB(app.jsBackDoor, class.Constants.appName)
             end
 

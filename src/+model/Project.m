@@ -156,8 +156,12 @@ classdef Project < handle
                 operationType {mustBeMember(operationType, {'normal', 'forceUpdate'})} = 'normal'
             end
 
-            generalSettings = obj.mainApp.General;
+            executionMode = obj.mainApp.executionMode;
+            if strcmp(executionMode, 'desktopStandaloneApp')
+                return
+            end
 
+            generalSettings = obj.mainApp.General;
             if ~generalSettings.Report.indexedDBCache.status
                 return
             end
@@ -753,7 +757,9 @@ classdef Project < handle
             end
 
             uploadedFiles = obj.modules.(context).uploadedFiles;
-            uploadedFiles = uploadedFiles(strcmp({uploadedFiles.system}, system) & [uploadedFiles.issue] == issue);
+            if ~isempty(uploadedFiles)
+                uploadedFiles = uploadedFiles(strcmp({uploadedFiles.system}, system) & [uploadedFiles.issue] == issue);
+            end
         end
 
         %-----------------------------------------------------------------%
