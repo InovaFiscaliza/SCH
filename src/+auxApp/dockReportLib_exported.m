@@ -240,6 +240,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             end
 
             Save(app.projectData, context, projectName, projectFile, app.mainApp.General.Report.outputCompressionMode)
+            IndexedDBCache(app.projectData)
             updatePanel(app, context)
 
         end

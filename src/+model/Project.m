@@ -71,7 +71,7 @@ classdef Project < handle
         %-----------------------------------------------------------------%
         mainApp
         rootFolder
-        indexedDBCacheLastSync
+        indexedDB = struct('syncTimer', [], 'lastSyncAt', [], 'lastSyncHash', '')
     end
 
 
@@ -80,10 +80,12 @@ classdef Project < handle
         function obj = Project(mainApp, rootFolder)            
             obj.mainApp = mainApp;
             obj.rootFolder = rootFolder;
+
             obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
             obj.regulatronData = model.ProjectBase.readRegulatronData(rootFolder, mainApp.General.fileFolder.DataHub_GET);
 
             Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
+            IndexedDBTimer(obj)
         end
 
         %-----------------------------------------------------------------%
@@ -150,23 +152,17 @@ classdef Project < handle
         end
 
         %-----------------------------------------------------------------%
-        function IndexedDBCache(obj, operationType)
-            arguments
-                obj 
-                operationType {mustBeMember(operationType, {'normal', 'forceUpdate'})} = 'normal'
-            end
-
-            executionMode = obj.mainApp.executionMode;
-            if strcmp(executionMode, 'desktopStandaloneApp')
+        function IndexedDBCache(obj)
+            if ~IndexedDBStatus(obj)
                 return
             end
 
-            generalSettings = obj.mainApp.General;
-            if ~generalSettings.Report.indexedDBCache.status
-                return
-            end
+            prjHash = model.ProjectBase.computeProjectHash(obj.name, obj.file, obj.inspectedProducts, obj.issueDetails, obj.entityDetails);
 
-            if strcmp(operationType, 'forceUpdate') || isempty(obj.indexedDBCacheLastSync) || minutes(datetime('now') - obj.indexedDBCacheLastSync) > generalSettings.Report.indexedDBCache.intervalMinutes
+            if ~strcmp(obj.indexedDB.lastSyncHash, prjHash)
+                obj.indexedDB.lastSyncAt = datetime('now');
+                obj.indexedDB.lastSyncHash = prjHash;                
+
                 prjData = struct( ...
                     'version', 1, ...
                     'name', obj.name, ...
@@ -177,14 +173,13 @@ classdef Project < handle
                     'entityDetails', obj.entityDetails, ...
                     'inspectedProducts', renamevars( ...
                         obj.inspectedProducts, ...
-                        generalSettings.ui.reportTable.exportedFiles.sharepoint.name, ...
-                        generalSettings.ui.reportTable.exportedFiles.sharepoint.label ...
+                        obj.mainApp.General.ui.reportTable.exportedFiles.sharepoint.name, ...
+                        obj.mainApp.General.ui.reportTable.exportedFiles.sharepoint.label ...
                     ), ...
                     'timestamp', datestr(now) ...
                 );
-    
+
                 appEngine.indexedDB.saveData(obj.mainApp.jsBackDoor, class.Constants.appName, 'prjData', prjData)
-                obj.indexedDBCacheLastSync = datetime('now');
             end
         end
 
@@ -452,8 +447,8 @@ classdef Project < handle
                                 Initialization(obj, {'SEARCH', 'PRODUCTS'}, generalSettings)
 
                                 obj.name = prjData.name;
-                                obj.file = prjData.name;
-                                obj.hash = prjData.name;
+                                obj.file = prjData.file;
+                                obj.hash = prjData.hash;
 
                                 obj.modules = prjData.modules;
 
@@ -621,8 +616,6 @@ classdef Project < handle
             obj.modules.(context).generatedFiles.lastJSONFullPath    = jsonFile;
             obj.modules.(context).generatedFiles.lastTableFullPath   = tableFile;
             obj.modules.(context).generatedFiles.lastZIPFullPath     = zipFile;
-
-            IndexedDBCache(obj)
         end
 
         %-----------------------------------------------------------------%
@@ -642,8 +635,6 @@ classdef Project < handle
                 'status', status, ...
                 'timestamp', datestr(now) ...
             );
-
-            IndexedDBCache(obj)
         end
 
         %-----------------------------------------------------------------%
@@ -682,8 +673,6 @@ classdef Project < handle
                     indexes = varargin{1};
                     obj.inspectedProducts(indexes, :) = [];
             end
-
-            IndexedDBCache(obj)
         end
 
         %-----------------------------------------------------------------%
@@ -716,8 +705,6 @@ classdef Project < handle
                 otherwise
                     obj.modules.(context).ui.(fieldName) = fieldValue;
             end
-
-            IndexedDBCache(obj)
         end
 
         %-----------------------------------------------------------------%
@@ -865,6 +852,30 @@ classdef Project < handle
                 templateIndexes = ismember({obj.report.templates.Module}, contextList(ii));
                 obj.modules.(contextList{ii}).ui.templates = [{''}, templateNameList(templateIndexes)];
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function status = IndexedDBStatus(obj)
+            status = ~strcmp(obj.mainApp.executionMode, 'desktopStandaloneApp') && obj.mainApp.General.Report.indexedDBCache.status;
+        end
+
+        %-----------------------------------------------------------------%
+        function IndexedDBTimer(obj)
+            if ~IndexedDBStatus(obj)
+                return
+            end
+
+            timerInterval = 60* obj.mainApp.General.Report.indexedDBCache.intervalMinutes; % minutes >> seconds
+            
+            obj.indexedDB.syncTimer = timer( ...
+                "ExecutionMode", "fixedSpacing", ...
+                "BusyMode", "drop", ...
+                "StartDelay", timerInterval, ...
+                "Period", timerInterval, ...
+                "TimerFcn", @(~,~) IndexedDBCache(obj) ...
+            );
+
+            start(obj.indexedDB.syncTimer)
         end
     end
     

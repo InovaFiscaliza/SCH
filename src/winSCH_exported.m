@@ -147,6 +147,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                         if ~app.renderCount
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         else
+                            try
+                                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                                    struct('appName', appName, 'dataTag', app.jsBackDoor.UserData.id, 'generation', 0, 'stackorder', 'top') ...
+                                });
+                            catch
+                            end
+
                             selection = app.UITable.Selection;
                             if ~isempty(selection)
                                 app.UITable.Selection = [];
@@ -372,7 +379,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 switch operationType
                     case 'closeFcn'
                         auxAppTag    = varargin{1};
-                        closeModule(app.tabGroupController, auxAppTag, app.General)
+                        closeModule(app.tabGroupController, auxAppTag, app.General, 'normal')
 
                     case 'dockButtonPushed'
                         auxAppTag    = varargin{1};
@@ -578,15 +585,16 @@ classdef winSCH_exported < matlab.apps.AppBase
                     appName = class(app);
                     elToModify = {
                         app.searchEntryPoint;
-                        app.selectedProductPanelInfo;                             % ui.TextView
-                        app.selectedProductPanelBackground;                        % ui.TextView (Background image)
+                        app.selectedProductPanelInfo;                    % ui.TextView
+                        app.selectedProductPanelBackground;              % ui.TextView (Background image)
                         app.searchSuggestions;
                         app.PopupTempWarning;
                         app.wordCloudPanel;
                         app.Tab1Button;
                         app.Tab2Button;
                         app.Tab3Button;
-                        app.searchEntryPointGrid
+                        app.searchEntryPointGrid;
+                        app.jsBackDoor
                     };
                     ui.CustomizationBase.getElementsDataTag(elToModify);
 
@@ -1388,8 +1396,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                 return
             end
 
+            IndexedDBCache(app.projectData)
+            
             try
-                IndexedDBCache(app.projectData, 'forceUpdate')
                 util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             catch
             end

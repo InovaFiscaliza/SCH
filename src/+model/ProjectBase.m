@@ -141,8 +141,8 @@ classdef (Abstract) ProjectBase
 
         %-----------------------------------------------------------------%
         function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts, issueDetails, entityDetails)
-            hashList = sort(inspectedProducts.('Hash'));
-            prjHash = Hash.sha1(sprintf('%s - %s - %s - %s - %s', prjName, prjFile, strjoin(hashList, ' - '), jsonencode(issueDetails), jsonencode(entityDetails)));
+            inspectedProducts = sortrows(inspectedProducts, 'Hash');
+            prjHash = Hash.sha1(sprintf('%s - %s - %s - %s - %s', prjName, prjFile, jsonencode(inspectedProducts), jsonencode(issueDetails), jsonencode(entityDetails)));
         end
 
         %-----------------------------------------------------------------%
