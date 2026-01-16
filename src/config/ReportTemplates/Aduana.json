@@ -86,11 +86,7 @@
                     "Data": {
                         "Editable": "false",
                         "Text": "A fiscalização foi realizada em apoio à Receita Federal do Brasil (RFB) e consistiu na análise de produtos para telecomunicações retidos pela RFB, indicando a sua situação e, em caso de irregular, se a irregularidade é sanável.",
-                        "Variable": [
-                            "var_EntityName",
-                            "var_EntityType",
-                            "var_EntityID"
-                        ]
+                        "Variable": []
                     }
                 },
                 {
