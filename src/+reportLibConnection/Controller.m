@@ -89,7 +89,7 @@ classdef (Abstract) Controller
                                                    ... % APLICÁVEIS ÀS SEÇÕES GERAIS DO RELATÓRIO
                                                    'cfg_SEARCH',                'reportLibConnection.Variable.GeneralSettings(reportInfo, "SEARCH+ReportTemplate")', ...
                                                    'cfg_PRODUCTS',              'reportLibConnection.Variable.GeneralSettings(reportInfo, "PRODUCTS+ReportTemplate")', ...
-                                                   'var_Issue',                  num2str(projectData.modules.(context).ui.issue), ...
+                                                   'var_Issue',                  issueId, ...
                                                    'var_Unit',                   projectData.modules.(context).ui.unit, ...
                                                    'eFiscaliza_solicitacaoCode', 'reportLibConnection.Variable.GeneralSettings(reportInfo, "Solicitação de Inspeção")', ...
                                                    'eFiscaliza_acaoCode',       'reportLibConnection.Variable.GeneralSettings(reportInfo, "Ação de Inspeção")', ...
@@ -197,14 +197,14 @@ classdef (Abstract) Controller
                     xlsxFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, xlsxFileConfig);
                     xlsxFileContent = renamevars(xlsxFileContent, xlsxFileConfig.Columns, {xlsxFileConfig.Settings.ColumnName});
 
-                    writematrix(jsonencode(jsonFileContent, 'PrettyPrint', true), JSONFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite")
+                    writematrix(jsonencode(jsonFileContent, 'PrettyPrint', true), JSONFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
                     writetable(xlsxFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
 
                     ZIPFileList = {HTMLFile, JSONFile, XLSXFile};
                     zip(ZIPFile, ZIPFileList)
 
-                    id = model.ProjectBase.computeProjectHash('', '', projectData.inspectedProducts, [], []);
-                    updateGeneratedFiles(projectData, context, id, {}, HTMLFile, JSONFile, XLSXFile, ZIPFile)
+                    generatedFileId = model.ProjectBase.computeProjectHash('', '', projectData.inspectedProducts, [], []);
+                    updateGeneratedFiles(projectData, context, generatedFileId, {}, HTMLFile, JSONFile, XLSXFile, ZIPFile)
             end
         end
     end

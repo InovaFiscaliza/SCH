@@ -372,11 +372,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function varargout = ipcMainMatlabCallsHandler(app, callingApp, operationType, varargin)
+        function varargout = ipcMainMatlabCallsHandler(app, callingApp, eventName, varargin)
             varargout = {};
 
             try
-                switch operationType
+                switch eventName
                     case 'closeFcn'
                         auxAppTag    = varargin{1};
                         closeModule(app.tabGroupController, auxAppTag, app.General, 'normal')
@@ -389,7 +389,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         switch class(callingApp)
                             % auxApp.winConfig (CONFIG)
                             case {'auxApp.winConfig', 'auxApp.winConfig_exported'}
-                                switch operationType        
+                                switch eventName        
                                     case 'checkDataHubLampStatus'
                                         updateWarningLampVisibility(app)
         
@@ -417,7 +417,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         
                             % auxApp.winProducts (PRODUCTS)
                             case {'auxApp.winProducts', 'auxApp.winProducts_exported'}
-                                switch operationType
+                                switch eventName
                                     case 'onReportGenerate'
                                         context = varargin{1};
                                         reportGenerate(app, context, [])
@@ -432,7 +432,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                   'auxApp.dockReportLib',   'auxApp.dockReportLib_exported',   ...
                                   'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ...
                                   'auxApp.dockAnnotation',  'auxApp.dockAnnotation_exported'}
-                                switch operationType
+                                switch eventName
                                     case 'closeFcnCallFromPopupApp'
                                         context = varargin{1};
                                         moduleTag = varargin{2};
@@ -443,7 +443,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                                 app.popupContainer.Parent.Visible = 0;
                                             otherwise
                                                 hApp = getAppHandle(app.tabGroupController, context);
-                                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', operationType)
+                                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', eventName)
                                         end
                                         
                                         if ~isempty(hApp)
@@ -453,22 +453,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     % auxApp.dockProductInfo
                                     case {'onTableSelectionChanged', 'onTableCellEdited'}
                                         context  = varargin{1};
-                                        varargin = [{operationType}, varargin(2:end)];
+                                        varargin = [{eventName}, varargin(2:end)];
                                         ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
-                                        return
         
                                     % auxApp.dockReportLib
                                     case {'onProjectRestart', 'onProjectLoad', 'onFinalReportFileChanged'}
                                         context  = varargin{1};
-                                        varargin = [{operationType}, varargin(2:end)];
+                                        varargin = [{eventName}, varargin(2:end)];
                                         ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
-                                        return
-        
-                                    % auxApp.dockReportLib
+                                        
                                     case 'onUpdateLastVisitedFolder'
                                         filePath = varargin{1};
                                         updateLastVisitedFolder(app, filePath)
-                                        return
 
                                     case 'onFetchIssueDetails'
                                         context  = varargin{1};

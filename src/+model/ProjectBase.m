@@ -158,10 +158,10 @@ classdef (Abstract) ProjectBase
                 'VariableNames', model.ProjectBase.INSPECTEDPRODUCTSSPECIFICATION(:, 2) ...
             );
             
-            inspectedProducts.("Tipo")     = categorical(inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options);
-            inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options);
-            inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options);
-            inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'});
+            inspectedProducts.("Tipo")     = categorical(inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options,   'Protected', true);
+            inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options, 'Protected', true);
+            inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options, 'Protected', true);
+            inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'},                        'Protected', true);
         end
 
         %-----------------------------------------------------------------%

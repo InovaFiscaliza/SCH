@@ -29,6 +29,7 @@ classdef winProducts_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'secondaryApp'
+        Context = 'PRODUCTS'
     end
 
 
@@ -256,15 +257,13 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function reportController(app, eventName)
-            context = 'PRODUCTS';
-            
+        function reportDispatchOperation(app, eventName)
             if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
                 dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
                 dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
-                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', eventName, 'Fields', dialogBox, 'Context', context))
+                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', eventName, 'Fields', dialogBox, 'Context', app.Context))
             else
-                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, context)
+                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, app.Context)
             end
         end
     end
@@ -458,7 +457,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % </VALIDAÇÕES>
 
             % <PROCESSO>
-            reportController(app, 'onReportGenerate')
+            reportDispatchOperation(app, 'onReportGenerate')
             % </PROCESSO>
 
         end
@@ -467,7 +466,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         function Toolbar_UploadFinalFileImageClicked(app, event)
             
             % <VALIDAÇÕES>
-            context = 'PRODUCTS';
+            context = app.Context;
             
             system = app.projectData.modules.(context).ui.system;
             issue = app.projectData.modules.(context).ui.issue;
@@ -527,7 +526,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             % </VALIDAÇÕES>
 
             % <PROCESSO>
-            reportController(app, 'onUploadArtifacts')
+            reportDispatchOperation(app, 'onUploadArtifacts')
             % </PROCESSO>
 
         end
@@ -568,24 +567,9 @@ classdef winProducts_exported < matlab.apps.AppBase
             elseif ischar(event.NewData) && isequal(strtrim(event.NewData), event.PreviousData)
                 event.Source.Data{event.Indices(1), event.Indices(2)} = {event.PreviousData};
                 return
-
-            % Outro comportamento inesperado é a possibilidade de editar as
-            % categorias das colunas categóricas. Para evitar isso, afere-se
-            % se o nome valor é membro da lista de valores esperados.
+                
             else
                 editedGUIColumn = event.Source.ColumnName{event.Indices(2)};
-
-                if (strcmpi(editedGUIColumn, 'TIPO')     && ~ismember(event.NewData, app.mainApp.General.ui.typeOfProduct.options))   || ...
-                   (strcmpi(editedGUIColumn, 'SITUAÇÃO') && ~ismember(event.NewData, app.mainApp.General.ui.typeOfSituation.options)) || ...
-                   (strcmpi(editedGUIColumn, 'INFRAÇÃO') && ~ismember(event.NewData, app.mainApp.General.ui.typeOfViolation.options)) || ...
-                   (strcmpi(editedGUIColumn, 'SANÁVEL?') && ~ismember(event.NewData, {'-', 'Sim', 'Não'}))
-
-                    columnNames      = app.projectData.inspectedProducts.Properties.VariableNames;
-                    editedRealColumn = columnNames{find(strcmpi(editedGUIColumn, columnNames), 1)};
-
-                    app.UITable.Data.(editedRealColumn) = app.projectData.inspectedProducts.(editedRealColumn);
-                    return
-                end
 
                 switch editedGUIColumn
                     case 'TIPO'
