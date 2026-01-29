@@ -5,8 +5,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         UIFigure                        matlab.ui.Figure
         GridLayout                      matlab.ui.container.GridLayout
         DockModule                      matlab.ui.container.GridLayout
-        dockModule_Undock               matlab.ui.control.Image
         dockModule_Close                matlab.ui.control.Image
+        dockModule_Undock               matlab.ui.control.Image
         SubTabGroup                     matlab.ui.container.TabGroup
         SubTab1                         matlab.ui.container.Tab
         SubGrid1                        matlab.ui.container.GridLayout
@@ -61,8 +61,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         DataHubGET                      matlab.ui.control.EditField
         DATAHUBGETLabel                 matlab.ui.control.Label
         Toolbar                         matlab.ui.container.GridLayout
-        exportTable                     matlab.ui.control.Image
         openDevTools                    matlab.ui.control.Image
+        exportTable                     matlab.ui.control.Image
     end
 
     
@@ -115,9 +115,29 @@ classdef winConfig_exported < matlab.apps.AppBase
             
             switch tabIndex
                 case 1
-                    elDataTag = ui.CustomizationBase.getElementsDataTag({app.versionInfo});
-                    if ~isempty(elDataTag)
+                    appName = class(app);
+                    elToModify = {
+                        app.versionInfo;
+                        app.exportTable;
+                        app.openDevTools;
+                        app.dockModule_Undock;
+                        app.dockModule_Close
+                    };
+                    ui.CustomizationBase.getElementsDataTag(elToModify);
+
+                    try
                         ui.TextView.startup(app.jsBackDoor, app.versionInfo, class(app));
+                    catch
+                    end
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', app.exportTable.UserData.id,       'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre cópia de base dados no Excel')), ...
+                            struct('appName', appName, 'dataTag', app.openDevTools.UserData.id,      'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre DevTools')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id,  'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                        });
+                    catch
                     end
 
                 case 2
@@ -729,24 +749,23 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.Toolbar.Layout.Column = [1 5];
             app.Toolbar.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
+            % Create exportTable
+            app.exportTable = uiimage(app.Toolbar);
+            app.exportTable.ScaleMethod = 'none';
+            app.exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
+            app.exportTable.Enable = 'off';
+            app.exportTable.Layout.Row = [1 3];
+            app.exportTable.Layout.Column = 1;
+            app.exportTable.ImageSource = 'sheet_20px.png';
+
             % Create openDevTools
             app.openDevTools = uiimage(app.Toolbar);
             app.openDevTools.ScaleMethod = 'none';
             app.openDevTools.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
             app.openDevTools.Enable = 'off';
-            app.openDevTools.Tooltip = {'Abre DevTools'};
-            app.openDevTools.Layout.Row = 2;
+            app.openDevTools.Layout.Row = [1 3];
             app.openDevTools.Layout.Column = 3;
             app.openDevTools.ImageSource = 'Debug_18.png';
-
-            % Create exportTable
-            app.exportTable = uiimage(app.Toolbar);
-            app.exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
-            app.exportTable.Enable = 'off';
-            app.exportTable.Tooltip = {'Abre cópia de base dados no Excel'};
-            app.exportTable.Layout.Row = 2;
-            app.exportTable.Layout.Column = 1;
-            app.exportTable.ImageSource = 'Sheet_32.png';
 
             % Create SubTabGroup
             app.SubTabGroup = uitabgroup(app.GridLayout);
@@ -1131,12 +1150,13 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create DataHubGETButton
             app.DataHubGETButton = uiimage(app.SubGrid4);
+            app.DataHubGETButton.ScaleMethod = 'none';
             app.DataHubGETButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
-            app.DataHubGETButton.Tag = 'DataHub_POST';
+            app.DataHubGETButton.Tag = 'DataHub_GET';
             app.DataHubGETButton.Enable = 'off';
             app.DataHubGETButton.Layout.Row = 2;
             app.DataHubGETButton.Layout.Column = 2;
-            app.DataHubGETButton.ImageSource = 'OpenFile_36x36.png';
+            app.DataHubGETButton.ImageSource = 'folder-opened-16px.svg';
 
             % Create DATAHUBPOSTLabel
             app.DATAHUBPOSTLabel = uilabel(app.SubGrid4);
@@ -1155,12 +1175,13 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create DataHubPOSTButton
             app.DataHubPOSTButton = uiimage(app.SubGrid4);
+            app.DataHubPOSTButton.ScaleMethod = 'none';
             app.DataHubPOSTButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
             app.DataHubPOSTButton.Tag = 'DataHub_POST';
             app.DataHubPOSTButton.Enable = 'off';
             app.DataHubPOSTButton.Layout.Row = 4;
             app.DataHubPOSTButton.Layout.Column = 2;
-            app.DataHubPOSTButton.ImageSource = 'OpenFile_36x36.png';
+            app.DataHubPOSTButton.ImageSource = 'folder-opened-16px.svg';
 
             % Create userPathLabel
             app.userPathLabel = uilabel(app.SubGrid4);
@@ -1179,12 +1200,13 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create userPathButton
             app.userPathButton = uiimage(app.SubGrid4);
+            app.userPathButton.ScaleMethod = 'none';
             app.userPathButton.ImageClickedFcn = createCallbackFcn(app, @Config_FolderButtonPushed, true);
             app.userPathButton.Tag = 'userPath';
             app.userPathButton.Enable = 'off';
             app.userPathButton.Layout.Row = 6;
             app.userPathButton.Layout.Column = 2;
-            app.userPathButton.ImageSource = 'OpenFile_36x36.png';
+            app.userPathButton.ImageSource = 'folder-opened-16px.svg';
 
             % Create DockModule
             app.DockModule = uigridlayout(app.GridLayout);
@@ -1196,26 +1218,22 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DockModule.Layout.Column = [3 4];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
-            % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModule);
-            app.dockModule_Close.ScaleMethod = 'none';
-            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Close.Tag = 'DRIVETEST';
-            app.dockModule_Close.Tooltip = {'Fecha módulo'};
-            app.dockModule_Close.Layout.Row = 1;
-            app.dockModule_Close.Layout.Column = 2;
-            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
-
             % Create dockModule_Undock
             app.dockModule_Undock = uiimage(app.DockModule);
             app.dockModule_Undock.ScaleMethod = 'none';
             app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Undock.Tag = 'DRIVETEST';
             app.dockModule_Undock.Enable = 'off';
-            app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.dockModule_Undock.Layout.Row = 1;
             app.dockModule_Undock.Layout.Column = 1;
             app.dockModule_Undock.ImageSource = 'Undock_18White.png';
+
+            % Create dockModule_Close
+            app.dockModule_Close = uiimage(app.DockModule);
+            app.dockModule_Close.ScaleMethod = 'none';
+            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.dockModule_Close.Layout.Row = 1;
+            app.dockModule_Close.Layout.Column = 2;
+            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

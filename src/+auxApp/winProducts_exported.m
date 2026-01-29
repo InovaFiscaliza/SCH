@@ -5,8 +5,8 @@ classdef winProducts_exported < matlab.apps.AppBase
         UIFigure                matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
         DockModule              matlab.ui.container.GridLayout
-        dockModule_Undock       matlab.ui.control.Image
         dockModule_Close        matlab.ui.control.Image
+        dockModule_Undock       matlab.ui.control.Image
         UITable_ViewType        matlab.ui.container.ButtonGroup
         UITable_CustomsView     matlab.ui.control.RadioButton
         UITable_VendorView      matlab.ui.control.RadioButton
@@ -137,7 +137,31 @@ classdef winProducts_exported < matlab.apps.AppBase
             
             switch tabIndex
                 case 1
-                    ui.CustomizationBase.getElementsDataTag({app.UITable});
+                    appName = class(app);
+                    elToModify = {
+                        app.UITable;
+                        app.tool_OpenPopupEdition;
+                        app.tool_AddNonCertificate;
+                        app.tool_OpenPopupProject;
+                        app.tool_GenerateReport;
+                        app.tool_UploadFinalFile;
+                        app.dockModule_Undock;
+                        app.dockModule_Close
+                    };
+                    ui.CustomizationBase.getElementsDataTag(elToModify);
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupEdition.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre formulário para edição de lista de produtos sob análise')), ...
+                            struct('appName', appName, 'dataTag', app.tool_AddNonCertificate.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Adiciona produto NÃO homologado à lista')), ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupProject.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
+                            struct('appName', appName, 'dataTag', app.tool_GenerateReport.UserData.id,    'tooltip', struct('defaultPosition', 'top',    'textContent', 'Gera relatório')), ...
+                            struct('appName', appName, 'dataTag', app.tool_UploadFinalFile.UserData.id,   'tooltip', struct('defaultPosition', 'top',    'textContent', 'Upload relatório')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id,      'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id,       'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                        });
+                    catch
+                    end
 
                 otherwise
                     % ...
@@ -665,7 +689,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupEdition.ScaleMethod = 'none';
             app.tool_OpenPopupEdition.ImageClickedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.tool_OpenPopupEdition.Enable = 'off';
-            app.tool_OpenPopupEdition.Tooltip = {'Abre formulário para edição de lista de produtos sob análise'};
             app.tool_OpenPopupEdition.Layout.Row = [1 3];
             app.tool_OpenPopupEdition.Layout.Column = 1;
             app.tool_OpenPopupEdition.ImageSource = 'Variable_edit_16.png';
@@ -673,7 +696,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             % Create tool_AddNonCertificate
             app.tool_AddNonCertificate = uiimage(app.Toolbar);
             app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddNonCertificateImageClicked, true);
-            app.tool_AddNonCertificate.Tooltip = {'Adiciona produto NÃO homologado à lista'};
             app.tool_AddNonCertificate.Layout.Row = [1 3];
             app.tool_AddNonCertificate.Layout.Column = 2;
             app.tool_AddNonCertificate.ImageSource = 'AddForbidden_32.png';
@@ -682,7 +704,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupProject = uiimage(app.Toolbar);
             app.tool_OpenPopupProject.ScaleMethod = 'none';
             app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupProjectImageClicked, true);
-            app.tool_OpenPopupProject.Tooltip = {'Projeto (fiscalizada, arquivo de backup etc)'};
             app.tool_OpenPopupProject.Layout.Row = [1 3];
             app.tool_OpenPopupProject.Layout.Column = 4;
             app.tool_OpenPopupProject.ImageSource = 'organization-20px-black.svg';
@@ -692,23 +713,21 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_GenerateReport.ScaleMethod = 'none';
             app.tool_GenerateReport.ImageClickedFcn = createCallbackFcn(app, @Toolbar_GenerateReportImageClicked, true);
             app.tool_GenerateReport.Enable = 'off';
-            app.tool_GenerateReport.Tooltip = {'Gera relatório'};
             app.tool_GenerateReport.Layout.Row = [1 3];
             app.tool_GenerateReport.Layout.Column = 5;
             app.tool_GenerateReport.ImageSource = 'Publish_HTML_16.png';
 
             % Create tool_UploadFinalFile
             app.tool_UploadFinalFile = uiimage(app.Toolbar);
+            app.tool_UploadFinalFile.ScaleMethod = 'none';
             app.tool_UploadFinalFile.ImageClickedFcn = createCallbackFcn(app, @Toolbar_UploadFinalFileImageClicked, true);
             app.tool_UploadFinalFile.Enable = 'off';
-            app.tool_UploadFinalFile.Tooltip = {'Upload relatório'};
-            app.tool_UploadFinalFile.Layout.Row = 2;
+            app.tool_UploadFinalFile.Layout.Row = [1 3];
             app.tool_UploadFinalFile.Layout.Column = 6;
-            app.tool_UploadFinalFile.ImageSource = 'Up_24.png';
+            app.tool_UploadFinalFile.ImageSource = 'up-20px.png';
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
-            app.UITable.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
             app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
             app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
             app.UITable.RowName = {};
@@ -716,7 +735,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
-            app.UITable.Tooltip = {''};
             app.UITable.Layout.Row = 7;
             app.UITable.Layout.Column = [2 8];
             app.UITable.FontSize = 10;
@@ -734,10 +752,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_ShowDataRules = uiimage(app.GridLayout);
             app.tool_ShowDataRules.ScaleMethod = 'stretch';
             app.tool_ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
-            app.tool_ShowDataRules.Tooltip = {''};
             app.tool_ShowDataRules.Layout.Row = [4 5];
             app.tool_ShowDataRules.Layout.Column = 2;
-            app.tool_ShowDataRules.VerticalAlignment = 'top';
             app.tool_ShowDataRules.ImageSource = 'info-16px-gray.svg';
 
             % Create UITable_NumRows
@@ -789,26 +805,22 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.Layout.Column = [8 9];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
-            % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModule);
-            app.dockModule_Close.ScaleMethod = 'none';
-            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Close.Tag = 'DRIVETEST';
-            app.dockModule_Close.Tooltip = {'Fecha módulo'};
-            app.dockModule_Close.Layout.Row = 1;
-            app.dockModule_Close.Layout.Column = 2;
-            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
-
             % Create dockModule_Undock
             app.dockModule_Undock = uiimage(app.DockModule);
             app.dockModule_Undock.ScaleMethod = 'none';
             app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Undock.Tag = 'DRIVETEST';
             app.dockModule_Undock.Enable = 'off';
-            app.dockModule_Undock.Tooltip = {'Reabre módulo em outra janela'};
             app.dockModule_Undock.Layout.Row = 1;
             app.dockModule_Undock.Layout.Column = 1;
             app.dockModule_Undock.ImageSource = 'Undock_18White.png';
+
+            % Create dockModule_Close
+            app.dockModule_Close = uiimage(app.DockModule);
+            app.dockModule_Close.ScaleMethod = 'none';
+            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.dockModule_Close.Layout.Row = 1;
+            app.dockModule_Close.Layout.Column = 2;
+            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

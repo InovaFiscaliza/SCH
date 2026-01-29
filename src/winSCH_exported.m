@@ -29,8 +29,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         selectedProductPanelInfo        matlab.ui.control.Label
         selectedProductPanelBackground  matlab.ui.control.Image
         UITable                         matlab.ui.control.Table
-        UITable_NumRows                 matlab.ui.control.Label
         filterSpecification             matlab.ui.control.Label
+        UITable_NumRows                 matlab.ui.control.Label
         filterSpecificationIcon         matlab.ui.control.Image
         Toolbar                         matlab.ui.container.GridLayout
         tool_AddSelectedToBucket        matlab.ui.control.Image
@@ -591,6 +591,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.Tab3Button;
                         app.searchEntryPointGrid;
                         app.jsBackDoor
+                        app.tool_PanelVisibility;
+                        app.tool_OpenPopupAnnotation;
+                        app.tool_WordCloudVisibility;
+                        app.tool_OpenPopupFilter;
+                        app.tool_ExportVisibleTable;
+                        app.tool_AddSelectedToBucket
                     };
                     ui.CustomizationBase.getElementsDataTag(elToModify);
 
@@ -633,6 +639,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                             struct('appName', appName, 'dataTag', elToModify{7}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', elToModify{8}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', elToModify{9}.UserData.id, 'generation', 1, 'class', 'tab-navigator-button') ...
+                        });
+                    catch
+                    end
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', app.tool_PanelVisibility.UserData.id,     'tooltip', struct('defaultPosition', 'top', 'textContent', 'Alterna visibilidade do painel')), ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupAnnotation.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona anotação textual ao registro selecionado')), ...
+                            struct('appName', appName, 'dataTag', app.tool_WordCloudVisibility.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exibe ou oculta a nuvem de palavras')), ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupFilter.UserData.id,     'tooltip', struct('defaultPosition', 'top', 'textContent', 'Configura estratégia de filtragem')), ...
+                            struct('appName', appName, 'dataTag', app.tool_ExportVisibleTable.UserData.id,  'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exporta resultados de busca em arquivo Excel (.xlsx)')), ...
+                            struct('appName', appName, 'dataTag', app.tool_AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos sob análise')) ...
                         });
                     catch
                     end
@@ -719,7 +737,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Salva na propriedade "UserData" as opções de ícone e o índice
             % da aba, simplificando os ajustes decorrentes de uma alteração...
-            app.tool_WordCloudVisibility.UserData = false;
+            app.tool_WordCloudVisibility.UserData.status = false;
 
             % Inicialização da propriedade "UserData" da tabela.
             app.UITable.UserData = struct('matchRowIdxs', []);
@@ -982,11 +1000,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                     case 1
                         resultsContext = [resultsContext 'Um filtro por coluna ativo'];
                     otherwise
-                        resultsContext = [resultsContext sprintf('%s filtros por coluna ativo', numColumnFilter)];
+                        resultsContext = [resultsContext sprintf('%d filtros por coluna ativo', numColumnFilter)];
                 end
             end
 
-            set(app.filterSpecification, 'Text', sprintf('%s\n%s', searchSpecInfo, resultsContext), 'Tooltip', strjoin(columnFilterList, '\n'))
+            if ~isempty(columnFilterList)
+                columnFilterList = sprintf('Filtros por coluna:\n%s', strjoin(strcat('• ', columnFilterList), '\n'));
+            end
+
+            set(app.filterSpecification, 'Text', sprintf('%s\n%s', searchSpecInfo, resultsContext), 'Tooltip', char(columnFilterList))
         end
 
         %-----------------------------------------------------------------%
@@ -1376,7 +1398,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         function startupFcn(app)
 
             try
-                Toolbar_PanelVisibilityImageClicked(app)
                 appEngine.boot(app, app.Role)
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -1467,13 +1488,21 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: AppInfo, FigurePosition, Tab1Button, 
-        % ...and 2 other components
+        % Callback function: AppInfo, DataHubLamp, FigurePosition, 
+        % ...and 3 other components
         function onTabNavigatorButtonPushed(app, event)
 
             switch event.Source
                 case {app.Tab1Button, app.Tab2Button, app.Tab3Button}
                     openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, app)
+
+                case app.DataHubLamp
+                    msg = [ ...
+                        'Pendente mapear as pastas GET/POST do SharePoint, de modo a viabilizar:<br>' ...
+                        '•&thinsp;Consulta à base atualizada de produtos para telecomunicações com homologação expedida pela Anatel;<br>' ...
+                        '•&thinsp;Upload do relatório final para o SEI.' ...
+                    ];
+                    ui.Dialog(app.UIFigure, 'error', msg);
 
                 case app.FigurePosition
                     app.UIFigure.Position(3:4) = class.Constants.windowSize;
@@ -1572,7 +1601,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                     selectedProductPanelInfoUpdate(app, htmlSource, selected2focusedHom)
 
                     % Apresenta a nuvem de palavras apenas se visível...
-                    if app.tool_WordCloudVisibility.UserData
+                    if app.tool_WordCloudVisibility.UserData.status
                         if wordCloudCheckCache(app, selected2focusedHom, relatedAnnotationTable)
                             if ~wordCloudUpdatePlot(app, selected2focusedHom)
                                 if ~isempty(app.wordCloudObj.Table)
@@ -1606,7 +1635,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.selectedProductPanelGrid.Visible = 0;
                 app.UITable.Layout.Column = [1 6];
 
-                if app.tool_WordCloudVisibility.UserData
+                if app.tool_WordCloudVisibility.UserData.status
                     wordCloudInitialize(app)
                     Toolbar_WordCloudVisibilityImageClicked(app)
                 end
@@ -1624,9 +1653,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         % Image clicked function: tool_WordCloudVisibility
         function Toolbar_WordCloudVisibilityImageClicked(app, event)
             
-            app.tool_WordCloudVisibility.UserData = ~app.tool_WordCloudVisibility.UserData;
+            app.tool_WordCloudVisibility.UserData.status = ~app.tool_WordCloudVisibility.UserData.status;
     
-            if app.tool_WordCloudVisibility.UserData
+            if app.tool_WordCloudVisibility.UserData.status
                 app.selectedProductPanelGrid.RowHeight{2} = 150;
                  % drawnow
                 pause(0.010)
@@ -1803,7 +1832,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_PanelVisibility = uiimage(app.Toolbar);
             app.tool_PanelVisibility.ScaleMethod = 'none';
             app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
-            app.tool_PanelVisibility.Tooltip = {''};
             app.tool_PanelVisibility.Layout.Row = [1 4];
             app.tool_PanelVisibility.Layout.Column = 1;
             app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right-off.svg');
@@ -1822,7 +1850,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupAnnotation.VisitedColor = [0 0 0];
             app.tool_OpenPopupAnnotation.FontSize = 14;
             app.tool_OpenPopupAnnotation.FontColor = [0 0 0];
-            app.tool_OpenPopupAnnotation.Tooltip = {'Adiciona ao registro selecionado uma anotação textual'; '(fabricante, modelo etc)'};
+            app.tool_OpenPopupAnnotation.Enable = 'off';
             app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
             app.tool_OpenPopupAnnotation.Layout.Column = 3;
             app.tool_OpenPopupAnnotation.Text = '✍️';
@@ -1831,7 +1859,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_WordCloudVisibility = uiimage(app.Toolbar);
             app.tool_WordCloudVisibility.ScaleMethod = 'scaleup';
             app.tool_WordCloudVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_WordCloudVisibilityImageClicked, true);
-            app.tool_WordCloudVisibility.Tooltip = {'Nuvem de palavras'; '(Google/Bing)'};
+            app.tool_WordCloudVisibility.Enable = 'off';
             app.tool_WordCloudVisibility.Layout.Row = [1 4];
             app.tool_WordCloudVisibility.Layout.Column = 4;
             app.tool_WordCloudVisibility.ImageSource = 'cloud-off.svg';
@@ -1848,7 +1876,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupFilter = uiimage(app.Toolbar);
             app.tool_OpenPopupFilter.ScaleMethod = 'none';
             app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
-            app.tool_OpenPopupFilter.Tooltip = {'Configura estratégia de filtragem'};
             app.tool_OpenPopupFilter.Layout.Row = [1 4];
             app.tool_OpenPopupFilter.Layout.Column = 6;
             app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'filter-18px.png');
@@ -1858,10 +1885,9 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_ExportVisibleTable.ScaleMethod = 'none';
             app.tool_ExportVisibleTable.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ExportVisibleTableImageClicked, true);
             app.tool_ExportVisibleTable.Enable = 'off';
-            app.tool_ExportVisibleTable.Tooltip = {'Exporta resultados de busca em arquivo Excel (.xlsx)'};
             app.tool_ExportVisibleTable.Layout.Row = [1 4];
             app.tool_ExportVisibleTable.Layout.Column = 7;
-            app.tool_ExportVisibleTable.ImageSource = 'Export_16.png';
+            app.tool_ExportVisibleTable.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Export_16.png');
 
             % Create tool_Separator3
             app.tool_Separator3 = uiimage(app.Toolbar);
@@ -1875,14 +1901,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_AddSelectedToBucket = uiimage(app.Toolbar);
             app.tool_AddSelectedToBucket.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddSelectedToBucketImageClicked, true);
             app.tool_AddSelectedToBucket.Enable = 'off';
-            app.tool_AddSelectedToBucket.Tooltip = {'Adiciona registros selecionados à lista de produtos sob análise'};
             app.tool_AddSelectedToBucket.Layout.Row = [1 4];
             app.tool_AddSelectedToBucket.Layout.Column = 9;
             app.tool_AddSelectedToBucket.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create Document
             app.Document = uigridlayout(app.Tab1Grid);
-            app.Document.ColumnWidth = {22, 4, '1x', 26, 10, 320};
+            app.Document.ColumnWidth = {22, 4, 300, '1x', 10, 320};
             app.Document.RowHeight = {27, '1x', 1};
             app.Document.ColumnSpacing = 0;
             app.Document.RowSpacing = 3;
@@ -1895,11 +1920,20 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.filterSpecificationIcon = uiimage(app.Document);
             app.filterSpecificationIcon.ScaleMethod = 'stretch';
             app.filterSpecificationIcon.ImageClickedFcn = createCallbackFcn(app, @filterSpecificationIconImageClicked, true);
-            app.filterSpecificationIcon.Tooltip = {''};
             app.filterSpecificationIcon.Layout.Row = 1;
             app.filterSpecificationIcon.Layout.Column = 1;
-            app.filterSpecificationIcon.VerticalAlignment = 'top';
             app.filterSpecificationIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'info-16px-gray.svg');
+
+            % Create UITable_NumRows
+            app.UITable_NumRows = uilabel(app.Document);
+            app.UITable_NumRows.HorizontalAlignment = 'right';
+            app.UITable_NumRows.VerticalAlignment = 'bottom';
+            app.UITable_NumRows.FontSize = 11;
+            app.UITable_NumRows.FontColor = [0.502 0.502 0.502];
+            app.UITable_NumRows.Layout.Row = 1;
+            app.UITable_NumRows.Layout.Column = [4 6];
+            app.UITable_NumRows.Interpreter = 'html';
+            app.UITable_NumRows.Text = {'0 <font style="font-size: 10px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '0 <font style="font-size: 10px;">REGISTROS </font>'};
 
             % Create filterSpecification
             app.filterSpecification = uilabel(app.Document);
@@ -1911,17 +1945,6 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.filterSpecification.Interpreter = 'html';
             app.filterSpecification.Text = {'[TS] [FC]'; 'Nenhuma palavra + Nenhum filtro por coluna ativo'};
 
-            % Create UITable_NumRows
-            app.UITable_NumRows = uilabel(app.Document);
-            app.UITable_NumRows.HorizontalAlignment = 'right';
-            app.UITable_NumRows.VerticalAlignment = 'bottom';
-            app.UITable_NumRows.FontSize = 11;
-            app.UITable_NumRows.FontColor = [0.502 0.502 0.502];
-            app.UITable_NumRows.Layout.Row = 1;
-            app.UITable_NumRows.Layout.Column = [3 6];
-            app.UITable_NumRows.Interpreter = 'html';
-            app.UITable_NumRows.Text = {'0 <font style="font-size: 10px; margin-right: 2px;">HOMOLOGAÇÕES</font>'; '0 <font style="font-size: 10px;">REGISTROS </font>'};
-
             % Create UITable
             app.UITable = uitable(app.Document);
             app.UITable.BackgroundColor = [1 1 1;0.9412 0.9412 0.9412];
@@ -1932,7 +1955,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.UITable.ClickedFcn = createCallbackFcn(app, @UIFigureWindowButtonDown, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Layout.Row = [2 3];
-            app.UITable.Layout.Column = [1 4];
+            app.UITable.Layout.Column = [1 6];
             app.UITable.FontSize = 10;
 
             % Create selectedProductPanelGrid
@@ -1942,6 +1965,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.selectedProductPanelGrid.ColumnSpacing = 5;
             app.selectedProductPanelGrid.RowSpacing = 5;
             app.selectedProductPanelGrid.Padding = [0 0 0 0];
+            app.selectedProductPanelGrid.Visible = 'off';
             app.selectedProductPanelGrid.Layout.Row = [2 3];
             app.selectedProductPanelGrid.Layout.Column = 6;
             app.selectedProductPanelGrid.BackgroundColor = [1 1 1];
@@ -2066,12 +2090,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab1Button = uibutton(app.NavBar, 'state');
             app.Tab1Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab1Button.Tag = 'SEARCH';
-            app.Tab1Button.Tooltip = {''};
             app.Tab1Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'search-sparkle-24px-yellow.svg');
             app.Tab1Button.IconAlignment = 'top';
             app.Tab1Button.Text = '';
             app.Tab1Button.BackgroundColor = [0.2 0.2 0.2];
-            app.Tab1Button.FontSize = 11;
             app.Tab1Button.Layout.Row = [2 4];
             app.Tab1Button.Layout.Column = 4;
             app.Tab1Button.Value = true;
@@ -2080,12 +2102,10 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2Button = uibutton(app.NavBar, 'state');
             app.Tab2Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab2Button.Tag = 'PRODUCTS';
-            app.Tab2Button.Tooltip = {''};
             app.Tab2Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'checklist-24px-white.svg');
             app.Tab2Button.IconAlignment = 'top';
             app.Tab2Button.Text = '';
             app.Tab2Button.BackgroundColor = [0.2 0.2 0.2];
-            app.Tab2Button.FontSize = 11;
             app.Tab2Button.Layout.Row = [2 4];
             app.Tab2Button.Layout.Column = 5;
 
@@ -2101,19 +2121,17 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab3Button = uibutton(app.NavBar, 'state');
             app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab3Button.Tag = 'CONFIG';
-            app.Tab3Button.Tooltip = {''};
             app.Tab3Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'gear-24px-white.svg');
             app.Tab3Button.IconAlignment = 'top';
             app.Tab3Button.Text = '';
             app.Tab3Button.BackgroundColor = [0.2 0.2 0.2];
-            app.Tab3Button.FontSize = 11;
             app.Tab3Button.Layout.Row = [2 4];
             app.Tab3Button.Layout.Column = 7;
 
             % Create DataHubLamp
             app.DataHubLamp = uiimage(app.NavBar);
+            app.DataHubLamp.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.DataHubLamp.Visible = 'off';
-            app.DataHubLamp.Tooltip = {'Pendente mapear o Sharepoint'};
             app.DataHubLamp.Layout.Row = 3;
             app.DataHubLamp.Layout.Column = 10;
             app.DataHubLamp.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'red-circle-blink.gif');
