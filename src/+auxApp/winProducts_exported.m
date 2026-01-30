@@ -71,11 +71,11 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function ipcSecondaryMatlabCallsHandler(app, callingApp, operationType, varargin)
+        function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
             try
                 switch class(callingApp)
                     case {'winSCH', 'winSCH_exported'}
-                        switch operationType
+                        switch eventName
                             % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts
                             % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
                             case 'closeFcnCallFromPopupApp'
