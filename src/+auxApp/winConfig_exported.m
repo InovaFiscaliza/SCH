@@ -61,8 +61,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         DataHubGET                      matlab.ui.control.EditField
         DATAHUBGETLabel                 matlab.ui.control.Label
         Toolbar                         matlab.ui.container.GridLayout
-        openDevTools                    matlab.ui.control.Image
-        exportTable                     matlab.ui.control.Image
+        tool_openDevTools               matlab.ui.control.Image
+        tool_exportTable                matlab.ui.control.Image
     end
 
     
@@ -118,8 +118,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                     appName = class(app);
                     elToModify = {
                         app.versionInfo;
-                        app.exportTable;
-                        app.openDevTools;
+                        app.tool_exportTable;
+                        app.tool_openDevTools;
                         app.dockModule_Undock;
                         app.dockModule_Close
                     };
@@ -132,8 +132,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.exportTable.UserData.id,       'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre cópia de base dados no Excel')), ...
-                            struct('appName', appName, 'dataTag', app.openDevTools.UserData.id,      'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre DevTools')), ...
+                            struct('appName', appName, 'dataTag', app.tool_exportTable.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre cópia de base dados no Excel')), ...
+                            struct('appName', appName, 'dataTag', app.tool_openDevTools.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre DevTools')), ...
                             struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
                             struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id,  'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
                         });
@@ -186,7 +186,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         function initializeUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
                 app.dockModule_Undock.Enable       = 1;
-                app.openDevTools.Enable            = 1;
+                app.tool_openDevTools.Enable       = 1;
                 app.tool_versionInfoRefresh.Enable = 1;
                 app.openAuxiliarAppAsDocked.Enable = 1;
             end
@@ -196,7 +196,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             end
 
             if isfolder(app.mainApp.General.fileFolder.DataHub_GET)
-                app.exportTable.Enable = 'on';
+                app.tool_exportTable.Enable = 'on';
             end
         end
 
@@ -417,11 +417,11 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: exportTable, openDevTools
+        % Image clicked function: tool_exportTable, tool_openDevTools
         function ToolbarButtonPushed(app, event)
             
             switch event.Source
-                case app.exportTable
+                case app.tool_exportTable
                     nameFormatMap = {'*.xlsx', 'Excel'};
                     defaultName   = appEngine.util.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH', -1);
                     fileFullPath  = ui.Dialog(app.UIFigure, 'uiputfile', '', nameFormatMap, defaultName);
@@ -444,7 +444,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         
                     app.progressDialog.Visible = 'hidden';
 
-                case app.openDevTools
+                case app.tool_openDevTools
                     ipcMainMatlabCallsHandler(app.mainApp, app, 'openDevTools')
             end
 
@@ -749,23 +749,23 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.Toolbar.Layout.Column = [1 5];
             app.Toolbar.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
-            % Create exportTable
-            app.exportTable = uiimage(app.Toolbar);
-            app.exportTable.ScaleMethod = 'none';
-            app.exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
-            app.exportTable.Enable = 'off';
-            app.exportTable.Layout.Row = [1 3];
-            app.exportTable.Layout.Column = 1;
-            app.exportTable.ImageSource = 'sheet_20px.png';
+            % Create tool_exportTable
+            app.tool_exportTable = uiimage(app.Toolbar);
+            app.tool_exportTable.ScaleMethod = 'none';
+            app.tool_exportTable.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
+            app.tool_exportTable.Enable = 'off';
+            app.tool_exportTable.Layout.Row = [1 3];
+            app.tool_exportTable.Layout.Column = 1;
+            app.tool_exportTable.ImageSource = 'sheet_20px.png';
 
-            % Create openDevTools
-            app.openDevTools = uiimage(app.Toolbar);
-            app.openDevTools.ScaleMethod = 'none';
-            app.openDevTools.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
-            app.openDevTools.Enable = 'off';
-            app.openDevTools.Layout.Row = [1 3];
-            app.openDevTools.Layout.Column = 3;
-            app.openDevTools.ImageSource = 'Debug_18.png';
+            % Create tool_openDevTools
+            app.tool_openDevTools = uiimage(app.Toolbar);
+            app.tool_openDevTools.ScaleMethod = 'none';
+            app.tool_openDevTools.ImageClickedFcn = createCallbackFcn(app, @ToolbarButtonPushed, true);
+            app.tool_openDevTools.Enable = 'off';
+            app.tool_openDevTools.Layout.Row = [1 3];
+            app.tool_openDevTools.Layout.Column = 3;
+            app.tool_openDevTools.ImageSource = 'Debug_18.png';
 
             % Create SubTabGroup
             app.SubTabGroup = uitabgroup(app.GridLayout);

@@ -481,7 +481,7 @@
             "mapping": [
                 {
                     "type": "Antena",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Antena",
                         "Não Passível | Antena"
@@ -489,7 +489,7 @@
                 },
                 {
                     "type": "Baterias",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Acessório p/ Telefone Móvel Celular do tipo Bateria Auxiliar",
                         "Acumulador de Energia",
@@ -498,13 +498,13 @@
                 },
                 {
                     "type": "Bloqueador de sinal Jammer",
-                    "sybtype": [
+                    "subtype": [
                         "Bloqueador de Sinais (jammer)"
                     ]
                 },
                 {
                     "type": "Cabo Metálico",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Cabo Coaxial",
                         "Cabo de Manobra",
@@ -516,7 +516,7 @@
                 },
                 {
                     "type": "Cabo Óptico",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Cabo de Fibra Óptica",
                         "Cabo OPGW"
@@ -524,7 +524,7 @@
                 },
                 {
                     "type": "Carregadores de Baterias",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Carregador para Telefone Celular",
                         "Carregador para Telefone Celular | Indutivo",
@@ -534,13 +534,13 @@
                 },
                 {
                     "type": "Celulares",
-                    "sybtype": [
+                    "subtype": [
                         "Telefone Móvel Celular"
                     ]
                 },
                 {
                     "type": "Decodificador de sinal para SeAC",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Conversor para TV por assinatura (Set-top Box)",
                         "Equipamento Terminal de Usuário de TV por Assinatura"
@@ -548,7 +548,7 @@
                 },
                 {
                     "type": "Equipamento de Radiação Restrita",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Microfone sem Fio",
                         "Radiação Restrita | Adaptador de Rede sem Fio",
@@ -577,7 +577,7 @@
                 },
                 {
                     "type": "Equipamento de Rede de Dados",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Equipamento de Rede de Dados",
                         "Equipamento para Interconexão de Redes",
@@ -587,7 +587,7 @@
                 },
                 {
                     "type": "Equipamento óptico",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Acoplador / Divisor Óptico Passivo (Splitter)",
                         "Caixa Terminal Óptica",
@@ -601,7 +601,7 @@
                 },
                 {
                     "type": "Outros",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Alarme para Linha Telefônica",
                         "Aparelho para Telefonista",
@@ -645,7 +645,7 @@
                 },
                 {
                     "type": "Reforçador de sinal",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Amplificador de Potência RF",
                         "Reforçador de Sinais Interno",
@@ -655,13 +655,13 @@
                 },
                 {
                     "type": "SmartTV Box",
-                    "sybtype": [
+                    "subtype": [
                         "Smart TV Box"
                     ]
                 },
                 {
                     "type": "Transceptor RF",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Conversor de Subida para Estação Terrena",
                         "Emissor-Sensor de sistema de radar de veículo",
@@ -683,7 +683,7 @@
                 },
                 {
                     "type": "Transmissor Radiodifusão",
-                    "sybtype": [
+                    "subtype": [
                         "-",
                         "Sistemas de Transmissão de Áudio, Vídeo",
                         "Transmissor | FM",

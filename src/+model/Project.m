@@ -588,7 +588,7 @@ classdef Project < handle
                 subtype = '-';
                 subtypeList = {subtype};                
             else
-                subtypeList = obj.typeSubtypeProductsMapping(typeIndex).sybtype;
+                subtypeList = obj.typeSubtypeProductsMapping(typeIndex).subtype;
                 if ~ismember(subtype, subtypeList)
                     subtype = subtypeList{1};
                 end
