@@ -1094,7 +1094,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function wordCloudInitialize(app)
             if ~isempty(app.wordCloudObj) && ~isempty(app.wordCloudPanel.Tag)
-                app.wordCloudObj.Table        = [];
+                app.wordCloudObj.Table = [];
                 app.wordCloudPanel.Tag = '';
             end
         end
@@ -1293,7 +1293,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             callingApp.progressDialog.Visible = 'hidden';
 
             if status1 && strcmp(app.projectData.modules.(context).ui.system, 'eFiscaliza')
-                [status2, msg2] = reportUploadJsonToSharepoint(app);
+                [status2, msg2] = reportUploadJsonToSharepoint(app, context);
 
                 if ~status2
                     ui.Dialog(callingApp.UIFigure, 'error', msg2);
@@ -1357,7 +1357,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %------------------------------------------------------------------------%
-        function [status, msg] = reportUploadJsonToSharepoint(app)
+        function [status, msg] = reportUploadJsonToSharepoint(app, context)
             JSONFiles = { ...
                 getGeneratedDocumentFileName(app.projectData, '.json',  context), ...
                 getGeneratedDocumentFileName(app.projectData, '.teams', context)  ...
