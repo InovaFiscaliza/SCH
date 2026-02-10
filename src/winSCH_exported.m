@@ -1358,8 +1358,24 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %------------------------------------------------------------------------%
         function [status, msg] = reportUploadJsonToSharepoint(app)
-            JSONFile = getGeneratedDocumentFileName(app.projectData, '.json', context);
-            [status, msg] = copyfile(JSONFile, app.General.fileFolder.DataHub_POST, 'f');
+            JSONFiles = { ...
+                getGeneratedDocumentFileName(app.projectData, '.json',  context), ...
+                getGeneratedDocumentFileName(app.projectData, '.teams', context)  ...
+            };
+        
+            statusList = false(1, numel(JSONFiles));
+            msgList = {};
+        
+            for ii = 1:numel(JSONFiles)
+                [statusList(ii), msgWarning] = copyfile(JSONFiles{ii}, app.General.fileFolder.DataHub_POST, 'f');
+        
+                if ~statusList(ii)
+                    msgList{end+1} = msgWarning;
+                end
+            end
+        
+            status = all(statusList);
+            msg = strjoin(msgList, '\n\n');
         end
     end
 

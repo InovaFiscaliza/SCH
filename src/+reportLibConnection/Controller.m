@@ -27,7 +27,7 @@ classdef (Abstract) Controller
         %-----------------------------------------------------------------%
         docVersion = dictionary( ...
             ["Preliminar", "Definitiva"], ...
-            [struct('version', 'preview', 'encoding', 'UTF-8'), struct('version', 'final', 'encoding', 'ISO-8859-1')] ...
+            ["preview", "final"] ...
         )
     end
 
@@ -40,6 +40,7 @@ classdef (Abstract) Controller
                 context {mustBeMember(context, {'PRODUCTS'})} = 'PRODUCTS'
             end
 
+            appName = class.Constants.appName;
             projectData = mainApp.projectData;
             generalSettings = mainApp.General;
             rootFolder = mainApp.rootFolder;
@@ -84,13 +85,15 @@ classdef (Abstract) Controller
                                 'Model',    struct('Name',                       docName,                             ...
                                                    'DocumentType',               docType,                             ...
                                                    'Script',                     docScript,                           ...
-                                                   'Version',                    docVersion.version),                 ...
+                                                   'Version',                    docVersion),                         ...
                                 'Function', struct(...
                                                    ... % APLICÁVEIS ÀS SEÇÕES GERAIS DO RELATÓRIO
                                                    'cfg_SEARCH',                'reportLibConnection.Variable.GeneralSettings(reportInfo, "SEARCH+ReportTemplate")', ...
                                                    'cfg_PRODUCTS',              'reportLibConnection.Variable.GeneralSettings(reportInfo, "PRODUCTS+ReportTemplate")', ...
+                                                   ...
                                                    'var_Issue',                  issueId, ...
                                                    'var_Unit',                   projectData.modules.(context).ui.unit, ...
+                                                   ...
                                                    'eFiscaliza_solicitacaoCode', 'reportLibConnection.Variable.GeneralSettings(reportInfo, "Solicitação de Inspeção")', ...
                                                    'eFiscaliza_acaoCode',       'reportLibConnection.Variable.GeneralSettings(reportInfo, "Ação de Inspeção")', ...
                                                    'eFiscaliza_atividadeCode',  'reportLibConnection.Variable.GeneralSettings(reportInfo, "Atividade de Inspeção")', ...
@@ -164,47 +167,66 @@ classdef (Abstract) Controller
             % navegador. Por outro lado, em sendo a versão "Definitiva",
             % salva-se o arquivo ZIP em pasta local.
             %-------------------------------------------------------------%
-            [baseFullFileName, baseFileName] = appEngine.util.DefaultFileName(generalSettings.fileFolder.tempPath, 'SCH_FinalReport', issueId);
+            [baseFullFileName, baseFileName] = appEngine.util.DefaultFileName(generalSettings.fileFolder.tempPath, [appName '_FinalReport'], issueId);
             HTMLFile = [baseFullFileName '.html'];
             
-            writematrix(HTMLDocContent, HTMLFile, 'QuoteStrings', 'none', 'FileType', 'text', 'Encoding', docVersion.encoding)
+            writematrix(HTMLDocContent, HTMLFile, 'QuoteStrings', 'none', 'FileType', 'text', 'Encoding', 'UTF-8')
 
-            switch docVersion.version
+            switch docVersion
                 case 'preview'
                     web(HTMLFile, '-new')
                     updateGeneratedFiles(projectData, context)
 
                 case 'final'
-                    JSONFile = [baseFullFileName '.json'];
-                    XLSXFile = [baseFullFileName '.xlsx'];
-                    ZIPFile  = ui.Dialog(callingApp.UIFigure, 'uiputfile', '', {'*.zip', 'SCH'}, fullfile(generalSettings.fileFolder.userPath, [baseFileName '.zip']));
+                    try
+                        [issueDetails, msgError] = getOrFetchIssueDetails(projectData, projectData.modules.(context).ui.system, projectData.modules.(context).ui.issue, mainApp.eFiscalizaObj);
+                        if ~isempty(msgError)
+                            error('reportLibConnection:Controller', msgError)
+                        end
+                    catch ME
+                        if ~isdeployed()
+                            issueDetails = struct('usuario', struct('nome', 'NOME_FISCAL', 'email', 'EMAIL_FISCAL@anatel.gov.br', 'unidade', 'LOTACAO_FISCAL', 'funcao', 'FISCAL'));
+                        else
+                            rethrow(ME)
+                        end
+                    end
+
+                    JSONFile  = '';
+                    TEAMSFile = '';
+                    XLSXFile  = [baseFullFileName '.xlsx'];
+                    RAWFiles  = {};
+                    ZIPFile   = ui.Dialog(callingApp.UIFigure, 'uiputfile', '', {'*.zip', [appName ' (*.zip)']}, fullfile(generalSettings.fileFolder.userPath, [baseFileName '.zip']));
                     if isempty(ZIPFile)
                         return
                     end
-                    
-                    jsonFileConfig  = { ...
-                        generalSettings.ui.reportTable.exportedFiles.sharepoint.name, ...
-                        generalSettings.ui.reportTable.exportedFiles.sharepoint.label ...
-                    };
-                    jsonFileTable = renamevars(projectData.inspectedProducts, jsonFileConfig{:});
-                    jsonFileContent = struct( ...
-                        'issueId', issueId,                    ...
-                        'entity',  projectData.modules.(context).ui.entity, ...
-                        'items',   jsonFileTable ...
-                    );
 
-                    xlsxFileConfig  = generalSettings.ui.reportTable.exportedFiles.eFiscaliza;
-                    xlsxFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, xlsxFileConfig);
-                    xlsxFileContent = renamevars(xlsxFileContent, xlsxFileConfig.Columns, {xlsxFileConfig.Settings.ColumnName});
+                    XLSXFileConfig  = generalSettings.ui.reportTable.exportedFiles.eFiscaliza;
+                    XLSXFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, XLSXFileConfig);
+                    XLSXFileContent = renamevars(XLSXFileContent, XLSXFileConfig.Columns, {XLSXFileConfig.Settings.ColumnName});
 
-                    writematrix(jsonencode(jsonFileContent, 'PrettyPrint', true), JSONFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
-                    writetable(xlsxFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
+                    writetable(XLSXFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
 
-                    ZIPFileList = {HTMLFile, JSONFile, XLSXFile};
+                    ZIPFileList = {HTMLFile, XLSXFile};
+
+                    if strcmp(context, 'PRODUCTS')
+                        correlationKey = char(matlab.lang.internal.uuid());
+                        JSONBaseName   = sprintf('%s_%s_%s',  appName, datestr(now, 'yyyymmdd'), correlationKey);
+                        JSONFile       = fullfile(generalSettings.fileFolder.tempPath, [JSONBaseName '.json']);
+                        TEAMSFile      = fullfile(generalSettings.fileFolder.tempPath, [JSONBaseName '.teams']);
+
+                        JSONContent    = reportLibConnection.Table.scarabJsonFile(projectData, context, correlationKey, mainApp.executionMode, issueDetails, generalSettings);
+                        TEAMSContent   = reportLibConnection.Table.scarabTeamsFileContent(issueDetails, JSONBaseName);
+
+                        writematrix(JSONContent,  JSONFile,  "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
+                        writematrix(TEAMSContent, TEAMSFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
+
+                        ZIPFileList = [ZIPFileList, {JSONFile, TEAMSFile}];
+                    end
+
                     zip(ZIPFile, ZIPFileList)
 
                     generatedFileId = model.ProjectBase.computeProjectHash('', '', projectData.inspectedProducts, [], []);
-                    updateGeneratedFiles(projectData, context, generatedFileId, {}, HTMLFile, JSONFile, XLSXFile, ZIPFile)
+                    updateGeneratedFiles(projectData, context, generatedFileId, RAWFiles, HTMLFile, JSONFile, XLSXFile, TEAMSFile, ZIPFile)
             end
         end
     end
