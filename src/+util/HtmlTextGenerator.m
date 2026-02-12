@@ -17,9 +17,9 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % SCH:INFO
         %-----------------------------------------------------------------%
-        function htmlContent = AppInfo(appGeneral, rootFolder, executionMode, renderCount, schDataTable, releasedData, cacheData, annotationTable, outputFormat)
+        function htmlContent = AppInfo(generalSettings, rootFolder, executionMode, renderCount, schDataTable, releasedData, cacheData, annotationTable, outputFormat)
             arguments
-                appGeneral 
+                generalSettings 
                 rootFolder 
                 executionMode 
                 renderCount
@@ -31,7 +31,7 @@ classdef (Abstract) HtmlTextGenerator
             end
         
             appName      = class.Constants.appName;
-            appVersion   = appGeneral.AppVersion;
+            appVersion   = generalSettings.AppVersion;
             appURL       = util.publicLink(appName, rootFolder, 'SCH');
             cacheColumns = textFormatGUI.cellstr2ListWithQuotes({cacheData.Column});
         
@@ -40,7 +40,7 @@ classdef (Abstract) HtmlTextGenerator
                     appMode = 'desktopApp';        
                 case 'webApp'
                     computerName = appEngine.util.OperationSystem('computerName');
-                    if strcmpi(computerName, appGeneral.computerName.webServer)
+                    if strcmpi(computerName, generalSettings.computerName.webServer)
                         appMode = 'webServer';
                     else
                         appMode = 'deployServer';                    
@@ -202,11 +202,11 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % AUXAPP.WINCONFIG: CHECKUPDATE
         %-----------------------------------------------------------------%
-        function htmlContent = checkUpdate(appGeneral, rootFolder)
+        function htmlContent = checkUpdate(generalSettings, rootFolder)
             try
                 % Versão instalada no computador:
                 appName          = class.Constants.appName;
-                presentVersion   = struct(appName, appGeneral.AppVersion.application.version); 
+                presentVersion   = struct(appName, generalSettings.AppVersion.application.version); 
                 
                 % Versão estável, indicada nos arquivos de referência (na nuvem):
                 generalURL       = util.publicLink(appName, rootFolder, 'VersionFile');
@@ -252,7 +252,7 @@ classdef (Abstract) HtmlTextGenerator
         function htmlContent = entityDetails(id, details)
             dataStruct      = struct('group', 'CADASTRO', 'value', details);
             freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><br><br>', id);
-            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', freeInitialText, 'popup');
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText, 'popup');
         end
     end
 end

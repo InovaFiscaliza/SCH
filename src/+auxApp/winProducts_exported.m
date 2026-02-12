@@ -198,7 +198,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
             viewType    = app.UITable_ViewType.SelectedObject.Tag; % 'vendorView' | 'customsView'
-            columnList  = app.mainApp.General.ui.reportTable.(viewType).name';
+            columnList  = app.mainApp.General.context.PRODUCTS.reportTable.(viewType).name';
             columnIndex = cellfun(@(x) find(strcmp(app.projectData.inspectedProducts.Properties.VariableNames, x), 1), columnList);
 
             switch syncType
@@ -210,8 +210,8 @@ classdef winProducts_exported < matlab.apps.AppBase
 
                 case 'tableViewChanged'
                     set(app.UITable, 'Data',        app.projectData.inspectedProducts(:, columnIndex),    ...
-                                     'ColumnName',  app.mainApp.General.ui.reportTable.(viewType).label', ...
-                                     'ColumnWidth', app.mainApp.General.ui.reportTable.(viewType).columnWidth')
+                                     'ColumnName',  app.mainApp.General.context.PRODUCTS.reportTable.(viewType).label', ...
+                                     'ColumnWidth', app.mainApp.General.context.PRODUCTS.reportTable.(viewType).columnWidth')
             end
 
             updateTableStyle(app)

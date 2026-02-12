@@ -90,7 +90,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateForm(app)
-            switch app.mainApp.General.search.type
+            switch app.mainApp.General.context.SEARCH.type
                 case 'FreeText'
                     app.filteringStrategy.Value = 'Texto livre';
                 case 'ColumnFilter'
@@ -99,7 +99,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
                     app.filteringStrategy.Value = 'Texto livre + Filtro por coluna';
             end
 
-            switch app.mainApp.General.search.mode
+            switch app.mainApp.General.context.SEARCH.mode
                 case 'tokens'
                     app.config_SearchModeTokenSuggestion.Value = 1;
                 otherwise % words
@@ -193,26 +193,26 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
                 case app.filteringStrategy
                     switch app.filteringStrategy.Value
                         case 'Texto livre'
-                            app.mainApp.General.search.type = 'FreeText';
+                            app.mainApp.General.context.SEARCH.type = 'FreeText';
                         case 'Filtro por coluna'
-                            app.mainApp.General.search.type = 'ColumnFilter';
+                            app.mainApp.General.context.SEARCH.type = 'ColumnFilter';
                         otherwise % 'Texto livre + Filtro por coluna'
-                            app.mainApp.General.search.type = 'FreeText+ColumnFilter';
+                            app.mainApp.General.context.SEARCH.type = 'FreeText+ColumnFilter';
                     end
 
                 case app.config_SearchModePanel            
                     switch app.config_SearchModePanel.SelectedObject
                         case app.config_SearchModeTokenSuggestion
-                            app.mainApp.General.search.mode     = 'tokens';
-                            app.mainApp.General.search.function = 'strcmp';
+                            app.mainApp.General.context.SEARCH.mode     = 'tokens';
+                            app.mainApp.General.context.SEARCH.function = 'strcmp';
         
                         otherwise % app.config_SearchModeListOfWords
-                            app.mainApp.General.search.mode     = 'words';
-                            app.mainApp.General.search.function = 'contains';
+                            app.mainApp.General.context.SEARCH.mode     = 'words';
+                            app.mainApp.General.context.SEARCH.function = 'contains';
                     end
             end
 
-            app.mainApp.General_I.search = app.mainApp.General.search;
+            app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
             appEngine.util.generalSettingsSave(class.Constants.appName, app.mainApp.rootFolder, app.mainApp.General_I, app.mainApp.executionMode)
             
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onSearchModeChanged')

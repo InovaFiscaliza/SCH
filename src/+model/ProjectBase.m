@@ -8,7 +8,6 @@ classdef (Abstract) ProjectBase
     %   |── model.ProjectBase.readRegulatronData            (Static)
     %   |   ├── util.publicLink
     %   |   └── util.readExternalFile.RegulatronData
-    %   ├── model.ProjectBase.computeUploadedFileHash       (Static)
     %   ├── model.ProjectBase.computeProjectHash            (Static)
     %   ├── model.ProjectBase.computeInspectedProductHash   (Static)
     %   |── model.ProjectBase.createInspectedProductsTable  (Static)
@@ -135,11 +134,6 @@ classdef (Abstract) ProjectBase
         end
 
         %-----------------------------------------------------------------%
-        function hash = computeUploadedFileHash(system, issue, status)
-            hash = Hash.sha1(strjoin({system, num2str(issue), status}, ' - '));
-        end
-
-        %-----------------------------------------------------------------%
         function prjHash = computeProjectHash(prjName, prjFile, inspectedProducts, issueDetails, entityDetails)
             inspectedProducts = sortrows(inspectedProducts, 'Hash');
             prjHash = Hash.sha1(sprintf('%s - %s - %s - %s - %s', prjName, prjFile, jsonencode(inspectedProducts), jsonencode(issueDetails), jsonencode(entityDetails)));
@@ -158,10 +152,10 @@ classdef (Abstract) ProjectBase
                 'VariableNames', model.ProjectBase.INSPECTEDPRODUCTSSPECIFICATION(:, 2) ...
             );
             
-            inspectedProducts.("Tipo")     = categorical(inspectedProducts.("Tipo"),     generalSettings.ui.typeOfProduct.options,   'Protected', true);
-            inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.ui.typeOfSituation.options, 'Protected', true);
-            inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.ui.typeOfViolation.options, 'Protected', true);
-            inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'},                        'Protected', true);
+            inspectedProducts.("Tipo")     = categorical(inspectedProducts.("Tipo"),     generalSettings.context.PRODUCTS.productType.options,   'Protected', true);
+            inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.context.PRODUCTS.situationType.options, 'Protected', true);
+            inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.context.PRODUCTS.violationType.options, 'Protected', true);
+            inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'},                                    'Protected', true);
         end
 
         %-----------------------------------------------------------------%
@@ -179,11 +173,11 @@ classdef (Abstract) ProjectBase
                 
                 switch column
                     case 'Tipo'
-                        columnSpec = generalSettings.ui.typeOfProduct;
+                        columnSpec = generalSettings.context.PRODUCTS.productType;
                     case 'Situação'
-                        columnSpec = generalSettings.ui.typeOfSituation;
+                        columnSpec = generalSettings.context.PRODUCTS.situationType;
                     case 'Infração'
-                        columnSpec = generalSettings.ui.typeOfViolation;
+                        columnSpec = generalSettings.context.PRODUCTS.violationType;
                     case 'Sanável?'
                         columnSpec = struct('options', {{'-', 'Sim', 'Não'}}, 'default', '-');
                 end
@@ -206,10 +200,10 @@ classdef (Abstract) ProjectBase
                 varargin
             end
 
-            productType = generalSettings.ui.typeOfProduct.default;
+            productType = generalSettings.context.PRODUCTS.productType.default;
             subtype     = '-';
-            situation   = generalSettings.ui.typeOfSituation.default;
-            violation   = generalSettings.ui.typeOfViolation.default;
+            situation   = generalSettings.context.PRODUCTS.situationType.default;
+            violation   = generalSettings.context.PRODUCTS.violationType.default;
             corrigible  = '-';
 
             switch status

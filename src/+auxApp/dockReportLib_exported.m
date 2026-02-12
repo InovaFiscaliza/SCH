@@ -77,17 +77,17 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updatePanel(app, context)
             % PROJECT INITIALIZATION
-            if isempty(app.projectData.modules.(context).ui.system) && ~isequal(app.projectData.modules.(context).ui.system, app.mainApp.General.Report.system)
-                updateUiInfo(app.projectData, context, 'system', app.mainApp.General.Report.system)
+            if isempty(app.projectData.modules.(context).ui.system) && ~isequal(app.projectData.modules.(context).ui.system, app.mainApp.General.reportLib.system)
+                updateUiInfo(app.projectData, context, 'system', app.mainApp.General.reportLib.system)
             end
             
-            if isempty(app.projectData.modules.(context).ui.unit) && ~isequal(app.projectData.modules.(context).ui.unit, app.mainApp.General.Report.unit)
-                updateUiInfo(app.projectData, context, 'unit', app.mainApp.General.Report.unit)
+            if isempty(app.projectData.modules.(context).ui.unit) && ~isequal(app.projectData.modules.(context).ui.unit, app.mainApp.General.reportLib.unit)
+                updateUiInfo(app.projectData, context, 'unit', app.mainApp.General.reportLib.unit)
             end
 
             if isempty(app.projectData.modules.(context).ui.entityTypes)
-                updateUiInfo(app.projectData, context, 'entityTypes', app.mainApp.General.ui.typeOfEntity.options)
-                app.projectData.modules.(context).ui.entity.type = app.mainApp.General.ui.typeOfEntity.default;
+                updateUiInfo(app.projectData, context, 'entityTypes', app.mainApp.General.reportLib.entityType.options)
+                app.projectData.modules.(context).ui.entity.type = app.mainApp.General.reportLib.entityType.default;
             end
 
             % PROJECT PANEL
@@ -177,7 +177,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             end
     
             context = app.inputArgs.context;
-            Initialization(app.projectData, {context}, app.mainApp.General)
+            restart(app.projectData, {context}, app.mainApp.General)
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectRestart', context)
             updatePanel(app, context)
 
@@ -197,7 +197,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             d = ui.Dialog(app.UIFigure, "progressdlg", "Em andamento...");
             
             try
-                msg = Load(app.projectData, 'file', fileFullPath, app.mainApp.General);
+                msg = load(app.projectData, 'file', fileFullPath, app.mainApp.General);
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectLoad', context)
                 updatePanel(app, context)
 
@@ -219,7 +219,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             context = app.inputArgs.context;
 
             if isfile(app.projectData.file)
-                if ~CheckIfUpdateNeeded(app.projectData)
+                if ~checkIfUpdateNeeded(app.projectData)
                     msgQuestion = sprintf('Ao que parece, o projeto "<b>%s</b>" não sofreu alterações.<br><br>Deseja continuar mesmo assim?', app.projectData.name);
                     selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
                     if strcmp(selection, 'Não')
@@ -239,7 +239,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
                 return
             end
 
-            Save(app.projectData, context, projectName, projectFile, app.mainApp.General.Report.outputCompressionMode)
+            save(app.projectData, context, projectName, projectFile, app.mainApp.General.reportLib.outputCompressionMode)
             IndexedDBCache(app.projectData)
             updatePanel(app, context)
 

@@ -21,11 +21,8 @@ classdef (Abstract) Variable
                         'e &#x231B; (período fiscal não anual)</span>' ...
                         ], fieldNames{1}, reportLibConnection.Variable.GeneralSettings(reportInfo, fieldNames{1}), reportLibConnection.Variable.GeneralSettings(reportInfo, 'ReportTemplate'));
 
-                case 'SEARCH'
-                    fieldValue = jsonencode(generalSettings.search);
-
-                case 'PRODUCTS'
-                    fieldValue = jsonencode(generalSettings.products);
+                case {'SEARCH', 'PRODUCTS'}
+                    fieldValue = jsonencode(generalSettings.context.(fieldName));
 
                 case 'ReportTemplate'
                      fieldValue = jsonencode(struct('Name', reportInfo.Model.Name, 'DocumentType', reportInfo.Model.DocumentType, 'Version', reportInfo.Model.Version));

@@ -1,5 +1,5 @@
 {
-    "version": 2.04,
+    "version": 2.10,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -22,716 +22,718 @@
         "DataHub_POST": "",
         "lastVisited": ""
     },
-    "search": {
-        "dataBaseVersion": "_v2",
-        "type": "FreeText+ColumnFilter",
-        "mode": "tokens",
-        "function": "strcmp",
-        "minCharacters": 2,
-        "minDisplayedTokens": 20,
-        "cacheColumns": "Homologação | Solicitante | Fabricante | Modelo | Nome Comercial",
-        "wordCloud": {
-            "algorithm": "D3.js",
-            "column": "Modelo"
-        }
-    },
-    "products": {},
-    "ui": {
-        "searchTable": [
-            {
-                "name": "Data da Homologação",
-                "type": "datetime",
-                "filter": "datetime",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 90
-            },
-            {
-                "name": "Homologação",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": true,
-                "columnPosition": 1,
-                "columnWidth": 110
-            },
-            {
-                "name": "Solicitante",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": true,
-                "columnPosition": 3,
-                "columnWidth": "auto"
-            },
-            {
-                "name": "CNPJ/CPF",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 110
-            },
-            {
-                "name": "Certificado de Conformidade Técnica",
-                "type": "categorical",
-                "filter": "freeText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 110
-            },
-            {
-                "name": "Data do Certificado de Conformidade Técnica",
-                "type": "datetime",
-                "filter": "datetime",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 90
-            },
-            {
-                "name": "Data de Validade do Certificado",
-                "type": "datetime",
-                "filter": "datetime",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 90
-            },
-            {
-                "name": "Situação do Certificado",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 150
-            },
-            {
-                "name": "Situação",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": true,
-                "columnPosition": 7,
-                "columnWidth": 150
-            },
-            {
-                "name": "Fabricante",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": true,
-                "columnPosition": 4,
-                "columnWidth": "auto"
-            },
-            {
-                "name": "Modelo",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": true,
-                "columnPosition": 5,
-                "columnWidth": 150
-            },
-            {
-                "name": "Nome Comercial",
-                "type": "cell",
-                "filter": "freeText",
-                "visible": true,
-                "columnPosition": 6,
-                "columnWidth": 150
-            },
-            {
-                "name": "Categoria do Produto",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 55
-            },
-            {
-                "name": "Tipo",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": true,
-                "columnPosition": 2,
-                "columnWidth": 300
-            },
-            {
-                "name": "IC_ANTENA",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 55
-            },
-            {
-                "name": "IC_ATIVO",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 55
-            },
-            {
-                "name": "País do Fabricante",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 110
-            },
-            {
-                "name": "CodUIT",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 55
-            },
-            {
-                "name": "CodISO",
-                "type": "categorical",
-                "filter": "listOfText",
-                "visible": false,
-                "columnPosition": 0,
-                "columnWidth": 55
+    "context": {
+        "SEARCH": {
+            "dataBaseVersion": "_v2",
+            "type": "FreeText+ColumnFilter",
+            "mode": "tokens",
+            "function": "strcmp",
+            "minCharacters": 2,
+            "minDisplayedTokens": 20,
+            "cacheColumns": "Homologação | Solicitante | Fabricante | Modelo | Nome Comercial",
+            "wordCloud": {
+                "algorithm": "D3.js",
+                "column": "Modelo"
             }
-        ],
-        "reportTable": {
-            "vendorView": {
-                "name": [
-                    "Homologação",
-                    "Tipo",
-                    "Subtipo",
-                    "Fabricante",
-                    "Modelo",
-                    "RF?",
-                    "Em uso?",
-                    "Interferência?",
-                    "Valor Unit. (R$)",
-                    "Fonte do valor",
-                    "Qtd. vendida",
-                    "Qtd. uso",
-                    "Qtd. estoque/aduana",
-                    "Qtd. anunciada",
-                    "Qtd. lacradas",
-                    "Qtd. apreendidas",
-                    "Qtd. retidas (RFB)",
-                    "Situação",
-                    "Infração"
-                ],
-                "label": [
-                    "HOMOLOGAÇÃO",
-                    "TIPO",
-                    "SUBTIPO",
-                    "FABRICANTE",
-                    "MODELO",
-                    "RF?",
-                    "EM USO?",
-                    "INTERFERÊNCIA?",
-                    "VALOR|UNITÁRIO (R$)",
-                    "FONTE|VALOR",
-                    "QTD.|VENDIDA",
-                    "QTD.|EM USO",
-                    "QTD.|ESTOQUE",
-                    "QTD.|ANUNCIADA",
-                    "QTD.|LACRADA",
-                    "QTD.|APREENDIDA",
-                    "QTD.|RETIDA (RFB)",
-                    "SITUAÇÃO",
-                    "INFRAÇÃO"
-                ],
-                "columnWidth": [
-                    110,
-                    "auto",
-                    "auto",
-                    "auto",
-                    "auto",
-                    42,
-                    42,
-                    96,
-                    90,
-                    "auto",
-                    66,
-                    66,
-                    66,
-                    80,
-                    70,
-                    80,
-                    80,
-                    "auto",
-                    "auto"
+            "ui": {
+                "searchTable": [
+                    {
+                        "name": "Data da Homologação",
+                        "type": "datetime",
+                        "filter": "datetime",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 90
+                    },
+                    {
+                        "name": "Homologação",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": true,
+                        "columnPosition": 1,
+                        "columnWidth": 110
+                    },
+                    {
+                        "name": "Solicitante",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": true,
+                        "columnPosition": 3,
+                        "columnWidth": "auto"
+                    },
+                    {
+                        "name": "CNPJ/CPF",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 110
+                    },
+                    {
+                        "name": "Certificado de Conformidade Técnica",
+                        "type": "categorical",
+                        "filter": "freeText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 110
+                    },
+                    {
+                        "name": "Data do Certificado de Conformidade Técnica",
+                        "type": "datetime",
+                        "filter": "datetime",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 90
+                    },
+                    {
+                        "name": "Data de Validade do Certificado",
+                        "type": "datetime",
+                        "filter": "datetime",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 90
+                    },
+                    {
+                        "name": "Situação do Certificado",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 150
+                    },
+                    {
+                        "name": "Situação",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": true,
+                        "columnPosition": 7,
+                        "columnWidth": 150
+                    },
+                    {
+                        "name": "Fabricante",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": true,
+                        "columnPosition": 4,
+                        "columnWidth": "auto"
+                    },
+                    {
+                        "name": "Modelo",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": true,
+                        "columnPosition": 5,
+                        "columnWidth": 150
+                    },
+                    {
+                        "name": "Nome Comercial",
+                        "type": "cell",
+                        "filter": "freeText",
+                        "visible": true,
+                        "columnPosition": 6,
+                        "columnWidth": 150
+                    },
+                    {
+                        "name": "Categoria do Produto",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 55
+                    },
+                    {
+                        "name": "Tipo",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": true,
+                        "columnPosition": 2,
+                        "columnWidth": 300
+                    },
+                    {
+                        "name": "IC_ANTENA",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 55
+                    },
+                    {
+                        "name": "IC_ATIVO",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 55
+                    },
+                    {
+                        "name": "País do Fabricante",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 110
+                    },
+                    {
+                        "name": "CodUIT",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 55
+                    },
+                    {
+                        "name": "CodISO",
+                        "type": "categorical",
+                        "filter": "listOfText",
+                        "visible": false,
+                        "columnPosition": 0,
+                        "columnWidth": 55
+                    }
                 ]
-            },
-            "customsView": {
-                "name": [
-                    "Homologação",
-                    "Tipo",
-                    "Subtipo",
-                    "Fabricante",
-                    "Modelo",
-                    "RF?",
-                    "Importador",
-                    "Código aduaneiro",
-                    "Valor Unit. (R$)",
-                    "Fonte do valor",
-                    "Qtd. estoque/aduana",
-                    "Qtd. retidas (RFB)",
-                    "Situação",
-                    "Infração",
-                    "Sanável?"
-                ],
-                "label": [
-                    "HOMOLOGAÇÃO",
-                    "TIPO",
-                    "SUBTIPO",
-                    "FABRICANTE",
-                    "MODELO",
-                    "RF?",
-                    "IMPORTADOR",
-                    "CÓDIGO|ADUANEIRO",
-                    "VALOR|UNITÁRIO (R$)",
-                    "FONTE|VALOR",
-                    "QTD.|ADUANA",
-                    "QTD.|RETIDA (RFB)",
-                    "SITUAÇÃO",
-                    "INFRAÇÃO",
-                    "SANÁVEL?"
-                ],
-                "columnWidth": [
-                    110,
-                    "auto",
-                    "auto",
-                    "auto",
-                    "auto",
-                    42,
-                    "auto",
-                    "auto",
-                    90,
-                    "auto",
-                    66,
-                    80,
-                    "auto",
-                    "auto",
-                    70
-                ]
-            },
-            "exportedFiles": {
-                "sharepoint": {
+            }
+        },
+        "PRODUCTS": {
+            "reportTable": {
+                "vendorView": {
                     "name": [
-                        "Hash",
                         "Homologação",
-                        "Importador",
-                        "Código aduaneiro",
                         "Tipo",
+                        "Subtipo",
                         "Fabricante",
-                        "Modelo",                            
+                        "Modelo",
                         "RF?",
                         "Em uso?",
                         "Interferência?",
                         "Valor Unit. (R$)",
                         "Fonte do valor",
-                        "Qtd. uso",
-                        "Qtd. vendida",                        
-                        "Qtd. estoque/aduana",
-                        "Qtd. anunciada",
-                        "Qtd. lacradas",
-                        "Qtd. apreendidas",
-                        "Qtd. retidas (RFB)",
-                        "Situação",
-                        "Infração",
-                        "Sanável?",
-                        "Informações adicionais",
-                        "Subtipo",
-                        "Lacre",
-                        "PLAI"
-                    ],
-                    "label": [
-                        "hash",
-                        "homologacao", 
-                        "importador", 
-                        "codigoAduaneiro", 
-                        "tipo", 
-                        "fabricante", 
-                        "modelo", 
-                        "rf", 
-                        "emUso", 
-                        "interferencia", 
-                        "valorUnitario",
-                        "fonteValor",
-                        "quantidadeUso", 
-                        "quantidadeVendida", 
-                        "quantidadeEstoqueOuAduana", 
-                        "quatidadeAnunciada", 
-                        "quantidadeLacradas", 
-                        "quantidadeApreendidas", 
-                        "quantidadeRetidas", 
-                        "situacao", 
-                        "infracao", 
-                        "sanavel", 
-                        "informacoesAdicionais",
-                        "subtipo",
-                        "lacre",
-                        "plai"
-                    ]
-                },
-                "eFiscaliza": {
-                    "Columns": [
-                        "Tipo",
-                        "Subtipo",
-                        "Modelo",
-                        "Fabricante",
-                        "Fonte do valor",
-                        "RF?",
-                        "Em uso?",
-                        "Situação",
-                        "Qtd. vistoriadas",
-                        "Qtd. apreendidas",
-                        "Qtd. lacradas",
-                        "Qtd. retidas (RFB)",
-                        "Valor Unit. (R$)",
                         "Qtd. vendida",
                         "Qtd. uso",
                         "Qtd. estoque/aduana",
                         "Qtd. anunciada",
-                        "Interferência?",
-                        "Lacre",
-                        "PLAI"
+                        "Qtd. lacradas",
+                        "Qtd. apreendidas",
+                        "Qtd. retidas (RFB)",
+                        "Situação",
+                        "Infração"
                     ],
-                    "Settings": [
-                        {
-                            "ColumnName": "TIPO_EQUIPAMENTO"
-                        },
-                        {
-                            "ColumnName": "SUBTIPO_EQUIPAMENTO"
-                        },
-                        {
-                            "ColumnName": "MODELO_EQUIPAMENTO"
-                        },
-                        {
-                            "ColumnName": "FABRICANTE_EQUIPAMENTO"
-                        },
-                        {
-                            "ColumnName": "INFO_ADICIONAIS"
-                        },
-                        {
-                            "ColumnName": "USA_RF"
-                        },
-                        {
-                            "ColumnName": "EQUIPAMENTO_EM_USO"
-                        },
-                        {
-                            "ColumnName": "SITUACAO"
-                        },
-                        {
-                            "ColumnName": "UNIDADES_VISTORIADAS"
-                        },
-                        {
-                            "ColumnName": "UNIDADES_APREENDIDAS"
-                        },
-                        {
-                            "ColumnName": "UNIDADES_LACRADAS"
-                        },
-                        {
-                            "ColumnName": "UNIDADES_RETIDAS"
-                        },
-                        {
-                            "ColumnName": "VALOR_UNITARIO"
-                        },
-                        {
-                            "ColumnName": "QTDE_EQUIP_VENDIDOS"
-                        },
-                        {
-                            "ColumnName": "QTDE_EQUIP_USO"
-                        },
-                        {
-                            "ColumnName": "QTDE_EQUIP_ESTOQUE"
-                        },
-                        {
-                            "ColumnName": "QT_UNIDADE_ANUNCIADA"
-                        },
-                        {
-                            "ColumnName": "CAUSOU_INTERFERENCIA"
-                        },
-                        {
-                            "ColumnName": "CO_LACRE_APREENSAO"
-                        },
-                        {
-                            "ColumnName": "NU_PROCESSO_LAI_SEI"
-                        }
+                    "label": [
+                        "HOMOLOGAÇÃO",
+                        "TIPO",
+                        "SUBTIPO",
+                        "FABRICANTE",
+                        "MODELO",
+                        "RF?",
+                        "EM USO?",
+                        "INTERFERÊNCIA?",
+                        "VALOR|UNITÁRIO (R$)",
+                        "FONTE|VALOR",
+                        "QTD.|VENDIDA",
+                        "QTD.|EM USO",
+                        "QTD.|ESTOQUE",
+                        "QTD.|ANUNCIADA",
+                        "QTD.|LACRADA",
+                        "QTD.|APREENDIDA",
+                        "QTD.|RETIDA (RFB)",
+                        "SITUAÇÃO",
+                        "INFRAÇÃO"
+                    ],
+                    "columnWidth": [
+                        110,
+                        "auto",
+                        "auto",
+                        "auto",
+                        "auto",
+                        42,
+                        42,
+                        96,
+                        90,
+                        "auto",
+                        66,
+                        66,
+                        66,
+                        80,
+                        70,
+                        80,
+                        80,
+                        "auto",
+                        "auto"
                     ]
+                },
+                "customsView": {
+                    "name": [
+                        "Homologação",
+                        "Tipo",
+                        "Subtipo",
+                        "Fabricante",
+                        "Modelo",
+                        "RF?",
+                        "Importador",
+                        "Código aduaneiro",
+                        "Valor Unit. (R$)",
+                        "Fonte do valor",
+                        "Qtd. estoque/aduana",
+                        "Qtd. retidas (RFB)",
+                        "Situação",
+                        "Infração",
+                        "Sanável?"
+                    ],
+                    "label": [
+                        "HOMOLOGAÇÃO",
+                        "TIPO",
+                        "SUBTIPO",
+                        "FABRICANTE",
+                        "MODELO",
+                        "RF?",
+                        "IMPORTADOR",
+                        "CÓDIGO|ADUANEIRO",
+                        "VALOR|UNITÁRIO (R$)",
+                        "FONTE|VALOR",
+                        "QTD.|ADUANA",
+                        "QTD.|RETIDA (RFB)",
+                        "SITUAÇÃO",
+                        "INFRAÇÃO",
+                        "SANÁVEL?"
+                    ],
+                    "columnWidth": [
+                        110,
+                        "auto",
+                        "auto",
+                        "auto",
+                        "auto",
+                        42,
+                        "auto",
+                        "auto",
+                        90,
+                        "auto",
+                        66,
+                        80,
+                        "auto",
+                        "auto",
+                        70
+                    ]
+                },
+                "exportedFiles": {
+                    "sharepoint": {
+                        "name": [
+                            "Hash",
+                            "Homologação",
+                            "Importador",
+                            "Código aduaneiro",
+                            "Tipo",
+                            "Fabricante",
+                            "Modelo",                            
+                            "RF?",
+                            "Em uso?",
+                            "Interferência?",
+                            "Valor Unit. (R$)",
+                            "Fonte do valor",
+                            "Qtd. uso",
+                            "Qtd. vendida",                        
+                            "Qtd. estoque/aduana",
+                            "Qtd. anunciada",
+                            "Qtd. lacradas",
+                            "Qtd. apreendidas",
+                            "Qtd. retidas (RFB)",
+                            "Situação",
+                            "Infração",
+                            "Sanável?",
+                            "Informações adicionais",
+                            "Subtipo",
+                            "Lacre",
+                            "PLAI"
+                        ],
+                        "label": [
+                            "hash",
+                            "homologacao", 
+                            "importador", 
+                            "codigoAduaneiro", 
+                            "tipo", 
+                            "fabricante", 
+                            "modelo", 
+                            "rf", 
+                            "emUso", 
+                            "interferencia", 
+                            "valorUnitario",
+                            "fonteValor",
+                            "quantidadeUso", 
+                            "quantidadeVendida", 
+                            "quantidadeEstoqueOuAduana", 
+                            "quatidadeAnunciada", 
+                            "quantidadeLacradas", 
+                            "quantidadeApreendidas", 
+                            "quantidadeRetidas", 
+                            "situacao", 
+                            "infracao", 
+                            "sanavel", 
+                            "informacoesAdicionais",
+                            "subtipo",
+                            "lacre",
+                            "plai"
+                        ]
+                    },
+                    "eFiscaliza": {
+                        "Columns": [
+                            "Tipo",
+                            "Subtipo",
+                            "Modelo",
+                            "Fabricante",
+                            "Fonte do valor",
+                            "RF?",
+                            "Em uso?",
+                            "Situação",
+                            "Qtd. vistoriadas",
+                            "Qtd. apreendidas",
+                            "Qtd. lacradas",
+                            "Qtd. retidas (RFB)",
+                            "Valor Unit. (R$)",
+                            "Qtd. vendida",
+                            "Qtd. uso",
+                            "Qtd. estoque/aduana",
+                            "Qtd. anunciada",
+                            "Interferência?",
+                            "Lacre",
+                            "PLAI"
+                        ],
+                        "Settings": [
+                            {
+                                "ColumnName": "TIPO_EQUIPAMENTO"
+                            },
+                            {
+                                "ColumnName": "SUBTIPO_EQUIPAMENTO"
+                            },
+                            {
+                                "ColumnName": "MODELO_EQUIPAMENTO"
+                            },
+                            {
+                                "ColumnName": "FABRICANTE_EQUIPAMENTO"
+                            },
+                            {
+                                "ColumnName": "INFO_ADICIONAIS"
+                            },
+                            {
+                                "ColumnName": "USA_RF"
+                            },
+                            {
+                                "ColumnName": "EQUIPAMENTO_EM_USO"
+                            },
+                            {
+                                "ColumnName": "SITUACAO"
+                            },
+                            {
+                                "ColumnName": "UNIDADES_VISTORIADAS"
+                            },
+                            {
+                                "ColumnName": "UNIDADES_APREENDIDAS"
+                            },
+                            {
+                                "ColumnName": "UNIDADES_LACRADAS"
+                            },
+                            {
+                                "ColumnName": "UNIDADES_RETIDAS"
+                            },
+                            {
+                                "ColumnName": "VALOR_UNITARIO"
+                            },
+                            {
+                                "ColumnName": "QTDE_EQUIP_VENDIDOS"
+                            },
+                            {
+                                "ColumnName": "QTDE_EQUIP_USO"
+                            },
+                            {
+                                "ColumnName": "QTDE_EQUIP_ESTOQUE"
+                            },
+                            {
+                                "ColumnName": "QT_UNIDADE_ANUNCIADA"
+                            },
+                            {
+                                "ColumnName": "CAUSOU_INTERFERENCIA"
+                            },
+                            {
+                                "ColumnName": "CO_LACRE_APREENSAO"
+                            },
+                            {
+                                "ColumnName": "NU_PROCESSO_LAI_SEI"
+                            }
+                        ]
+                    }
                 }
+            },
+            "productType": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Antena",
+                    "Baterias",
+                    "Bloqueador de sinal Jammer",
+                    "Cabo Metálico",
+                    "Cabo Óptico",
+                    "Carregadores de Baterias",
+                    "Celulares",
+                    "Decodificador de sinal para SeAC",
+                    "Equipamento de Radiação Restrita",
+                    "Equipamento de Rede de Dados",
+                    "Equipamento óptico",
+                    "Outros",
+                    "Reforçador de sinal",
+                    "SmartTV Box",
+                    "Transceptor RF",
+                    "Transmissor Radiodifusão"
+                ],
+                "mapping": [
+                    {
+                        "type": "Antena",
+                        "subtype": [
+                            "-",
+                            "Antena",
+                            "Não Passível | Antena"
+                        ]
+                    },
+                    {
+                        "type": "Baterias",
+                        "subtype": [
+                            "-",
+                            "Acessório p/ Telefone Móvel Celular do tipo Bateria Auxiliar",
+                            "Acumulador de Energia",
+                            "Bateria de Lítio utilizada em Telefone Celular"
+                        ]
+                    },
+                    {
+                        "type": "Bloqueador de sinal Jammer",
+                        "subtype": [
+                            "Bloqueador de Sinais (jammer)"
+                        ]
+                    },
+                    {
+                        "type": "Cabo Metálico",
+                        "subtype": [
+                            "-",
+                            "Cabo Coaxial",
+                            "Cabo de Manobra",
+                            "Cabo para Circuito Fechado de TV (CFTV)",
+                            "Cabo para Transmissão de Dados",
+                            "Cabo Telefônico",
+                            "Cabo xDSL"
+                        ]
+                    },
+                    {
+                        "type": "Cabo Óptico",
+                        "subtype": [
+                            "-",
+                            "Cabo de Fibra Óptica",
+                            "Cabo OPGW"
+                        ]
+                    },
+                    {
+                        "type": "Carregadores de Baterias",
+                        "subtype": [
+                            "-",
+                            "Carregador para Telefone Celular",
+                            "Carregador para Telefone Celular | Indutivo",
+                            "Carregador para Telefone Celular | Portátil/Powerbank",
+                            "Carregador para Telefone Celular | Veicular"
+                        ]
+                    },
+                    {
+                        "type": "Celulares",
+                        "subtype": [
+                            "Telefone Móvel Celular"
+                        ]
+                    },
+                    {
+                        "type": "Decodificador de sinal para SeAC",
+                        "subtype": [
+                            "-",
+                            "Conversor para TV por assinatura (Set-top Box)",
+                            "Equipamento Terminal de Usuário de TV por Assinatura"
+                        ]
+                    },
+                    {
+                        "type": "Equipamento de Radiação Restrita",
+                        "subtype": [
+                            "-",
+                            "Microfone sem Fio",
+                            "Radiação Restrita | Adaptador de Rede sem Fio",
+                            "Radiação Restrita | Alarme",
+                            "Radiação Restrita | Caixa de Som sem Fio",
+                            "Radiação Restrita | Câmera sem Fio",
+                            "Radiação Restrita | Central Multimídia",
+                            "Radiação Restrita | Controle de Videogame",
+                            "Radiação Restrita | Controle sem Fio",
+                            "Radiação Restrita | Drone",
+                            "Radiação Restrita | Fone de Ouvido sem Fio",
+                            "Radiação Restrita | Impressora",
+                            "Radiação Restrita | Impressora 3D",
+                            "Radiação Restrita | Micro Transmissor na Faixa de 88-108MHz",
+                            "Radiação Restrita | Mouse sem Fio",
+                            "Radiação Restrita | Outros",
+                            "Radiação Restrita | Rádio SCM",
+                            "Radiação Restrita | Relógio Smart",
+                            "Radiação Restrita | Roteador",
+                            "Radiação Restrita | Som Automotivo",
+                            "Radiação Restrita | Teclado sem Fio",
+                            "Radiação Restrita | Transceptor",
+                            "Sistema de Telefone sem Cordão",
+                            "Sistemas de Identificação por Radiofrequências"
+                        ]
+                    },
+                    {
+                        "type": "Equipamento de Rede de Dados",
+                        "subtype": [
+                            "-",
+                            "Equipamento de Rede de Dados",
+                            "Equipamento para Interconexão de Redes",
+                            "Multiplex",
+                            "Telefone IP"
+                        ]
+                    },
+                    {
+                        "type": "Equipamento óptico",
+                        "subtype": [
+                            "-",
+                            "Acoplador / Divisor Óptico Passivo (Splitter)",
+                            "Caixa Terminal Óptica",
+                            "Conector de Fibra Óptica",
+                            "Conjunto de Emenda para Cabos Ópticos",
+                            "OLT - Terminação de Linha Óptica",
+                            "ONT - Terminação de Rede Ótica",
+                            "ONU - Unidade de Rede Óptica",
+                            "Terminal de Linha Óptica"
+                        ]
+                    },
+                    {
+                        "type": "Outros",
+                        "subtype": [
+                            "-",
+                            "Alarme para Linha Telefônica",
+                            "Aparelho para Telefonista",
+                            "ATA - Adaptador para Telefone Analógico",
+                            "Bloco Terminal",
+                            "Central de Comutação",
+                            "Conector de Aterramento ou Blindagem",
+                            "Conector para Cabo Coaxial",
+                            "Conector para Cabo Telefônico",
+                            "Dispositivo de Operação Periódica",
+                            "Equipamento de Fac-Símile",
+                            "Estação Terminal de Acesso",
+                            "Filtro ADSL ou xDSL",
+                            "Modem",
+                            "Modulador",
+                            "Módulo Protetor",
+                            "Não Passível | Borne de antena",
+                            "Não Passível | Computador",
+                            "Não passível | Equalizador",
+                            "Não Passível | Fonte de alimentação",
+                            "Não Passível | Gerador de Estéreo",
+                            "Não passível | HD",
+                            "Não Passível | Mesa de Som",
+                            "Não passível | Mídia (LP/K7/CD/DVD)",
+                            "Não Passível | Processador de Áudio",
+                            "Não Passível | Rádio (receptor)",
+                            "Plataforma Multisserviço",
+                            "Regenerador de Sinais SHDSL",
+                            "Relógio de Rede",
+                            "Sistema de Comunicação de Implantes Médicos (MICS)",
+                            "Sistema de Ramal sem Fio de CPCT",
+                            "Sistema de Retificadores",
+                            "Sistema de Telecomando",
+                            "Telefone de Assinante",
+                            "Telefone Dedicado",
+                            "Terminal do STFC",
+                            "Transmissor | Estação Terrena",
+                            "Unidade de Supervisão CA",
+                            "Unidade Retificadora"
+                        ]
+                    },
+                    {
+                        "type": "Reforçador de sinal",
+                        "subtype": [
+                            "-",
+                            "Amplificador de Potência RF",
+                            "Reforçador de Sinais Interno",
+                            "Repetidor Celular",
+                            "Repetidor de Radiofrequências"
+                        ]
+                    },
+                    {
+                        "type": "SmartTV Box",
+                        "subtype": [
+                            "Smart TV Box"
+                        ]
+                    },
+                    {
+                        "type": "Transceptor RF",
+                        "subtype": [
+                            "-",
+                            "Conversor de Subida para Estação Terrena",
+                            "Emissor-Sensor de sistema de radar de veículo",
+                            "Emissor-Sensor de Variação de Campo Eletromagnético",
+                            "Equipamento de Radiocomunicação de Uso Geral",
+                            "Radar",
+                            "Sistemas Operando Na Faixa de 57 a 64 GHz",
+                            "Sistemas Operando nas Faixas de RF Ultra Larga",
+                            "Telefone Móvel por Satélite",
+                            "Transceptor | Estação Rádio Base",
+                            "Transceptor | Estação Terrena (não SMM)",
+                            "Transceptor | Fixo",
+                            "Transceptor | Móvel",
+                            "Transceptor | PLC",
+                            "Transceptor | Portátil",
+                            "Transceptor | SMM por Satélite",
+                            "Transceptor | Troncalizado"
+                        ]
+                    },
+                    {
+                        "type": "Transmissor Radiodifusão",
+                        "subtype": [
+                            "-",
+                            "Sistemas de Transmissão de Áudio, Vídeo",
+                            "Transmissor | FM",
+                            "Transmissor | Outros",
+                            "Transmissor | TV"
+                        ]
+                    }
+                ]
+            },
+            "situationType": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Regular",
+                    "Irregular"
+                ]
+            },
+            "violationType": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Comercialização – não homologado",
+                    "Comercialização – suspenso",
+                    "Comercialização – cancelado",
+                    "Identificação – ausência de selo",
+                    "Identificação – selo incorreto",
+                    "Identificação – selo falso",
+                    "Importação – não homologado",
+                    "Importação – sem selo",
+                    "Uso – não homologado",
+                    "Uso – características diferentes"
+                ]
             }
         },
-        "typeOfProduct": {
-            "default": "-",
-            "options": [
-                "-",
-                "Antena",
-                "Baterias",
-                "Bloqueador de sinal Jammer",
-                "Cabo Metálico",
-                "Cabo Óptico",
-                "Carregadores de Baterias",
-                "Celulares",
-                "Decodificador de sinal para SeAC",
-                "Equipamento de Radiação Restrita",
-                "Equipamento de Rede de Dados",
-                "Equipamento óptico",
-                "Outros",
-                "Reforçador de sinal",
-                "SmartTV Box",
-                "Transceptor RF",
-                "Transmissor Radiodifusão"
-            ],
-            "mapping": [
-                {
-                    "type": "Antena",
-                    "subtype": [
-                        "-",
-                        "Antena",
-                        "Não Passível | Antena"
-                    ]
-                },
-                {
-                    "type": "Baterias",
-                    "subtype": [
-                        "-",
-                        "Acessório p/ Telefone Móvel Celular do tipo Bateria Auxiliar",
-                        "Acumulador de Energia",
-                        "Bateria de Lítio utilizada em Telefone Celular"
-                    ]
-                },
-                {
-                    "type": "Bloqueador de sinal Jammer",
-                    "subtype": [
-                        "Bloqueador de Sinais (jammer)"
-                    ]
-                },
-                {
-                    "type": "Cabo Metálico",
-                    "subtype": [
-                        "-",
-                        "Cabo Coaxial",
-                        "Cabo de Manobra",
-                        "Cabo para Circuito Fechado de TV (CFTV)",
-                        "Cabo para Transmissão de Dados",
-                        "Cabo Telefônico",
-                        "Cabo xDSL"
-                    ]
-                },
-                {
-                    "type": "Cabo Óptico",
-                    "subtype": [
-                        "-",
-                        "Cabo de Fibra Óptica",
-                        "Cabo OPGW"
-                    ]
-                },
-                {
-                    "type": "Carregadores de Baterias",
-                    "subtype": [
-                        "-",
-                        "Carregador para Telefone Celular",
-                        "Carregador para Telefone Celular | Indutivo",
-                        "Carregador para Telefone Celular | Portátil/Powerbank",
-                        "Carregador para Telefone Celular | Veicular"
-                    ]
-                },
-                {
-                    "type": "Celulares",
-                    "subtype": [
-                        "Telefone Móvel Celular"
-                    ]
-                },
-                {
-                    "type": "Decodificador de sinal para SeAC",
-                    "subtype": [
-                        "-",
-                        "Conversor para TV por assinatura (Set-top Box)",
-                        "Equipamento Terminal de Usuário de TV por Assinatura"
-                    ]
-                },
-                {
-                    "type": "Equipamento de Radiação Restrita",
-                    "subtype": [
-                        "-",
-                        "Microfone sem Fio",
-                        "Radiação Restrita | Adaptador de Rede sem Fio",
-                        "Radiação Restrita | Alarme",
-                        "Radiação Restrita | Caixa de Som sem Fio",
-                        "Radiação Restrita | Câmera sem Fio",
-                        "Radiação Restrita | Central Multimídia",
-                        "Radiação Restrita | Controle de Videogame",
-                        "Radiação Restrita | Controle sem Fio",
-                        "Radiação Restrita | Drone",
-                        "Radiação Restrita | Fone de Ouvido sem Fio",
-                        "Radiação Restrita | Impressora",
-                        "Radiação Restrita | Impressora 3D",
-                        "Radiação Restrita | Micro Transmissor na Faixa de 88-108MHz",
-                        "Radiação Restrita | Mouse sem Fio",
-                        "Radiação Restrita | Outros",
-                        "Radiação Restrita | Rádio SCM",
-                        "Radiação Restrita | Relógio Smart",
-                        "Radiação Restrita | Roteador",
-                        "Radiação Restrita | Som Automotivo",
-                        "Radiação Restrita | Teclado sem Fio",
-                        "Radiação Restrita | Transceptor",
-                        "Sistema de Telefone sem Cordão",
-                        "Sistemas de Identificação por Radiofrequências"
-                    ]
-                },
-                {
-                    "type": "Equipamento de Rede de Dados",
-                    "subtype": [
-                        "-",
-                        "Equipamento de Rede de Dados",
-                        "Equipamento para Interconexão de Redes",
-                        "Multiplex",
-                        "Telefone IP"
-                    ]
-                },
-                {
-                    "type": "Equipamento óptico",
-                    "subtype": [
-                        "-",
-                        "Acoplador / Divisor Óptico Passivo (Splitter)",
-                        "Caixa Terminal Óptica",
-                        "Conector de Fibra Óptica",
-                        "Conjunto de Emenda para Cabos Ópticos",
-                        "OLT - Terminação de Linha Óptica",
-                        "ONT - Terminação de Rede Ótica",
-                        "ONU - Unidade de Rede Óptica",
-                        "Terminal de Linha Óptica"
-                    ]
-                },
-                {
-                    "type": "Outros",
-                    "subtype": [
-                        "-",
-                        "Alarme para Linha Telefônica",
-                        "Aparelho para Telefonista",
-                        "ATA - Adaptador para Telefone Analógico",
-                        "Bloco Terminal",
-                        "Central de Comutação",
-                        "Conector de Aterramento ou Blindagem",
-                        "Conector para Cabo Coaxial",
-                        "Conector para Cabo Telefônico",
-                        "Dispositivo de Operação Periódica",
-                        "Equipamento de Fac-Símile",
-                        "Estação Terminal de Acesso",
-                        "Filtro ADSL ou xDSL",
-                        "Modem",
-                        "Modulador",
-                        "Módulo Protetor",
-                        "Não Passível | Borne de antena",
-                        "Não Passível | Computador",
-                        "Não passível | Equalizador",
-                        "Não Passível | Fonte de alimentação",
-                        "Não Passível | Gerador de Estéreo",
-                        "Não passível | HD",
-                        "Não Passível | Mesa de Som",
-                        "Não passível | Mídia (LP/K7/CD/DVD)",
-                        "Não Passível | Processador de Áudio",
-                        "Não Passível | Rádio (receptor)",
-                        "Plataforma Multisserviço",
-                        "Regenerador de Sinais SHDSL",
-                        "Relógio de Rede",
-                        "Sistema de Comunicação de Implantes Médicos (MICS)",
-                        "Sistema de Ramal sem Fio de CPCT",
-                        "Sistema de Retificadores",
-                        "Sistema de Telecomando",
-                        "Telefone de Assinante",
-                        "Telefone Dedicado",
-                        "Terminal do STFC",
-                        "Transmissor | Estação Terrena",
-                        "Unidade de Supervisão CA",
-                        "Unidade Retificadora"
-                    ]
-                },
-                {
-                    "type": "Reforçador de sinal",
-                    "subtype": [
-                        "-",
-                        "Amplificador de Potência RF",
-                        "Reforçador de Sinais Interno",
-                        "Repetidor Celular",
-                        "Repetidor de Radiofrequências"
-                    ]
-                },
-                {
-                    "type": "SmartTV Box",
-                    "subtype": [
-                        "Smart TV Box"
-                    ]
-                },
-                {
-                    "type": "Transceptor RF",
-                    "subtype": [
-                        "-",
-                        "Conversor de Subida para Estação Terrena",
-                        "Emissor-Sensor de sistema de radar de veículo",
-                        "Emissor-Sensor de Variação de Campo Eletromagnético",
-                        "Equipamento de Radiocomunicação de Uso Geral",
-                        "Radar",
-                        "Sistemas Operando Na Faixa de 57 a 64 GHz",
-                        "Sistemas Operando nas Faixas de RF Ultra Larga",
-                        "Telefone Móvel por Satélite",
-                        "Transceptor | Estação Rádio Base",
-                        "Transceptor | Estação Terrena (não SMM)",
-                        "Transceptor | Fixo",
-                        "Transceptor | Móvel",
-                        "Transceptor | PLC",
-                        "Transceptor | Portátil",
-                        "Transceptor | SMM por Satélite",
-                        "Transceptor | Troncalizado"
-                    ]
-                },
-                {
-                    "type": "Transmissor Radiodifusão",
-                    "subtype": [
-                        "-",
-                        "Sistemas de Transmissão de Áudio, Vídeo",
-                        "Transmissor | FM",
-                        "Transmissor | Outros",
-                        "Transmissor | TV"
-                    ]
-                }
-            ]
-        },
-        "typeOfSituation": {
-            "default": "-",
-            "options": [
-                "-",
-                "Regular",
-                "Irregular"
-            ]
-        },
-        "typeOfViolation": {
-            "default": "-",
-            "options": [
-                "-",
-                "Comercialização – não homologado",
-                "Comercialização – suspenso",
-                "Comercialização – cancelado",
-                "Identificação – ausência de selo",
-                "Identificação – selo incorreto",
-                "Identificação – selo falso",
-                "Importação – não homologado",
-                "Importação – sem selo",
-                "Uso – não homologado",
-                "Uso – características diferentes"
-            ]
-        },
-        "typeOfEntity": {
+    "reportLib": {
+        "system": "eFiscaliza",
+        "unit": "",
+        "outputCompressionMode": "Sim",
+        "entityType": {
             "default": "",
             "options": [
                 "",
+                "Prestadora",
                 "Importador",
                 "Fornecedor",
                 "Usuário"
             ]
-        }
-    },
-    "Report": {
-        "system": "eFiscaliza",
-        "unit": "",
-        "Document": "Relatório de Atividades",
-        "outputCompressionMode": "Sim",
+        },
         "indexedDBCache": {
             "status": true,
             "intervalMinutes": 1

@@ -12,7 +12,7 @@ classdef (Abstract) readExternalFile
         %-----------------------------------------------------------------%
         function [schDataTable, schDataCategories, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
             [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            fileName = sprintf('SCHData%s.mat', generalSettings.search.dataBaseVersion);
+            fileName = sprintf('SCHData%s.mat', generalSettings.context.SEARCH.dataBaseVersion);
 
             try
                 cloudFilePath = fullfile(cloudFolder, fileName);

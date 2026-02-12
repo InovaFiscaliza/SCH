@@ -165,7 +165,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             appEngine.beforeReload(app, app.Role)
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
 
-                            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
+                            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.context.SEARCH.wordCloud.algorithm);
 
                             if ~isempty(selection)
                                 app.UITable.Selection = selection;
@@ -224,7 +224,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.searchEntryPoint.Value = currentInputValue;    
                         switch keydownPressed
                             case {'Escape', 'Tab'}
-                                if numel(currentInputValue) < app.General.search.minCharacters
+                                if numel(currentInputValue) < app.General.context.SEARCH.minCharacters
                                     entryButtonInitialState(app)
                                 end
     
@@ -236,10 +236,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 set(app.searchSuggestions, Visible=0, Value={})
     
                             otherwise
-                                if numel(currentInputValue) >= app.General.search.minCharacters
+                                if numel(currentInputValue) >= app.General.context.SEARCH.minCharacters
                                     switch keydownPressed
                                         case 'ArrowDown'
-                                            if strcmp(app.General.search.mode, 'tokens')
+                                            if strcmp(app.General.context.SEARCH.mode, 'tokens')
                                                 app.previousSuggestionIdx = 1;
     
                                                 set(app.searchSuggestions, 'Visible', 1, 'Value', 1)
@@ -248,7 +248,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                             end
     
                                         case 'ArrowUp'
-                                            if strcmp(app.General.search.mode, 'tokens')
+                                            if strcmp(app.General.context.SEARCH.mode, 'tokens')
                                                 nMaxValues = numel(app.searchSuggestions.Items);
     
                                                 app.previousSuggestionIdx = nMaxValues;
@@ -400,7 +400,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         
                                     case 'onWordCloudAlgorithmChanged'
                                         if ~isempty(app.wordCloudObj)
-                                            onAlgorithmValueChanged(app.wordCloudObj, app.General.search.wordCloud.algorithm);
+                                            onAlgorithmValueChanged(app.wordCloudObj, app.General.context.SEARCH.wordCloud.algorithm);
                                         end
         
                                     case 'onSearchVisibleColumnsChanged'
@@ -648,7 +648,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.General_I.fileFolder.tempPath  = tempDir;
             app.General_I.fileFolder.MFilePath = MFilePath;
 
-            app.General_I.ui.searchTable       = struct2table(app.General_I.ui.searchTable);
+            app.General_I.context.SEARCH.ui.searchTable = struct2table(app.General_I.context.SEARCH.ui.searchTable);
 
             switch app.executionMode
                 case 'webApp'
@@ -663,8 +663,8 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.General_I.fileFolder.userPath = tempDir;
 
                     % Wordcloud built-in do MATLAB é incompatível com webapps.
-                    if ~strcmp(app.General_I.search.wordCloud.algorithm, 'D3.js')
-                        app.General_I.search.wordCloud.algorithm = 'D3.js';
+                    if ~strcmp(app.General_I.context.SEARCH.wordCloud.algorithm, 'D3.js')
+                        app.General_I.context.SEARCH.wordCloud.algorithm = 'D3.js';
                     end
 
                 otherwise
@@ -688,9 +688,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
             app.projectData = model.Project(app, app.rootFolder);
-            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.search.wordCloud.algorithm);
+            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.wordCloudPanel, app.General.context.SEARCH.wordCloud.algorithm);
             
-            if ~strcmp(app.executionMode, 'desktopStandaloneApp') && app.General.Report.indexedDBCache.status
+            if ~strcmp(app.executionMode, 'desktopStandaloneApp') && app.General.reportLib.indexedDBCache.status
                 appEngine.indexedDB.openDB(app.jsBackDoor, class.Constants.appName)
             end
 
@@ -797,7 +797,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         % FILTRAGEM
         %-----------------------------------------------------------------%
         function searchComponentsInitialState(app)
-            switch app.General.search.type
+            switch app.General.context.SEARCH.type
                 case {'FreeText', 'FreeText+ColumnFilter'}
                     enable = true;
                     value = app.searchEntryButton.UserData.valueToSearch;
@@ -834,7 +834,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             hasColumnFilters = any(app.filteringObj.filterRules.Enable);
 
             matchRowIdxs = [];
-            switch app.General.search.type
+            switch app.General.context.SEARCH.type
                 case 'FreeText'
                     if hasWordsToSearch
                         matchRowIdxs = applyTextFilter(app);
@@ -865,7 +865,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function matchRowIdxs = applyTextFilter(app)
-            switch app.General.search.mode
+            switch app.General.context.SEARCH.mode
                 case 'tokens'
                     sortOrder = 'stable';
                 otherwise % 'words'
@@ -873,7 +873,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             cacheColumnNames = strcat({'_'}, strsplit(app.cacheColumns, ' | '));
-            searchFunction   = app.General.search.function;
+            searchFunction   = app.General.context.SEARCH.function;
             wordsToSearch    = app.searchEntryButton.UserData.wordsToSearch;
             
             matchRowTempIdxs = run(app.filteringObj, 'wordsToSearch', app.schDataTable, cacheColumnNames, sortOrder, searchFunction, wordsToSearch);
@@ -929,11 +929,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             resultsContext   = '';
             columnFilterList = {};
 
-            if ismember(app.General.search.type, {'FreeText', 'FreeText+ColumnFilter'})
+            if ismember(app.General.context.SEARCH.type, {'FreeText', 'FreeText+ColumnFilter'})
                 valueToSearch = app.searchEntryButton.UserData.valueToSearch;
                 wordsToSearch = app.searchEntryButton.UserData.wordsToSearch;
 
-                switch app.General.search.mode
+                switch app.General.context.SEARCH.mode
                     case 'tokens'
                         searchSpecInfo = '[TS]';
 
@@ -954,7 +954,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
 
-            if ismember(app.General.search.type, {'ColumnFilter', 'FreeText+ColumnFilter'})
+            if ismember(app.General.context.SEARCH.type, {'ColumnFilter', 'FreeText+ColumnFilter'})
                 if ~isempty(searchSpecInfo)
                     searchSpecInfo = [searchSpecInfo ' '];
                 end
@@ -1026,21 +1026,21 @@ classdef winSCH_exported < matlab.apps.AppBase
         function columnInfo = UITableColumnInfo(app, type)
             switch type
                 case 'staticColumns'
-                    staticLogical  = logical(app.General.ui.searchTable.columnPosition);
-                    staticIndex    = app.General.ui.searchTable.columnPosition(staticLogical);
+                    staticLogical  = logical(app.General.context.SEARCH.ui.searchTable.columnPosition);
+                    staticIndex    = app.General.context.SEARCH.ui.searchTable.columnPosition(staticLogical);
                     [~, idxOrder]  = sort(staticIndex);
-                    columnList     = app.General.ui.searchTable.name(staticLogical);
+                    columnList     = app.General.context.SEARCH.ui.searchTable.name(staticLogical);
                     columnInfo     = columnList(idxOrder);
 
                 case 'visibleColumns'
-                    visibleLogical = logical(app.General.ui.searchTable.visible);
+                    visibleLogical = logical(app.General.context.SEARCH.ui.searchTable.visible);
                     columnInfo     = app.General.ui.searchTable.name(visibleLogical);
 
                 case 'allColumns'
-                    columnInfo     = app.General.ui.searchTable.name;
+                    columnInfo     = app.General.context.SEARCH.ui.searchTable.name;
 
                 case 'allColumnsWidths'
-                    columnInfo     = app.General.ui.searchTable.columnWidth;
+                    columnInfo     = app.General.context.SEARCH.ui.searchTable.columnWidth;
             end
         end
 
@@ -1117,7 +1117,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % O wordcloud, do MATLAB, é lento, demandando uma tela de progresso
             % que bloqueia a interação com o app.
-            if strcmp(app.General.search.wordCloud.algorithm, 'MATLAB built-in')
+            if strcmp(app.General.context.SEARCH.wordCloud.algorithm, 'MATLAB built-in')
                 app.progressDialog.Visible = 'visible';
             end
 
@@ -1162,7 +1162,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             listOfWords = {char(app.UITable.Data.("Modelo")(selectedRow)), ...
                 char(app.UITable.Data.("Nome Comercial")(selectedRow))};
 
-            switch app.General.search.wordCloud.column
+            switch app.General.context.SEARCH.wordCloud.column
                 case 'Modelo';         idx1 = 1;
                 case 'Nome Comercial'; idx1 = 2;
             end
@@ -1293,7 +1293,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             callingApp.progressDialog.Visible = 'hidden';
 
             if status1 && strcmp(app.projectData.modules.(context).ui.system, 'eFiscaliza')
-                [status2, msg2] = reportUploadJsonToSharepoint(app, context);
+                [status2, msg2] = reportUploadFilesToSharepoint(app, context);
 
                 if ~status2
                     ui.Dialog(callingApp.UIFigure, 'error', msg2);
@@ -1357,17 +1357,17 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %------------------------------------------------------------------------%
-        function [status, msg] = reportUploadJsonToSharepoint(app, context)
-            JSONFiles = { ...
+        function [status, msg] = reportUploadFilesToSharepoint(app, context)
+            sharepointFileList = { ...
                 getGeneratedDocumentFileName(app.projectData, '.json',  context), ...
                 getGeneratedDocumentFileName(app.projectData, '.teams', context)  ...
             };
         
-            statusList = false(1, numel(JSONFiles));
+            statusList = false(1, numel(sharepointFileList));
             msgList = {};
         
-            for ii = 1:numel(JSONFiles)
-                [statusList(ii), msgWarning] = copyfile(JSONFiles{ii}, app.General.fileFolder.DataHub_POST, 'f');
+            for ii = 1:numel(sharepointFileList)
+                [statusList(ii), msgWarning] = copyfile(sharepointFileList{ii}, app.General.fileFolder.DataHub_POST, 'f');
         
                 if ~statusList(ii)
                     msgList{end+1} = msgWarning;
@@ -1410,7 +1410,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             msgQuestion = '';
-            if CheckIfUpdateNeeded(app.projectData)
+            if checkIfUpdateNeeded(app.projectData)
                 msgQuestion = sprintf([ ...
                     'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
                     'lista de produtos sob análise). Caso o aplicativo seja encerrado ' ...
@@ -1454,8 +1454,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             switch hitObject
                 case app.searchEntryPoint
                     if ~isempty(app.searchEntryPoint.Value)
-                        if strcmp(app.General.search.mode, 'tokens')
-                            if numel(app.searchEntryPoint.Value) >= app.General.search.minCharacters
+                        if strcmp(app.General.context.SEARCH.mode, 'tokens')
+                            if numel(app.searchEntryPoint.Value) >= app.General.context.SEARCH.minCharacters
                                 app.searchSuggestions.Visible = 1;
                             end
                         end
@@ -1520,15 +1520,15 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             valueToSearch = textAnalysis.preProcessedData(event.Value, false);
 
-            if numel(valueToSearch) < app.General.search.minCharacters
+            if numel(valueToSearch) < app.General.context.SEARCH.minCharacters
                 app.searchEntryButton.Enable = 0;
                 searchSuggestionsInitialState(app)
 
             else
                 app.searchEntryButton.Enable = 1;
 
-                if strcmp(app.General.search.mode, 'tokens')
-                    [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, valueToSearch, app.General.search.minDisplayedTokens);
+                if strcmp(app.General.context.SEARCH.mode, 'tokens')
+                    [similarStrings, idxFiltered, redFontFlag] = util.getSimilarStrings(app.cacheData, valueToSearch, app.General.context.SEARCH.minDisplayedTokens);
                     
                     set(app.searchSuggestions, ...
                         'Visible', ~isfield(event, 'ListBoxVisibility'), ...
@@ -1553,7 +1553,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             valueToSearch = textAnalysis.preProcessedData(app.searchEntryPoint.Value, false);
 
-            switch app.General.search.mode
+            switch app.General.context.SEARCH.mode
                 case 'tokens'
                     if isempty(app.searchSuggestions.Items)
                         onEntryPointChanging(app, struct('Value', app.searchEntryPoint.Value, 'ListBoxVisibility', false))

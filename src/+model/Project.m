@@ -1,149 +1,61 @@
-classdef Project < handle
+classdef Project < model.ProjectCommon
 
-    % ## model.Project ##      
-    % - *.*
+    % ## model.Project (SCH) ##      
+    % PUBLIC
     %   ├── Project
+    %   |   |── restart
     %   │   |── model.ProjectBase.readRegulatronData
-    %   │   └── Initialization
-    %   ├── Initialization
-    %   │   |── ReadReportTemplates
+    %   │   └── IndexedDBTimer
+    %   ├── restart
+    %   │   |── initialization (SuperClass)
     %   │   └── model.ProjectBase.createInspectedProductsTable
-    %   ├── CheckIfUpdateNeeded
+    %   ├── checkIfUpdateNeeded
     %   │   └── model.ProjectBase.computeProjectHash
     %   ├── IndexedDBCache
     %   │   └── appEngine.indexedDB.saveData
-    %   ├── Save
+    %   ├── save
     %   │   └── model.ProjectBase.computeProjectHash
-    %   ├── Load
-    %   │   |── Initialization
-    %   │   └── updateUiInfo
-    %   │   |── checkCNPJOrCPF
+    %   ├── load
+    %   │   |── restart
+    %   │   |── updateUiInfo (SuperClass)
+    %   │   |── checkCNPJOrCPF (Externa)
+    %   │   |── checkTypeSubtypeProductsMapping
     %   │   |── model.ProjectBase.initializeInspectedProduct
-    %   │   |── model.ProjectBase.computeProjectHash
-    %   │   └── updateInspectedProducts    
-    %   ├── validateReportRequirements
+    %   │   |── updateInspectedProducts
+    %   │   └── model.ProjectBase.computeProjectHash
     %   ├── validateInspectedProducts
     %   ├── checkTypeSubtypeProductsMapping
-    %   ├── updateGeneratedFiles
-    %   ├── updateUploadedFiles
-    %   │   └── model.ProjectBase.computeUploadedFileHash
-    %   |── updateInspectedProducts
-    %   │   |── model.ProjectBase.computeInspectedProductHash
-    %   │   └── IndexedDBCache
-    %   ├── updateUiInfo
-    %   ├── getUploadedFiles
-    %   ├── getGeneratedDocumentFileName
-    %   |   └── updateGeneratedFiles
-    %   ├── getIssueDetailsFromCache
-    %   ├── getOrFetchIssueDetails
-    %   |   |── getIssueDetailsFromCache
-    %   |   |── ws.eFiscaliza
-    %   |   └── updateUiInfo
-    %   ├── getEntityDetailsFromCache
-    %   |── getOrFetchEntityDetails
-    %   |   ├── getEntityDetailsFromCache
-    %   |   ├── checkCNPJOrCPF
-    %   |   └── updateUiInfo
-    %   └── ReadReportTemplates
-    %       ├── appEngine.util.Path
-    %       ├── util.publicLink
-    %       └── util.readExternalFile.RegulatronData
+    %   └── updateInspectedProducts
+    %       |── model.ProjectBase.computeInspectedProductHash
+    %       └── IndexedDBCache
     
     properties
         %-----------------------------------------------------------------%
-        name
-        file
-        hash
-
-        modules
-        report = struct('templates', [], 'settings',  [])
-        
-        issueDetails = struct('system', {}, 'issue', {}, 'details', {}, 'timestamp', {})
-        entityDetails = struct('id', {}, 'details', {}, 'timestamp', {})
-
         inspectedProducts
         typeSubtypeProductsMapping        
         regulatronData
     end
 
 
-    properties (Access = private)
-        %-----------------------------------------------------------------%
-        mainApp
-        rootFolder
-        indexedDB = struct('syncTimer', [], 'lastSyncAt', [], 'lastSyncHash', '')
-    end
-
-
     methods
         %-----------------------------------------------------------------%
-        function obj = Project(mainApp, rootFolder)            
-            obj.mainApp = mainApp;
-            obj.rootFolder = rootFolder;
+        function obj = Project(mainApp, rootFolder)
+            obj@model.ProjectCommon(mainApp, rootFolder);
 
-            obj.typeSubtypeProductsMapping = mainApp.General.ui.typeOfProduct.mapping;
+            restart(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
+            obj.typeSubtypeProductsMapping = mainApp.General.context.PRODUCTS.productType.mapping;
             obj.regulatronData = model.ProjectBase.readRegulatronData(rootFolder, mainApp.General.fileFolder.DataHub_GET);
-
-            Initialization(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
             IndexedDBTimer(obj)
         end
 
         %-----------------------------------------------------------------%
-        function Initialization(obj, contextList, generalSettings)
-            % O "id", do "generatedFiles", é a lista ordenada de "hashs" dos registros 
-            % que compõem "inspectedProducts".
-
-            obj.name = '';
-            obj.file = '';
-            obj.hash = '';
-
-            for ii = 1:numel(contextList)
-                context = contextList{ii};
-                obj.modules.(context) = struct( ...
-                    'annotationTable', [], ...
-                    'generatedFiles', struct( ...
-                        'id', '', ...
-                        'rawFiles', {{}}, ...
-                        'lastHTMLDocFullPath', '', ...
-                        'lastJSONFullPath', '', ...
-                        'lastTableFullPath', '', ...
-                        'lastTEAMSFullPath', '', ...
-                        'lastZIPFullPath', '' ...
-                    ), ...
-                    'uploadedFiles', struct( ...
-                        'hash', {}, ...
-                        'system', {}, ...
-                        'issue', {}, ...
-                        'status', {}, ...
-                        'timestamp', {} ...
-                    ), ...
-                    'ui', struct( ...
-                        'system', '', ...
-                        'unit',   '',  ...
-                        'issue',  -1,  ...
-                        'templates', {{}}, ...
-                        'reportModel', '',  ...
-                        'reportVersion', 'Preliminar', ...
-                        'entityTypes', {{}},  ...
-                        'entity', struct( ...
-                            'type', '', ...
-                            'name', '', ...
-                            'id',   '', ...
-                            'status', false ...
-                        ) ...
-                    ) ...
-                );
-
-                obj.modules.(context).ui.entityTypes = generalSettings.ui.typeOfEntity.options;
-                obj.modules.(context).ui.entity.type = generalSettings.ui.typeOfEntity.default;
-            end
-
-            ReadReportTemplates(obj, obj.rootFolder)
+        function restart(obj, contextList, generalSettings)
+            initialization(obj, contextList, generalSettings)
             obj.inspectedProducts = model.ProjectBase.createInspectedProductsTable(generalSettings);
         end
 
         %-----------------------------------------------------------------%
-        function updateNeeded = CheckIfUpdateNeeded(obj)
+        function updateNeeded = checkIfUpdateNeeded(obj)
             updateNeeded = false;
             
             if ~isempty(obj.name)
@@ -185,7 +97,7 @@ classdef Project < handle
         end
 
         %-----------------------------------------------------------------%
-        function Save(obj, context, prjName, prjFile, outputFileCompressionMode)
+        function save(obj, context, prjName, prjFile, outputFileCompressionMode)
             arguments
                 obj
                 context char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
@@ -243,7 +155,7 @@ classdef Project < handle
         %-----------------------------------------------------------------%
         % ## LOAD ##
         %-----------------------------------------------------------------%
-        function msg = Load(obj, origin, varargin)
+        function msg = load(obj, origin, varargin)
             arguments
                 obj 
                 origin {mustBeMember(origin, {'file', 'indexedDB'})}
@@ -277,7 +189,7 @@ classdef Project < handle
                         switch prjData.version
                             case 1
                                 context  = 'PRODUCTS';
-                                Initialization(obj, {context}, generalSettings)
+                                restart(obj, {context}, generalSettings)
 
                                 obj.name = '(NÃO DEFINIDO)';
                                 obj.file = fileName;
@@ -288,8 +200,8 @@ classdef Project < handle
                                 % Validação e normalização das informações da entidade fiscalizada.
                                 [entityId, status] = checkCNPJOrCPF(prjData.variables.entityID, 'NumberValidation');
                                 entityType = prjData.variables.entityType;
-                                if ~ismember(entityType, generalSettings.ui.typeOfEntity.options)
-                                    entityType = generalSettings.ui.typeOfEntity.default;
+                                if ~ismember(entityType, generalSettings.reportLib.entityType.options)
+                                    entityType = generalSettings.reportLib.entityType.default;
                                 end
                                 
                                 entity = struct( ...
@@ -330,16 +242,16 @@ classdef Project < handle
                                     % Valida, para cada registro, se os valores das colunas categóricas
                                     % ("Tipo", "Situação", "Infração" e "Sanável?") pertencem às categorias
                                     % atualmente suportadas pela aplicação.
-                                    if ~ismember(listOfProducts.("Tipo")(ii), generalSettings.ui.typeOfProduct.options)
-                                        listOfProducts.("Tipo")(ii) = generalSettings.ui.typeOfProduct.default;
+                                    if ~ismember(listOfProducts.("Tipo")(ii), generalSettings.context.PRODUCTS.productType.options)
+                                        listOfProducts.("Tipo")(ii) = generalSettings.context.PRODUCTS.productType.default;
                                     end
                                 
-                                    if ~ismember(listOfProducts.("Situação")(ii), generalSettings.ui.typeOfSituation.options)
-                                        listOfProducts.("Situação")(ii) = generalSettings.ui.typeOfSituation.default;
+                                    if ~ismember(listOfProducts.("Situação")(ii), generalSettings.context.PRODUCTS.situationType.options)
+                                        listOfProducts.("Situação")(ii) = generalSettings.context.PRODUCTS.situationType.default;
                                     end
                                 
-                                    if ~ismember(listOfProducts.("Infração")(ii), generalSettings.ui.typeOfViolation.options)
-                                        listOfProducts.("Infração")(ii) = generalSettings.ui.typeOfViolation.default;
+                                    if ~ismember(listOfProducts.("Infração")(ii), generalSettings.context.PRODUCTS.violationType.options)
+                                        listOfProducts.("Infração")(ii) = generalSettings.context.PRODUCTS.violationType.default;
                                     end
                                 
                                     if ~ismember(listOfProducts.("Sanável?")(ii), {'-', 'Sim', 'Não'})
@@ -447,7 +359,7 @@ classdef Project < handle
 
                         switch prjData.version
                             case 1
-                                Initialization(obj, {'SEARCH', 'PRODUCTS'}, generalSettings)
+                                restart(obj, {'SEARCH', 'PRODUCTS'}, generalSettings)
 
                                 obj.name = prjData.name;
                                 obj.file = prjData.file;
@@ -466,7 +378,7 @@ classdef Project < handle
                                 if ~isempty(prjData.inspectedProducts)
                                     listOfProducts = struct2table(prjData.inspectedProducts, "AsArray", true);
                                     
-                                    if any(~ismember(listOfProducts.Properties.VariableNames, generalSettings.ui.reportTable.exportedFiles.sharepoint.label))
+                                    if any(~ismember(listOfProducts.Properties.VariableNames, generalSettings.context.PRODUCTS.reportTable.exportedFiles.sharepoint.label))
                                         error([ ...
                                             'A estrutura dos dados dos produtos sob análise foi alterada e os dados ' ...
                                             'salvos no navegador não são compatíveis com a versão atual do aplicativo.<br><br>' ...
@@ -476,8 +388,8 @@ classdef Project < handle
     
                                     listOfProducts = renamevars( ...
                                         listOfProducts, ...
-                                        generalSettings.ui.reportTable.exportedFiles.sharepoint.label, ...
-                                        generalSettings.ui.reportTable.exportedFiles.sharepoint.name ...
+                                        generalSettings.context.PRODUCTS.reportTable.exportedFiles.sharepoint.label, ...
+                                        generalSettings.context.PRODUCTS.reportTable.exportedFiles.sharepoint.name ...
                                     );
                                     listOfProducts = model.ProjectBase.validateCategoricalColumns(listOfProducts, generalSettings);
                                     obj.inspectedProducts(1:height(listOfProducts), :) = listOfProducts;
@@ -494,29 +406,6 @@ classdef Project < handle
 
         %-----------------------------------------------------------------%
         % ## VALIDATION ##
-        %-----------------------------------------------------------------%
-        function status = validateReportRequirements(obj, context, requirement)
-            arguments
-                obj 
-                context 
-                requirement {mustBeMember(requirement, {'inspectedProducts', 'issue', 'unit', 'reportModel', 'entity'})}
-            end
-            switch requirement
-                case 'inspectedProducts'
-                    status = ~isempty(obj.inspectedProducts);
-                case 'issue'
-                    issue  = obj.modules.(context).ui.issue;
-                    status = (issue > 0) && (issue < inf);
-                case 'unit'
-                    status = ~isempty(obj.modules.(context).ui.unit);
-                case 'reportModel'
-                    status = ~isempty(obj.modules.(context).ui.reportModel);
-                case 'entity'
-                    entity = obj.modules.(context).ui.entity;
-                    status = ~isempty(entity.type) && ~isempty(entity.name) && (strcmp(entity.type, 'Importador') || entity.status);
-            end
-        end
-
         %-----------------------------------------------------------------%
         function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
             % Função que valida a consistência e o preenchimento de dados da
@@ -601,48 +490,6 @@ classdef Project < handle
         %-----------------------------------------------------------------%
         % ## UPDATE ##
         %-----------------------------------------------------------------%
-        function updateGeneratedFiles(obj, context, id, rawFiles, htmlFile, jsonFile, tableFile, teamsFile, zipFile)
-            arguments
-                obj
-                context   (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
-                id        char = ''
-                rawFiles  cell = {}
-                htmlFile  char = ''
-                jsonFile  char = ''
-                tableFile char = ''
-                teamsFile char = ''
-                zipFile   char = ''
-            end
-
-            obj.modules.(context).generatedFiles.id                  = id;
-            obj.modules.(context).generatedFiles.rawFiles            = rawFiles;
-            obj.modules.(context).generatedFiles.lastHTMLDocFullPath = htmlFile;
-            obj.modules.(context).generatedFiles.lastJSONFullPath    = jsonFile;
-            obj.modules.(context).generatedFiles.lastTableFullPath   = tableFile;
-            obj.modules.(context).generatedFiles.lastTEAMSFullPath   = teamsFile;
-            obj.modules.(context).generatedFiles.lastZIPFullPath     = zipFile;
-        end
-
-        %-----------------------------------------------------------------%
-        function updateUploadedFiles(obj, context, system, issue, status)
-            arguments
-                obj
-                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
-                system
-                issue
-                status
-            end
-
-            obj.modules.(context).uploadedFiles(end+1) = struct( ...
-                'hash', model.ProjectBase.computeUploadedFileHash(system, issue, status), ...
-                'system', system, ...
-                'issue', issue, ...
-                'status', status, ...
-                'timestamp', datestr(now) ...
-            );
-        end
-
-        %-----------------------------------------------------------------%
         function updateInspectedProducts(obj, operation, varargin)
             arguments
                 obj
@@ -678,211 +525,6 @@ classdef Project < handle
                     indexes = varargin{1};
                     obj.inspectedProducts(indexes, :) = [];
             end
-        end
-
-        %-----------------------------------------------------------------%
-        function updateUiInfo(obj, context, fieldName, fieldValue)
-            arguments
-                obj
-                context    (1,:) char {mustBeMember(context, {'self', 'SEARCH', 'PRODUCTS'})}
-                fieldName  (1,:) char
-                fieldValue
-            end
-
-            switch fieldName
-                case {'name', 'file', 'hash'}
-                    obj.(fieldName) = fieldValue;
-
-                case 'issueDetails'
-                    [~, issueIndex] = ismember(fieldValue.issue, [obj.issueDetails.issue]);
-                    if ~issueIndex
-                        issueIndex = numel(obj.issueDetails) + 1;
-                    end                    
-                    obj.issueDetails(issueIndex) = fieldValue;
-
-                case 'entityDetails'
-                    [~, entityIdIndex] = ismember(fieldValue.id, {obj.entityDetails.id});
-                    if ~entityIdIndex
-                        entityIdIndex = numel(obj.entityDetails) + 1;
-                    end                    
-                    obj.entityDetails(entityIdIndex) = fieldValue;
-
-                otherwise
-                    obj.modules.(context).ui.(fieldName) = fieldValue;
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        % ## GET ##
-        %-----------------------------------------------------------------%
-        function fileName = getGeneratedDocumentFileName(obj, fileExt, context)
-            arguments
-                obj
-                fileExt (1,:) char {mustBeMember(fileExt, {'.html', '.json', '.xlsx', '.teams', '.zip'})}
-                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
-            end
-
-            switch fileExt
-                case '.html'
-                    fileName = obj.modules.(context).generatedFiles.lastHTMLDocFullPath;
-                case '.json'
-                    fileName = obj.modules.(context).generatedFiles.lastJSONFullPath;
-                case '.xlsx'
-                    fileName = obj.modules.(context).generatedFiles.lastTableFullPath;
-                case '.teams'
-                    fileName = obj.modules.(context).generatedFiles.lastTEAMSFullPath;
-                case '.zip'
-                    fileName = obj.modules.(context).generatedFiles.lastZIPFullPath;
-            end
-
-            if ismember(fileExt, {'.html', '.zip'}) && ~isempty(fileName) && ~isfile(fileName)
-                fileName = '';
-                updateGeneratedFiles(obj, context)
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function uploadedFiles = getUploadedFiles(obj, context, system, issue)
-            arguments
-                obj
-                context (1,:) char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
-                system
-                issue
-            end
-
-            uploadedFiles = obj.modules.(context).uploadedFiles;
-            if ~isempty(uploadedFiles)
-                uploadedFiles = uploadedFiles(strcmp({uploadedFiles.system}, system) & [uploadedFiles.issue] == issue);
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function details = getIssueDetailsFromCache(obj, system, issue)
-            detailsIndex = find(strcmp({obj.issueDetails.system}, system) & [obj.issueDetails.issue] == issue, 1);
-            
-            if ~isempty(detailsIndex)
-                details  = obj.issueDetails(detailsIndex).details;
-            else
-                details  = '';
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function details = getEntityDetailsFromCache(obj, id)
-            [~, entityIndex] = ismember(id, {obj.entityDetails.id});
-            
-            if entityIndex
-                details = obj.entityDetails(entityIndex).details;
-            else
-                details = '';      
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        % ## GET/FETCH ##
-        %-----------------------------------------------------------------%
-        function [details, msgError] = getOrFetchIssueDetails(obj, system, issue, eFiscalizaObj)
-            details  = getIssueDetailsFromCache(obj, system, issue);
-            msgError = '';
-
-            if isempty(details) && (issue > 0) && (issue < inf)
-                try
-                    env = strsplit(system);
-                    if isscalar(env)
-                        env = 'PD';
-                    else
-                        env = env{2};
-                    end
-    
-                    issueInfo = struct( ...
-                        'type', 'ATIVIDADE DE INSPEÇÃO', ...
-                        'id', issue ...
-                    );
-                    
-                    response = run(eFiscalizaObj, env, 'queryIssue', issueInfo);
-                    if isstruct(response)
-                        details = struct( ...
-                            'system', system, ...
-                            'issue', issue, ...
-                            'details', response, ...
-                            'timestamp', datestr(now) ...
-                        );
-                        updateUiInfo(obj, 'self', 'issueDetails', details)
-    
-                    else
-                        error(response)
-                    end    
-                catch ME
-                    msgError = ME.message;
-                end              
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function [details, msgError] = getOrFetchEntityDetails(obj, id)
-            details  = getEntityDetailsFromCache(obj, id);
-            msgError = '';
-
-            if isempty(details)
-                [entityId, ~, details, msgError] = checkCNPJOrCPF(id, 'PublicAPI');
-
-                if ~isempty(details)
-                    updateUiInfo(obj, 'self', 'entityDetails', struct('id', entityId, 'details', details, 'timestamp', datestr(now)))
-                end                
-            end
-        end
-    end
-
-
-    methods (Access = private)
-        %-----------------------------------------------------------------%
-        function ReadReportTemplates(obj, rootFolder)
-            [projectFolder, ...
-             programDataFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            projectFilePath  = fullfile(projectFolder,     'ReportTemplates.json');
-            externalFilePath = fullfile(programDataFolder, 'ReportTemplates.json');
-
-            try
-                if ~isdeployed()
-                    error('ForceDebugMode')
-                end
-                obj.report.templates = jsondecode(fileread(externalFilePath));
-            catch
-                obj.report.templates = jsondecode(fileread(projectFilePath));
-            end
-
-            % Identifica lista de templates por módulo...
-            contextList = fieldnames(obj.modules);
-            templateNameList = {obj.report.templates.Name};
-
-            for ii = 1:numel(contextList)
-                templateIndexes = ismember({obj.report.templates.Module}, contextList(ii));
-                obj.modules.(contextList{ii}).ui.templates = [{''}, templateNameList(templateIndexes)];
-            end
-        end
-
-        %-----------------------------------------------------------------%
-        function status = IndexedDBStatus(obj)
-            status = ~strcmp(obj.mainApp.executionMode, 'desktopStandaloneApp') && obj.mainApp.General.Report.indexedDBCache.status;
-        end
-
-        %-----------------------------------------------------------------%
-        function IndexedDBTimer(obj)
-            if ~IndexedDBStatus(obj)
-                return
-            end
-
-            timerInterval = 60* obj.mainApp.General.Report.indexedDBCache.intervalMinutes; % minutes >> seconds
-            
-            obj.indexedDB.syncTimer = timer( ...
-                "ExecutionMode", "fixedSpacing", ...
-                "BusyMode", "drop", ...
-                "StartDelay", timerInterval, ...
-                "Period", timerInterval, ...
-                "TimerFcn", @(~,~) IndexedDBCache(obj) ...
-            );
-
-            start(obj.indexedDB.syncTimer)
         end
     end
     

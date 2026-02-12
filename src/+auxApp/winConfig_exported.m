@@ -36,11 +36,6 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_MiscelaneousLabel1       matlab.ui.control.Label
         SubTab3                         matlab.ui.container.Tab
         SubGrid3                        matlab.ui.container.GridLayout
-        reportPanel                     matlab.ui.container.Panel
-        reportGrid                      matlab.ui.container.GridLayout
-        reportDocType                   matlab.ui.control.DropDown
-        reportDocTypeLabel              matlab.ui.control.Label
-        reportLabel                     matlab.ui.control.Label
         eFiscalizaPanel                 matlab.ui.container.Panel
         eFiscalizaGrid                  matlab.ui.container.GridLayout
         reportUnit                      matlab.ui.control.DropDown
@@ -169,17 +164,17 @@ classdef winConfig_exported < matlab.apps.AppBase
             generalSettings = jsondecode(fileread(projectFilePath));
 
             app.defaultValues = struct( ...
-                'Search', struct( ...
-                    'minCharacters', generalSettings.search.minCharacters, ...
-                    'minDisplayedTokens', generalSettings.search.minDisplayedTokens, ...
-                    'wordCloud', generalSettings.search.wordCloud, ...
-                    'searchTable', generalSettings.ui.searchTable ...
+                'SEARCH', struct( ...
+                    'minCharacters', generalSettings.context.SEARCH.minCharacters, ...
+                    'minDisplayedTokens', generalSettings.context.SEARCH.minDisplayedTokens, ...
+                    'wordCloud', generalSettings.context.SEARCH.wordCloud, ...
+                    'searchTable', generalSettings.context.SEARCH.ui.searchTable ...
                 ), ...
-                'Produtcs', generalSettings.products, ...
-                'Report',   generalSettings.Report ...
+                'PRODUCTS', generalSettings.context.PRODUCTS, ...
+                'reportLib', generalSettings.reportLib ...
             );
 
-            app.defaultValues.Search.searchTable = struct2table(app.defaultValues.Search.searchTable);
+            app.defaultValues.SEARCH.searchTable = struct2table(app.defaultValues.SEARCH.searchTable);
         end
 
         %-----------------------------------------------------------------%
@@ -227,16 +222,16 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updatePanel_Analysis(app)
             % ALGORITMO SUGESTÃO DE TOKENS
-            app.config_nMinCharacters.Value     = app.mainApp.General.search.minCharacters;
+            app.config_nMinCharacters.Value     = app.mainApp.General.context.SEARCH.minCharacters;
 
-            numDisplayedTokens = num2str(app.mainApp.General.search.minDisplayedTokens);
+            numDisplayedTokens = num2str(app.mainApp.General.context.SEARCH.minDisplayedTokens);
             if ismember(numDisplayedTokens, app.config_nMinWords.Items)
                 app.config_nMinWords.Value      = numDisplayedTokens;
             end
 
             % ANOTAÇÃO DO TIPO "WORDCLOUD"
-            app.config_WordCloudAlgorithm.Value = app.mainApp.General.search.wordCloud.algorithm;
-            app.config_WordCloudColumn.Value    = app.mainApp.General.search.wordCloud.column;
+            app.config_WordCloudAlgorithm.Value = app.mainApp.General.context.SEARCH.wordCloud.algorithm;
+            app.config_WordCloudColumn.Value    = app.mainApp.General.context.SEARCH.wordCloud.column;
 
             % VISIBILIDADE DE COLUNAS
             columnCheckedList = matlab.ui.container.TreeNode.empty;
@@ -246,10 +241,10 @@ classdef winConfig_exported < matlab.apps.AppBase
                 delete(app.config_SelectedTableColumns.Children)
             end
 
-            for ii = 1:height(app.mainApp.General.ui.searchTable)
-                columnName     = app.mainApp.General.ui.searchTable.name{ii};
-                columnVisible  = app.mainApp.General.ui.searchTable.visible(ii);
-                columnPosition = app.mainApp.General.ui.searchTable.columnPosition(ii);
+            for ii = 1:height(app.mainApp.General.context.SEARCH.ui.searchTable)
+                columnName     = app.mainApp.General.context.SEARCH.ui.searchTable.name{ii};
+                columnVisible  = app.mainApp.General.context.SEARCH.ui.searchTable.visible(ii);
+                columnPosition = app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition(ii);
 
                 treeNode       = uitreenode(app.config_SelectedTableColumns, 'Text', columnName);
                 if columnPosition % static
@@ -270,9 +265,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updatePanel_Report(app)
-            app.reportSystem.Value  = app.mainApp.General.Report.system;
+            app.reportSystem.Value  = app.mainApp.General.reportLib.system;
             set(app.reportUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, 'Value', app.mainApp.General.Report.unit)
-            app.reportDocType.Value = app.mainApp.General.Report.Document;
 
             app.eFiscalizaRefresh.Visible = checkEdition(app, 'REPORT');
         end
@@ -296,21 +290,21 @@ classdef winConfig_exported < matlab.apps.AppBase
         function columnInfo = search_Table_ColumnInfo(app, type)
             switch type
                 case 'staticColumns'
-                    staticLogical  = logical(app.mainApp.General.ui.searchTable.columnPosition);
-                    staticIndex    = app.mainApp.General.ui.searchTable.columnPosition(staticLogical);
+                    staticLogical  = logical(app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition);
+                    staticIndex    = app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition(staticLogical);
                     [~, idxOrder]  = sort(staticIndex);
-                    columnList     = app.mainApp.General.ui.searchTable.name(staticLogical);
+                    columnList     = app.mainApp.General.context.SEARCH.ui.searchTable.name(staticLogical);
                     columnInfo     = columnList(idxOrder);
 
                 case 'visibleColumns'
-                    visibleLogical = logical(app.mainApp.General.ui.searchTable.visible);
-                    columnInfo     = app.mainApp.General.ui.searchTable.name(visibleLogical);
+                    visibleLogical = logical(app.mainApp.General.context.SEARCH.ui.searchTable.visible);
+                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.name(visibleLogical);
 
                 case 'allColumns'
-                    columnInfo     = app.mainApp.General.ui.searchTable.name;
+                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.name;
 
                 case 'allColumnsWidths'
-                    columnInfo     = app.mainApp.General.ui.searchTable.columnWidth;
+                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.columnWidth;
             end
         end
 
@@ -318,27 +312,27 @@ classdef winConfig_exported < matlab.apps.AppBase
         function editionFlag = checkEdition(app, tabName)
             editionFlag = false;
             currentValues = struct( ...
-                'Search', struct( ...
-                    'minCharacters', app.mainApp.General.search.minCharacters, ...
-                    'minDisplayedTokens', app.mainApp.General.search.minDisplayedTokens, ...
-                    'wordCloud', app.mainApp.General.search.wordCloud, ...
-                    'searchTable', app.mainApp.General.ui.searchTable ...
+                'SEARCH', struct( ...
+                    'minCharacters', app.mainApp.General.context.SEARCH.minCharacters, ...
+                    'minDisplayedTokens', app.mainApp.General.context.SEARCH.minDisplayedTokens, ...
+                    'wordCloud', app.mainApp.General.context.SEARCH.wordCloud, ...
+                    'searchTable', app.mainApp.General.context.SEARCH.ui.searchTable ...
                 ), ...
-                'Produtcs', app.mainApp.General.products, ...
-                'Report',   app.mainApp.General.Report ...
+                'PRODUCTS', app.mainApp.General.context.PRODUCTS, ...
+                'reportLib',   app.mainApp.General.reportLib ...
             );
 
             switch tabName
                 case 'SEARCH'
-                    if ~isequal(currentValues.Search, app.defaultValues.Search)
+                    if ~isequal(currentValues.SEARCH, app.defaultValues.SEARCH)
                         editionFlag = true;
                     end
                 case 'PRODUCTS'
-                    if ~isequal(currentValues.Produtcs, app.defaultValues.Produtcs)
+                    if ~isequal(currentValues.PRODUCTS, app.defaultValues.PRODUCTS)
                         editionFlag = true;
                     end
                 case 'REPORT'
-                    if ~isequal(currentValues.Report, app.defaultValues.Report)
+                    if ~isequal(currentValues.reportLib, app.defaultValues.reportLib)
                         editionFlag = true;
                     end
             end
@@ -432,7 +426,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.progressDialog.Visible = 'visible';
         
                     try
-                        fileName = sprintf('SCHData%s.xlsx', app.mainApp.General.search.dataBaseVersion);
+                        fileName = sprintf('SCHData%s.xlsx', app.mainApp.General.context.SEARCH.dataBaseVersion);
                         copyfile(fullfile(app.mainApp.General.fileFolder.DataHub_GET, fileName), fileFullPath, 'f')
 
                         if ~strcmp(app.mainApp.executionMode, 'webApp')
@@ -459,28 +453,25 @@ classdef winConfig_exported < matlab.apps.AppBase
             projectFilePath    = fullfile(projectFolder, 'GeneralSettings.json');
 
             projectFileContent = jsondecode(fileread(projectFilePath));
-            projectFileContent.ui.searchTable = struct2table(projectFileContent.ui.searchTable);
+            projectFileContent.context.SEARCH.ui.searchTable = struct2table(projectFileContent.context.SEARCH.ui.searchTable);
 
-            if isequal(app.mainApp.General.search, projectFileContent.search) && isequal(app.mainApp.General.ui, projectFileContent.ui)
+            if isequal(app.mainApp.General.context.SEARCH, projectFileContent.context.SEARCH) && isequal(app.mainApp.General.context.SEARCH.ui, projectFileContent.context.SEARCH.ui)
                 msgWarning = 'Configurações atuais já coincidem com as iniciais.';
                 ui.Dialog(app.UIFigure, 'warning', msgWarning);
                 return
 
             else
                 ipcEventName = {};
-                if ~isequal(app.mainApp.General.search.wordCloud.algorithm, projectFileContent.search.wordCloud.algorithm)
+                if ~isequal(app.mainApp.General.context.SEARCH.wordCloud.algorithm, projectFileContent.context.SEARCH.wordCloud.algorithm)
                     ipcEventName{end+1} = 'onWordCloudAlgorithmChanged';
                 end
 
-                if ~isequal(app.mainApp.General.ui.searchTable, projectFileContent.ui.searchTable)
+                if ~isequal(app.mainApp.General.context.SEARCH.ui.searchTable, projectFileContent.context.SEARCH.ui.searchTable)
                     ipcEventName{end+1} = 'onSearchVisibleColumnsChanged';
                 end
 
-                app.mainApp.General.search   = projectFileContent.search;
-                app.mainApp.General.ui       = projectFileContent.ui;
-                
-                app.mainApp.General_I.search = app.mainApp.General.search;
-                app.mainApp.General_I.ui     = app.mainApp.General.ui;                
+                app.mainApp.General.context.SEARCH   = projectFileContent.context.SEARCH;                
+                app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
                 
                 updatePanel_Analysis(app)
                 saveGeneralSettings(app)
@@ -500,17 +491,17 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             switch event.Source
                 case app.config_nMinCharacters
-                    app.mainApp.General.search.minCharacters = app.config_nMinCharacters.Value;
+                    app.mainApp.General.context.SEARCH.minCharacters = app.config_nMinCharacters.Value;
 
                 case app.config_nMinWords
-                    app.mainApp.General.search.minDisplayedTokens = str2double(app.config_nMinWords.Value);
+                    app.mainApp.General.context.SEARCH.minDisplayedTokens = str2double(app.config_nMinWords.Value);
 
                 case app.config_WordCloudAlgorithm
                     ipcEventName = 'onWordCloudAlgorithmChanged';
-                    app.mainApp.General.search.wordCloud.algorithm = app.config_WordCloudAlgorithm.Value;
+                    app.mainApp.General.context.SEARCH.wordCloud.algorithm = app.config_WordCloudAlgorithm.Value;
 
                 case app.config_WordCloudColumn
-                    app.mainApp.General.search.wordCloud.column = app.config_WordCloudColumn.Value;
+                    app.mainApp.General.context.SEARCH.wordCloud.column = app.config_WordCloudColumn.Value;
 
                 case app.config_SelectedTableColumns
                     ipcEventName = 'onSearchVisibleColumnsChanged';
@@ -547,15 +538,14 @@ classdef winConfig_exported < matlab.apps.AppBase
                         return
                     end
 
-                    for jj = 1:height(app.mainApp.General.ui.searchTable)
-                        app.mainApp.General.ui.searchTable.visible(jj) = ismember(app.mainApp.General.ui.searchTable.name{jj}, checkedColumns);
+                    for jj = 1:height(app.mainApp.General.context.SEARCH.ui.searchTable)
+                        app.mainApp.General.context.SEARCH.ui.searchTable.visible(jj) = ismember(app.mainApp.General.context.SEARCH.ui.searchTable.name{jj}, checkedColumns);
                     end
             end
 
             app.progressDialog.Visible = 'visible';
 
-            app.mainApp.General_I.search = app.mainApp.General.search;
-            app.mainApp.General_I.ui     = app.mainApp.General.ui;
+            app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
             
             updatePanel_Analysis(app)
             saveGeneralSettings(app)
@@ -593,8 +583,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                 return
             
             else
-                app.mainApp.General.Report   = app.defaultValues.Report;
-                app.mainApp.General_I.Report = app.mainApp.General.Report;
+                app.mainApp.General.reportLib   = app.defaultValues.reportLib;
+                app.mainApp.General_I.reportLib = app.mainApp.General.reportLib;
                 
                 updatePanel_Report(app)
                 saveGeneralSettings(app)
@@ -602,21 +592,18 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: reportDocType, reportSystem, reportUnit
+        % Value changed function: reportSystem, reportUnit
         function Config_ProjectParameterValueChanged(app, event)
             
             switch event.Source
                 case app.reportSystem
-                    app.mainApp.General.Report.system   = event.Value;
+                    app.mainApp.General.reportLib.system = event.Value;
 
                 case app.reportUnit
-                    app.mainApp.General.Report.unit     = event.Value;
-
-                case app.reportDocType
-                    app.mainApp.General.Report.Document = event.Value;
+                    app.mainApp.General.reportLib.unit   = event.Value;
             end
 
-            app.mainApp.General_I.Report = app.mainApp.General.Report;
+            app.mainApp.General_I.reportLib = app.mainApp.General.reportLib;
 
             updatePanel_Report(app)
             saveGeneralSettings(app)
@@ -1007,7 +994,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid3
             app.SubGrid3 = uigridlayout(app.SubTab3);
             app.SubGrid3.ColumnWidth = {'1x', 22};
-            app.SubGrid3.RowHeight = {17, 70, 22, '1x'};
+            app.SubGrid3.RowHeight = {17, 70};
             app.SubGrid3.RowSpacing = 5;
             app.SubGrid3.BackgroundColor = [1 1 1];
 
@@ -1078,46 +1065,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.reportUnit.Layout.Row = 2;
             app.reportUnit.Layout.Column = 2;
             app.reportUnit.Value = {};
-
-            % Create reportLabel
-            app.reportLabel = uilabel(app.SubGrid3);
-            app.reportLabel.VerticalAlignment = 'bottom';
-            app.reportLabel.FontSize = 10;
-            app.reportLabel.Layout.Row = 3;
-            app.reportLabel.Layout.Column = 1;
-            app.reportLabel.Text = 'RELATÓRIO';
-
-            % Create reportPanel
-            app.reportPanel = uipanel(app.SubGrid3);
-            app.reportPanel.AutoResizeChildren = 'off';
-            app.reportPanel.BackgroundColor = [1 1 1];
-            app.reportPanel.Layout.Row = 4;
-            app.reportPanel.Layout.Column = [1 2];
-
-            % Create reportGrid
-            app.reportGrid = uigridlayout(app.reportPanel);
-            app.reportGrid.ColumnWidth = {350, 110, 110};
-            app.reportGrid.RowHeight = {22};
-            app.reportGrid.RowSpacing = 5;
-            app.reportGrid.BackgroundColor = [1 1 1];
-
-            % Create reportDocTypeLabel
-            app.reportDocTypeLabel = uilabel(app.reportGrid);
-            app.reportDocTypeLabel.WordWrap = 'on';
-            app.reportDocTypeLabel.FontSize = 11;
-            app.reportDocTypeLabel.Layout.Row = 1;
-            app.reportDocTypeLabel.Layout.Column = 1;
-            app.reportDocTypeLabel.Text = 'Tipo de documento a gerar:';
-
-            % Create reportDocType
-            app.reportDocType = uidropdown(app.reportGrid);
-            app.reportDocType.Items = {'Relatório de Atividades'};
-            app.reportDocType.ValueChangedFcn = createCallbackFcn(app, @Config_ProjectParameterValueChanged, true);
-            app.reportDocType.FontSize = 11;
-            app.reportDocType.BackgroundColor = [1 1 1];
-            app.reportDocType.Layout.Row = 1;
-            app.reportDocType.Layout.Column = [2 3];
-            app.reportDocType.Value = 'Relatório de Atividades';
 
             % Create SubTab4
             app.SubTab4 = uitab(app.SubTabGroup);
