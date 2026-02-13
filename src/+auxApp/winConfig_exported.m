@@ -166,7 +166,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             % projeto (e não a versão armazenada em "ProgramData").
             projectFolder   = appEngine.util.Path(class.Constants.appName, app.mainApp.rootFolder);
             projectFilePath = fullfile(projectFolder, 'GeneralSettings.json');
-            generalSettings = jsondecode(fileread(projectFilePath));
             projectGeneral  = jsondecode(fileread(projectFilePath));
 
             app.defaultValues = struct( ...
