@@ -1112,7 +1112,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.prjFileCompressionMode.BackgroundColor = [1 1 1];
             app.prjFileCompressionMode.Layout.Row = 1;
             app.prjFileCompressionMode.Layout.Column = 2;
-            app.prjFileCompressionMode.Value = 'Não';
+            app.prjFileCompressionMode.Value = 'Sim';
 
             % Create SubTab4
             app.SubTab4 = uitab(app.SubTabGroup);
