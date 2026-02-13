@@ -404,7 +404,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             issue = app.projectData.modules.(context).ui.issue;
             reportVersion = app.projectData.modules.(context).ui.reportVersion;
 
-            if ~validateReportRequirements(app.projectData, context, 'inspectedProducts')
+            if isempty(app.projectData.inspectedProducts)
                 ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos sob análise está vazia.');
                 return
             end

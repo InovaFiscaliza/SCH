@@ -36,6 +36,11 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_MiscelaneousLabel1       matlab.ui.control.Label
         SubTab3                         matlab.ui.container.Tab
         SubGrid3                        matlab.ui.container.GridLayout
+        reportPanel                     matlab.ui.container.Panel
+        reportGrid                      matlab.ui.container.GridLayout
+        prjFileCompressionMode          matlab.ui.control.DropDown
+        prjFileCompressionModeLabel     matlab.ui.control.Label
+        reportLabel                     matlab.ui.control.Label
         eFiscalizaPanel                 matlab.ui.container.Panel
         eFiscalizaGrid                  matlab.ui.container.GridLayout
         reportUnit                      matlab.ui.control.DropDown
@@ -162,16 +167,17 @@ classdef winConfig_exported < matlab.apps.AppBase
             projectFolder   = appEngine.util.Path(class.Constants.appName, app.mainApp.rootFolder);
             projectFilePath = fullfile(projectFolder, 'GeneralSettings.json');
             generalSettings = jsondecode(fileread(projectFilePath));
+            projectGeneral  = jsondecode(fileread(projectFilePath));
 
             app.defaultValues = struct( ...
                 'SEARCH', struct( ...
-                    'minCharacters', generalSettings.context.SEARCH.minCharacters, ...
-                    'minDisplayedTokens', generalSettings.context.SEARCH.minDisplayedTokens, ...
-                    'wordCloud', generalSettings.context.SEARCH.wordCloud, ...
-                    'searchTable', generalSettings.context.SEARCH.ui.searchTable ...
+                    'minCharacters',      projectGeneral.context.SEARCH.minCharacters, ...
+                    'minDisplayedTokens', projectGeneral.context.SEARCH.minDisplayedTokens, ...
+                    'wordCloud',          projectGeneral.context.SEARCH.wordCloud, ...
+                    'searchTable',        projectGeneral.context.SEARCH.ui.searchTable ...
                 ), ...
-                'PRODUCTS', generalSettings.context.PRODUCTS, ...
-                'reportLib', generalSettings.reportLib ...
+                'PRODUCTS',               projectGeneral.context.PRODUCTS, ...
+                'reportLib',              projectGeneral.reportLib ...
             );
 
             app.defaultValues.SEARCH.searchTable = struct2table(app.defaultValues.SEARCH.searchTable);
@@ -266,7 +272,11 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updatePanel_Report(app)
             app.reportSystem.Value  = app.mainApp.General.reportLib.system;
-            set(app.reportUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, 'Value', app.mainApp.General.Report.unit)
+            set(app.reportUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, 'Value', app.mainApp.General.reportLib.unit)
+
+            if ismember(app.mainApp.General.reportLib.outputCompressionMode, app.prjFileCompressionMode.Items)
+                app.prjFileCompressionMode.Value = app.mainApp.General.reportLib.outputCompressionMode;
+            end
 
             app.eFiscalizaRefresh.Visible = checkEdition(app, 'REPORT');
         end
@@ -313,13 +323,13 @@ classdef winConfig_exported < matlab.apps.AppBase
             editionFlag = false;
             currentValues = struct( ...
                 'SEARCH', struct( ...
-                    'minCharacters', app.mainApp.General.context.SEARCH.minCharacters, ...
+                    'minCharacters',      app.mainApp.General.context.SEARCH.minCharacters, ...
                     'minDisplayedTokens', app.mainApp.General.context.SEARCH.minDisplayedTokens, ...
-                    'wordCloud', app.mainApp.General.context.SEARCH.wordCloud, ...
-                    'searchTable', app.mainApp.General.context.SEARCH.ui.searchTable ...
+                    'wordCloud',          app.mainApp.General.context.SEARCH.wordCloud, ...
+                    'searchTable',        app.mainApp.General.context.SEARCH.ui.searchTable ...
                 ), ...
-                'PRODUCTS', app.mainApp.General.context.PRODUCTS, ...
-                'reportLib',   app.mainApp.General.reportLib ...
+                'PRODUCTS',               app.mainApp.General.context.PRODUCTS, ...
+                'reportLib',              app.mainApp.General.reportLib ...
             );
 
             switch tabName
@@ -592,7 +602,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: reportSystem, reportUnit
+        % Value changed function: prjFileCompressionMode, reportSystem, 
+        % ...and 1 other component
         function Config_ProjectParameterValueChanged(app, event)
             
             switch event.Source
@@ -600,7 +611,10 @@ classdef winConfig_exported < matlab.apps.AppBase
                     app.mainApp.General.reportLib.system = event.Value;
 
                 case app.reportUnit
-                    app.mainApp.General.reportLib.unit   = event.Value;
+                    app.mainApp.General.reportLib.unit = event.Value;
+
+                case app.prjFileCompressionMode
+                    app.mainApp.General.reportLib.outputCompressionMode = event.Value;
             end
 
             app.mainApp.General_I.reportLib = app.mainApp.General.reportLib;
@@ -831,7 +845,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 64, 22, 64, 22, '1x', 1};
+            app.SubGrid2.RowHeight = {17, 70, 22, 70, 22, '1x', 1};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -862,20 +876,19 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_MiscelaneousGrid1
             app.config_MiscelaneousGrid1 = uigridlayout(app.config_MiscelaneousPanel1);
-            app.config_MiscelaneousGrid1.ColumnWidth = {150, 150};
-            app.config_MiscelaneousGrid1.RowHeight = {17, 22};
+            app.config_MiscelaneousGrid1.ColumnWidth = {350, 110, 110};
+            app.config_MiscelaneousGrid1.RowHeight = {22, 22};
             app.config_MiscelaneousGrid1.RowSpacing = 5;
             app.config_MiscelaneousGrid1.Padding = [10 10 10 5];
             app.config_MiscelaneousGrid1.BackgroundColor = [1 1 1];
 
             % Create config_nMinCharactersLabel
             app.config_nMinCharactersLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinCharactersLabel.VerticalAlignment = 'bottom';
             app.config_nMinCharactersLabel.WordWrap = 'on';
-            app.config_nMinCharactersLabel.FontSize = 10;
+            app.config_nMinCharactersLabel.FontSize = 11;
             app.config_nMinCharactersLabel.Layout.Row = 1;
             app.config_nMinCharactersLabel.Layout.Column = 1;
-            app.config_nMinCharactersLabel.Text = 'Qtd. mínima caracteres:';
+            app.config_nMinCharactersLabel.Text = 'Quantidade mínima de caracteres para ativar sugestões:';
 
             % Create config_nMinCharacters
             app.config_nMinCharacters = uispinner(app.config_MiscelaneousGrid1);
@@ -884,19 +897,17 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_nMinCharacters.ValueDisplayFormat = '%d';
             app.config_nMinCharacters.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinCharacters.FontSize = 11;
-            app.config_nMinCharacters.Layout.Row = 2;
-            app.config_nMinCharacters.Layout.Column = 1;
+            app.config_nMinCharacters.Layout.Row = 1;
+            app.config_nMinCharacters.Layout.Column = 2;
             app.config_nMinCharacters.Value = 2;
 
             % Create config_nMinWordsLabel
             app.config_nMinWordsLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinWordsLabel.VerticalAlignment = 'bottom';
             app.config_nMinWordsLabel.WordWrap = 'on';
-            app.config_nMinWordsLabel.FontSize = 10;
-            app.config_nMinWordsLabel.Layout.Row = 1;
-            app.config_nMinWordsLabel.Layout.Column = 2;
-            app.config_nMinWordsLabel.Interpreter = 'html';
-            app.config_nMinWordsLabel.Text = 'Qtd. mínima <i>tokens</i>:';
+            app.config_nMinWordsLabel.FontSize = 11;
+            app.config_nMinWordsLabel.Layout.Row = 2;
+            app.config_nMinWordsLabel.Layout.Column = 1;
+            app.config_nMinWordsLabel.Text = 'Quantidade mínima de sugestões apresentadas para seleção:';
 
             % Create config_nMinWords
             app.config_nMinWords = uidropdown(app.config_MiscelaneousGrid1);
@@ -924,20 +935,19 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_MiscelaneousGrid2
             app.config_MiscelaneousGrid2 = uigridlayout(app.config_MiscelaneousPanel2);
-            app.config_MiscelaneousGrid2.ColumnWidth = {150, 150};
-            app.config_MiscelaneousGrid2.RowHeight = {17, 22};
+            app.config_MiscelaneousGrid2.ColumnWidth = {350, 110, 110};
+            app.config_MiscelaneousGrid2.RowHeight = {22, 22};
             app.config_MiscelaneousGrid2.RowSpacing = 5;
             app.config_MiscelaneousGrid2.Padding = [10 10 10 5];
             app.config_MiscelaneousGrid2.BackgroundColor = [1 1 1];
 
             % Create config_WordCloudAlgorithmLabel
             app.config_WordCloudAlgorithmLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudAlgorithmLabel.VerticalAlignment = 'bottom';
             app.config_WordCloudAlgorithmLabel.WordWrap = 'on';
-            app.config_WordCloudAlgorithmLabel.FontSize = 10;
+            app.config_WordCloudAlgorithmLabel.FontSize = 11;
             app.config_WordCloudAlgorithmLabel.Layout.Row = 1;
             app.config_WordCloudAlgorithmLabel.Layout.Column = 1;
-            app.config_WordCloudAlgorithmLabel.Text = 'Algoritmo gráfico:';
+            app.config_WordCloudAlgorithmLabel.Text = 'Motor gráfico para geração da nuvem de palavras:';
 
             % Create config_WordCloudAlgorithm
             app.config_WordCloudAlgorithm = uidropdown(app.config_MiscelaneousGrid2);
@@ -946,18 +956,17 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudAlgorithm.Enable = 'off';
             app.config_WordCloudAlgorithm.FontSize = 11;
             app.config_WordCloudAlgorithm.BackgroundColor = [1 1 1];
-            app.config_WordCloudAlgorithm.Layout.Row = 2;
-            app.config_WordCloudAlgorithm.Layout.Column = 1;
+            app.config_WordCloudAlgorithm.Layout.Row = 1;
+            app.config_WordCloudAlgorithm.Layout.Column = [2 3];
             app.config_WordCloudAlgorithm.Value = 'D3.js';
 
             % Create config_WordCloudColumnLabel
             app.config_WordCloudColumnLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudColumnLabel.VerticalAlignment = 'bottom';
             app.config_WordCloudColumnLabel.WordWrap = 'on';
-            app.config_WordCloudColumnLabel.FontSize = 10;
-            app.config_WordCloudColumnLabel.Layout.Row = 1;
-            app.config_WordCloudColumnLabel.Layout.Column = 2;
-            app.config_WordCloudColumnLabel.Text = 'Pesquisa orientada à coluna:';
+            app.config_WordCloudColumnLabel.FontSize = 11;
+            app.config_WordCloudColumnLabel.Layout.Row = 2;
+            app.config_WordCloudColumnLabel.Layout.Column = 1;
+            app.config_WordCloudColumnLabel.Text = 'Fonte de dados para consulta à API do Google/Bing:';
 
             % Create config_WordCloudColumn
             app.config_WordCloudColumn = uidropdown(app.config_MiscelaneousGrid2);
@@ -966,7 +975,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.FontSize = 11;
             app.config_WordCloudColumn.BackgroundColor = [1 1 1];
             app.config_WordCloudColumn.Layout.Row = 2;
-            app.config_WordCloudColumn.Layout.Column = 2;
+            app.config_WordCloudColumn.Layout.Column = [2 3];
             app.config_WordCloudColumn.Value = 'Modelo';
 
             % Create config_SelectedTableColumnsLabel
@@ -994,7 +1003,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid3
             app.SubGrid3 = uigridlayout(app.SubTab3);
             app.SubGrid3.ColumnWidth = {'1x', 22};
-            app.SubGrid3.RowHeight = {17, 70};
+            app.SubGrid3.RowHeight = {17, 70, 22, '1x'};
             app.SubGrid3.RowSpacing = 5;
             app.SubGrid3.BackgroundColor = [1 1 1];
 
@@ -1065,6 +1074,46 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.reportUnit.Layout.Row = 2;
             app.reportUnit.Layout.Column = 2;
             app.reportUnit.Value = {};
+
+            % Create reportLabel
+            app.reportLabel = uilabel(app.SubGrid3);
+            app.reportLabel.VerticalAlignment = 'bottom';
+            app.reportLabel.FontSize = 10;
+            app.reportLabel.Layout.Row = 3;
+            app.reportLabel.Layout.Column = 1;
+            app.reportLabel.Text = 'OUTROS ASPECTOS RELACIONADOS AO PROJETO';
+
+            % Create reportPanel
+            app.reportPanel = uipanel(app.SubGrid3);
+            app.reportPanel.AutoResizeChildren = 'off';
+            app.reportPanel.BackgroundColor = [1 1 1];
+            app.reportPanel.Layout.Row = 4;
+            app.reportPanel.Layout.Column = [1 2];
+
+            % Create reportGrid
+            app.reportGrid = uigridlayout(app.reportPanel);
+            app.reportGrid.ColumnWidth = {350, 110};
+            app.reportGrid.RowHeight = {22};
+            app.reportGrid.RowSpacing = 5;
+            app.reportGrid.BackgroundColor = [1 1 1];
+
+            % Create prjFileCompressionModeLabel
+            app.prjFileCompressionModeLabel = uilabel(app.reportGrid);
+            app.prjFileCompressionModeLabel.WordWrap = 'on';
+            app.prjFileCompressionModeLabel.FontSize = 11;
+            app.prjFileCompressionModeLabel.Layout.Row = 1;
+            app.prjFileCompressionModeLabel.Layout.Column = 1;
+            app.prjFileCompressionModeLabel.Text = 'Compressão aplicada ao arquivo de saída do projeto?';
+
+            % Create prjFileCompressionMode
+            app.prjFileCompressionMode = uidropdown(app.reportGrid);
+            app.prjFileCompressionMode.Items = {'Não', 'Sim'};
+            app.prjFileCompressionMode.ValueChangedFcn = createCallbackFcn(app, @Config_ProjectParameterValueChanged, true);
+            app.prjFileCompressionMode.FontSize = 11;
+            app.prjFileCompressionMode.BackgroundColor = [1 1 1];
+            app.prjFileCompressionMode.Layout.Row = 1;
+            app.prjFileCompressionMode.Layout.Column = 2;
+            app.prjFileCompressionMode.Value = 'Não';
 
             % Create SubTab4
             app.SubTab4 = uitab(app.SubTabGroup);

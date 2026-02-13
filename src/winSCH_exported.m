@@ -345,7 +345,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Usar dados salvos', 'Apagar e iniciar nova sessão'}, 1, 2);
                                         switch userSelection
                                             case 'Usar dados salvos'
-                                                msg = Load(app.projectData, "indexedDB", prjData);
+                                                msg = load(app.projectData, "indexedDB", prjData);
     
                                                 if ~isempty(msg)
                                                     ui.Dialog(app.UIFigure, 'error', msg);
@@ -1034,7 +1034,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                 case 'visibleColumns'
                     visibleLogical = logical(app.General.context.SEARCH.ui.searchTable.visible);
-                    columnInfo     = app.General.ui.searchTable.name(visibleLogical);
+                    columnInfo     = app.General.context.SEARCH.ui.searchTable.name(visibleLogical);
 
                 case 'allColumns'
                     columnInfo     = app.General.context.SEARCH.ui.searchTable.name;

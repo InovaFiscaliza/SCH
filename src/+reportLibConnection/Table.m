@@ -137,6 +137,7 @@ classdef (Abstract) Table
             };
 
             inspectedProducts = renamevars(projectData.inspectedProducts, jsonFileConfig{:});
+            inspectedProducts = removevars(inspectedProducts, 'hash');
             inspectedProducts.("correlationKey")(:) = {correlationKey};
             inspectedProducts = movevars(inspectedProducts, 'correlationKey', 'Before', 1);
 

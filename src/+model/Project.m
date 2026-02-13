@@ -45,7 +45,7 @@ classdef Project < model.ProjectCommon
             restart(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
             obj.typeSubtypeProductsMapping = mainApp.General.context.PRODUCTS.productType.mapping;
             obj.regulatronData = model.ProjectBase.readRegulatronData(rootFolder, mainApp.General.fileFolder.DataHub_GET);
-            IndexedDBTimer(obj)
+            IndexedDBTimer(obj, @(~,~)IndexedDBCache(obj))
         end
 
         %-----------------------------------------------------------------%
@@ -86,8 +86,8 @@ classdef Project < model.ProjectCommon
                     'entityDetails', obj.entityDetails, ...
                     'inspectedProducts', renamevars( ...
                         obj.inspectedProducts, ...
-                        obj.mainApp.General.ui.reportTable.exportedFiles.sharepoint.name, ...
-                        obj.mainApp.General.ui.reportTable.exportedFiles.sharepoint.label ...
+                        obj.mainApp.General.context.PRODUCTS.reportTable.exportedFiles.sharepoint.name, ...
+                        obj.mainApp.General.context.PRODUCTS.reportTable.exportedFiles.sharepoint.label ...
                     ), ...
                     'timestamp', datestr(now) ...
                 );
@@ -140,12 +140,12 @@ classdef Project < model.ProjectCommon
                 'inspectedProducts', obj.inspectedProducts ...
             );
 
-            compressionMode = '';
+            compressionMode = {};
             if strcmp(outputFileCompressionMode, 'Não')
-                compressionMode = '-nocompression';
+                compressionMode = {'-nocompression'};
             end
 
-            save(prjFile, 'source', 'type', 'version', 'variables', 'userData', '-mat', '-v7', compressionMode)
+            save(prjFile, 'source', 'type', 'version', 'variables', 'userData', '-mat', '-v7', compressionMode{:})
 
             obj.name = prjName;
             obj.file = prjFile;

@@ -1,5 +1,5 @@
 {
-    "version": 2.10,
+    "version": 2.11,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -34,7 +34,7 @@
             "wordCloud": {
                 "algorithm": "D3.js",
                 "column": "Modelo"
-            }
+            },
             "ui": {
                 "searchTable": [
                     {
@@ -719,7 +719,8 @@
                     "Uso – características diferentes"
                 ]
             }
-        },
+        }
+    },
     "reportLib": {
         "system": "eFiscaliza",
         "unit": "",
