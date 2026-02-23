@@ -55,7 +55,7 @@ classdef Project < model.ProjectCommon
         end
 
         %-----------------------------------------------------------------%
-        function updateNeeded = checkIfUpdateNeeded(obj)
+        function updateNeeded = checkIfUpdateNeeded(obj, varargin)
             updateNeeded = false;
             
             if ~isempty(obj.name)

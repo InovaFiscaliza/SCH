@@ -113,11 +113,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaSystem.Value = app.projectData.modules.(context).ui.system;
             app.eFiscalizaIssue.Value  = app.projectData.modules.(context).ui.issue;
             set(app.eFiscalizaUnit, 'Items', app.mainApp.General.eFiscaliza.defaultValues.unit, 'Value', app.projectData.modules.(context).ui.unit)
-
-            validIssue = (app.eFiscalizaIssue.Value > 0) && ~isinf(app.eFiscalizaIssue.Value);
-            if validIssue
-                app.eFiscalizaIssueDetails.Enable = true;
-            end
+            app.eFiscalizaIssueDetails.Enable = (app.eFiscalizaIssue.Value > 0) && ~isinf(app.eFiscalizaIssue.Value);
 
             % REPORT PANEL
             set(app.reportModel, 'Items', app.projectData.modules.(context).ui.templates, 'Value', app.projectData.modules.(context).ui.reportModel)
@@ -143,12 +139,12 @@ classdef dockReportLib_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, callingApp, context)
+        function startupFcn(app, mainApp, callingApp, context, varargin)
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
 
-                app.inputArgs = struct('context', context);
+                app.inputArgs = struct('context', context, 'varargin', {varargin});
                 updatePanel(app, context)
                 
             catch ME
@@ -178,6 +174,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
     
             context = app.inputArgs.context;
             restart(app.projectData, {context}, app.mainApp.General)
+
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectRestart', context)
             updatePanel(app, context)
 
@@ -186,9 +183,11 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         % Image clicked function: prjOpenFileButton
         function onProjectLoad(app, event)
             
-            context = app.inputArgs.context;
+            appName  = class.Constants.appName;
+            context  = app.inputArgs.context;
+            varargin = app.inputArgs.varargin;
             
-            [fileFullPath, fileFolder] = ui.Dialog(app.UIFigure, 'uigetfile', '', {'*.mat', 'SCH'}, app.mainApp.General.fileFolder.lastVisited, {'MultiSelect', 'off'});
+            [fileFullPath, fileFolder] = ui.Dialog(app.UIFigure, 'uigetfile', '', {'*.mat', [appName ' (*.mat)']}, app.mainApp.General.fileFolder.lastVisited, {'MultiSelect', 'off'});
             if isempty(fileFullPath)
                 return
             end
@@ -197,7 +196,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             d = ui.Dialog(app.UIFigure, "progressdlg", "Em andamento...");
             
             try
-                msg = load(app.projectData, 'file', fileFullPath, app.mainApp.General);
+                msg = load(app.projectData, 'file', fileFullPath, app.mainApp.General, varargin{:});
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectLoad', context)
                 updatePanel(app, context)
 
@@ -216,10 +215,12 @@ classdef dockReportLib_exported < matlab.apps.AppBase
         % Image clicked function: prjSaveButton
         function onProjectSave(app, event)
             
-            context = app.inputArgs.context;
+            appName  = class.Constants.appName;
+            context  = app.inputArgs.context;
+            varargin = app.inputArgs.varargin;
 
             if isfile(app.projectData.file)
-                if ~checkIfUpdateNeeded(app.projectData)
+                if ~checkIfUpdateNeeded(app.projectData, varargin{:})
                     msgQuestion = sprintf('Ao que parece, o projeto "<b>%s</b>" não sofreu alterações.<br><br>Deseja continuar mesmo assim?', app.projectData.name);
                     selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
                     if strcmp(selection, 'Não')
@@ -230,11 +231,11 @@ classdef dockReportLib_exported < matlab.apps.AppBase
                 [defaultPath, defaultFile] = fileparts(app.projectData.file);
                 defaultName = fullfile(defaultPath, defaultFile);
             else
-                defaultName = appEngine.util.DefaultFileName(app.mainApp.General.fileFolder.userPath, 'SCH_ProjectData', -1);
+                defaultName = appEngine.util.DefaultFileName(app.mainApp.General.fileFolder.userPath, [appName '_ProjectData'], -1);
             end
             
             projectName = app.projectData.name;
-            projectFile = ui.Dialog(app.UIFigure, 'uiputfile', '', {'*.mat', 'SCH (*.mat)'}, defaultName);
+            projectFile = ui.Dialog(app.UIFigure, 'uiputfile', '', {'*.mat', [appName ' (*.mat)']}, defaultName);
             if isempty(projectFile)
                 return
             end
@@ -632,7 +633,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaIssue.ValueDisplayFormat = '%d';
             app.eFiscalizaIssue.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.eFiscalizaIssue.FontSize = 11;
-            app.eFiscalizaIssue.FontColor = [0.149 0.149 0.149];
             app.eFiscalizaIssue.Layout.Row = 3;
             app.eFiscalizaIssue.Layout.Column = 2;
             app.eFiscalizaIssue.Value = -1;
@@ -692,7 +692,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportVersionLabel.WordWrap = 'on';
             app.reportVersionLabel.FontSize = 11;
             app.reportVersionLabel.Layout.Row = 3;
-            app.reportVersionLabel.Layout.Column = 1;
+            app.reportVersionLabel.Layout.Column = [1 2];
             app.reportVersionLabel.Text = 'Versão do relatório:';
 
             % Create reportVersion
@@ -750,7 +750,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportEntityIdLabel.VerticalAlignment = 'bottom';
             app.reportEntityIdLabel.WordWrap = 'on';
             app.reportEntityIdLabel.FontSize = 11;
-            app.reportEntityIdLabel.FontColor = [0.149 0.149 0.149];
             app.reportEntityIdLabel.Layout.Row = 1;
             app.reportEntityIdLabel.Layout.Column = 2;
             app.reportEntityIdLabel.Text = 'CNPJ/CPF:';
@@ -777,7 +776,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportEntityNameLabel.VerticalAlignment = 'bottom';
             app.reportEntityNameLabel.WordWrap = 'on';
             app.reportEntityNameLabel.FontSize = 11;
-            app.reportEntityNameLabel.FontColor = [0.149 0.149 0.149];
             app.reportEntityNameLabel.Layout.Row = 3;
             app.reportEntityNameLabel.Layout.Column = 1;
             app.reportEntityNameLabel.Text = 'Nome da fiscalizada:';

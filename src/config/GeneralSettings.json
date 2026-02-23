@@ -1,5 +1,5 @@
 {
-    "version": 2.11,
+    "version": 2.12,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -707,16 +707,16 @@
                 "default": "-",
                 "options": [
                     "-",
-                    "Comercialização – não homologado",
-                    "Comercialização – suspenso",
-                    "Comercialização – cancelado",
-                    "Identificação – ausência de selo",
-                    "Identificação – selo incorreto",
-                    "Identificação – selo falso",
-                    "Importação – não homologado",
-                    "Importação – sem selo",
-                    "Uso – não homologado",
-                    "Uso – características diferentes"
+                    "Comercialização - não homologado",
+                    "Comercialização - suspenso",
+                    "Comercialização - cancelado",
+                    "Identificação - ausência de selo",
+                    "Identificação - selo incorreto",
+                    "Identificação - selo falso",
+                    "Importação - não homologado",
+                    "Importação - sem selo",
+                    "Uso - não homologado",
+                    "Uso - características diferentes"
                 ]
             }
         }

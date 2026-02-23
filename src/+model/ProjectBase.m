@@ -174,10 +174,23 @@ classdef (Abstract) ProjectBase
                 switch column
                     case 'Tipo'
                         columnSpec = generalSettings.context.PRODUCTS.productType;
+                        
                     case 'Situação'
                         columnSpec = generalSettings.context.PRODUCTS.situationType;
+
                     case 'Infração'
                         columnSpec = generalSettings.context.PRODUCTS.violationType;
+
+                        % Mantém compatibilidade com a versão 1.23.0, pois o caractere "–"
+                        % não é corretamente renderizado no SEI, sendo convertido em hífen.
+                        values = cellstr(inspectedProducts.(column));
+                        if any(contains(values, '–'))
+                            values = replace(values, '–', '-');
+                            if all(ismember(values, columnSpec.options))
+                                inspectedProducts.(column) = categorical(values, columnSpec.options, 'Protected', true);
+                            end
+                        end
+
                     case 'Sanável?'
                         columnSpec = struct('options', {{'-', 'Sim', 'Não'}}, 'default', '-');
                 end

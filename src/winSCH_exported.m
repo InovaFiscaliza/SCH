@@ -180,17 +180,19 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
-                            case 'onFetchIssueDetails'
+                            case {'onFetchIssueDetails', 'onReportGenerate', 'onUploadArtifacts'}
+                                eventName = event.HTMLEventData.uuid;
                                 context = event.HTMLEventData.context;
-                                reportFetchIssueDetails(app, context, event.HTMLEventData)
 
-                            case 'onReportGenerate'
-                                context = event.HTMLEventData.context;
-                                reportGenerate(app, context, event.HTMLEventData)
+                                varargin = {};
+                                if isfield(event.HTMLEventData, 'varargin')
+                                    varargin = event.HTMLEventData.varargin;
+                                    if ~iscell(varargin)
+                                        varargin = {varargin};
+                                    end
+                                end
 
-                            case 'onUploadArtifacts'
-                                context = event.HTMLEventData.context;
-                                reportUploadArtifacts(app, context, event.HTMLEventData, 'uploadDocument')
+                                reportHandleOperation(app, eventName, context, event.HTMLEventData, varargin{:})
 
                             case 'openDevTools'
                                 if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
@@ -418,13 +420,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                             % auxApp.winProducts (PRODUCTS)
                             case {'auxApp.winProducts', 'auxApp.winProducts_exported'}
                                 switch eventName
-                                    case 'onReportGenerate'
+                                    case {'onReportGenerate', 'onUploadArtifacts'}
                                         context = varargin{1};
-                                        reportGenerate(app, context, [])
-
-                                    case 'onUploadArtifacts'
-                                        context = varargin{1};
-                                        reportUploadArtifacts(app, context, [], 'uploadDocument')
+                                        varargin = varargin(2:end);
+                                        reportHandleOperation(app, eventName, context, [], varargin{:})
                                 end
         
                             % DOCKS:OTHERS
@@ -1233,6 +1232,31 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function reportHandleOperation(app, eventName, context, credentials, varargin)
+            arguments
+                app
+                eventName {mustBeMember(eventName, {'onFetchIssueDetails', 'onReportGenerate', 'onUploadArtifacts'})}
+                context {mustBeMember(context, {'PRODUCTS'})}
+                credentials
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            switch eventName
+                case 'onFetchIssueDetails'
+                    reportFetchIssueDetails(app, context, credentials)
+
+                case 'onReportGenerate'
+                    reportGenerate(app, context, credentials);
+        
+                case 'onUploadArtifacts'
+                    reportUploadArtifacts(app, context, credentials, 'uploadDocument');
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function reportFetchIssueDetails(app, context, credentials)
             callingApp = getAppHandle(app.tabGroupController, context);
             if isempty(callingApp)
@@ -1248,6 +1272,17 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if app ~= callingApp
                 ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', 'onFetchIssueDetails', system, issue, details, msgError)
+
+            else
+                if isempty(msgError)
+                    msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
+                    icon = 'info';
+                else
+                    app.eFiscalizaObj = [];
+                    msg = msgError;
+                    icon = 'error';
+                end
+                ui.Dialog(app.UIFigure, icon, msg);
             end
 
             callingApp.progressDialog.Visible = 'hidden';
@@ -1270,6 +1305,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 else
                     ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', 'onReportGenerate')
                 end
+
             catch ME
                 ui.Dialog(callingApp.UIFigure, 'error', getReport(ME));
             end
@@ -1330,6 +1366,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                         docSpec = app.General.eFiscaliza;
                         docSpec.originId = docSpec.internal.originId;
                         docSpec.typeId = app.General.eFiscaliza.internal.typeIdMapping(docTypeIdx).id;
+                        docSpec.nomeArvore = ['[' class.Constants.appName ']'];
+
+                        if app.projectData.modules.(context).ui.entity.status
+                            docSpec.interessados = {struct( ...
+                                'sigla', app.projectData.modules.(context).ui.entity.id, ...
+                                'nome', app.projectData.modules.(context).ui.entity.name ...
+                            )};
+                        end     
 
                         response = run(app.eFiscalizaObj, env, operation, issueInfo, unit, docSpec, HTMLFile);
 
