@@ -42,6 +42,11 @@ classdef winProducts_exported < matlab.apps.AppBase
         progressDialog
         popupContainer
         SubTabGroup = struct('Children', -1, 'UserData', [])
+    end
+
+
+    properties (Access = private)
+        %-----------------------------------------------------------------%
         projectData
     end
 
@@ -170,7 +175,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
-            % ...
+            app.projectData = app.mainApp.projectData;
         end
 
         %-----------------------------------------------------------------%
@@ -300,7 +305,6 @@ classdef winProducts_exported < matlab.apps.AppBase
         function startupFcn(app, mainApp)
             
             try
-                app.projectData = mainApp.projectData;
                 appEngine.boot(app, app.Role, mainApp)                
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -371,7 +375,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 app.UITable.Selection = app.UITable.Selection(1);
             end
 
-            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo')
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo', app.Context)
 
         end
 

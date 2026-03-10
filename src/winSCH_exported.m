@@ -40,7 +40,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         tool_Separator2                 matlab.ui.control.Image
         tool_WordCloudVisibility        matlab.ui.control.Image
         tool_OpenPopupAnnotation        matlab.ui.control.Hyperlink
-        tool_Separator1                 matlab.ui.control.Image
         tool_PanelVisibility            matlab.ui.control.Image
         Tab2_Products                   matlab.ui.container.Tab
         Tab3_Config                     matlab.ui.container.Tab
@@ -50,6 +49,7 @@ classdef winSCH_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'mainApp'
+        Context = 'SEARCH'
     end
 
 
@@ -65,6 +65,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         executionMode
         progressDialog
         popupContainer
+        popupCurrentApp
 
         SubTabGroup = struct('Children', -1, 'UserData', [])
 
@@ -177,6 +178,29 @@ classdef winSCH_exported < matlab.apps.AppBase
     
                     case 'unload'
                         closeFcn(app)
+
+                    case 'closeFcnCallFromPopupApp'
+                        context = event.HTMLEventData.context;
+                        popupCurrentAppTag = event.HTMLEventData.dockAppName;
+
+                        switch context
+                            case {'mainApp', app.Context}
+                                hApp = app;
+                            otherwise
+                                hApp = getAppHandle(app.tabGroupController, context);
+                        end
+                        
+                        if ~isempty(hApp) && isvalid(hApp)
+                            deleteContextMenu(app.tabGroupController, hApp.UIFigure, popupCurrentAppTag)
+                        end
+
+                        delete(app.popupCurrentApp)
+                        app.popupCurrentApp = [];
+
+                    case 'syncPopupWithPanel'
+                        if ~isempty(app.popupCurrentApp) && isvalid(app.popupCurrentApp)
+                            app.popupCurrentApp.Container.Position(1:2) = [event.HTMLEventData.x, event.HTMLEventData.y];
+                        end
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
@@ -515,11 +539,12 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function ipcMainMatlabOpenPopupApp(app, callingApp, auxAppName, varargin)
+        function ipcMainMatlabOpenPopupApp(app, callingApp, auxAppName, context, varargin)
             arguments
                 app
                 callingApp
                 auxAppName char {mustBeMember(auxAppName, {'ReportLib', 'FilterSetup', 'Annotation', 'ProductInfo'})}
+                context    char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CONFIG'})}
             end
 
             arguments (Repeating)
@@ -529,7 +554,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             switch auxAppName
                 case 'ReportLib'
                     screenWidth  = 460;
-                    screenHeight = 602;
+                    screenHeight = 598;
                 case 'FilterSetup'
                     screenWidth  = 518;
                     screenHeight = 486;
@@ -542,19 +567,35 @@ classdef winSCH_exported < matlab.apps.AppBase
             end
 
             requestVisibilityChange(callingApp.progressDialog, 'visible', 'unlocked')
-            ui.PopUpContainer(callingApp, class.Constants.appName, screenWidth, screenHeight)
 
-            % Executa o app auxiliar.
-            inputArguments = [{app, callingApp}, varargin];
-            auxDockAppName = sprintf('auxApp.dock%s', auxAppName);
+            inputArguments = [{app, callingApp, context}, varargin];
             
             if app.General.operationMode.Debug
                 eval(sprintf('auxApp.dock%s(inputArguments{:})', auxAppName))
-            else
-                eval([auxDockAppName '_exported(callingApp.popupContainer, inputArguments{:})'])
 
+            else
+                ui.PopUpContainer(callingApp, screenWidth, screenHeight)
+
+                auxDockAppName = sprintf('auxApp.dock%s', auxAppName);
+                app.popupCurrentApp = feval([auxDockAppName '_exported'], callingApp.popupContainer, inputArguments{:});
+                
+                ui.CustomizationBase.getElementsDataTag({
+                    callingApp.popupContainer;
+                    app.popupCurrentApp.GridLayout
+                });
+
+                sendEventToHTMLSource(callingApp.jsBackDoor, 'dockContainer', struct( ...
+                    'dockAppName', auxDockAppName, ...
+                    'dockAppDataTag', app.popupCurrentApp.GridLayout.UserData.id, ...
+                    'dockAppContainerDataTag', callingApp.popupContainer.UserData.id, ...
+                    'width', screenWidth, ...
+                    'height', screenHeight+31, ...
+                    'context', context, ...
+                    'numCanvasElements', numel(findobj(app.popupCurrentApp.Container, 'Type', 'axes')) ...
+                ))
+
+                app.popupCurrentApp.GridLayout.UserData.auxDockAppName = auxDockAppName;
                 callingApp.popupContainer.UserData.auxDockAppName = auxDockAppName;
-                callingApp.popupContainer.Parent.Visible = 1;
             end
 
             requestVisibilityChange(callingApp.progressDialog, 'hidden', 'unlocked')
@@ -1729,11 +1770,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.tool_OpenPopupFilter
-                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup')
+                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup', app.Context)
 
                 case app.tool_OpenPopupAnnotation
                     selectedHomologation = app.selectedProductPanelInfo.UserData.focusedHomologation;
-                    ipcMainMatlabOpenPopupApp(app, app, 'Annotation', selectedHomologation)
+                    ipcMainMatlabOpenPopupApp(app, app, 'Annotation', app.Context, selectedHomologation)
             end
 
         end
@@ -1853,7 +1894,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.Tab1Grid);
-            app.Toolbar.ColumnWidth = {22, 5, 22, 22, 5, 22, 22, 5, 22, '1x'};
+            app.Toolbar.ColumnWidth = {22, 22, 5, 22, 22, 5, 22, '1x', 22};
             app.Toolbar.RowHeight = {4, 17, '1x', '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
@@ -1866,16 +1907,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_PanelVisibility.ScaleMethod = 'none';
             app.tool_PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_PanelVisibilityImageClicked, true);
             app.tool_PanelVisibility.Layout.Row = [1 4];
-            app.tool_PanelVisibility.Layout.Column = 1;
+            app.tool_PanelVisibility.Layout.Column = 9;
             app.tool_PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right-off.svg');
-
-            % Create tool_Separator1
-            app.tool_Separator1 = uiimage(app.Toolbar);
-            app.tool_Separator1.ScaleMethod = 'none';
-            app.tool_Separator1.Enable = 'off';
-            app.tool_Separator1.Layout.Row = [1 4];
-            app.tool_Separator1.Layout.Column = 2;
-            app.tool_Separator1.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_OpenPopupAnnotation
             app.tool_OpenPopupAnnotation = uihyperlink(app.Toolbar);
@@ -1885,7 +1918,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupAnnotation.FontColor = [0 0 0];
             app.tool_OpenPopupAnnotation.Enable = 'off';
             app.tool_OpenPopupAnnotation.Layout.Row = [1 4];
-            app.tool_OpenPopupAnnotation.Layout.Column = 3;
+            app.tool_OpenPopupAnnotation.Layout.Column = 1;
             app.tool_OpenPopupAnnotation.Text = '✍️';
 
             % Create tool_WordCloudVisibility
@@ -1894,7 +1927,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_WordCloudVisibility.ImageClickedFcn = createCallbackFcn(app, @Toolbar_WordCloudVisibilityImageClicked, true);
             app.tool_WordCloudVisibility.Enable = 'off';
             app.tool_WordCloudVisibility.Layout.Row = [1 4];
-            app.tool_WordCloudVisibility.Layout.Column = 4;
+            app.tool_WordCloudVisibility.Layout.Column = 2;
             app.tool_WordCloudVisibility.ImageSource = 'cloud-off.svg';
 
             % Create tool_Separator2
@@ -1902,7 +1935,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_Separator2.ScaleMethod = 'none';
             app.tool_Separator2.Enable = 'off';
             app.tool_Separator2.Layout.Row = [1 4];
-            app.tool_Separator2.Layout.Column = 5;
+            app.tool_Separator2.Layout.Column = 3;
             app.tool_Separator2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_OpenPopupFilter
@@ -1910,7 +1943,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_OpenPopupFilter.ScaleMethod = 'none';
             app.tool_OpenPopupFilter.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupAppImageClicked, true);
             app.tool_OpenPopupFilter.Layout.Row = [1 4];
-            app.tool_OpenPopupFilter.Layout.Column = 6;
+            app.tool_OpenPopupFilter.Layout.Column = 4;
             app.tool_OpenPopupFilter.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'filter-18px.png');
 
             % Create tool_ExportVisibleTable
@@ -1919,7 +1952,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_ExportVisibleTable.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ExportVisibleTableImageClicked, true);
             app.tool_ExportVisibleTable.Enable = 'off';
             app.tool_ExportVisibleTable.Layout.Row = [1 4];
-            app.tool_ExportVisibleTable.Layout.Column = 7;
+            app.tool_ExportVisibleTable.Layout.Column = 5;
             app.tool_ExportVisibleTable.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Export_16.png');
 
             % Create tool_Separator3
@@ -1927,7 +1960,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_Separator3.ScaleMethod = 'none';
             app.tool_Separator3.Enable = 'off';
             app.tool_Separator3.Layout.Row = [1 4];
-            app.tool_Separator3.Layout.Column = 8;
+            app.tool_Separator3.Layout.Column = 6;
             app.tool_Separator3.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create tool_AddSelectedToBucket
@@ -1935,7 +1968,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tool_AddSelectedToBucket.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddSelectedToBucketImageClicked, true);
             app.tool_AddSelectedToBucket.Enable = 'off';
             app.tool_AddSelectedToBucket.Layout.Row = [1 4];
-            app.tool_AddSelectedToBucket.Layout.Column = 9;
+            app.tool_AddSelectedToBucket.Layout.Column = 7;
             app.tool_AddSelectedToBucket.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create Document

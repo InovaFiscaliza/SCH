@@ -69,6 +69,7 @@ classdef winConfig_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'secondaryApp'
+        Context = 'CONFIG'
     end
 
 
@@ -371,7 +372,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', "CONFIG")
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', app.Context)
             delete(app)
             
         end
@@ -878,7 +879,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousGrid1.ColumnWidth = {350, 110, 110};
             app.config_MiscelaneousGrid1.RowHeight = {22, 22};
             app.config_MiscelaneousGrid1.RowSpacing = 5;
-            app.config_MiscelaneousGrid1.Padding = [10 10 10 5];
             app.config_MiscelaneousGrid1.BackgroundColor = [1 1 1];
 
             % Create config_nMinCharactersLabel
@@ -937,7 +937,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_MiscelaneousGrid2.ColumnWidth = {350, 110, 110};
             app.config_MiscelaneousGrid2.RowHeight = {22, 22};
             app.config_MiscelaneousGrid2.RowSpacing = 5;
-            app.config_MiscelaneousGrid2.Padding = [10 10 10 5];
             app.config_MiscelaneousGrid2.BackgroundColor = [1 1 1];
 
             % Create config_WordCloudAlgorithmLabel

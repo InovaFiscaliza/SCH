@@ -4,14 +4,12 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure             matlab.ui.Figure
         GridLayout           matlab.ui.container.GridLayout
-        Document             matlab.ui.container.GridLayout
         btnOK                matlab.ui.control.Button
         attributeValue       matlab.ui.control.TextArea
         attributeValueLabel  matlab.ui.control.Label
         attributeName        matlab.ui.control.DropDown
         attributeNameLabel   matlab.ui.control.Label
         homologationInfo     matlab.ui.control.Label
-        btnClose             matlab.ui.control.Image
     end
 
     
@@ -28,6 +26,12 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
         mainApp
         callingApp
         projectData
+    end
+
+
+    properties (Access = private)
+        %-----------------------------------------------------------------%
+        inputArgs
     end
     
     
@@ -57,10 +61,12 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, callingApp, focusedHomologation)
+        function startupFcn(app, mainApp, callingApp, context, focusedHomologation)
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
+
+                app.inputArgs = struct('context', context, 'focusedHomologation', focusedHomologation);
                 updateForm(app, focusedHomologation)
                 
             catch ME
@@ -69,10 +75,9 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: UIFigure, btnClose
+        % Close request function: UIFigure
         function closeFcn(app, event)
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcnCallFromPopupApp', 'SEARCH', 'auxApp.dockAnnotation')
             delete(app)
             
         end
@@ -141,34 +146,15 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {'1x', 30};
-            app.GridLayout.RowHeight = {30, '1x'};
-            app.GridLayout.ColumnSpacing = 0;
-            app.GridLayout.RowSpacing = 0;
-            app.GridLayout.Padding = [0 0 0 0];
-            app.GridLayout.BackgroundColor = [0.902 0.902 0.902];
-
-            % Create btnClose
-            app.btnClose = uiimage(app.GridLayout);
-            app.btnClose.ScaleMethod = 'none';
-            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @closeFcn, true);
-            app.btnClose.Tag = 'Close';
-            app.btnClose.Layout.Row = 1;
-            app.btnClose.Layout.Column = 2;
-            app.btnClose.ImageSource = 'Delete_12SVG.svg';
-
-            % Create Document
-            app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {'1x', 90};
-            app.Document.RowHeight = {'1x', 17, 22, 22, '1x', 22};
-            app.Document.ColumnSpacing = 5;
-            app.Document.RowSpacing = 5;
-            app.Document.Layout.Row = 2;
-            app.Document.Layout.Column = [1 2];
-            app.Document.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.GridLayout.ColumnWidth = {'1x', 90};
+            app.GridLayout.RowHeight = {'1x', 17, 22, 22, '1x', 22};
+            app.GridLayout.ColumnSpacing = 5;
+            app.GridLayout.RowSpacing = 5;
+            app.GridLayout.Padding = [20 20 20 20];
+            app.GridLayout.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create homologationInfo
-            app.homologationInfo = uilabel(app.Document);
+            app.homologationInfo = uilabel(app.GridLayout);
             app.homologationInfo.VerticalAlignment = 'top';
             app.homologationInfo.WordWrap = 'on';
             app.homologationInfo.Layout.Row = 1;
@@ -177,7 +163,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             app.homologationInfo.Text = '';
 
             % Create attributeNameLabel
-            app.attributeNameLabel = uilabel(app.Document);
+            app.attributeNameLabel = uilabel(app.GridLayout);
             app.attributeNameLabel.VerticalAlignment = 'bottom';
             app.attributeNameLabel.FontSize = 11;
             app.attributeNameLabel.Layout.Row = 2;
@@ -185,7 +171,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             app.attributeNameLabel.Text = 'Atributo:';
 
             % Create attributeName
-            app.attributeName = uidropdown(app.Document);
+            app.attributeName = uidropdown(app.GridLayout);
             app.attributeName.Items = {'', 'Fornecedor', 'Fabricante', 'Modelo', 'EAN', 'Outras informações'};
             app.attributeName.FontSize = 11;
             app.attributeName.BackgroundColor = [1 1 1];
@@ -194,7 +180,7 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             app.attributeName.Value = '';
 
             % Create attributeValueLabel
-            app.attributeValueLabel = uilabel(app.Document);
+            app.attributeValueLabel = uilabel(app.GridLayout);
             app.attributeValueLabel.VerticalAlignment = 'bottom';
             app.attributeValueLabel.FontSize = 11;
             app.attributeValueLabel.Layout.Row = 4;
@@ -202,14 +188,14 @@ classdef dockAnnotation_exported < matlab.apps.AppBase
             app.attributeValueLabel.Text = 'Valor:';
 
             % Create attributeValue
-            app.attributeValue = uitextarea(app.Document);
+            app.attributeValue = uitextarea(app.GridLayout);
             app.attributeValue.ValueChangingFcn = createCallbackFcn(app, @attributeValueChanged, true);
             app.attributeValue.FontSize = 11;
             app.attributeValue.Layout.Row = 5;
             app.attributeValue.Layout.Column = [1 2];
 
             % Create btnOK
-            app.btnOK = uibutton(app.Document, 'push');
+            app.btnOK = uibutton(app.GridLayout, 'push');
             app.btnOK.ButtonPushedFcn = createCallbackFcn(app, @btnOKPushed, true);
             app.btnOK.Tag = 'OK';
             app.btnOK.IconAlignment = 'right';

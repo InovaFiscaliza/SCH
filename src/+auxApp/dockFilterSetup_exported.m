@@ -4,7 +4,6 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                      matlab.ui.Figure
         GridLayout                    matlab.ui.container.GridLayout
-        Document                      matlab.ui.container.GridLayout
         columnFilterLabel_2           matlab.ui.control.Label
         config_SearchModePanel        matlab.ui.container.ButtonGroup
         config_SearchModeListOfWords  matlab.ui.control.RadioButton
@@ -30,7 +29,6 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         columnFilterLabel             matlab.ui.control.Label
         filteringStrategy             matlab.ui.control.DropDown
         filteringStrategyLabel        matlab.ui.control.Label
-        btnClose                      matlab.ui.control.Image
         ContextMenu                   matlab.ui.container.ContextMenu
         columnFilterDel               matlab.ui.container.Menu
     end
@@ -48,6 +46,12 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         isDocked = true        
         mainApp
         callingApp
+    end
+
+
+    properties (Access = private)
+        %-----------------------------------------------------------------%
+        inputArgs
     end
     
     
@@ -164,11 +168,12 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, callingApp)
+        function startupFcn(app, mainApp, callingApp, context)
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
                 
+                app.inputArgs = struct('context', context);
                 initialLayout(app)
                 updateForm(app)
                 
@@ -178,10 +183,9 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: UIFigure, btnClose
+        % Close request function: UIFigure
         function closeFcn(app, event)
             
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcnCallFromPopupApp', 'SEARCH', 'auxApp.dockFilterSetup')
             delete(app)
             
         end
@@ -402,35 +406,15 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {'1x', 30};
-            app.GridLayout.RowHeight = {30, '1x'};
-            app.GridLayout.ColumnSpacing = 0;
-            app.GridLayout.RowSpacing = 0;
-            app.GridLayout.Padding = [0 0 0 0];
-            app.GridLayout.BackgroundColor = [0.902 0.902 0.902];
-
-            % Create btnClose
-            app.btnClose = uiimage(app.GridLayout);
-            app.btnClose.ScaleMethod = 'none';
-            app.btnClose.ImageClickedFcn = createCallbackFcn(app, @closeFcn, true);
-            app.btnClose.Tag = 'Close';
-            app.btnClose.Layout.Row = 1;
-            app.btnClose.Layout.Column = 2;
-            app.btnClose.ImageSource = 'Delete_12SVG.svg';
-
-            % Create Document
-            app.Document = uigridlayout(app.GridLayout);
-            app.Document.ColumnWidth = {247, 246};
-            app.Document.RowHeight = {22, 22, 22, 88, 22, '100x'};
-            app.Document.ColumnSpacing = 5;
-            app.Document.RowSpacing = 5;
-            app.Document.Padding = [10 10 10 5];
-            app.Document.Layout.Row = 2;
-            app.Document.Layout.Column = [1 2];
-            app.Document.BackgroundColor = [1 1 1];
+            app.GridLayout.ColumnWidth = {'1x'};
+            app.GridLayout.RowHeight = {17, 22, 22, 88, 22, '100x'};
+            app.GridLayout.ColumnSpacing = 5;
+            app.GridLayout.RowSpacing = 5;
+            app.GridLayout.Padding = [20 20 20 20];
+            app.GridLayout.BackgroundColor = [1 1 1];
 
             % Create filteringStrategyLabel
-            app.filteringStrategyLabel = uilabel(app.Document);
+            app.filteringStrategyLabel = uilabel(app.GridLayout);
             app.filteringStrategyLabel.VerticalAlignment = 'bottom';
             app.filteringStrategyLabel.FontSize = 10;
             app.filteringStrategyLabel.Layout.Row = 1;
@@ -438,7 +422,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.filteringStrategyLabel.Text = 'ESTRATÉGIA DE FILTRAGEM';
 
             % Create filteringStrategy
-            app.filteringStrategy = uidropdown(app.Document);
+            app.filteringStrategy = uidropdown(app.GridLayout);
             app.filteringStrategy.Items = {'Texto livre', 'Filtro por coluna', 'Texto livre + Filtro por coluna'};
             app.filteringStrategy.ValueChangedFcn = createCallbackFcn(app, @onSearchModeChanged, true);
             app.filteringStrategy.FontSize = 11;
@@ -448,7 +432,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.filteringStrategy.Value = 'Texto livre + Filtro por coluna';
 
             % Create columnFilterLabel
-            app.columnFilterLabel = uilabel(app.Document);
+            app.columnFilterLabel = uilabel(app.GridLayout);
             app.columnFilterLabel.VerticalAlignment = 'bottom';
             app.columnFilterLabel.FontSize = 10;
             app.columnFilterLabel.Layout.Row = 5;
@@ -456,10 +440,10 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.columnFilterLabel.Text = 'FILTRO POR COLUNA';
 
             % Create columnFilterPanel
-            app.columnFilterPanel = uipanel(app.Document);
+            app.columnFilterPanel = uipanel(app.GridLayout);
             app.columnFilterPanel.AutoResizeChildren = 'off';
             app.columnFilterPanel.Layout.Row = 6;
-            app.columnFilterPanel.Layout.Column = [1 2];
+            app.columnFilterPanel.Layout.Column = 1;
 
             % Create columnFilterGrid
             app.columnFilterGrid = uigridlayout(app.columnFilterPanel);
@@ -615,16 +599,16 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.columnFilterList.CheckedNodesChangedFcn = createCallbackFcn(app, @onColumnFilterCheckedNodesChanged, true);
 
             % Create config_SearchModePanel
-            app.config_SearchModePanel = uibuttongroup(app.Document);
+            app.config_SearchModePanel = uibuttongroup(app.GridLayout);
             app.config_SearchModePanel.AutoResizeChildren = 'off';
             app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @onSearchModeChanged, true);
             app.config_SearchModePanel.BackgroundColor = [1 1 1];
             app.config_SearchModePanel.Layout.Row = 4;
-            app.config_SearchModePanel.Layout.Column = [1 2];
+            app.config_SearchModePanel.Layout.Column = 1;
 
             % Create config_SearchModeTokenSuggestion
             app.config_SearchModeTokenSuggestion = uiradiobutton(app.config_SearchModePanel);
-            app.config_SearchModeTokenSuggestion.Text = {'[TS] Texto por Similaridade'; '<font style="color: gray; font-size:10px">Apresenta sugestões conforme o texto é digitado e retorna resultados com base nos termos sugeridos.</font>'};
+            app.config_SearchModeTokenSuggestion.Text = {'[TS] Texto por Similaridade'; '<font style="color: gray; font-size:10px">Apresenta sugestões conforme o texto é digitado.</font>'};
             app.config_SearchModeTokenSuggestion.FontSize = 11;
             app.config_SearchModeTokenSuggestion.Interpreter = 'html';
             app.config_SearchModeTokenSuggestion.Position = [11 43 486 43];
@@ -638,7 +622,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.config_SearchModeListOfWords.Position = [12 3 485 41];
 
             % Create columnFilterLabel_2
-            app.columnFilterLabel_2 = uilabel(app.Document);
+            app.columnFilterLabel_2 = uilabel(app.GridLayout);
             app.columnFilterLabel_2.VerticalAlignment = 'bottom';
             app.columnFilterLabel_2.FontSize = 10;
             app.columnFilterLabel_2.Layout.Row = 3;
