@@ -455,24 +455,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                   'auxApp.dockReportLib',   'auxApp.dockReportLib_exported',   ...
                                   'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ...
                                   'auxApp.dockAnnotation',  'auxApp.dockAnnotation_exported'}
-                                switch eventName
-                                    case 'closeFcnCallFromPopupApp'
-                                        context = varargin{1};
-                                        moduleTag = varargin{2};
-        
-                                        switch context
-                                            case {'mainApp', 'SEARCH'}
-                                                hApp = app;
-                                                app.popupContainer.Parent.Visible = 0;
-                                            otherwise
-                                                hApp = getAppHandle(app.tabGroupController, context);
-                                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', eventName)
-                                        end
-                                        
-                                        if ~isempty(hApp)
-                                            deleteContextMenu(app.tabGroupController, hApp.UIFigure, moduleTag)
-                                        end
-        
+                                switch eventName        
                                     % auxApp.dockProductInfo
                                     case {'onTableSelectionChanged', 'onTableCellEdited'}
                                         context  = varargin{1};

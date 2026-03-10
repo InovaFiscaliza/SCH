@@ -80,12 +80,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             try
                 switch class(callingApp)
                     case {'winSCH', 'winSCH_exported'}
-                        switch eventName
-                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts
-                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
-                            case 'closeFcnCallFromPopupApp'
-                                app.popupContainer.Parent.Visible = 0;
-                                
+                        switch eventName                                
                             % winSCH >> auxApp.winProducts
                             % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
                             % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts                            
