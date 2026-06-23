@@ -720,8 +720,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Ideia é identificar URL de pasta estática servida pelo backend, de 
             % forma que possam ser inseridas imagens em uilabel (como ui.TextView).
             try
-                [~, resourceName, resourceExt] = fileparts(app.tool_ReadFiles.ImageSource);
-                sendEventToHTMLSource(app.jsBackDoor, 'findResourceStaticURL', struct('resourceName', [resourceName resourceExt], 'resourceTag', 'img', 'resourceId', app.tool_ReadFiles.UserData.id))
+                [~, resourceName, resourceExt] = fileparts(app.tool_OpenPopupFilter.ImageSource);
+                sendEventToHTMLSource(app.jsBackDoor, 'findResourceStaticURL', struct('resourceName', [resourceName resourceExt], 'resourceTag', 'img', 'resourceId', app.tool_OpenPopupFilter.UserData.id))
             catch
             end
         end
