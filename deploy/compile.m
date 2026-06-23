@@ -59,7 +59,7 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
 
     % Atualiza base de dados, caso necessário.
     SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData_v2.mat');
-    SCHDataEditedFile   = "D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\DEV - InovaFiscaliza (Post)\SCHData_v2.mat";
+    SCHDataEditedFile   = "C:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData_v2.mat";
     if ~isfile(SCHDataEditedFile)
         error('File does not exist')
     end

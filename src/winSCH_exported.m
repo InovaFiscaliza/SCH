@@ -13,7 +13,6 @@ classdef winSCH_exported < matlab.apps.AppBase
         Tab2Button                      matlab.ui.control.StateButton
         Tab1Button                      matlab.ui.control.StateButton
         AppName                         matlab.ui.control.Label
-        AppIcon                         matlab.ui.control.Image
         TabGroup                        matlab.ui.container.TabGroup
         Tab1_Search                     matlab.ui.container.Tab
         Tab1Grid                        matlab.ui.container.GridLayout
@@ -227,6 +226,12 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'getNavigatorBasicInformation'
                         app.General.AppVersion.browser = event.HTMLEventData;
+
+                    case 'findResourceStaticURL'
+                        resourceStaticURL = event.HTMLEventData;
+                        if ~isempty(resourceStaticURL)
+                            app.General.AppVersion.application.resourceStaticURL = resourceStaticURL;
+                        end
 
                     case 'backgroundBecameTransparent'
                         switch event.HTMLEventData
@@ -534,31 +539,30 @@ classdef winSCH_exported < matlab.apps.AppBase
                 varargin 
             end
 
-            switch auxAppName
-                case 'ReportLib'
-                    screenWidth  = 460;
-                    screenHeight = 598;
-                case 'FilterSetup'
-                    screenWidth  = 518;
-                    screenHeight = 486;
-                case 'Annotation'
-                    screenWidth  = 412;
-                    screenHeight = 300;
-                case 'ProductInfo'
-                    screenWidth  = 580;
-                    screenHeight = 640;
-            end
-
             requestVisibilityChange(callingApp.progressDialog, 'visible', 'unlocked')
-
             inputArguments = [{app, callingApp, context}, varargin];
-            
+
             if app.General.operationMode.Debug
-                eval(sprintf('auxApp.dock%s(inputArguments{:})', auxAppName))
+                app.popupCurrentApp = eval(sprintf('auxApp.dock%s(inputArguments{:})', auxAppName));
+                app.popupCurrentApp.isDocked = false;
 
             else
-                ui.PopUpContainer(callingApp, screenWidth, screenHeight)
+                popupSpecifications = table( ...
+                    'Size', [15, 4], ...
+                    'VariableTypes', {'string', 'double', 'double', 'logical'}, ...
+                    'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
+                );
+                popupSpecifications(1, :) = {"ReportLib",   460, 598, false};
+                popupSpecifications(2, :) = {"FilterSetup", 518, 486, false};
+                popupSpecifications(3, :) = {"Annotation",  412, 300, false};
+                popupSpecifications(4, :) = {"ProductInfo", 580, 640, false};
 
+                auxAppNameIdx = find(popupSpecifications.AuxAppName == string(auxAppName), 1);
+                screenWidth = popupSpecifications.Width(auxAppNameIdx);
+                screenHeight = popupSpecifications.Height(auxAppNameIdx);
+                isFluid = popupSpecifications.IsFluid(auxAppNameIdx);
+
+                ui.PopUpContainer(callingApp, screenWidth, screenHeight)
                 auxDockAppName = sprintf('auxApp.dock%s', auxAppName);
                 app.popupCurrentApp = feval([auxDockAppName '_exported'], callingApp.popupContainer, inputArguments{:});
                 
@@ -567,12 +571,17 @@ classdef winSCH_exported < matlab.apps.AppBase
                     app.popupCurrentApp.GridLayout
                 });
 
+                if isFluid
+                    sizing = struct('type', 'fluid', 'width', 90, 'height', 80);
+                else
+                    sizing = struct('type', 'fixed', 'width', screenWidth, 'height', screenHeight+31);
+                end
+
                 sendEventToHTMLSource(callingApp.jsBackDoor, 'dockContainer', struct( ...
                     'dockAppName', auxDockAppName, ...
                     'dockAppDataTag', app.popupCurrentApp.GridLayout.UserData.id, ...
                     'dockAppContainerDataTag', callingApp.popupContainer.UserData.id, ...
-                    'width', screenWidth, ...
-                    'height', screenHeight+31, ...
+                    'sizing', sizing, ...
                     'context', context, ...
                     'numCanvasElements', numel(findobj(app.popupCurrentApp.Container, 'Type', 'axes')) ...
                 ))
@@ -703,9 +712,18 @@ classdef winSCH_exported < matlab.apps.AppBase
                     end
             end
 
-            app.General            = app.General_I;
+            app.General = app.General_I;
             app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir);
             sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
+
+
+            % Ideia é identificar URL de pasta estática servida pelo backend, de 
+            % forma que possam ser inseridas imagens em uilabel (como ui.TextView).
+            try
+                [~, resourceName, resourceExt] = fileparts(app.tool_ReadFiles.ImageSource);
+                sendEventToHTMLSource(app.jsBackDoor, 'findResourceStaticURL', struct('resourceName', [resourceName resourceExt], 'resourceTag', 'img', 'resourceId', app.tool_ReadFiles.UserData.id))
+            catch
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -2109,7 +2127,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create NavBar
             app.NavBar = uigridlayout(app.GridLayout);
-            app.NavBar.ColumnWidth = {22, 74, '1x', 34, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
+            app.NavBar.ColumnWidth = {101, '1x', 34, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
             app.NavBar.RowHeight = {5, 7, 20, 7, 5};
             app.NavBar.ColumnSpacing = 5;
             app.NavBar.RowSpacing = 0;
@@ -2119,19 +2137,13 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.NavBar.Layout.Column = 1;
             app.NavBar.BackgroundColor = [0.2 0.2 0.2];
 
-            % Create AppIcon
-            app.AppIcon = uiimage(app.NavBar);
-            app.AppIcon.Layout.Row = [1 5];
-            app.AppIcon.Layout.Column = 1;
-            app.AppIcon.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'icon_32White.png');
-
             % Create AppName
             app.AppName = uilabel(app.NavBar);
             app.AppName.WordWrap = 'on';
             app.AppName.FontSize = 11;
             app.AppName.FontColor = [1 1 1];
             app.AppName.Layout.Row = [1 5];
-            app.AppName.Layout.Column = [2 3];
+            app.AppName.Layout.Column = [1 2];
             app.AppName.Interpreter = 'html';
             app.AppName.Text = {'SCH v. 1.10.0'; '<font style="font-size: 9px;">R2024a</font>'};
 
@@ -2144,7 +2156,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab1Button.Text = '';
             app.Tab1Button.BackgroundColor = [0.2 0.2 0.2];
             app.Tab1Button.Layout.Row = [2 4];
-            app.Tab1Button.Layout.Column = 4;
+            app.Tab1Button.Layout.Column = 3;
             app.Tab1Button.Value = true;
 
             % Create Tab2Button
@@ -2156,14 +2168,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2Button.Text = '';
             app.Tab2Button.BackgroundColor = [0.2 0.2 0.2];
             app.Tab2Button.Layout.Row = [2 4];
-            app.Tab2Button.Layout.Column = 5;
+            app.Tab2Button.Layout.Column = 4;
 
             % Create ButtonsSeparator
             app.ButtonsSeparator = uiimage(app.NavBar);
             app.ButtonsSeparator.ScaleMethod = 'none';
             app.ButtonsSeparator.Enable = 'off';
             app.ButtonsSeparator.Layout.Row = [2 4];
-            app.ButtonsSeparator.Layout.Column = 6;
+            app.ButtonsSeparator.Layout.Column = 5;
             app.ButtonsSeparator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
 
             % Create Tab3Button
@@ -2175,14 +2187,14 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab3Button.Text = '';
             app.Tab3Button.BackgroundColor = [0.2 0.2 0.2];
             app.Tab3Button.Layout.Row = [2 4];
-            app.Tab3Button.Layout.Column = 7;
+            app.Tab3Button.Layout.Column = 6;
 
             % Create DataHubLamp
             app.DataHubLamp = uiimage(app.NavBar);
             app.DataHubLamp.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.DataHubLamp.Visible = 'off';
             app.DataHubLamp.Layout.Row = 3;
-            app.DataHubLamp.Layout.Column = 10;
+            app.DataHubLamp.Layout.Column = 9;
             app.DataHubLamp.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'red-circle-blink.gif');
 
             % Create FigurePosition
@@ -2191,7 +2203,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.FigurePosition.Visible = 'off';
             app.FigurePosition.Layout.Row = 3;
-            app.FigurePosition.Layout.Column = 12;
+            app.FigurePosition.Layout.Column = 11;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'screen-normal-24px-white.svg');
 
             % Create AppInfo
@@ -2199,7 +2211,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.AppInfo.ScaleMethod = 'none';
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.AppInfo.Layout.Row = 3;
-            app.AppInfo.Layout.Column = 13;
+            app.AppInfo.Layout.Column = 12;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'kebab-vertical-24px-white.svg');
 
             % Show the figure after all components are created
