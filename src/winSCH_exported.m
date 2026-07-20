@@ -393,7 +393,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         end
     
                     otherwise
-                        error('UnexpectedEvent')
+                        error('winSCH:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
                 end
                 drawnow
 
@@ -409,12 +409,15 @@ classdef winSCH_exported < matlab.apps.AppBase
             try
                 switch eventName
                     case 'closeFcn'
-                        auxAppTag    = varargin{1};
-                        closeModule(app.tabGroupController, auxAppTag, app.General, 'normal')
+                        auxAppTag = varargin{1};
+                        closeModule(app.tabGroupController, auxAppTag, app.General)
 
                     case 'dockButtonPushed'
-                        auxAppTag    = varargin{1};
                         varargout{1} = {app};
+
+                    case 'onUpdateLastVisitedFolder'
+                        filePath = varargin{1};
+                        updateLastVisitedFolder(app, filePath)
 
                     otherwise
                         switch class(callingApp)
@@ -472,10 +475,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         context  = varargin{1};
                                         varargin = [{eventName}, varargin(2:end)];
                                         ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
-                                        
-                                    case 'onUpdateLastVisitedFolder'
-                                        filePath = varargin{1};
-                                        updateLastVisitedFolder(app, filePath)
 
                                     case 'onFetchIssueDetails'
                                         context  = varargin{1};
@@ -740,7 +739,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
-            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog);
+            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog, app.jsBackDoor);
             addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', '', 'Off', ''), matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      2)
             addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      3)
