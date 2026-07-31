@@ -1,5 +1,5 @@
 {
-    "version": 2.13,
+    "version": 2.14,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -724,6 +724,13 @@
     "reportLib": {
         "system": "eFiscaliza",
         "unit": "",
+        "allowedMacrothemes": [
+            "PACP-Aduanas",
+            "PACP-Combate à Pirataria",
+            "PACP-e-Commerce",
+            "PACP-Feira e Eventos",
+            "PACP-Supervisão de Mercado"
+        ],
         "outputCompressionMode": "Sim",
         "entityType": {
             "default": "",
