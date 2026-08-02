@@ -100,7 +100,7 @@ classdef (Abstract) HtmlTextGenerator
                     Modelo        = FindListOfValues(relatedSCHTable, "Modelo");
                     NomeComercial = FindListOfValues(relatedSCHTable, "Nome Comercial");
                 
-                    Anotacoes     = {};
+                    Anotacoes = {};
                     for ii = 1:height(relatedAnnotationTable)
                         value = sprintf('"%s"', relatedAnnotationTable.("Valor"){ii});
                 
@@ -112,14 +112,10 @@ classdef (Abstract) HtmlTextGenerator
                             end
                         end
                 
-                        Anotacoes{end+1} = sprintf('•&thinsp;%s: %s<br><font style="color: gray; font-size: 10px;">(%s em %s)</font>', relatedAnnotationTable.("Atributo"){ii}, ...
-                                                                                                                                       value,                                   ...
-                                                                                                                                       relatedAnnotationTable.("Usuário"){ii},  ...
-                                                                                                                                       relatedAnnotationTable.("DataHora"){ii});
-                    end
-
-                    if isempty(Anotacoes)
-                        Anotacoes = {'•&thinsp;-1'};
+                        Anotacoes{end+1} = sprintf([ ...
+                            '•&thinsp;%s: %s<br><font style="color: gray; ' ...
+                            'font-size: 10px;">(%s em %s)</font>' ...
+                        ], relatedAnnotationTable.("Atributo"){ii}, value, relatedAnnotationTable.("Usuário"){ii}, relatedAnnotationTable.("DataHora"){ii});
                     end
 
                     dataStruct    = struct('group', 'Data de emissão:',      'value', DataEmissao);
@@ -131,13 +127,55 @@ classdef (Abstract) HtmlTextGenerator
                     dataStruct(7) = struct('group', 'Modelo:',               'value', {Modelo});
                     dataStruct(8) = struct('group', 'Nome Comercial:',       'value', {NomeComercial});
 
-                    regulatronAddsIndexes  = find(contains(regulatronData.addsTable.certificado, replace(Homologacao, '-', '')));
-                    if ~isempty(regulatronAddsIndexes)
-                        regulatronAddsUrls = strcat('<a href="', regulatronData.urlPreffix, regulatronData.addsTable.pdf(regulatronAddsIndexes), '" target="_blank" rel="noopener noreferrer">', cellstr(string(1:numel(regulatronAddsIndexes)))', '</a>');
-                        dataStruct(end+1) = struct('group', 'Anúncios Regulatron:',   'value', strjoin(regulatronAddsUrls, ', '));
+                    if ~isempty(Anotacoes)
+                        dataStruct(9) = struct('group', 'Anotações:', 'value', {Anotacoes});
                     end
 
-                    dataStruct(end+1) = struct('group', 'Anotações:',        'value', {Anotacoes});
+                    regulatronAddsIndexes  = find(contains(regulatronData.addsTable.certificado, replace(Homologacao, '-', '')));
+                    if ~isempty(regulatronAddsIndexes)
+                        regulatronAddsInfo = cell(numel(regulatronAddsIndexes), 1);
+                        addsTable = sortrows(regulatronData.addsTable(regulatronAddsIndexes, :), 'data', 'descend');
+
+                        for jj = 1:height(addsTable)
+                            marketplace = addsTable.marketplace{jj};
+                            adDateRaw = char(addsTable.data{jj});
+                            adURL = addsTable.url{jj};
+                            pdfURL = [regulatronData.urlPreffix addsTable.screenshot{jj}];
+                            adPrice = char(regexprep(addsTable.("preço"){jj}, '[^0-9\.,]', ''));
+
+                            try
+                                adDate = datestr(datetime(adDateRaw, 'InputFormat', "yyyy-MM-dd'T'HH:mm:ss"), 'dd/mm/yyyy');
+                                adDateMarketplace = sprintf('%s • <b>%s</b>', adDate, marketplace);
+                            catch
+                                adDateMarketplace = marketplace;
+                            end
+
+                            modelLine = {addsTable.fabricante{jj}, addsTable.modelo{jj}};
+                            modelLine = modelLine(~cellfun(@isempty, modelLine));
+                            modelLine = strjoin(modelLine, ' • ');
+
+                            regulatronAddsInfo{jj} = sprintf([ ...
+                                '<section style="margin: 0px 10px 0px 10px; padding: 4px 0 4px 0; background-color: transparent;">' ...
+                                    '<table style="width: 100%%; border-collapse: collapse;">' ...
+                                        '<tr>' ...
+                                            '<td style="width: 4px; background: #b3b3b3;"></td>' ...
+                                            '<td style="padding: 0 7px 0 7px;">' ...
+                                                '<font style="font-size: 11px; color: #202020;">%s</font><br>' ...
+                                                '<font style="font-size: 11px; color: #acabab;">%s</font><br>' ...
+                                                '<font style="font-size: 11px; color: #202020;">R$ %s</font>' ...
+                                            '</td>' ...
+                                            '<td style="width: 100px; text-align: right; white-space: nowrap;">' ...
+                                                '<br><a href="%s" target="_blank" rel="noopener noreferrer">PDF</a> | ' ...
+                                                '<a href="%s" target="_blank" rel="noopener noreferrer">Anúncio</a>' ...
+                                            '</td>' ...
+                                        '</tr>' ...
+                                    '</table>' ...
+                                '</section>' ...
+                                ], adDateMarketplace, modelLine, adPrice, pdfURL, adURL);
+                        end
+
+                        dataStruct(end+1) = struct('group', 'Anúncios Regulatron:', 'value', {regulatronAddsInfo});
+                    end
         
                 case 'ProdutoNãoHomologado'
                     listOfProducts = varargin{2};

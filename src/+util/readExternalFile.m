@@ -59,23 +59,19 @@ classdef (Abstract) readExternalFile
         %-----------------------------------------------------------------%
         function addsTable = RegulatronData(rootFolder, cloudFolder)
             [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            fileName = 'RegulatronAdds.xlsx';
+            fileName = 'RegulatronAdds.mat';
 
             try
                 cloudFilePath = fullfile(cloudFolder, fileName);
                 if ~isempty(cloudFolder) && isfile(cloudFilePath)
-                    addsTable = readTable(cloudFilePath);
+                    load(cloudFilePath, 'addsTable');
                 else
                     localCacheFilePath = fullfile(localCacheFolder, 'DataBase', fileName);
-                    addsTable = readTable(localCacheFilePath);
+                    load(localCacheFilePath, 'addsTable');
                 end
             catch
                 projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
-                addsTable = readTable(projectFilePath);
-            end
-
-            function output = readTable(filePath)
-                output = readtable(filePath, 'VariableNamingRule', 'preserve', 'UseExcel', false);
+                load(projectFilePath, 'addsTable');
             end
         end        
 
