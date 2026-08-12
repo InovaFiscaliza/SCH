@@ -130,7 +130,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             if isempty(imageItems)
                 if ~strcmp(app.Image.ImageSource, 'image-missing.svg')
-                    app.Image.ImageSource = 'image-missing-200px.svg';
+                    app.Image.ImageSource = 'image-missing.svg';
                 end
                 app.ImageCount.Text = '0 DE 0';
                 return
@@ -462,7 +462,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 1244 660];
+                app.UIFigure.Position = [100 100 1038 660];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -485,7 +485,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {18, 5, 18, 25, 254, 20, 18, 5, 18, 5, 18, 5, 18, 113, 20, 18, 5, 18, 5, 18, '1x'};
+            app.GridLayout.ColumnWidth = {18, 5, 18, 277, 20, 18, 5, 18, 5, 18, 256, 20, 18, 5, 18, 5, 18, 256};
             app.GridLayout.RowHeight = {279, 20, 20, 279, 22};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -496,7 +496,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.HomologationPanel = uipanel(app.GridLayout);
             app.HomologationPanel.AutoResizeChildren = 'off';
             app.HomologationPanel.Layout.Row = [1 4];
-            app.HomologationPanel.Layout.Column = [1 5];
+            app.HomologationPanel.Layout.Column = [1 4];
 
             % Create HomologationGrid
             app.HomologationGrid = uigridlayout(app.HomologationPanel);
@@ -537,15 +537,15 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.HomologationCount.HorizontalAlignment = 'right';
             app.HomologationCount.FontSize = 10;
             app.HomologationCount.Layout.Row = 5;
-            app.HomologationCount.Layout.Column = 5;
+            app.HomologationCount.Layout.Column = 4;
             app.HomologationCount.Text = '';
 
             % Create Image
             app.Image = uiimage(app.GridLayout);
             app.Image.BackgroundColor = [0.9804 0.9804 0.9804];
             app.Image.Layout.Row = 1;
-            app.Image.Layout.Column = [7 14];
-            app.Image.ImageSource = 'image-missing-200px.svg';
+            app.Image.Layout.Column = [6 11];
+            app.Image.ImageSource = 'image-missing.svg';
 
             % Create ImagePrevious
             app.ImagePrevious = uiimage(app.GridLayout);
@@ -553,7 +553,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.ImagePrevious.ImageClickedFcn = createCallbackFcn(app, @onImagesArrowButtonClicked, true);
             app.ImagePrevious.Enable = 'off';
             app.ImagePrevious.Layout.Row = 2;
-            app.ImagePrevious.Layout.Column = 7;
+            app.ImagePrevious.Layout.Column = 6;
             app.ImagePrevious.ImageSource = 'chevron-left.svg';
 
             % Create ImageNext
@@ -562,7 +562,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.ImageNext.ImageClickedFcn = createCallbackFcn(app, @onImagesArrowButtonClicked, true);
             app.ImageNext.Enable = 'off';
             app.ImageNext.Layout.Row = 2;
-            app.ImageNext.Layout.Column = 9;
+            app.ImageNext.Layout.Column = 8;
             app.ImageNext.ImageSource = 'chevron-right.svg';
 
             % Create ImageZoom
@@ -571,7 +571,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.ImageZoom.ImageClickedFcn = createCallbackFcn(app, @onImagesZoomButtonClicked, true);
             app.ImageZoom.Enable = 'off';
             app.ImageZoom.Layout.Row = 2;
-            app.ImageZoom.Layout.Column = 11;
+            app.ImageZoom.Layout.Column = 10;
             app.ImageZoom.ImageSource = 'screen-full.svg';
 
             % Create ImageCount
@@ -579,7 +579,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.ImageCount.HorizontalAlignment = 'right';
             app.ImageCount.FontSize = 10;
             app.ImageCount.Layout.Row = 2;
-            app.ImageCount.Layout.Column = 14;
+            app.ImageCount.Layout.Column = 11;
             app.ImageCount.Text = '0 DE 0';
 
             % Create WordCloud
@@ -587,7 +587,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloud.ColumnWidth = {'1x'};
             app.WordCloud.RowHeight = {'1x'};
             app.WordCloud.Layout.Row = 4;
-            app.WordCloud.Layout.Column = [7 14];
+            app.WordCloud.Layout.Column = [6 11];
             app.WordCloud.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create WordCloudPrevious
@@ -596,7 +596,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloudPrevious.ImageClickedFcn = createCallbackFcn(app, @onWordCloudsArrowButtonClicked, true);
             app.WordCloudPrevious.Enable = 'off';
             app.WordCloudPrevious.Layout.Row = 5;
-            app.WordCloudPrevious.Layout.Column = 7;
+            app.WordCloudPrevious.Layout.Column = 6;
             app.WordCloudPrevious.ImageSource = 'chevron-left.svg';
 
             % Create WordCloudNext
@@ -605,7 +605,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloudNext.ImageClickedFcn = createCallbackFcn(app, @onWordCloudsArrowButtonClicked, true);
             app.WordCloudNext.Enable = 'off';
             app.WordCloudNext.Layout.Row = 5;
-            app.WordCloudNext.Layout.Column = 9;
+            app.WordCloudNext.Layout.Column = 8;
             app.WordCloudNext.ImageSource = 'chevron-right.svg';
 
             % Create WordCloudDownload
@@ -613,7 +613,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloudDownload.ScaleMethod = 'none';
             app.WordCloudDownload.ImageClickedFcn = createCallbackFcn(app, @onWordCloudDownloadRequest, true);
             app.WordCloudDownload.Layout.Row = 5;
-            app.WordCloudDownload.Layout.Column = 11;
+            app.WordCloudDownload.Layout.Column = 10;
             app.WordCloudDownload.ImageSource = 'cloud-download.svg';
 
             % Create WordCloudCount
@@ -621,14 +621,14 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloudCount.HorizontalAlignment = 'right';
             app.WordCloudCount.FontSize = 10;
             app.WordCloudCount.Layout.Row = 5;
-            app.WordCloudCount.Layout.Column = 14;
+            app.WordCloudCount.Layout.Column = 11;
             app.WordCloudCount.Text = '0 DE 0';
 
             % Create AdsPanel
             app.AdsPanel = uipanel(app.GridLayout);
             app.AdsPanel.AutoResizeChildren = 'off';
             app.AdsPanel.Layout.Row = [1 4];
-            app.AdsPanel.Layout.Column = [16 21];
+            app.AdsPanel.Layout.Column = [13 18];
 
             % Create AdsGrid
             app.AdsGrid = uigridlayout(app.AdsPanel);
@@ -654,7 +654,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.AdsPrevious.ImageClickedFcn = createCallbackFcn(app, @onAdsArrowButtonClicked, true);
             app.AdsPrevious.Enable = 'off';
             app.AdsPrevious.Layout.Row = 5;
-            app.AdsPrevious.Layout.Column = 16;
+            app.AdsPrevious.Layout.Column = 13;
             app.AdsPrevious.ImageSource = 'chevron-left.svg';
 
             % Create AdsNext
@@ -663,7 +663,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.AdsNext.ImageClickedFcn = createCallbackFcn(app, @onAdsArrowButtonClicked, true);
             app.AdsNext.Enable = 'off';
             app.AdsNext.Layout.Row = 5;
-            app.AdsNext.Layout.Column = 18;
+            app.AdsNext.Layout.Column = 15;
             app.AdsNext.ImageSource = 'chevron-right.svg';
 
             % Create AdsDownloadRequest
@@ -671,7 +671,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.AdsDownloadRequest.ScaleMethod = 'none';
             app.AdsDownloadRequest.ImageClickedFcn = createCallbackFcn(app, @onAdsDownloadRequest, true);
             app.AdsDownloadRequest.Layout.Row = 5;
-            app.AdsDownloadRequest.Layout.Column = 20;
+            app.AdsDownloadRequest.Layout.Column = 17;
             app.AdsDownloadRequest.ImageSource = 'cloud-download.svg';
 
             % Create AdsCount
@@ -679,7 +679,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.AdsCount.HorizontalAlignment = 'right';
             app.AdsCount.FontSize = 10;
             app.AdsCount.Layout.Row = 5;
-            app.AdsCount.Layout.Column = 21;
+            app.AdsCount.Layout.Column = 18;
             app.AdsCount.Text = '0 DE 0';
 
             % Show the figure after all components are created

@@ -223,7 +223,25 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 end
 
                             case 'onGetImageUrl'
-                                uialert(app.UIFigure, jsonencode(event.HTMLEventData), '')
+                                url = event.HTMLEventData.url;
+
+                                try
+                                    uri = matlab.net.URI(url);
+                                    isValid = uri.Scheme == "https" && ~isempty(uri.Host);
+                                catch
+                                    isValid = false;
+                                end
+
+                                if ~isValid
+                                    ui.Dialog(app.UIFigure, 'warning', 'Endereço não é válido.');
+                                    return
+                                end
+
+                                correlationKey = char(matlab.lang.internal.uuid());
+                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('RegulatronRequest_%s_%s.json',  datestr(now, 'yyyymmdd'), correlationKey));
+                                jsonContent = jsonencode(struct('url', url), 'PrettyPrint', true);
+                                writematrix(jsonContent, jsonFileName, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
+                                ui.Dialog(app.UIFigure, 'info', sprintf('Aberta requisição de raspagem para anúncio publicado em <b>%s://%s</b>', uri.Scheme, uri.Host));
                         end
 
                     case 'getNavigatorBasicInformation'
@@ -492,6 +510,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         varargout{1} = lastUpdate;
 
                                     case 'onGetImageUrl'
+                                        if ~isfolder(app.General.fileFolder.DataHub_POST)
+                                            warningMsg = 'Pendente mapear a pasta POST do SharePoint, de modo a viabilizar a obtenção do endereço de anúncio a raspar';
+                                            ui.Dialog(app.UIFigure, 'warning', warningMsg);
+                                            return
+                                        end
+
                                         dialogBox = struct('id', 'url', 'label', 'URL: ', 'type', 'text');
                                         sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', 'onGetImageUrl', 'Fields', {{dialogBox}}))
 
@@ -569,7 +593,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 );
                 popupSpecifications(1, :) = {"AddSelectedToBucket", 518, 486, false};
                 popupSpecifications(2, :) = {"FilterSetup", 518, 486, false};
-                popupSpecifications(3, :) = {"ProductDetails", 1244, 660, false};
+                popupSpecifications(3, :) = {"ProductDetails", 1038, 660, false};
                 popupSpecifications(4, :) = {"ProductInfo", 580, 640, false};
                 popupSpecifications(5, :) = {"ReportLib", 460, 598, false};
 
@@ -769,6 +793,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SearchEntryButton.UserData = struct('valueToSearch', '', 'wordsToSearch', {{}});
 
             app.AttributesVisibleIndex.UserData.index = 1;
+            app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.WordCloud);
         end
 
         %-----------------------------------------------------------------%
