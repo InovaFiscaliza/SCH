@@ -1,5 +1,5 @@
 {
-    "version": 2.16,
+    "version": 2.23,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -24,7 +24,7 @@
     },
     "context": {
         "SEARCH": {
-            "dataBaseVersion": "_v2",
+            "dataBaseVersion": "_v3",
             "type": "FreeText+ColumnFilter",
             "mode": "tokens",
             "function": "strcmp",
@@ -38,156 +38,46 @@
             "ui": {
                 "searchTable": [
                     {
-                        "name": "Data da Homologação",
-                        "type": "datetime",
-                        "filter": "datetime",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 90
-                    },
-                    {
                         "name": "Homologação",
-                        "type": "cell",
-                        "filter": "freeText",
+                        "static": true,
                         "visible": true,
                         "columnPosition": 1,
                         "columnWidth": 110
                     },
                     {
+                        "name": "Tipo",
+                        "static": false,
+                        "visible": true,
+                        "columnPosition": 2,
+                        "columnWidth": 300
+                    },
+                    {
                         "name": "Solicitante",
-                        "type": "cell",
-                        "filter": "freeText",
+                        "static": false,
                         "visible": true,
                         "columnPosition": 3,
                         "columnWidth": "auto"
                     },
                     {
-                        "name": "CNPJ/CPF",
-                        "type": "cell",
-                        "filter": "freeText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 110
-                    },
-                    {
-                        "name": "Certificado de Conformidade Técnica",
-                        "type": "categorical",
-                        "filter": "freeText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 110
-                    },
-                    {
-                        "name": "Data do Certificado de Conformidade Técnica",
-                        "type": "datetime",
-                        "filter": "datetime",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 90
-                    },
-                    {
-                        "name": "Data de Validade do Certificado",
-                        "type": "datetime",
-                        "filter": "datetime",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 90
-                    },
-                    {
-                        "name": "Situação do Certificado",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 150
-                    },
-                    {
-                        "name": "Situação",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": true,
-                        "columnPosition": 7,
-                        "columnWidth": 150
-                    },
-                    {
                         "name": "Fabricante",
-                        "type": "cell",
-                        "filter": "freeText",
+                        "static": false,
                         "visible": true,
                         "columnPosition": 4,
                         "columnWidth": "auto"
                     },
                     {
                         "name": "Modelo",
-                        "type": "cell",
-                        "filter": "freeText",
+                        "static": true,
                         "visible": true,
                         "columnPosition": 5,
-                        "columnWidth": 150
+                        "columnWidth": "auto"
                     },
                     {
                         "name": "Nome Comercial",
-                        "type": "cell",
-                        "filter": "freeText",
+                        "static": false,
                         "visible": true,
                         "columnPosition": 6,
-                        "columnWidth": 150
-                    },
-                    {
-                        "name": "Categoria do Produto",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 55
-                    },
-                    {
-                        "name": "Tipo",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": true,
-                        "columnPosition": 2,
-                        "columnWidth": 300
-                    },
-                    {
-                        "name": "IC_ANTENA",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 55
-                    },
-                    {
-                        "name": "IC_ATIVO",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 55
-                    },
-                    {
-                        "name": "País do Fabricante",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 110
-                    },
-                    {
-                        "name": "CodUIT",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 55
-                    },
-                    {
-                        "name": "CodISO",
-                        "type": "categorical",
-                        "filter": "listOfText",
-                        "visible": false,
-                        "columnPosition": 0,
-                        "columnWidth": 55
+                        "columnWidth": "auto"
                     }
                 ]
             }

@@ -17,8 +17,6 @@ classdef winConfig_exported < matlab.apps.AppBase
         versionInfoLabel                matlab.ui.control.Label
         SubTab2                         matlab.ui.container.Tab
         SubGrid2                        matlab.ui.container.GridLayout
-        config_SelectedTableColumns     matlab.ui.container.CheckBoxTree
-        config_SelectedTableColumnsLabel  matlab.ui.control.Label
         config_MiscelaneousPanel2       matlab.ui.container.Panel
         config_MiscelaneousGrid2        matlab.ui.container.GridLayout
         config_WordCloudColumn          matlab.ui.control.DropDown
@@ -155,7 +153,7 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', class(app), 'dataTag', app.MacrothemesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição da lista de macrotemas<br>Ex: "PM-RNI", "UTE", ""')) ...
+                            struct('appName', class(app), 'dataTag', app.MacrothemesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição da lista de macrotemas<br>Ex: "PACP-Combate à Pirataria", ""')) ...
                         });
                     catch
                     end
@@ -218,7 +216,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                 app.mainApp.rootFolder, ...
                 app.mainApp.executionMode, ...
                 app.mainApp.renderCount, ...
-                app.mainApp.schDataTable, ...
+                app.mainApp.schData.detailed, ...
                 app.mainApp.releasedData, ...
                 app.mainApp.cacheData, ...
                 app.mainApp.annotationTable, ...
@@ -247,33 +245,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             % ANOTAÇÃO DO TIPO "WORDCLOUD"
             app.config_WordCloudAlgorithm.Value = app.mainApp.General.context.SEARCH.wordCloud.algorithm;
             app.config_WordCloudColumn.Value    = app.mainApp.General.context.SEARCH.wordCloud.column;
-
-            % VISIBILIDADE DE COLUNAS
-            columnCheckedList = matlab.ui.container.TreeNode.empty;
-            columnStaticList  = matlab.ui.container.TreeNode.empty;
-
-            if ~isempty(app.config_SelectedTableColumns.Children)
-                delete(app.config_SelectedTableColumns.Children)
-            end
-
-            for ii = 1:height(app.mainApp.General.context.SEARCH.ui.searchTable)
-                columnName     = app.mainApp.General.context.SEARCH.ui.searchTable.name{ii};
-                columnVisible  = app.mainApp.General.context.SEARCH.ui.searchTable.visible(ii);
-                columnPosition = app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition(ii);
-
-                treeNode       = uitreenode(app.config_SelectedTableColumns, 'Text', columnName);
-                if columnPosition % static
-                    columnStaticList(end+1)  = treeNode;
-                end
-
-                if columnVisible % visible
-                    columnCheckedList(end+1) = treeNode;
-                end
-            end
-            app.config_SelectedTableColumns.CheckedNodes = columnCheckedList;
-
-            s = app.lockColumnStyle;
-            addStyle(app.config_SelectedTableColumns, s, 'node', columnStaticList)
 
             app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'SEARCH');
         end
@@ -307,28 +278,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             end
 
             app.userPath.Value = app.mainApp.General.fileFolder.userPath;                
-        end
-
-        %-----------------------------------------------------------------%
-        function columnInfo = search_Table_ColumnInfo(app, type)
-            switch type
-                case 'staticColumns'
-                    staticLogical  = logical(app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition);
-                    staticIndex    = app.mainApp.General.context.SEARCH.ui.searchTable.columnPosition(staticLogical);
-                    [~, idxOrder]  = sort(staticIndex);
-                    columnList     = app.mainApp.General.context.SEARCH.ui.searchTable.name(staticLogical);
-                    columnInfo     = columnList(idxOrder);
-
-                case 'visibleColumns'
-                    visibleLogical = logical(app.mainApp.General.context.SEARCH.ui.searchTable.visible);
-                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.name(visibleLogical);
-
-                case 'allColumns'
-                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.name;
-
-                case 'allColumnsWidths'
-                    columnInfo     = app.mainApp.General.context.SEARCH.ui.searchTable.columnWidth;
-            end
         end
 
         %-----------------------------------------------------------------%
@@ -476,7 +425,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             projectFilePath    = fullfile(projectFolder, 'GeneralSettings.json');
 
             projectFileContent = jsondecode(fileread(projectFilePath));
-            projectFileContent.context.SEARCH.ui.searchTable = struct2table(projectFileContent.context.SEARCH.ui.searchTable);
 
             if isequal(app.mainApp.General.context.SEARCH, projectFileContent.context.SEARCH) && isequal(app.mainApp.General.context.SEARCH.ui, projectFileContent.context.SEARCH.ui)
                 msgWarning = 'Configurações atuais já coincidem com as iniciais.';
@@ -487,10 +435,6 @@ classdef winConfig_exported < matlab.apps.AppBase
                 ipcEventName = {};
                 if ~isequal(app.mainApp.General.context.SEARCH.wordCloud.algorithm, projectFileContent.context.SEARCH.wordCloud.algorithm)
                     ipcEventName{end+1} = 'onWordCloudAlgorithmChanged';
-                end
-
-                if ~isequal(app.mainApp.General.context.SEARCH.ui.searchTable, projectFileContent.context.SEARCH.ui.searchTable)
-                    ipcEventName{end+1} = 'onSearchVisibleColumnsChanged';
                 end
 
                 app.mainApp.General.context.SEARCH   = projectFileContent.context.SEARCH;                
@@ -506,8 +450,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: config_SelectedTableColumns, 
-        % ...and 4 other components
+        % Value changed function: config_WordCloudAlgorithm, 
+        % ...and 3 other components
         function Analysis_ParameterValueChanged(app, event)
             
             ipcEventName = '';
@@ -525,45 +469,6 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 case app.config_WordCloudColumn
                     app.mainApp.General.context.SEARCH.wordCloud.column = app.config_WordCloudColumn.Value;
-
-                case app.config_SelectedTableColumns
-                    ipcEventName = 'onSearchVisibleColumnsChanged';
-
-                    previousCheckedNodes = event.PreviousCheckedNodes;
-                    currentCheckedNodes  = event.CheckedNodes;
-
-                    if isequal(previousCheckedNodes, currentCheckedNodes)
-                        return
-                    end
-
-                    if numel(currentCheckedNodes) >= numel(previousCheckedNodes)
-                        triggedCheckedNode = setdiff(currentCheckedNodes, previousCheckedNodes);
-                    else
-                        triggedCheckedNode = setdiff(previousCheckedNodes, currentCheckedNodes);
-                    end
-                    
-                    checkedNodesText = {triggedCheckedNode.Text};
-                    staticColumns = search_Table_ColumnInfo(app, 'staticColumns');
-
-                    onlyStaticColumnChanged = true;
-                    for ii = 1:numel(checkedNodesText)
-                        if ismember(checkedNodesText{ii}, staticColumns)
-                            checkedTreeNode = findobj(app.config_SelectedTableColumns, 'Text', checkedNodesText{ii});
-                            app.config_SelectedTableColumns.CheckedNodes = [app.config_SelectedTableColumns.CheckedNodes; checkedTreeNode];
-                            drawnow
-                        else
-                            onlyStaticColumnChanged = false;
-                        end
-                    end
-                    checkedColumns = {app.config_SelectedTableColumns.CheckedNodes.Text};
-
-                    if onlyStaticColumnChanged
-                        return
-                    end
-
-                    for jj = 1:height(app.mainApp.General.context.SEARCH.ui.searchTable)
-                        app.mainApp.General.context.SEARCH.ui.searchTable.visible(jj) = ismember(app.mainApp.General.context.SEARCH.ui.searchTable.name{jj}, checkedColumns);
-                    end
             end
 
             app.progressDialog.Visible = 'visible';
@@ -795,8 +700,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {10, '1x', 48, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 24, '1x', 10, 34};
+            app.GridLayout.ColumnWidth = {20, '1x', 38, 10, 8, 2};
+            app.GridLayout.RowHeight = {2, 18, 14, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
@@ -810,7 +715,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 6;
-            app.Toolbar.Layout.Column = [1 5];
+            app.Toolbar.Layout.Column = [1 6];
             app.Toolbar.BackgroundColor = [0.96078431372549 0.96078431372549 0.96078431372549];
 
             % Create tool_exportTable
@@ -908,7 +813,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 70, 22, 70, 22, '1x', 1};
+            app.SubGrid2.RowHeight = {17, 70, 22, 70, 1};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -1038,23 +943,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.Layout.Row = 2;
             app.config_WordCloudColumn.Layout.Column = [2 3];
             app.config_WordCloudColumn.Value = 'Modelo';
-
-            % Create config_SelectedTableColumnsLabel
-            app.config_SelectedTableColumnsLabel = uilabel(app.SubGrid2);
-            app.config_SelectedTableColumnsLabel.VerticalAlignment = 'bottom';
-            app.config_SelectedTableColumnsLabel.FontSize = 10;
-            app.config_SelectedTableColumnsLabel.Layout.Row = 5;
-            app.config_SelectedTableColumnsLabel.Layout.Column = 1;
-            app.config_SelectedTableColumnsLabel.Text = 'VISIBILIDADE DE COLUNAS';
-
-            % Create config_SelectedTableColumns
-            app.config_SelectedTableColumns = uitree(app.SubGrid2, 'checkbox');
-            app.config_SelectedTableColumns.FontSize = 11;
-            app.config_SelectedTableColumns.Layout.Row = 6;
-            app.config_SelectedTableColumns.Layout.Column = [1 2];
-
-            % Assign Checked Nodes
-            app.config_SelectedTableColumns.CheckedNodesChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
 
             % Create SubTab3
             app.SubTab3 = uitab(app.SubTabGroup);
@@ -1295,7 +1183,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 3];
-            app.DockModule.Layout.Column = [3 4];
+            app.DockModule.Layout.Column = [3 5];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Undock

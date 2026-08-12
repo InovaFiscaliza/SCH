@@ -67,11 +67,13 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         function htmlContent = ProductInfo(varargin)
             dataType = varargin{1};
+
             switch dataType
                 case 'ProdutoHomologado'
                     relatedSCHTable = varargin{2};
-                    relatedAnnotationTable = varargin{3};
-                    regulatronData = varargin{4};
+                    wordCloudsCount = varargin{3};
+                    imagesCount = varargin{4};
+                    ads = varargin{5};
         
                     Homologacao   = char(relatedSCHTable.("Homologação")(1));
                     Status        = char(relatedSCHTable.("Situação")(1));
@@ -95,87 +97,60 @@ classdef (Abstract) HtmlTextGenerator
                     CNPJ          = char(relatedSCHTable.("CNPJ/CPF")(1));
                     Fabricante    = upper(char(relatedSCHTable.("Fabricante")(1)));
                     Pais          = char(relatedSCHTable.("País do Fabricante")(1));
-                    Tipo          = FindListOfValues(relatedSCHTable, "Tipo");
+                    Tipo          = getListOfValues(relatedSCHTable, "Tipo");
                     Categoria     = char(relatedSCHTable.("Categoria do Produto")(1));
-                    Modelo        = FindListOfValues(relatedSCHTable, "Modelo");
-                    NomeComercial = FindListOfValues(relatedSCHTable, "Nome Comercial");
+                    Modelo        = getListOfValues(relatedSCHTable, "Modelo");
+                    NomeComercial = getListOfValues(relatedSCHTable, "Nome Comercial");
                 
-                    Anotacoes = {};
-                    for ii = 1:height(relatedAnnotationTable)
-                        value = sprintf('"%s"', relatedAnnotationTable.("Valor"){ii});
-                
-                        if strcmp(relatedAnnotationTable.("Atributo"){ii}, 'WordCloud')
-                            try
-                                wordCloudInfo = jsondecode(relatedAnnotationTable.("Valor"){ii});
-                                value = sprintf('%s<br><font style="color: gray; font-size: 10px;">TERMO PESQUISADO: "%s"</font>', wordCloudInfo.cloudOfWords(2:end-1), wordCloudInfo.searchedWord);
-                            catch
-                            end
-                        end
-                
-                        Anotacoes{end+1} = sprintf([ ...
-                            '•&thinsp;%s: %s<br><font style="color: gray; ' ...
-                            'font-size: 10px;">(%s em %s)</font>' ...
-                        ], relatedAnnotationTable.("Atributo"){ii}, value, relatedAnnotationTable.("Usuário"){ii}, relatedAnnotationTable.("DataHora"){ii});
+                    % Valor inicial...
+                    InformacoesDaInternet = {
+                        'Não consta imagem';
+                        'Não consta nuvem de palavras';
+                        'Não consta anúncio'
+                    };
+
+                    if imagesCount == 1
+                        InformacoesDaInternet{1} = 'Uma imagem baixada de anúncio';
+                    elseif imagesCount > 1
+                        InformacoesDaInternet{1} = sprintf('%d imagens baixadas de anúncio(s)', imagesCount);
                     end
 
-                    dataStruct    = struct('group', 'Data de emissão:',      'value', DataEmissao);
-                    dataStruct(2) = struct('group', 'Certificado de Conformidade Técnica:', 'value', sprintf('"%s", de %s%s', certID, certEmissao, certValidade));
-                    dataStruct(3) = struct('group', 'Solicitante:',          'value', {{Solicitante, sprintf('CNPJ/CPF: %s', CNPJ)}});
-                    dataStruct(4) = struct('group', 'Fabricante:',           'value', {{Fabricante, Pais}});
-                    dataStruct(5) = struct('group', 'Categoria:',            'value', Categoria);
-                    dataStruct(6) = struct('group', 'Tipo:',                 'value', {Tipo});
-                    dataStruct(7) = struct('group', 'Modelo:',               'value', {Modelo});
-                    dataStruct(8) = struct('group', 'Nome Comercial:',       'value', {NomeComercial});
-
-                    if ~isempty(Anotacoes)
-                        dataStruct(9) = struct('group', 'Anotações:', 'value', {Anotacoes});
+                    if wordCloudsCount == 1
+                        InformacoesDaInternet{2} = 'Uma nuvem de palavras obtida da API Google|Bing';
+                    elseif wordCloudsCount > 1
+                        InformacoesDaInternet{2} = sprintf('%d nuvens de palavras obtidas da API Google|Bing', wordCloudsCount);
                     end
 
-                    regulatronAddsIndexes  = find(contains(regulatronData.addsTable.certificado, replace(Homologacao, '-', '')));
-                    if ~isempty(regulatronAddsIndexes)
-                        regulatronAddsInfo = cell(numel(regulatronAddsIndexes), 1);
-                        addsTable = sortrows(regulatronData.addsTable(regulatronAddsIndexes, :), 'data', 'descend');
+                    numAdds = height(ads);
+                    if numAdds
+                        marketplaces = unique(string(ads.marketplace), 'stable');
 
-                        for jj = 1:height(addsTable)
-                            marketplace = addsTable.marketplace{jj};
-                            adDateRaw = char(addsTable.data{jj});
-                            adURL = addsTable.url{jj};
-                            pdfURL = [regulatronData.urlPreffix addsTable.screenshot{jj}];
-                            adPrice = char(regexprep(addsTable.("preço"){jj}, '[^0-9\.,]', ''));
-
-                            try
-                                adDate = datestr(datetime(adDateRaw, 'InputFormat', "yyyy-MM-dd'T'HH:mm:ss"), 'dd/mm/yyyy');
-                                adDateMarketplace = sprintf('%s • <b>%s</b>', adDate, marketplace);
-                            catch
-                                adDateMarketplace = marketplace;
-                            end
-
-                            modelLine = {addsTable.fabricante{jj}, addsTable.modelo{jj}};
-                            modelLine = modelLine(~cellfun(@isempty, modelLine));
-                            modelLine = strjoin(modelLine, ' • ');
-
-                            regulatronAddsInfo{jj} = sprintf([ ...
-                                '<section style="margin: 0px 10px 0px 10px; padding: 4px 0 4px 0; background-color: transparent;">' ...
-                                    '<table style="width: 100%%; border-collapse: collapse;">' ...
-                                        '<tr>' ...
-                                            '<td style="width: 4px; background: #b3b3b3;"></td>' ...
-                                            '<td style="padding: 0 7px 0 7px;">' ...
-                                                '<font style="font-size: 11px; color: #202020;">%s</font><br>' ...
-                                                '<font style="font-size: 11px; color: #acabab;">%s</font><br>' ...
-                                                '<font style="font-size: 11px; color: #202020;">R$ %s</font>' ...
-                                            '</td>' ...
-                                            '<td style="width: 100px; text-align: right; white-space: nowrap;">' ...
-                                                '<br><a href="%s" target="_blank" rel="noopener noreferrer">PDF</a> | ' ...
-                                                '<a href="%s" target="_blank" rel="noopener noreferrer">Anúncio</a>' ...
-                                            '</td>' ...
-                                        '</tr>' ...
-                                    '</table>' ...
-                                '</section>' ...
-                                ], adDateMarketplace, modelLine, adPrice, pdfURL, adURL);
+                        if numAdds == 1
+                            summaryText = 'Um anúncio extraído ';
+                        else
+                            summaryText = sprintf('%d anúncios extraídos ', numAdds);
                         end
 
-                        dataStruct(end+1) = struct('group', 'Anúncios Regulatron:', 'value', {regulatronAddsInfo});
+                        if isscalar(marketplaces)
+                            summaryText = [summaryText, 'de um marketplace. '];
+                        else
+                            summaryText = [summaryText, sprintf('de %d marketplaces. ', numel(marketplaces))];
+                        end
+
+                        InformacoesDaInternet{3} = summaryText;
                     end
+
+                    displayEntry = [ ...
+                        util.HtmlTextGenerator.makeDisplayEntry('DATA DE EMISSÃO', DataEmissao), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('CERTIFICADO DE CONFORMIDADE TÉCNICA', sprintf('"%s", de %s%s', certID, certEmissao, certValidade)), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('SOLICITANTE', {{Solicitante, sprintf('CNPJ/CPF: %s', CNPJ)}}), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('FABRICANTE', {{Fabricante, Pais}}), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('CATEGORIA', Categoria), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('TIPO', {Tipo}), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('MODELO', {Modelo}), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('NOME COMERCIAL', {NomeComercial}), ...
+                        util.HtmlTextGenerator.makeDisplayEntry('INFORMAÇÕES ADICIONAIS', textFormatGUI.cellstr2Bullets(InformacoesDaInternet)) ...
+                    ];
         
                 case 'ProdutoNãoHomologado'
                     listOfProducts = varargin{2};
@@ -188,23 +163,24 @@ classdef (Abstract) HtmlTextGenerator
                     if isempty(Fabricante)
                         Fabricante = '(desconhecido)';
                     end
-                    Tipo           = FindListOfValues(listOfProducts, "Tipo");
-                    Modelo         = FindListOfValues(listOfProducts, "Modelo");
+                    Tipo           = getListOfValues(listOfProducts, "Tipo");
+                    Modelo         = getListOfValues(listOfProducts, "Modelo");
 
-                    dataStruct(1) = struct('group', 'Fabricante:', 'value', Fabricante);
-                    dataStruct(2) = struct('group', 'Tipo:',       'value', Tipo);
-                    dataStruct(3) = struct('group', 'Modelo:',     'value', Modelo);
+                    displayEntry(1) = struct('group', 'Fabricante:', 'value', Fabricante);
+                    displayEntry(2) = struct('group', 'Tipo:',       'value', Tipo);
+                    displayEntry(3) = struct('group', 'Modelo:',     'value', Modelo);
             end
 
-            freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
-            htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText, 'textview', 'normal+gray');
+            freeInitialText = sprintf('<font style="color: white; background-color: #8caec9; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            %freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            htmlContent     = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, 'textview', 'normal+gray', 'margin-top: 7px; ');
             
-            function htmlList = FindListOfValues(referenceTable, columnName)        
-                listOfValues = setdiff(unique(referenceTable.(columnName)), {''});
-                if isempty(listOfValues)
-                    listOfValues = {'(desconhecido)'};
+            function htmlList = getListOfValues(referenceTable, columnName)        
+                values = setdiff(unique(referenceTable.(columnName)), {''});
+                if isempty(values)
+                    values = {'(desconhecido)'};
                 end
-                htmlList = strcat('•&thinsp;', cellstr(listOfValues));
+                htmlList = strcat('•&thinsp;', cellstr(values));
             end        
         end
 
@@ -291,6 +267,134 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct      = struct('group', 'CADASTRO', 'value', details);
             freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><br><br>', id);
             htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'delete', freeInitialText, 'popup');
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlContent = generateAdCard(adsTable, urlPreffix)
+            adName = adsTable.nome{1};
+            adDateRaw = adsTable.data{1};
+            marketplace = adsTable.marketplace{1};
+            adURL = adsTable.url{1};
+            pdfURL = [urlPreffix adsTable.screenshot{1}];
+            try
+                adDate = datestr(datetime(adDateRaw, 'InputFormat', "yyyy-MM-dd'T'HH:mm:ss"), 'dd/mm/yyyy');
+            catch
+            end
+
+            if isempty(adsTable.vendedor{1})
+                vendor = '<font style="color: #5f5f5f;">(não identificado)</font>';
+            else
+                vendor = sprintf('%s', adsTable.vendedor{1});
+            end
+
+            if isempty(adsTable.marca{1})
+                manufacturer = '<font style="color: #5f5f5f;">(não identificado)</font>';
+            else
+                manufacturer = sprintf('<b>%s</b>', adsTable.marca{1});
+            end
+
+            if isempty(adsTable.modelo{1})
+                model = '<font style="color: #5f5f5f;">(não identificado)</font>';
+            else
+                model = sprintf('<b>%s</b>', adsTable.modelo{1});
+            end
+
+            priceRaw = adsTable.("preço"){1};
+            adPrice = char(regexprep(priceRaw, '[^0-9\.,]', ''));
+
+            characteristicsRaw = adsTable.("características"){1};
+
+            try
+                characteristicsData = matlab.jsondecode(characteristicsRaw, 'table');
+            catch
+                characteristicsData = [];
+            end
+
+            if isempty(characteristicsData)
+                characteristicsTableRows = 'Características técnicas indisponíveis ou não processadas para este anúncio.<br>';
+            else
+                characteristicsTableRows = '';
+                for kk = 1:height(characteristicsData)
+                    characteristicsTableRows = [characteristicsTableRows, sprintf([ ...
+                        '<tr>' ...
+                            '<td style="width: 50%%; padding: 3px 6px 3px 6px; color: #5f5f5f; word-break: break-word; border: 1px solid #202020;"><b>%s</b></td>' ...
+                            '<td style="width: 50%%; padding: 3px 6px 3px 6px; color: #202020; word-break: break-word; border: 1px solid #202020;">%s</td>' ...
+                        '</tr>' ...
+                    ], characteristicsData.field{kk}, characteristicsData.value{kk})];
+                end
+
+                characteristicsTableRows = sprintf('Características técnicas do produto:<br><table style="width: 100%%; table-layout: fixed; border: 1px solid #202020; border-collapse: collapse; font-size: 11px;">%s</table>', characteristicsTableRows);
+            end
+
+            llmAnalysis = sprintf('<i>"%s"</i><br><font style="font-size: 10px; color: #5f5f5f;">(%s)</font>', adsTable.("justificativa_produto_telecom"){1}, adsTable.("llm_model"){1});
+
+            infoTable = sprintf([ ...
+                '<table style="width: 100%%; border-collapse: collapse;">' ...
+                    '<tr>' ...
+                        '<td>' ...
+                            'Fabricante: %s<br>' ...
+                            'Modelo: %s' ...
+                        '</td>' ...
+                        '<td style="text-align: right;">' ...
+                            '<font style="font-size: 16px;"><b>R$ %.2f</b></font><br>' ...
+                            '<font style="font-size: 10px; color: #5f5f5f;">%s</font>' ...
+                        '</td>' ...
+                    '</tr>' ...
+                '</table>' ...
+            ], manufacturer, model, str2double(adPrice), vendor);
+
+            htmlContent = sprintf([ ...
+                '<section style="margin: 10px;">' ...
+                    '<font style="font-size: 16px; display: inline-block; vertical-align: middle;"><b>%s</b></font><br>' ...
+                    '<font style="font-size: 10px; color: #5f5f5f;">%s • %s</font><br>' ...
+                    '<a href="%s" target="_blank" rel="noopener noreferrer">&#x1F5BC;&#xFE0F;</a> ' ...
+                    '<a href="%s" target="_blank" rel="noopener noreferrer">&#128279;</a><br><br>' ...
+                    '%s<br>' ...
+                    '%s<br>' ...
+                    '%s' ...
+                '</section>' ...
+            ], adName, adDate, marketplace, pdfURL, adURL, infoTable, characteristicsTableRows, llmAnalysis);
+        end
+    end
+
+
+    methods (Static = true, Access = private)
+        %-----------------------------------------------------------------%
+        function entry = makeDisplayEntry(group, value, link)
+            arguments
+                group
+                value
+                link = ''
+            end
+
+            entry = struct('group', group, 'value', value, 'link', link);
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlLink = createEditHTMLLink(appHandleNameInBase, generalSettings, eventName, eventData, linkType, imgFileName, imgWidth, imgHeight)
+            arguments
+                appHandleNameInBase 
+                generalSettings
+                eventName
+                eventData = ''                
+                linkType {mustBeMember(linkType, {'link', 'question', 'edit'})} = 'edit'
+                imgFileName = 'Edit_32.png'
+                imgWidth = 18 % pixels
+                imgHeight = 18% pixels
+            end
+
+            htmlLink = '';
+
+            try
+                if ~isempty(appHandleNameInBase)
+                    if ~isempty(generalSettings) && ~isempty(generalSettings.AppVersion.application.resourceStaticURL)
+                        htmlLink = ui.TextView.createHTMLLink('customImage', appHandleNameInBase, eventName, eventData, imgFileName, imgWidth, imgHeight, generalSettings);
+                    else
+                        htmlLink = ui.TextView.createHTMLLink(linkType, appHandleNameInBase, eventName, eventData);
+                    end
+                end
+            catch
+            end
         end
     end
 end

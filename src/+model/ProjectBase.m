@@ -128,8 +128,8 @@ classdef (Abstract) ProjectBase
         %-----------------------------------------------------------------%
         function data = readRegulatronData(rootFolder, cloudFolder)
             data = struct( ...
-                'urlPreffix', util.publicLink(class.Constants.appName, rootFolder, 'RegulatronAdds'), ...
-                'addsTable', util.readExternalFile.RegulatronData(rootFolder, cloudFolder) ...
+                'urlPreffix', util.publicLink(class.Constants.appName, rootFolder, 'Ads').Screenshots, ...
+                'adsTable', util.readExternalFile.RegulatronData(rootFolder, cloudFolder) ...
             );
         end
 
@@ -257,9 +257,9 @@ classdef (Abstract) ProjectBase
 
                     indexHom = strcmp(rawDataTable.("Homologação"), homologation);
                     typeList = unique(cellstr(rawDataTable.("Tipo")(indexHom)));
-                    optionalNote  = sprintf('TIPO: %s', textFormatGUI.cellstr2ListWithQuotes(typeList, 'none'));
+                    optionalNote  = sprintf('TIPO: %s', textFormatGUI.cellstr2FriendlyListWithQuotes(typeList));
                     if numel(modelList) > 1
-                        optionalNote = sprintf('%s\nMODELO: %s', optionalNote, textFormatGUI.cellstr2ListWithQuotes(modelList, 'none'));
+                        optionalNote = sprintf('%s\nMODELO: %s', optionalNote, textFormatGUI.cellstr2FriendlyListWithQuotes(modelList));
                     end
 
                 case 'LegacyProject'

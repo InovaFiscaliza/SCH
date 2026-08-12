@@ -10,32 +10,31 @@ classdef (Abstract) readExternalFile
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function [schDataTable, schDataCategories, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
+        function [schData, schDataCategories, releasedData, cacheData, cacheColumns] = SCHData(rootFolder, cloudFolder, generalSettings)
             [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
             fileName = sprintf('SCHData%s.mat', generalSettings.context.SEARCH.dataBaseVersion);
 
             try
                 cloudFilePath = fullfile(cloudFolder, fileName);
                 if ~isempty(cloudFolder) && isfile(cloudFilePath)
-                    load(cloudFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+                    load(cloudFilePath, 'schData', 'releasedData', 'cacheData')
                 else
                     localCacheFilePath = fullfile(localCacheFolder, 'DataBase', fileName);
-                    load(localCacheFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+                    load(localCacheFilePath, 'schData', 'releasedData', 'cacheData')
                 end
             catch
                 projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
-                load(projectFilePath, 'rawDataTable', 'releasedData', 'cacheData')
+                load(projectFilePath, 'schData', 'releasedData', 'cacheData')
             end
 
-            schDataTable = rawDataTable;
             schDataCategories = struct('columnName', {}, 'numCategories', {}, 'categories', {});
 
-            schColumnTypes = matlab.Compatibility.resolveTableVariableTypes(schDataTable);
-            schColumnNames = schDataTable.Properties.VariableNames(strcmp(schColumnTypes, 'categorical'));
+            schColumnTypes = matlab.Compatibility.resolveTableVariableTypes(schData, false);
+            schColumnNames = schData.detailed.Properties.VariableNames(strcmp(schColumnTypes, 'categorical'));
             
             for ii = 1:numel(schColumnNames)
                 columnName = schColumnNames{ii};
-                categories = unique(cellstr(schDataTable.(columnName)));
+                categories = unique(cellstr(schData.detailed.(columnName)));
                 categories = textAnalysis.sort(categories);
                 numCategories = numel(categories);
 
@@ -57,21 +56,21 @@ classdef (Abstract) readExternalFile
         end
 
         %-----------------------------------------------------------------%
-        function addsTable = RegulatronData(rootFolder, cloudFolder)
+        function adsTable = RegulatronData(rootFolder, cloudFolder)
             [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
-            fileName = 'RegulatronAdds.mat';
+            fileName = 'Regulatron.mat';
 
             try
                 cloudFilePath = fullfile(cloudFolder, fileName);
                 if ~isempty(cloudFolder) && isfile(cloudFilePath)
-                    load(cloudFilePath, 'addsTable');
+                    load(cloudFilePath, 'adsTable');
                 else
                     localCacheFilePath = fullfile(localCacheFolder, 'DataBase', fileName);
-                    load(localCacheFilePath, 'addsTable');
+                    load(localCacheFilePath, 'adsTable');
                 end
             catch
                 projectFilePath = fullfile(projectFolder, 'DataBase', fileName);
-                load(projectFilePath, 'addsTable');
+                load(projectFilePath, 'adsTable');
             end
         end        
 
@@ -134,8 +133,11 @@ classdef (Abstract) readExternalFile
                 if isfile(localCacheFilePath)
                     localCacheFileContent = readtable(localCacheFilePath, 'VariableNamingRule', 'preserve', 'UseExcel', false);
                     if ~isempty(localCacheFileContent)
+                        localCacheFileContent = localCacheFileContent(:, annotationColumnNames);
+
                         idx = ~ismember(localCacheFileContent.ID, annotationTable.ID) & (localCacheFileContent.("Situação") ~= -1);
-                        localCacheFileNewRows = localCacheFileContent(idx, :);                    
+                        localCacheFileNewRows = localCacheFileContent(idx, :);      
+                        
                         annotationTable = [annotationTable; localCacheFileNewRows];
                     end
                 end

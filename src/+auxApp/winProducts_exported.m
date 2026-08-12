@@ -7,19 +7,20 @@ classdef winProducts_exported < matlab.apps.AppBase
         DockModule              matlab.ui.container.GridLayout
         dockModule_Close        matlab.ui.control.Image
         dockModule_Undock       matlab.ui.control.Image
-        UITable_ViewType        matlab.ui.container.ButtonGroup
-        UITable_CustomsView     matlab.ui.control.RadioButton
-        UITable_VendorView      matlab.ui.control.RadioButton
-        UITable_NumRows         matlab.ui.control.Label
-        tool_ShowDataRules      matlab.ui.control.Image
-        tool_EditionLimitation  matlab.ui.control.Label
-        UITable                 matlab.ui.control.Table
         Toolbar                 matlab.ui.container.GridLayout
         tool_UploadFinalFile    matlab.ui.control.Image
         tool_GenerateReport     matlab.ui.control.Image
         tool_OpenPopupProject   matlab.ui.control.Image
         tool_AddNonCertificate  matlab.ui.control.Image
         tool_OpenPopupEdition   matlab.ui.control.Image
+        ColumnWidthMode         matlab.ui.control.Hyperlink
+        NumRows                 matlab.ui.control.Label
+        UITable                 matlab.ui.control.Table
+        TableViewGroup          matlab.ui.container.ButtonGroup
+        CustomsView             matlab.ui.control.RadioButton
+        VendorView              matlab.ui.control.RadioButton
+        EditionWarning          matlab.ui.control.Label
+        ShowDataRules           matlab.ui.control.Image
         ContextMenu             matlab.ui.container.ContextMenu
         ContextMenu_EditFcn     matlab.ui.container.Menu
         ContextMenu_DeleteFcn   matlab.ui.container.Menu
@@ -179,6 +180,14 @@ classdef winProducts_exported < matlab.apps.AppBase
                 app.dockModule_Undock.Enable = 1;
             end
 
+            app.UITable.UserData.columnWidth = struct( ...
+                'mode', 'initial', ...
+                'value', struct( ...
+                    'vendorView',  {{110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'}}, ...
+                    'customsView', {{110, 'auto', 'auto', 'auto', 'auto', 42, 'auto', 'auto', 90, 'auto', 66, 80, 'auto', 'auto', 70}} ...
+                ) ...
+            );
+
             app.UITable.RowName = 'numbered';
         end
 
@@ -197,7 +206,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 syncType char {mustBeMember(syncType, {'guiToDataSync', 'dataToGuiSync', 'tableViewChanged'})}
             end
 
-            viewType    = app.UITable_ViewType.SelectedObject.Tag; % 'vendorView' | 'customsView'
+            viewType    = app.TableViewGroup.SelectedObject.Tag; % 'vendorView' | 'customsView'
             columnList  = app.mainApp.General.context.PRODUCTS.reportTable.(viewType).name';
             columnIndex = cellfun(@(x) find(strcmp(app.projectData.inspectedProducts.Properties.VariableNames, x), 1), columnList);
 
@@ -209,9 +218,12 @@ classdef winProducts_exported < matlab.apps.AppBase
                     app.UITable.Data = app.projectData.inspectedProducts(:, columnIndex);
 
                 case 'tableViewChanged'
-                    set(app.UITable, 'Data',        app.projectData.inspectedProducts(:, columnIndex),    ...
+                    set(app.UITable, 'Data',        app.projectData.inspectedProducts(:, columnIndex), ...
                                      'ColumnName',  app.mainApp.General.context.PRODUCTS.reportTable.(viewType).label', ...
                                      'ColumnWidth', app.mainApp.General.context.PRODUCTS.reportTable.(viewType).columnWidth')
+
+                    app.UITable.UserData.columnWidth.mode = 'initial';
+                    app.ColumnWidthMode.Text = 'INICIAL ↔';
             end
 
             updateTableStyle(app)
@@ -222,7 +234,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updateTableNumRows(app)
             nRows = height(app.UITable.Data);
-            app.UITable_NumRows.Text = sprintf('%d <font style="font-size: 10px;">REGISTROS </font>', nRows);
+            app.NumRows.Text = sprintf('%d <font style="font-size: 10px;">REGISTROS </font>', nRows);
         end
 
         %-----------------------------------------------------------------%
@@ -339,7 +351,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: tool_ShowDataRules
+        % Image clicked function: ShowDataRules
         function Toolbar_ShowRulesImageClicked(app, event)
             
             msg = model.ProjectBase.WARNING_VALIDATIONSRULES.PRODUCTS.inspectedProducts;
@@ -553,7 +565,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Selection changed function: UITable_ViewType
+        % Selection changed function: TableViewGroup
         function onTableViewChanged(app, event)
             
             syncInspectedTableWithUI(app, 'tableViewChanged')
@@ -626,6 +638,39 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
         end
+
+        % Callback function: ColumnWidthMode
+        function ColumnWidthModeHyperlinkClicked(app, event)
+            
+            app.ColumnWidthMode.Enable = "off";
+
+            previousSelectedRow = app.UITable.Selection;
+            app.UITable.Selection = [];
+            
+            switch app.UITable.UserData.columnWidth.mode
+                case 'initial'
+                    app.UITable.UserData.columnWidth.mode = 'fix';
+                    app.UITable.ColumnWidth = '1x';
+                    app.ColumnWidthMode.Text = 'FIXO ↔';
+                case 'fix'
+                    app.UITable.UserData.columnWidth.mode = 'auto';
+                    app.UITable.ColumnWidth = 'auto';
+                    app.ColumnWidthMode.Text = 'AUTO ↔';
+                otherwise % 'auto'
+                    viewType = app.TableViewGroup.SelectedObject.Tag; % 'vendorView' | 'customsView'
+
+                    app.UITable.UserData.columnWidth.mode = 'initial';
+                    app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value.(viewType);
+                    app.ColumnWidthMode.Text = 'INICIAL ↔';
+            end
+            
+            pause(.150)
+            app.UITable.Selection = previousSelectedRow;            
+            
+            pause(1)
+            app.ColumnWidthMode.Enable = "on";
+
+        end
     end
 
     % Component initialization
@@ -664,12 +709,91 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {10, 22, 4, 22, '1x', 412, '1x', 48, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 16, 8, 19, 3, '1x', 10, 34};
+            app.GridLayout.ColumnWidth = {20, 18, 4, 32, '1x', 412, '1x', 16, 38, 10, 8, 2};
+            app.GridLayout.RowHeight = {2, 8, 10, 14, 14, 6, 20, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [1 1 1];
+
+            % Create ShowDataRules
+            app.ShowDataRules = uiimage(app.GridLayout);
+            app.ShowDataRules.ScaleMethod = 'none';
+            app.ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
+            app.ShowDataRules.Layout.Row = [6 7];
+            app.ShowDataRules.Layout.Column = 2;
+            app.ShowDataRules.ImageSource = 'info-16px-gray.svg';
+
+            % Create EditionWarning
+            app.EditionWarning = uilabel(app.GridLayout);
+            app.EditionWarning.FontSize = 10;
+            app.EditionWarning.FontColor = [0.502 0.502 0.502];
+            app.EditionWarning.Layout.Row = [6 7];
+            app.EditionWarning.Layout.Column = [4 10];
+            app.EditionWarning.Interpreter = 'html';
+            app.EditionWarning.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b>, <b>LACRE</b> e <b>PLAI</b> editáveis <font style="color: red;">apenas</font> em formulário.'};
+
+            % Create TableViewGroup
+            app.TableViewGroup = uibuttongroup(app.GridLayout);
+            app.TableViewGroup.AutoResizeChildren = 'off';
+            app.TableViewGroup.SelectionChangedFcn = createCallbackFcn(app, @onTableViewChanged, true);
+            app.TableViewGroup.BorderType = 'none';
+            app.TableViewGroup.TitlePosition = 'centertop';
+            app.TableViewGroup.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
+            app.TableViewGroup.BackgroundColor = [1 1 1];
+            app.TableViewGroup.Layout.Row = [4 7];
+            app.TableViewGroup.Layout.Column = 6;
+            app.TableViewGroup.FontWeight = 'bold';
+            app.TableViewGroup.FontSize = 10;
+
+            % Create VendorView
+            app.VendorView = uiradiobutton(app.TableViewGroup);
+            app.VendorView.Tag = 'vendorView';
+            app.VendorView.Text = 'Fornecedor | Usuário';
+            app.VendorView.FontSize = 11;
+            app.VendorView.Position = [103 12 125 22];
+            app.VendorView.Value = true;
+
+            % Create CustomsView
+            app.CustomsView = uiradiobutton(app.TableViewGroup);
+            app.CustomsView.Tag = 'customsView';
+            app.CustomsView.Text = 'Aduana';
+            app.CustomsView.FontSize = 11;
+            app.CustomsView.Position = [254 12 72 22];
+
+            % Create UITable
+            app.UITable = uitable(app.GridLayout);
+            app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
+            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
+            app.UITable.RowName = {};
+            app.UITable.SelectionType = 'row';
+            app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
+            app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
+            app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
+            app.UITable.Layout.Row = 8;
+            app.UITable.Layout.Column = [2 9];
+            app.UITable.FontSize = 10;
+
+            % Create NumRows
+            app.NumRows = uilabel(app.GridLayout);
+            app.NumRows.FontSize = 10;
+            app.NumRows.FontColor = [0.502 0.502 0.502];
+            app.NumRows.Layout.Row = 9;
+            app.NumRows.Layout.Column = [2 5];
+            app.NumRows.Interpreter = 'html';
+            app.NumRows.Text = '0 <font style="font-size: 10px;">REGISTROS </font>';
+
+            % Create ColumnWidthMode
+            app.ColumnWidthMode = uihyperlink(app.GridLayout);
+            app.ColumnWidthMode.HyperlinkClickedFcn = createCallbackFcn(app, @ColumnWidthModeHyperlinkClicked, true);
+            app.ColumnWidthMode.VisitedColor = [0.502 0.502 0.502];
+            app.ColumnWidthMode.HorizontalAlignment = 'right';
+            app.ColumnWidthMode.FontSize = 10;
+            app.ColumnWidthMode.FontWeight = 'normal';
+            app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
+            app.ColumnWidthMode.Layout.Row = 9;
+            app.ColumnWidthMode.Layout.Column = [8 9];
+            app.ColumnWidthMode.Text = 'INICIAL ↔';
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
@@ -678,8 +802,8 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
-            app.Toolbar.Layout.Row = 9;
-            app.Toolbar.Layout.Column = [1 10];
+            app.Toolbar.Layout.Row = 10;
+            app.Toolbar.Layout.Column = [1 12];
             app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create tool_OpenPopupEdition
@@ -724,75 +848,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_UploadFinalFile.Layout.Column = 6;
             app.tool_UploadFinalFile.ImageSource = 'up-20px.png';
 
-            % Create UITable
-            app.UITable = uitable(app.GridLayout);
-            app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
-            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
-            app.UITable.RowName = {};
-            app.UITable.SelectionType = 'row';
-            app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
-            app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
-            app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
-            app.UITable.Layout.Row = 7;
-            app.UITable.Layout.Column = [2 8];
-            app.UITable.FontSize = 10;
-
-            % Create tool_EditionLimitation
-            app.tool_EditionLimitation = uilabel(app.GridLayout);
-            app.tool_EditionLimitation.FontSize = 10;
-            app.tool_EditionLimitation.FontColor = [0.502 0.502 0.502];
-            app.tool_EditionLimitation.Layout.Row = [4 5];
-            app.tool_EditionLimitation.Layout.Column = [4 5];
-            app.tool_EditionLimitation.Interpreter = 'html';
-            app.tool_EditionLimitation.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b>, <b>LACRE</b> e <b>PLAI</b> editáveis <font style="color: red;">apenas</font> em formulário.'};
-
-            % Create tool_ShowDataRules
-            app.tool_ShowDataRules = uiimage(app.GridLayout);
-            app.tool_ShowDataRules.ScaleMethod = 'stretch';
-            app.tool_ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
-            app.tool_ShowDataRules.Layout.Row = [4 5];
-            app.tool_ShowDataRules.Layout.Column = 2;
-            app.tool_ShowDataRules.ImageSource = 'info-16px-gray.svg';
-
-            % Create UITable_NumRows
-            app.UITable_NumRows = uilabel(app.GridLayout);
-            app.UITable_NumRows.HorizontalAlignment = 'right';
-            app.UITable_NumRows.VerticalAlignment = 'bottom';
-            app.UITable_NumRows.FontSize = 11;
-            app.UITable_NumRows.FontColor = [0.502 0.502 0.502];
-            app.UITable_NumRows.Layout.Row = 5;
-            app.UITable_NumRows.Layout.Column = [7 8];
-            app.UITable_NumRows.Interpreter = 'html';
-            app.UITable_NumRows.Text = '0 <font style="font-size: 10px;">REGISTROS </font>';
-
-            % Create UITable_ViewType
-            app.UITable_ViewType = uibuttongroup(app.GridLayout);
-            app.UITable_ViewType.AutoResizeChildren = 'off';
-            app.UITable_ViewType.SelectionChangedFcn = createCallbackFcn(app, @onTableViewChanged, true);
-            app.UITable_ViewType.BorderType = 'none';
-            app.UITable_ViewType.TitlePosition = 'centertop';
-            app.UITable_ViewType.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
-            app.UITable_ViewType.BackgroundColor = [1 1 1];
-            app.UITable_ViewType.Layout.Row = [3 5];
-            app.UITable_ViewType.Layout.Column = 6;
-            app.UITable_ViewType.FontWeight = 'bold';
-            app.UITable_ViewType.FontSize = 10;
-
-            % Create UITable_VendorView
-            app.UITable_VendorView = uiradiobutton(app.UITable_ViewType);
-            app.UITable_VendorView.Tag = 'vendorView';
-            app.UITable_VendorView.Text = 'Fornecedor | Usuário';
-            app.UITable_VendorView.FontSize = 10;
-            app.UITable_VendorView.Position = [120 2 121 22];
-            app.UITable_VendorView.Value = true;
-
-            % Create UITable_CustomsView
-            app.UITable_CustomsView = uiradiobutton(app.UITable_ViewType);
-            app.UITable_CustomsView.Tag = 'customsView';
-            app.UITable_CustomsView.Text = 'Aduana';
-            app.UITable_CustomsView.FontSize = 10;
-            app.UITable_CustomsView.Position = [244 2 72 22];
-
             % Create DockModule
             app.DockModule = uigridlayout(app.GridLayout);
             app.DockModule.RowHeight = {'1x'};
@@ -800,7 +855,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
-            app.DockModule.Layout.Column = [8 9];
+            app.DockModule.Layout.Column = [9 11];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Undock

@@ -59,8 +59,8 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initialLayout(app)
             % DROPDOWN "COLUNAS"
-            columnRawNames = app.mainApp.schDataTable.Properties.VariableNames;
-            columnRawTypes = matlab.Compatibility.resolveTableVariableTypes(app.mainApp.schDataTable);
+            columnRawNames = app.mainApp.schData.detailed.Properties.VariableNames;
+            columnRawTypes = matlab.Compatibility.resolveTableVariableTypes(app.mainApp.schData.detailed);
 
             filterableMask = ~startsWith(columnRawNames, '_');
             columnRawNames = columnRawNames(filterableMask);
