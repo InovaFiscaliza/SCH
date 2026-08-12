@@ -2,68 +2,66 @@ classdef winConfig_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                        matlab.ui.Figure
-        GridLayout                      matlab.ui.container.GridLayout
-        DockModule                      matlab.ui.container.GridLayout
-        dockModule_Close                matlab.ui.control.Image
-        dockModule_Undock               matlab.ui.control.Image
-        SubTabGroup                     matlab.ui.container.TabGroup
-        SubTab1                         matlab.ui.container.Tab
-        SubGrid1                        matlab.ui.container.GridLayout
-        openAuxiliarApp2Debug           matlab.ui.control.CheckBox
-        openAuxiliarAppAsDocked         matlab.ui.control.CheckBox
-        versionInfo                     matlab.ui.control.Label
-        tool_versionInfoRefresh         matlab.ui.control.Image
-        versionInfoLabel                matlab.ui.control.Label
-        SubTab2                         matlab.ui.container.Tab
-        SubGrid2                        matlab.ui.container.GridLayout
-        config_MiscelaneousPanel2       matlab.ui.container.Panel
-        config_MiscelaneousGrid2        matlab.ui.container.GridLayout
-        config_WordCloudColumn          matlab.ui.control.DropDown
-        config_WordCloudColumnLabel     matlab.ui.control.Label
-        config_WordCloudAlgorithm       matlab.ui.control.DropDown
-        config_WordCloudAlgorithmLabel  matlab.ui.control.Label
-        config_MiscelaneousLabel2       matlab.ui.control.Label
-        config_MiscelaneousPanel1       matlab.ui.container.Panel
-        config_MiscelaneousGrid1        matlab.ui.container.GridLayout
-        config_nMinWords                matlab.ui.control.DropDown
-        config_nMinWordsLabel           matlab.ui.control.Label
-        config_nMinCharacters           matlab.ui.control.Spinner
-        config_nMinCharactersLabel      matlab.ui.control.Label
+        UIFigure                     matlab.ui.Figure
+        GridLayout                   matlab.ui.container.GridLayout
+        DockModule                   matlab.ui.container.GridLayout
+        dockModule_Close             matlab.ui.control.Image
+        dockModule_Undock            matlab.ui.control.Image
+        SubTabGroup                  matlab.ui.container.TabGroup
+        SubTab1                      matlab.ui.container.Tab
+        SubGrid1                     matlab.ui.container.GridLayout
+        openAuxiliarApp2Debug        matlab.ui.control.CheckBox
+        openAuxiliarAppAsDocked      matlab.ui.control.CheckBox
+        versionInfo                  matlab.ui.control.Label
+        tool_versionInfoRefresh      matlab.ui.control.Image
+        versionInfoLabel             matlab.ui.control.Label
+        SubTab2                      matlab.ui.container.Tab
+        SubGrid2                     matlab.ui.container.GridLayout
+        config_MiscelaneousPanel2    matlab.ui.container.Panel
+        config_MiscelaneousGrid2     matlab.ui.container.GridLayout
+        config_WordCloudColumn       matlab.ui.control.DropDown
+        config_WordCloudColumnLabel  matlab.ui.control.Label
+        config_MiscelaneousLabel2    matlab.ui.control.Label
+        config_MiscelaneousPanel1    matlab.ui.container.Panel
+        config_MiscelaneousGrid1     matlab.ui.container.GridLayout
+        config_nMinWords             matlab.ui.control.DropDown
+        config_nMinWordsLabel        matlab.ui.control.Label
+        config_nMinCharacters        matlab.ui.control.Spinner
+        config_nMinCharactersLabel   matlab.ui.control.Label
         config_SearchModeDefaultParameters  matlab.ui.control.Image
-        config_MiscelaneousLabel1       matlab.ui.control.Label
-        SubTab3                         matlab.ui.container.Tab
-        SubGrid3                        matlab.ui.container.GridLayout
-        reportPanel                     matlab.ui.container.Panel
-        reportGrid                      matlab.ui.container.GridLayout
-        prjFileCompressionMode          matlab.ui.control.DropDown
-        prjFileCompressionModeLabel     matlab.ui.control.Label
-        reportLabel                     matlab.ui.control.Label
-        eFiscalizaPanel                 matlab.ui.container.Panel
-        eFiscalizaGrid                  matlab.ui.container.GridLayout
-        MacrothemesList                 matlab.ui.control.EditField
-        MacrothemesButton               matlab.ui.control.Image
-        MacrothemesLabel                matlab.ui.control.Label
-        reportUnit                      matlab.ui.control.DropDown
-        reportUnitLabel                 matlab.ui.control.Label
-        reportSystem                    matlab.ui.control.DropDown
-        reportSystemLabel               matlab.ui.control.Label
-        eFiscalizaRefresh               matlab.ui.control.Image
-        eFiscalizaLabel                 matlab.ui.control.Label
-        SubTab4                         matlab.ui.container.Tab
-        SubGrid4                        matlab.ui.container.GridLayout
-        userPathButton                  matlab.ui.control.Image
-        userPath                        matlab.ui.control.EditField
-        userPathLabel                   matlab.ui.control.Label
-        DataHubPOSTButton               matlab.ui.control.Image
-        DataHubPOST                     matlab.ui.control.EditField
-        DATAHUBPOSTLabel                matlab.ui.control.Label
-        DataHubGETButton                matlab.ui.control.Image
-        DataHubGET                      matlab.ui.control.EditField
-        DATAHUBGETLabel                 matlab.ui.control.Label
-        Toolbar                         matlab.ui.container.GridLayout
-        tool_openDevTools               matlab.ui.control.Image
-        tool_exportTable                matlab.ui.control.Image
+        config_MiscelaneousLabel1    matlab.ui.control.Label
+        SubTab3                      matlab.ui.container.Tab
+        SubGrid3                     matlab.ui.container.GridLayout
+        reportPanel                  matlab.ui.container.Panel
+        reportGrid                   matlab.ui.container.GridLayout
+        prjFileCompressionMode       matlab.ui.control.DropDown
+        prjFileCompressionModeLabel  matlab.ui.control.Label
+        reportLabel                  matlab.ui.control.Label
+        eFiscalizaPanel              matlab.ui.container.Panel
+        eFiscalizaGrid               matlab.ui.container.GridLayout
+        MacrothemesList              matlab.ui.control.EditField
+        MacrothemesButton            matlab.ui.control.Image
+        MacrothemesLabel             matlab.ui.control.Label
+        reportUnit                   matlab.ui.control.DropDown
+        reportUnitLabel              matlab.ui.control.Label
+        reportSystem                 matlab.ui.control.DropDown
+        reportSystemLabel            matlab.ui.control.Label
+        eFiscalizaRefresh            matlab.ui.control.Image
+        eFiscalizaLabel              matlab.ui.control.Label
+        SubTab4                      matlab.ui.container.Tab
+        SubGrid4                     matlab.ui.container.GridLayout
+        userPathButton               matlab.ui.control.Image
+        userPath                     matlab.ui.control.EditField
+        userPathLabel                matlab.ui.control.Label
+        DataHubPOSTButton            matlab.ui.control.Image
+        DataHubPOST                  matlab.ui.control.EditField
+        DATAHUBPOSTLabel             matlab.ui.control.Label
+        DataHubGETButton             matlab.ui.control.Image
+        DataHubGET                   matlab.ui.control.EditField
+        DATAHUBGETLabel              matlab.ui.control.Label
+        Toolbar                      matlab.ui.container.GridLayout
+        tool_openDevTools            matlab.ui.control.Image
+        tool_exportTable             matlab.ui.control.Image
     end
 
     
@@ -143,9 +141,6 @@ classdef winConfig_exported < matlab.apps.AppBase
                     end
 
                 case 2
-                    if ~strcmp(app.mainApp.executionMode, 'webApp')
-                        app.config_WordCloudAlgorithm.Enable = 1;
-                    end
                     updatePanel_Analysis(app)
 
                 case 3
@@ -186,8 +181,6 @@ classdef winConfig_exported < matlab.apps.AppBase
                 'PRODUCTS',               projectGeneral.context.PRODUCTS, ...
                 'reportLib',              projectGeneral.reportLib ...
             );
-
-            app.defaultValues.SEARCH.searchTable = struct2table(app.defaultValues.SEARCH.searchTable);
         end
 
         %-----------------------------------------------------------------%
@@ -235,16 +228,15 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updatePanel_Analysis(app)
             % ALGORITMO SUGESTÃO DE TOKENS
-            app.config_nMinCharacters.Value     = app.mainApp.General.context.SEARCH.minCharacters;
+            app.config_nMinCharacters.Value = app.mainApp.General.context.SEARCH.minCharacters;
 
             numDisplayedTokens = num2str(app.mainApp.General.context.SEARCH.minDisplayedTokens);
             if ismember(numDisplayedTokens, app.config_nMinWords.Items)
-                app.config_nMinWords.Value      = numDisplayedTokens;
+                app.config_nMinWords.Value = numDisplayedTokens;
             end
 
             % ANOTAÇÃO DO TIPO "WORDCLOUD"
-            app.config_WordCloudAlgorithm.Value = app.mainApp.General.context.SEARCH.wordCloud.algorithm;
-            app.config_WordCloudColumn.Value    = app.mainApp.General.context.SEARCH.wordCloud.column;
+            app.config_WordCloudColumn.Value = app.mainApp.General.context.SEARCH.wordCloud.column;
 
             app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'SEARCH');
         end
@@ -450,8 +442,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: config_WordCloudAlgorithm, 
-        % ...and 3 other components
+        % Value changed function: config_WordCloudColumn, 
+        % ...and 2 other components
         function Analysis_ParameterValueChanged(app, event)
             
             ipcEventName = '';
@@ -462,10 +454,6 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 case app.config_nMinWords
                     app.mainApp.General.context.SEARCH.minDisplayedTokens = str2double(app.config_nMinWords.Value);
-
-                case app.config_WordCloudAlgorithm
-                    ipcEventName = 'onWordCloudAlgorithmChanged';
-                    app.mainApp.General.context.SEARCH.wordCloud.algorithm = app.config_WordCloudAlgorithm.Value;
 
                 case app.config_WordCloudColumn
                     app.mainApp.General.context.SEARCH.wordCloud.column = app.config_WordCloudColumn.Value;
@@ -813,7 +801,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 70, 22, 70, 1};
+            app.SubGrid2.RowHeight = {17, 122, 22, 70, 1};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -844,17 +832,17 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_MiscelaneousGrid1
             app.config_MiscelaneousGrid1 = uigridlayout(app.config_MiscelaneousPanel1);
-            app.config_MiscelaneousGrid1.ColumnWidth = {350, 110, 110};
-            app.config_MiscelaneousGrid1.RowHeight = {22, 22};
+            app.config_MiscelaneousGrid1.ColumnWidth = {110, 110, 110};
+            app.config_MiscelaneousGrid1.RowHeight = {17, 22, 22, 22};
             app.config_MiscelaneousGrid1.RowSpacing = 5;
             app.config_MiscelaneousGrid1.BackgroundColor = [1 1 1];
 
             % Create config_nMinCharactersLabel
             app.config_nMinCharactersLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinCharactersLabel.WordWrap = 'on';
+            app.config_nMinCharactersLabel.VerticalAlignment = 'bottom';
             app.config_nMinCharactersLabel.FontSize = 11;
             app.config_nMinCharactersLabel.Layout.Row = 1;
-            app.config_nMinCharactersLabel.Layout.Column = 1;
+            app.config_nMinCharactersLabel.Layout.Column = [1 3];
             app.config_nMinCharactersLabel.Text = 'Quantidade mínima de caracteres para ativar sugestões:';
 
             % Create config_nMinCharacters
@@ -864,16 +852,16 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_nMinCharacters.ValueDisplayFormat = '%d';
             app.config_nMinCharacters.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinCharacters.FontSize = 11;
-            app.config_nMinCharacters.Layout.Row = 1;
-            app.config_nMinCharacters.Layout.Column = 2;
+            app.config_nMinCharacters.Layout.Row = 2;
+            app.config_nMinCharacters.Layout.Column = 1;
             app.config_nMinCharacters.Value = 2;
 
             % Create config_nMinWordsLabel
             app.config_nMinWordsLabel = uilabel(app.config_MiscelaneousGrid1);
-            app.config_nMinWordsLabel.WordWrap = 'on';
+            app.config_nMinWordsLabel.VerticalAlignment = 'bottom';
             app.config_nMinWordsLabel.FontSize = 11;
-            app.config_nMinWordsLabel.Layout.Row = 2;
-            app.config_nMinWordsLabel.Layout.Column = 1;
+            app.config_nMinWordsLabel.Layout.Row = 3;
+            app.config_nMinWordsLabel.Layout.Column = [1 3];
             app.config_nMinWordsLabel.Text = 'Quantidade mínima de sugestões apresentadas para seleção:';
 
             % Create config_nMinWords
@@ -882,8 +870,8 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_nMinWords.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.config_nMinWords.FontSize = 11;
             app.config_nMinWords.BackgroundColor = [1 1 1];
-            app.config_nMinWords.Layout.Row = 2;
-            app.config_nMinWords.Layout.Column = 2;
+            app.config_nMinWords.Layout.Row = 4;
+            app.config_nMinWords.Layout.Column = 1;
             app.config_nMinWords.Value = '20';
 
             % Create config_MiscelaneousLabel2
@@ -902,37 +890,18 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_MiscelaneousGrid2
             app.config_MiscelaneousGrid2 = uigridlayout(app.config_MiscelaneousPanel2);
-            app.config_MiscelaneousGrid2.ColumnWidth = {350, 110, 110};
-            app.config_MiscelaneousGrid2.RowHeight = {22, 22};
+            app.config_MiscelaneousGrid2.ColumnWidth = {110, 110, 110};
+            app.config_MiscelaneousGrid2.RowHeight = {17, 22};
             app.config_MiscelaneousGrid2.RowSpacing = 5;
             app.config_MiscelaneousGrid2.BackgroundColor = [1 1 1];
 
-            % Create config_WordCloudAlgorithmLabel
-            app.config_WordCloudAlgorithmLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudAlgorithmLabel.WordWrap = 'on';
-            app.config_WordCloudAlgorithmLabel.FontSize = 11;
-            app.config_WordCloudAlgorithmLabel.Layout.Row = 1;
-            app.config_WordCloudAlgorithmLabel.Layout.Column = 1;
-            app.config_WordCloudAlgorithmLabel.Text = 'Motor gráfico para geração da nuvem de palavras:';
-
-            % Create config_WordCloudAlgorithm
-            app.config_WordCloudAlgorithm = uidropdown(app.config_MiscelaneousGrid2);
-            app.config_WordCloudAlgorithm.Items = {'D3.js', 'MATLAB built-in'};
-            app.config_WordCloudAlgorithm.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
-            app.config_WordCloudAlgorithm.Enable = 'off';
-            app.config_WordCloudAlgorithm.FontSize = 11;
-            app.config_WordCloudAlgorithm.BackgroundColor = [1 1 1];
-            app.config_WordCloudAlgorithm.Layout.Row = 1;
-            app.config_WordCloudAlgorithm.Layout.Column = [2 3];
-            app.config_WordCloudAlgorithm.Value = 'D3.js';
-
             % Create config_WordCloudColumnLabel
             app.config_WordCloudColumnLabel = uilabel(app.config_MiscelaneousGrid2);
-            app.config_WordCloudColumnLabel.WordWrap = 'on';
+            app.config_WordCloudColumnLabel.VerticalAlignment = 'bottom';
             app.config_WordCloudColumnLabel.FontSize = 11;
-            app.config_WordCloudColumnLabel.Layout.Row = 2;
-            app.config_WordCloudColumnLabel.Layout.Column = 1;
-            app.config_WordCloudColumnLabel.Text = 'Fonte de dados para consulta à API do Google/Bing:';
+            app.config_WordCloudColumnLabel.Layout.Row = 1;
+            app.config_WordCloudColumnLabel.Layout.Column = [1 3];
+            app.config_WordCloudColumnLabel.Text = 'Fonte de dados para consulta à API Google/Bing:';
 
             % Create config_WordCloudColumn
             app.config_WordCloudColumn = uidropdown(app.config_MiscelaneousGrid2);
@@ -941,7 +910,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.FontSize = 11;
             app.config_WordCloudColumn.BackgroundColor = [1 1 1];
             app.config_WordCloudColumn.Layout.Row = 2;
-            app.config_WordCloudColumn.Layout.Column = [2 3];
+            app.config_WordCloudColumn.Layout.Column = 1;
             app.config_WordCloudColumn.Value = 'Modelo';
 
             % Create SubTab3

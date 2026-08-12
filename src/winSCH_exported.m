@@ -483,6 +483,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     % auxApp.dockProductDetails
                                     case 'onSelectedRowChangeRequest'
                                         app.UITable.Selection = varargin{1};
+                                        scroll(app.UITable, 'row', varargin{1})
                                         onTableSelectionChanged(app)
                                         varargout{1} = app.resultContext;
 
@@ -568,7 +569,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 );
                 popupSpecifications(1, :) = {"AddSelectedToBucket", 518, 486, false};
                 popupSpecifications(2, :) = {"FilterSetup", 518, 486, false};
-                popupSpecifications(3, :) = {"ProductDetails", 80, 80, true};
+                popupSpecifications(3, :) = {"ProductDetails", 1244, 660, false};
                 popupSpecifications(4, :) = {"ProductInfo", 580, 640, false};
                 popupSpecifications(5, :) = {"ReportLib", 460, 598, false};
 
@@ -1169,21 +1170,23 @@ classdef winSCH_exported < matlab.apps.AppBase
         function updateWordCloud(app, isActive)
             if ~isActive || app.resultContext.WordCloud.isRendered
                 if ~app.resultContext.WordCloud.isRendered && ~isempty(app.wordCloudObj) && isvalid(app.wordCloudObj) && ~isempty(app.wordCloudObj.Table)
-                    app.wordCloudObj.Table = [];
+                    app.wordCloudObj.Table(:, :) = [];
                 end
 
                 return
             end
 
             if isempty(app.wordCloudObj) || ~isvalid(app.wordCloudObj)
-                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.WordCloud, 'D3.js');
+                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.WordCloud);
             end
 
             wordClouds = app.resultContext.WordCloud.data;
             wordCloudIndex = app.resultContext.WordCloud.index;
 
             if isempty(wordClouds)
-                app.wordCloudObj.Table = [];
+                if ~isempty(app.wordCloudObj.Table)
+                    app.wordCloudObj.Table(:, :) = [];
+                end
                 return
             end
 

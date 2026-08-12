@@ -5,7 +5,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
         UIFigure              matlab.ui.Figure
         GridLayout            matlab.ui.container.GridLayout
         AdsCount              matlab.ui.control.Label
-        AdsDownload           matlab.ui.control.Image
+        AdsDownloadRequest    matlab.ui.control.Image
         AdsNext               matlab.ui.control.Image
         AdsPrevious           matlab.ui.control.Image
         AdsPanel              matlab.ui.container.Panel
@@ -43,6 +43,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
         mainApp
         callingApp
         jsBackDoor
+        progressDialog
     end
 
 
@@ -93,7 +94,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             updateSCH(app)
             updateImages(app)
-            %updateWordCloud(app)
+            updateWordCloud(app)
             updateAds(app)
         end
 
@@ -156,7 +157,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updateWordCloud(app)
             if isempty(app.wordCloudObj) || ~isvalid(app.wordCloudObj)
-                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.WordCloud, 'D3.js');
+                app.wordCloudObj = ui.WordCloud(app.jsBackDoor, app.WordCloud);
             end
 
             wordClouds = app.resultContext.WordCloud.data;
@@ -214,6 +215,37 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.Ads.Text = util.HtmlTextGenerator.generateAdCard(ads(adsIndex, :), app.mainApp.projectData.regulatronData.urlPreffix);
             app.AdsCount.Text = sprintf('%d DE %d', adsIndex, height(ads));
             app.resultContext.Ads.index = adsIndex;
+        end
+
+        %-----------------------------------------------------------------%
+        function status = addAnnotationToCache(app, homologation, attributeName, attributeValue)
+            status = true;
+            annotation = table( ...
+                {char(matlab.lang.internal.uuid())}, ...
+                {datestr(now, 'dd/mm/yyyy HH:MM:SS')}, ...
+                {appEngine.util.OperationSystem('computerName')}, ...
+                {appEngine.util.OperationSystem('userName')}, ...
+                {homologation}, ...
+                {attributeName}, ...
+                {attributeValue}, ...
+                1, ...
+                'VariableNames', util.readExternalFile.annotationColumns ...
+            );
+
+            homIdxs = find(strcmp(app.mainApp.annotationTable.("Homologação"), homologation));
+            if ~isempty(homIdxs) && any(strcmp(app.mainApp.annotationTable.("Atributo")(homIdxs), attributeName) & strcmpi(app.mainApp.annotationTable.("Valor")(homIdxs), attributeValue))
+                status = false;
+                return
+            end
+
+            app.mainApp.annotationTable(end+1,:) = annotation;
+
+            % A cada nova inserção, gera-se uma planilha que é submetida à
+            % pasta POST, ou é salva localmente em cache.
+            [app.mainApp.annotationTable, msgWarning] = util.writeExternalFile.Annotation(app.mainApp.rootFolder, app.mainApp.General.fileFolder.DataHub_POST, app.mainApp.annotationTable);
+            if ~isempty(msgWarning)
+                ui.Dialog(app.UIFigure, 'warning', msgWarning);
+            end
         end
     end
     
@@ -304,13 +336,6 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: WordCloudDownload
-        function onImageDownloadClicked(app, event)
-            
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onGetImageUrl')
-
-        end
-
         % Image clicked function: WordCloudNext, WordCloudPrevious
         function onWordCloudsArrowButtonClicked(app, event)
             
@@ -337,6 +362,59 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
         end
 
+        % Image clicked function: WordCloudDownload
+        function onWordCloudDownloadRequest(app, event)
+            
+            relatedSCH = app.resultContext.SCH.data;
+            if isempty(relatedSCH)
+                return
+            end
+
+            app.progressDialog.Visible = 'visible';
+
+            try
+                homologation = relatedSCH.("Homologação"){1};
+
+                switch app.mainApp.General.context.SEARCH.wordCloud.column
+                    case 'Modelo'
+                        modelList = [
+                            relatedSCH.("Modelo");
+                            relatedSCH.("Nome Comercial") 
+                        ];
+    
+                    case 'Nome Comercial'
+                        modelList = [
+                            relatedSCH.("Nome Comercial");
+                            relatedSCH.("Modelo")
+                        ];
+                end
+                modelList(cellfun(@isempty, modelList)) = [];
+                modelList = unique(modelList, 'stable');
+    
+                if isempty(modelList)
+                    error('Registro %s não possui cadastrado "Modelo" ou "Nome Comercial", inviabilizando consulta à internet.', homologation)
+                end
+
+                word2Search = modelList{1};
+                numMaxWords = 25;
+
+                [wordCloudTable, wordCloudInfo] = util.getWordCloudFromWeb(word2Search, numMaxWords);
+                if ~isempty(wordCloudTable)
+                    if addAnnotationToCache(app, homologation, 'WordCloud', wordCloudInfo)
+                        homCurrentIndex = app.inputArgs.homValues.selectedIndex;
+                        resultCtx = ipcMainMatlabCallsHandler(app.mainApp, app, 'onSelectedRowChangeRequest', homCurrentIndex);
+                        updatePanel(app, resultCtx)
+                    end
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.identifier);
+            end
+
+            app.progressDialog.Visible = 'hidden';
+
+        end
+
         % Image clicked function: AdsNext, AdsPrevious
         function onAdsArrowButtonClicked(app, event)
             
@@ -360,6 +438,13 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             app.resultContext.Ads.index = adsNewIndex;
             updateAds(app)
+
+        end
+
+        % Image clicked function: AdsDownloadRequest
+        function onAdsDownloadRequest(app, event)
+            
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onGetImageUrl')
 
         end
     end
@@ -401,7 +486,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {18, 5, 18, 25, 254, 20, 18, 5, 18, 5, 18, 5, 18, 113, 20, 18, 5, 18, 5, 18, '1x'};
-            app.GridLayout.RowHeight = {'1x', 20, 20, '1x', 22};
+            app.GridLayout.RowHeight = {279, 20, 20, 279, 22};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [20 20 20 20];
@@ -526,7 +611,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             % Create WordCloudDownload
             app.WordCloudDownload = uiimage(app.GridLayout);
             app.WordCloudDownload.ScaleMethod = 'none';
-            app.WordCloudDownload.ImageClickedFcn = createCallbackFcn(app, @onImageDownloadClicked, true);
+            app.WordCloudDownload.ImageClickedFcn = createCallbackFcn(app, @onWordCloudDownloadRequest, true);
             app.WordCloudDownload.Layout.Row = 5;
             app.WordCloudDownload.Layout.Column = 11;
             app.WordCloudDownload.ImageSource = 'cloud-download.svg';
@@ -581,12 +666,13 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.AdsNext.Layout.Column = 18;
             app.AdsNext.ImageSource = 'chevron-right.svg';
 
-            % Create AdsDownload
-            app.AdsDownload = uiimage(app.GridLayout);
-            app.AdsDownload.ScaleMethod = 'none';
-            app.AdsDownload.Layout.Row = 5;
-            app.AdsDownload.Layout.Column = 20;
-            app.AdsDownload.ImageSource = 'cloud-download.svg';
+            % Create AdsDownloadRequest
+            app.AdsDownloadRequest = uiimage(app.GridLayout);
+            app.AdsDownloadRequest.ScaleMethod = 'none';
+            app.AdsDownloadRequest.ImageClickedFcn = createCallbackFcn(app, @onAdsDownloadRequest, true);
+            app.AdsDownloadRequest.Layout.Row = 5;
+            app.AdsDownloadRequest.Layout.Column = 20;
+            app.AdsDownloadRequest.ImageSource = 'cloud-download.svg';
 
             % Create AdsCount
             app.AdsCount = uilabel(app.GridLayout);
