@@ -38,6 +38,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         AttributesGrid          matlab.ui.container.GridLayout
         Ads                     matlab.ui.control.Label
         WordCloud               matlab.ui.container.GridLayout
+        WordCloudNote           matlab.ui.control.Label
         Image                   matlab.ui.control.Image
         Homologation            matlab.ui.control.Label
         AttributesRightButton   matlab.ui.control.Image
@@ -237,9 +238,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     return
                                 end
 
-                                correlationKey = char(matlab.lang.internal.uuid());
-                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('RegulatronRequest_%s_%s.json',  datestr(now, 'yyyymmdd'), correlationKey));
-                                jsonContent = jsonencode(struct('url', url), 'PrettyPrint', true);
+                                requestKey = char(matlab.lang.internal.uuid());
+                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('RegulatronRequest_%s_%s.json',  datestr(now, 'yyyymmdd'), requestKey));
+                                jsonContent = jsonencode(struct( ...
+                                    'requestKey', requestKey, ...
+                                    'createdAt', datestr(now, 'yyyy-mm-ddTHH:MM:SS'), ...
+                                    'clientName', class.Constants.appName, ...
+                                    'url', url ...
+                                ), 'PrettyPrint', true);
+
                                 writematrix(jsonContent, jsonFileName, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
                                 ui.Dialog(app.UIFigure, 'info', sprintf('Aberta requisição de raspagem para anúncio publicado em <b>%s://%s</b>', uri.Scheme, uri.Host));
                         end
@@ -1196,6 +1203,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             if ~isActive || app.resultContext.WordCloud.isRendered
                 if ~app.resultContext.WordCloud.isRendered && ~isempty(app.wordCloudObj) && isvalid(app.wordCloudObj) && ~isempty(app.wordCloudObj.Table)
                     app.wordCloudObj.Table(:, :) = [];
+                    app.WordCloudNote.Text = '';
                 end
 
                 return
@@ -1211,6 +1219,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             if isempty(wordClouds)
                 if ~isempty(app.wordCloudObj.Table)
                     app.wordCloudObj.Table(:, :) = [];
+                    app.WordCloudNote.Text = '';
                 end
                 return
             end
@@ -1219,7 +1228,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                 wordCloudIndex = 1;
             end
 
-            app.wordCloudObj.Table = util.getWordCloudFromCache(wordClouds.("Valor"){wordCloudIndex});
+
+            [wordCloudTable, wordCloudInfo] = util.getWordCloudFromCache(wordClouds.("Valor"){wordCloudIndex});
+
+            app.wordCloudObj.Table = wordCloudTable;
+            app.WordCloudNote.Text = sprintf('%s • %s\nTERMO PESQUISADO: "%s"', wordClouds.("DataHora"){wordCloudIndex}, wordCloudInfo.metaData.Source, wordCloudInfo.searchedWord);
 
             app.resultContext.WordCloud.index = wordCloudIndex;
             app.resultContext.WordCloud.isRendered = true;
@@ -2184,9 +2197,19 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.WordCloud = uigridlayout(app.AttributesGrid);
             app.WordCloud.ColumnWidth = {'1x'};
             app.WordCloud.RowHeight = {'1x'};
+            app.WordCloud.Padding = [5 5 5 5];
             app.WordCloud.Layout.Row = 1;
             app.WordCloud.Layout.Column = 3;
             app.WordCloud.BackgroundColor = [1 1 1];
+
+            % Create WordCloudNote
+            app.WordCloudNote = uilabel(app.WordCloud);
+            app.WordCloudNote.VerticalAlignment = 'bottom';
+            app.WordCloudNote.FontSize = 10;
+            app.WordCloudNote.FontColor = [0.502 0.502 0.502];
+            app.WordCloudNote.Layout.Row = 1;
+            app.WordCloudNote.Layout.Column = 1;
+            app.WordCloudNote.Text = '';
 
             % Create Ads
             app.Ads = uilabel(app.AttributesGrid);

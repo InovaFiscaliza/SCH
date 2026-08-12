@@ -16,6 +16,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
         WordCloudNext         matlab.ui.control.Image
         WordCloudPrevious     matlab.ui.control.Image
         WordCloud             matlab.ui.container.GridLayout
+        WordCloudNote         matlab.ui.control.Label
         ImageCount            matlab.ui.control.Label
         ImageZoom             matlab.ui.control.Image
         ImageNext             matlab.ui.control.Image
@@ -167,6 +168,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             if isempty(wordClouds)
                 app.wordCloudObj.Table = [];
+                app.WordCloudNote.Text = '';
                 app.WordCloudCount.Text = '0 DE 0';
                 return
             end
@@ -175,8 +177,12 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
                 wordCloudIndex = 1;
             end
 
-            app.wordCloudObj.Table = util.getWordCloudFromCache(wordClouds.("Valor"){wordCloudIndex});
+            [wordCloudTable, wordCloudInfo] = util.getWordCloudFromCache(wordClouds.("Valor"){wordCloudIndex});
+
+            app.wordCloudObj.Table = wordCloudTable;
+            app.WordCloudNote.Text = sprintf('%s • %s\nTERMO PESQUISADO: "%s"', wordClouds.("DataHora"){wordCloudIndex}, wordCloudInfo.metaData.Source, wordCloudInfo.searchedWord);
             app.WordCloudCount.Text = sprintf('%d DE %d', wordCloudIndex, height(wordClouds));
+
             app.resultContext.WordCloud.index = wordCloudIndex;
         end
 
@@ -586,9 +592,19 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.WordCloud = uigridlayout(app.GridLayout);
             app.WordCloud.ColumnWidth = {'1x'};
             app.WordCloud.RowHeight = {'1x'};
+            app.WordCloud.Padding = [5 5 5 5];
             app.WordCloud.Layout.Row = 4;
             app.WordCloud.Layout.Column = [6 11];
             app.WordCloud.BackgroundColor = [0.9804 0.9804 0.9804];
+
+            % Create WordCloudNote
+            app.WordCloudNote = uilabel(app.WordCloud);
+            app.WordCloudNote.VerticalAlignment = 'bottom';
+            app.WordCloudNote.FontSize = 10;
+            app.WordCloudNote.FontColor = [0.502 0.502 0.502];
+            app.WordCloudNote.Layout.Row = 1;
+            app.WordCloudNote.Layout.Column = 1;
+            app.WordCloudNote.Text = '';
 
             % Create WordCloudPrevious
             app.WordCloudPrevious = uiimage(app.GridLayout);
