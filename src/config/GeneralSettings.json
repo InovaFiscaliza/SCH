@@ -1,5 +1,5 @@
 {
-    "version": 2.23,
+    "version": 2.30,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -607,6 +607,54 @@
                     "Importação - sem selo",
                     "Uso - não homologado",
                     "Uso - características diferentes"
+                ]
+            }
+        },
+        "CUSTOMS": {
+            "amostragemVistoria": 0.01,
+            "regraDecisaoSugerida": {
+                "default": "Vistoria",
+                "options": [
+                    "Perdimento",
+                    "Devolução",
+                    "Prazo",
+                    "Liberado",
+                    "Vistoria"
+                ]
+            },
+            "estadoAmostragem": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Não selecionada",
+                    "Selecionada"
+                ]
+            },
+            "estadoRevisao": {
+                "default": "Pendente",
+                "options": [
+                    "Pendente",
+                    "Em vistoria",
+                    "Concluída"
+                ]
+            },
+            "estadoVistoria": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Pendente",
+                    "Concluída"
+                ]
+            },
+            "auditorDecisaoFinal": {
+                "default": "-",
+                "options": [
+                    "-",
+                    "Perdimento",
+                    "Devolução",
+                    "Prazo",
+                    "Liberado",
+                    "Vistoria"
                 ]
             }
         }

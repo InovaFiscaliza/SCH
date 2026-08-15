@@ -1,7 +1,7 @@
 classdef (Abstract) Table
     methods (Static)
         %-----------------------------------------------------------------%
-        function outputTable = InspectedProducts(inspectedProducts, configTable, legalSituation)
+        function tbl = InspectedProducts(inspectedProducts, configTable, legalSituation)
             arguments
                 inspectedProducts table
                 configTable       struct
@@ -22,14 +22,17 @@ classdef (Abstract) Table
             % - "Qtd. vistoriadas"
             % - "Mercadoria retida (R$)"
             % - "Mercadoria vendida (R$)"        
-            inspectedProducts.("#")                       = (1:height(inspectedProducts))';
-            inspectedProducts.("Produto")                 = "HOMOLOGAÇÃO: <b>" + string(inspectedProducts.("Homologação")) + "</b><br>" + ...
-                                                            "TIPO: <b>"        + string(inspectedProducts.("Tipo"))        + "</b><br>" + ...
-                                                            "SUBTIPO: <b>"     + string(inspectedProducts.("Subtipo"))     + "</b><br>" + ...
-                                                            "FABRICANTE: <b>"  + string(inspectedProducts.("Fabricante"))  + "</b><br>" + ...
-                                                            "MODELO: <b>"      + string(inspectedProducts.("Modelo"))      + "</b>";
-            inspectedProducts.("Qtd. vistoriadas")        = inspectedProducts.("Qtd. uso") + inspectedProducts.("Qtd. vendida") + inspectedProducts.("Qtd. estoque/aduana") + inspectedProducts.("Qtd. anunciada");
-            inspectedProducts.("Mercadoria retida (R$)")  = inspectedProducts.("Valor Unit. (R$)") .* double(inspectedProducts.("Qtd. lacradas") + inspectedProducts.("Qtd. apreendidas") + inspectedProducts.("Qtd. retidas (RFB)"));
+            inspectedProducts.("#") = (1:height(inspectedProducts))';
+
+            inspectedProducts.("Produto") = ...
+                "HOMOLOGAÇÃO: <b>" + string(inspectedProducts.("Homologação")) + "</b><br>" + ...
+                "TIPO: <b>"        + string(inspectedProducts.("Tipo"))        + "</b><br>" + ...
+                "SUBTIPO: <b>"     + string(inspectedProducts.("Subtipo"))     + "</b><br>" + ...
+                "FABRICANTE: <b>"  + string(inspectedProducts.("Fabricante"))  + "</b><br>" + ...
+                "MODELO: <b>"      + string(inspectedProducts.("Modelo"))      + "</b>";
+            
+            inspectedProducts.("Qtd. vistoriadas") = inspectedProducts.("Qtd. uso") + inspectedProducts.("Qtd. vendida") + inspectedProducts.("Qtd. estoque/aduana") + inspectedProducts.("Qtd. anunciada");
+            inspectedProducts.("Mercadoria retida (R$)") = inspectedProducts.("Valor Unit. (R$)") .* double(inspectedProducts.("Qtd. lacradas") + inspectedProducts.("Qtd. apreendidas") + inspectedProducts.("Qtd. retidas (RFB)"));
             inspectedProducts.("Mercadoria vendida (R$)") = inspectedProducts.("Valor Unit. (R$)") .* double(inspectedProducts.("Qtd. vendida"));
         
             % Por fim, são realizadas algumas transformações nos dados, como substituição 
@@ -60,11 +63,11 @@ classdef (Abstract) Table
             % A tabela renderizada no arquivo .HTML possuirá todas as linhas da tabela
             % "listOfProducts", mas apenas as colunas definidas no arquivo .JSON que 
             % alimenta a lib "reportLib".        
-            outputTable = inspectedProducts(:, configTable.Columns);
+            tbl = inspectedProducts(:, configTable.Columns);
         end
 
         %-----------------------------------------------------------------%
-        function outputTable = Summarized(inspectedProducts, configTable, legalSituation)
+        function tbl = Summarized(inspectedProducts, configTable, legalSituation)
             arguments
                 inspectedProducts table
                 configTable       struct
@@ -89,9 +92,11 @@ classdef (Abstract) Table
                 columnValues = cellstr(inspectedProducts.(columnName));
             end
         
-            outputTable = table('Size',          [0, 6],                                               ...
-                                'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'double', 'double'}, ...
-                                'VariableNames', {configTable.Settings.ColumnName});   
+            tbl = table( ...
+                'Size', [0, 6], ...
+                'VariableTypes', {'cell', 'cell', 'cell', 'cell', 'double', 'double'}, ...
+                'VariableNames', {configTable.Settings.ColumnName} ...
+            );   
         
             [uniqueValues, ~, uniqueValuesIndex] = unique(columnValues, 'stable');
             for ii = 1:numel(uniqueValues)
@@ -113,15 +118,58 @@ classdef (Abstract) Table
                     meanPrice = '-';
                 end
         
-                outputTable(ii,:)   = {
-                    uniqueValues{ii},                                                              ...
-                    pricePerProductStr,                                                            ...
+                tbl(ii,:) = {
+                    uniqueValues{ii}, ...
+                    pricePerProductStr, ...
                     char(strjoin(string(quantityPerProduct) + " (#" + string(idx) + ")", '<br>')), ...
-                    meanPrice,                                                                     ...
-                    sum(quantityPerProduct),                                                       ...
+                    meanPrice, ...
+                    sum(quantityPerProduct), ...
                     totalPrice ...
                 };
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function tbl = CustomsShipments(customsShipments, configTable, finalDecision)
+            arguments
+                customsShipments struct
+                configTable struct
+                finalDecision {mustBeMember(finalDecision, {'any', 'Perdimento', 'Devolução', 'Prazo', 'Liberado'})} = 'any'
+            end
+
+            customsData = customsShipments.Data;
+        
+            % A tabela "customsShipments" possui dezesseis colunas - 'remessaCodigo',
+            % 'remessaImportador', 'remessaDescricao', 'numRegrasAvaliadas',
+            % 'regraId', 'regraCategoria' 'regraDecisaoSugerida', 'regraConfianca',
+            % 'regraMotivo', 'regraPalavrasEncontradas', 'estadoAmostragem',
+            % 'estadoRevisao', 'estadoVistoria', 'auditorDataHora', 'auditorDecisaoFinal'
+            % e 'auditorNota'.
+
+            % Atualmente é previsto aplicar filtragem apenas pela decisão
+            % final do auditor.
+            if ~strcmp(finalDecision, 'any')
+                customsData(~strcmp(customsData.("auditorDecisaoFinal"), finalDecision)) = [];
+            end
+        
+            % Na presente função, criam-se três colunas calculadas:
+            % - "#"
+            % - "Situação"
+            % - "Sanável?"
+            customsData.("#") = (1:height(customsData))';
+
+            regularityDict = dictionary([true, false], ["Regular", "Irregular"]);
+            regularStatus = strcmp(customsData.("auditorDecisaoFinal"), 'Liberado');
+            customsData.("Situação") = regularityDict(regularStatus);
+
+            customsData.("Sanável?")(:) = "-";
+            customsData.("Sanável?")(strcmp(customsData.("auditorDecisaoFinal"), 'Prazo')) = "Sim";
+            customsData.("Sanável?")(ismember(customsData.("auditorDecisaoFinal"), {'Perdimento', 'Devolução'})) = "Não";
+        
+            % A tabela renderizada no arquivo .HTML possuirá todas as linhas da tabela
+            % "customsShipments.Data", mas apenas as colunas definidas no arquivo .JSON que 
+            % alimenta a lib "reportLib".        
+            tbl = customsData(:, configTable.Columns);
         end
 
         %-----------------------------------------------------------------%
@@ -136,10 +184,23 @@ classdef (Abstract) Table
                 generalSettings.context.PRODUCTS.reportTable.exportedFiles.sharepoint.label ...
             };
 
-            inspectedProducts = renamevars(projectData.inspectedProducts, jsonFileConfig{:});
-            inspectedProducts = removevars(inspectedProducts, 'hash');
-            inspectedProducts.("correlationKey")(:) = {correlationKey};
-            inspectedProducts = movevars(inspectedProducts, 'correlationKey', 'Before', 1);
+            inspectedProducts = [];
+            customsData = [];
+
+            switch context
+                case 'PRODUCTS'
+                    inspectedProducts = renamevars(projectData.inspectedProducts, jsonFileConfig{:});
+                    inspectedProducts = removevars(inspectedProducts, 'hash');
+                    inspectedProducts.("correlationKey")(:) = {correlationKey};
+                    inspectedProducts = movevars(inspectedProducts, 'correlationKey', 'Before', 1);
+
+                otherwise % 'CUSTOMS
+                    customsShipments = projectData.customsShipments;
+                    reportIncludeIdx = find([customsShipments.ReportInclude], 1);
+                    if ~isempty(reportIncludeIdx)
+                        customsData = customsShipments.Data;
+                    end
+            end
 
             jsonFileContent = struct( ...
                 'schemaVersion', 2, ...
@@ -162,7 +223,8 @@ classdef (Abstract) Table
                     'entityGroupName', entityGroupName, ...
                     'entityGroupId', entityGroupId ...
                 ), ...
-                'inspectedProducts', inspectedProducts ...
+                'inspectedProducts', inspectedProducts, ...
+                'customsShipments', customsData ...
             );
 
             jsonFileContent = jsonencode(jsonFileContent, 'PrettyPrint', true);

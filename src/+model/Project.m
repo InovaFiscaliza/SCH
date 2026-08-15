@@ -32,6 +32,17 @@ classdef Project < model.ProjectCommon
     properties
         %-----------------------------------------------------------------%
         inspectedProducts
+        
+        customsRules
+        customsShipments = struct( ...
+            'FileName', {}, ...
+            'Hash', {}, ...
+            'Type', {}, ...
+            'Data', {}, ...
+            'Analysis', {}, ...
+            'ReportInclude', {} ...
+        )
+
         typeSubtypeProductsMapping        
         regulatronData
     end
@@ -42,7 +53,7 @@ classdef Project < model.ProjectCommon
         function obj = Project(mainApp, rootFolder)
             obj@model.ProjectCommon(mainApp, rootFolder);
 
-            restart(obj, {'SEARCH', 'PRODUCTS'}, mainApp.General)
+            restart(obj, {'SEARCH', 'PRODUCTS', 'CUSTOMS'}, mainApp.General)
             obj.typeSubtypeProductsMapping = mainApp.General.context.PRODUCTS.productType.mapping;
             obj.regulatronData = model.ProjectBase.readRegulatronData(rootFolder, mainApp.General.fileFolder.DataHub_GET);
             IndexedDBTimer(obj, @(~,~)IndexedDBCache(obj))
@@ -51,7 +62,14 @@ classdef Project < model.ProjectCommon
         %-----------------------------------------------------------------%
         function restart(obj, contextList, generalSettings)
             initialization(obj, contextList, generalSettings)
-            obj.inspectedProducts = model.ProjectBase.createInspectedProductsTable(generalSettings);
+            
+            if ismember('PRODUCTS', contextList)
+                obj.inspectedProducts = model.ProjectBase.createInspectedProductsTable(generalSettings);
+            end
+
+            if ismember('CUSTOMS', contextList)
+                obj.customsShipments(:) = [];
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -137,7 +155,8 @@ classdef Project < model.ProjectCommon
                 'uploadedFiles', obj.modules.(context).uploadedFiles, ...
                 'issueDetails', obj.issueDetails, ...
                 'entityDetails', obj.entityDetails, ...
-                'inspectedProducts', obj.inspectedProducts ...
+                'inspectedProducts', obj.inspectedProducts, ...
+                'customsShipments', obj.customsShipments ...
             );
 
             compressionMode = {};
@@ -349,6 +368,12 @@ classdef Project < model.ProjectCommon
                                 end
         
                                 obj.inspectedProducts = unique([prjData.variables.inspectedProducts; obj.inspectedProducts], "rows");
+                                
+                                if isfield(prjData.variables, 'customsShipments') && ~isempty(prjData.variables.customsShipments)
+                                    obj.customsShipments = [prjData.variables.customsShipments, obj.customsShipments];
+                                    [~, uniqueFirstHashIndexes] = unique({obj.customsShipments.Hash});
+                                    obj.customsShipments = obj.customsShipments(uniqueFirstHashIndexes);
+                                end
             
                             otherwise
                                 error('UnexpectedVersion')
@@ -488,6 +513,24 @@ classdef Project < model.ProjectCommon
         end
 
         %-----------------------------------------------------------------%
+        function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(obj, index)
+            customsData = obj.customsShipments(index).Data;
+
+            ruleColumns = { ...
+                'auditorDecisaoFinal', ... #01
+                {'estadoAmostragem', 'auditorNota'} ... #02
+                {'auditorDecisaoFinal', 'auditorNota'} ... #03
+            };
+
+            ruleViolationMatrix = zeros(height(customsData), numel(ruleColumns), 'logical');
+            ruleViolationMatrix(:, 1) = string(customsData.("auditorDecisaoFinal")) == "-";
+            ruleViolationMatrix(:, 2) = (string(customsData.("estadoAmostragem")) == "Selecionada") & (string(customsData.("auditorNota")) == "");
+            ruleViolationMatrix(:, 3) = (string(customsData.("auditorDecisaoFinal")) == "Perdimento") & (string(customsData.("auditorNota")) == "");
+
+            invalidRowIndexes = find(any(ruleViolationMatrix, 2));
+        end
+
+        %-----------------------------------------------------------------%
         % ## UPDATE ##
         %-----------------------------------------------------------------%
         function updateInspectedProducts(obj, operation, varargin)
@@ -524,6 +567,144 @@ classdef Project < model.ProjectCommon
                 case 'delete'
                     indexes = varargin{1};
                     obj.inspectedProducts(indexes, :) = [];
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function varargout = updateCustomsShipments(obj, operation, varargin)
+            arguments
+                obj
+                operation char {mustBeMember(operation, {'add', 'delete', 'reportInclude', 'annotationSingleEdit', 'annotationBatchEdit', 'statusColumns'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            varargout = {};
+
+            switch operation
+                case 'add'
+                    fileFullName = varargin{1};
+                    generalSettings = varargin{2};
+                    rootFolder = varargin{3};
+
+                    try
+                        tbl = util.readExternalFile.Customs('Data', fileFullName);
+
+                        if isempty(tbl)
+                            error('O arquivo de produtos aduaneiros não contém registros válidos.')
+                        end
+
+                        customsDataHash = Hash.sha1(strjoin(sort(tbl.("Codigo da Remessa")), ' - '));
+                        if ismember(customsDataHash, {obj.customsShipments.Hash})
+                            error('O arquivo de produtos aduaneiros já foi carregado anteriormente.')
+                        end
+
+                        [~, fileName, fileExt] = fileparts(fileFullName);
+
+                        customsData = model.ProjectBase.createCustomsShipmentsTable(generalSettings);
+                        customsData(1:height(tbl), {'remessaCodigo', 'remessaImportador', 'remessaDescricao'}) = tbl(:, :);
+
+                        rules = obj.customsRules;
+                        if isempty(rules)
+                            rules = util.readExternalFile.Customs('Rules', rootFolder);
+                            rules = model.ProjectBase.prepareRules(rules, generalSettings);
+                            obj.customsRules = rules;
+                        end
+
+                        obj.customsShipments(end+1) = struct( ...
+                            'FileName', [fileName fileExt], ...
+                            'Hash', customsDataHash, ...
+                            'Type', 'REMESSA CONFORME', ...
+                            'Data', util.analyzeCustomsRisk(customsData, rules, generalSettings), ...
+                            'Analysis', struct('ProcessedAt', datestr(now, 'yyyy-mm-ddTHH:MM:SS'), 'Rules', rules), ...
+                            'ReportInclude', false ...
+                        );
+
+                        updateCustomsShipments(obj, 'statusColumns', numel(obj.customsShipments), 1:height(obj.customsShipments(end).Data))
+
+                        msg = '';
+
+                    catch ME
+                        msg = ME.message;
+                    end
+
+                    varargout{1} = msg;
+
+                case 'delete'
+                    index = varargin{1};
+                    obj.customsShipments(index) = [];
+
+                case 'reportInclude'
+                    index = varargin{1};
+                    for ii = 1:numel(obj.customsShipments)
+                        obj.customsShipments(ii).ReportInclude = ii == index;
+                    end
+
+                case 'annotationSingleEdit'
+                    index = varargin{1};
+                    columnRows = varargin{2};
+                    columnName = varargin{3};
+                    columnValue = varargin{4};
+
+                    switch columnName
+                        case 'auditorDecisaoFinal' % 'categorical'
+                            if ~iscategorical(columnValue) && ~isstring(columnValue)
+                                columnValue = string(column);
+                            end
+                            obj.customsShipments(index).Data.(columnName)(columnRows) = columnValue;
+                            updateCustomsShipments(obj, 'statusColumns', index, columnRows)
+
+                        case 'auditorNota'
+                            if ~iscellstr(columnValue)
+                                columnValue = cellstr(columnValue);
+                            end
+                            obj.customsShipments(index).Data.(columnName)(columnRows) = strtrim(columnValue);
+
+                        otherwise
+                            error('Edição da coluna "%s" não suportada', columnName)
+                    end
+
+                    obj.customsShipments(index).Data.("auditorDataHora")(columnRows) = {datestr(now, 'yyyy-mm-ddTHH:MM:SS')};
+
+                case 'annotationBatchEdit'
+                    index = varargin{1};
+                    columnRows = varargin{2};
+                    auditorDecisaoFinal = varargin{3};
+                    auditorNota = varargin{4};
+
+                    obj.customsShipments(index).Data.("auditorDecisaoFinal")(columnRows) = auditorDecisaoFinal;
+                    obj.customsShipments(index).Data.("auditorNota")(columnRows) = {auditorNota};
+                    obj.customsShipments(index).Data.("auditorDataHora")(columnRows) = {datestr(now, 'yyyy-mm-ddTHH:MM:SS')};
+                    updateCustomsShipments(obj, 'statusColumns', index, columnRows)
+
+                case 'statusColumns'
+                    % "estadoRevisao" e "estadoVistoria" são somente leitura: seus valores são
+                    % derivados de "estadoAmostragem", "auditorDecisaoFinal" e do estado de
+                    % vistoria já engajado (lido antes da sobrescrita), para que uma decisão
+                    % final tomada sem nunca ter passado por vistoria mantenha "estadoVistoria"
+                    % em "-" em vez de "Concluída".
+                    index = varargin{1};
+                    columnRows = varargin{2};
+                    
+                    customsData = obj.customsShipments(index).Data(columnRows, {'estadoAmostragem', 'estadoVistoria', 'auditorDecisaoFinal'});
+
+                    decisaoConcluida = ~ismember(customsData.("auditorDecisaoFinal"), ["-", "Vistoria"]);
+                    engajada = ismember(customsData.("estadoVistoria"), ["Pendente", "Concluída"]) ...
+                        | (customsData.("estadoAmostragem") == "Selecionada") ...
+                        | (customsData.("auditorDecisaoFinal") == "Vistoria");
+
+                    estadoRevisao = repmat(categorical("Pendente"), numel(columnRows), 1);
+                    estadoRevisao(engajada) = "Em vistoria";
+                    estadoRevisao(decisaoConcluida) = "Concluída";
+
+                    estadoVistoria = repmat(categorical("-"), numel(columnRows), 1);
+                    estadoVistoria(engajada) = "Pendente";
+                    estadoVistoria(engajada & decisaoConcluida) = "Concluída";
+
+                    obj.customsShipments(index).Data.("estadoRevisao")(columnRows)  = estadoRevisao;
+                    obj.customsShipments(index).Data.("estadoVistoria")(columnRows) = estadoVistoria;
             end
         end
     end

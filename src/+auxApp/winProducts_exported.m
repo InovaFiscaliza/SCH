@@ -233,8 +233,17 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateTableNumRows(app)
-            nRows = height(app.UITable.Data);
-            app.NumRows.Text = sprintf('%d <font style="font-size: 10px;">REGISTROS </font>', nRows);
+            numRows = height(app.UITable.Data);
+            
+            if numRows == 0
+                numRowsText = '';
+            elseif numRows == 1
+                numRowsText = '1 REGISTRO';
+            else
+                numRowsText = sprintf('%d REGISTROS', numRows);
+            end
+            
+            app.NumRows.Text = numRowsText;
         end
 
         %-----------------------------------------------------------------%
@@ -772,7 +781,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Layout.Row = 8;
             app.UITable.Layout.Column = [2 9];
-            app.UITable.FontSize = 10;
+            app.UITable.FontSize = 11;
 
             % Create NumRows
             app.NumRows = uilabel(app.GridLayout);
@@ -780,8 +789,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.NumRows.FontColor = [0.502 0.502 0.502];
             app.NumRows.Layout.Row = 9;
             app.NumRows.Layout.Column = [2 5];
-            app.NumRows.Interpreter = 'html';
-            app.NumRows.Text = '0 <font style="font-size: 10px;">REGISTROS </font>';
+            app.NumRows.Text = '';
 
             % Create ColumnWidthMode
             app.ColumnWidthMode = uihyperlink(app.GridLayout);

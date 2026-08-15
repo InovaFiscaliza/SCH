@@ -85,7 +85,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "A fiscalização foi realizada em apoio à Receita Federal do Brasil (RFB) e consistiu na análise de produtos para telecomunicações retidos pela RFB, indicando a sua situação e, em caso de irregular, se a irregularidade é sanável.",
+                        "Text": "A fiscalização foi realizada em apoio à Receita Federal do Brasil (RFB) e consistiu na análise de remessas de produtos, sob gestão do Serviço de Controle de Remessas Postais Internacionais (SCRPI), com o objetivo de indicar a situação de cada remessa e, quando identificada irregularidade, avaliar se esta é sanável.",
                         "Variable": []
                     }
                 },
@@ -142,7 +142,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "Na tabela apresentada a seguir constam informações acerca dos produtos para telecomunicações inspecionados.",
+                        "Text": "Na tabela apresentada a seguir constam informações acerca das remessas de produtos analisadas.",
                         "Variable": []
                     }
                 },
@@ -150,25 +150,17 @@
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableProducts",
+                        "Source": "tableCustomsShipments",
                         "Columns": [
                             "#", 
-                            "Homologação",
-                            "Tipo",
-                            "Fabricante",
-                            "Modelo",   
-                            "RF?",
-                            "Importador",
-                            "Código aduaneiro",
-                            "Valor Unit. (R$)",
-                            "Fonte do valor",
-                            "Qtd. estoque/aduana",
-                            "Qtd. retidas (RFB)",
+                            "remessaCodigo",
+                            "remessaImportador",
+                            "auditorDecisaoFinal",
                             "Situação",
                             "Sanável?",
-                            "Informações adicionais"
+                            "auditorNota"
                         ],
-                        "Caption": "Informações acerca dos produtos para telecomunicações inspecionados.",
+                        "Caption": "Informações acerca das remessas de produtos analisadas.",
                         "Settings": [
                             {
                                 "Editable": "false",
@@ -177,32 +169,8 @@
                                 "Width": "35px"
                             },
                             {
-                                "Editable": "false",
-                                "ColumnName": "Homologação",
-                                "Precision": "%s",
-                                "Width": "90px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Tipo",
-                                "Precision": "%s",
-                                "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Fabricante",
-                                "Precision": "%s",
-                                "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Modelo",
-                                "Precision": "%s",
-                                "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "RF?",
+                                "Editable": "true",
+                                "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
                                 "Width": "70px"
                             },
@@ -214,33 +182,9 @@
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Código aduaneiro",
-                                "Precision": "%s",
-                                "Width": "70px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Valor<br>unitário",
-                                "Precision": "R$ %.2f",
-                                "Width": "70px"
-                            },
-                            {
-                                "Editable": "true",
-                                "ColumnName": "Fonte do valor",
+                                "ColumnName": "Decisão",
                                 "Precision": "%s",
                                 "Width": "auto"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Qtd.<br>aduana",
-                                "Precision": "%.0f",
-                                "Width": "70px"
-                            },
-                            {
-                                "Editable": "false",
-                                "ColumnName": "Qtd.<br>retida (RFB)",
-                                "Precision": "%.0f",
-                                "Width": "70px"
                             },
                             {
                                 "Editable": "false",

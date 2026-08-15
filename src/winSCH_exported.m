@@ -5,12 +5,14 @@ classdef winSCH_exported < matlab.apps.AppBase
         UIFigure                matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
         NavBar                  matlab.ui.container.GridLayout
+        ButtonsSeparator_2      matlab.ui.control.Image
         AppInfo                 matlab.ui.control.Image
         FigurePosition          matlab.ui.control.Image
         DataHubLamp             matlab.ui.control.Image
         jsBackDoor              matlab.ui.control.HTML
-        Tab3Button              matlab.ui.control.StateButton
+        Tab4Button              matlab.ui.control.StateButton
         ButtonsSeparator        matlab.ui.control.Image
+        Tab3Button              matlab.ui.control.StateButton
         Tab2Button              matlab.ui.control.StateButton
         Tab1Button              matlab.ui.control.StateButton
         AppName                 matlab.ui.control.Label
@@ -51,7 +53,8 @@ classdef winSCH_exported < matlab.apps.AppBase
         SearchContext           matlab.ui.control.Label
         SearchSetup             matlab.ui.control.Image
         Tab2_Products           matlab.ui.container.Tab
-        Tab3_Config             matlab.ui.container.Tab
+        Tab3_Customs            matlab.ui.container.Tab
+        Tab4_Config             matlab.ui.container.Tab
     end
 
 
@@ -482,10 +485,13 @@ classdef winSCH_exported < matlab.apps.AppBase
         
                             % DOCKS:OTHERS
                             case {'auxApp.dockAddSelectedToBucket', 'auxApp.dockAddSelectedToBucket_exported', ...
-                                  'auxApp.dockFilterSetup', 'auxApp.dockFilterSetup_exported', ...
+                                  'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
+                                  'auxApp.dockCustomsFilter', 'auxApp.dockCustomsFilter_exported', ...
+                                  'auxApp.dockCustomsManageRules', 'auxApp.dockCustomsManageRules_exported', ...
                                   'auxApp.dockProductDetails', 'auxApp.dockProductDetails_exported', ...
                                   'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
-                                  'auxApp.dockReportLib', 'auxApp.dockReportLib_exported'}
+                                  'auxApp.dockReportLib', 'auxApp.dockReportLib_exported', ...
+                                  'auxApp.dockSearchFilter', 'auxApp.dockSearchFilter_exported'}
                                 switch eventName
                                     % auxApp.dockAddSelectedToBucket
                                     case 'onAddSelectedToBucketRequest'
@@ -497,6 +503,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         else
                                             delete(callingApp)
                                         end
+
+                                    case 'onCustomsShipmentsTableChanged'
+                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName)
 
                                     % auxApp.dockFilterSetup
                                     case 'onSearchModeChanged'
@@ -577,8 +586,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'FilterSetup', 'ProductDetails', 'AddSelectedToBucket', 'ProductInfo', 'ReportLib'})}
-                context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CONFIG'})}
+                auxAppName char {mustBeMember(auxAppName, {'ProductDetails', 'AddSelectedToBucket', 'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchFilter'})}
+                context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CUSTOMS', 'CONFIG'})}
             end
 
             arguments (Repeating)
@@ -599,10 +608,13 @@ classdef winSCH_exported < matlab.apps.AppBase
                     'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
                 );
                 popupSpecifications(1, :) = {"AddSelectedToBucket", 518, 486, false};
-                popupSpecifications(2, :) = {"FilterSetup", 518, 486, false};
-                popupSpecifications(3, :) = {"ProductDetails", 1038, 660, false};
-                popupSpecifications(4, :) = {"ProductInfo", 580, 640, false};
-                popupSpecifications(5, :) = {"ReportLib", 460, 598, false};
+                popupSpecifications(2, :) = {"CustomsAnalysisDetails", 598, 598, false};
+                popupSpecifications(3, :) = {"CustomsFilter", 518, 486, false};
+                popupSpecifications(4, :) = {"CustomsManageRules", 1038, 660, false};
+                popupSpecifications(5, :) = {"ProductDetails", 1038, 660, false};
+                popupSpecifications(6, :) = {"ProductInfo", 580, 640, false};
+                popupSpecifications(7, :) = {"ReportLib", 460, 598, false};
+                popupSpecifications(8, :) = {"SearchFilter", 518, 486, false};
 
                 auxAppNameIdx = find(popupSpecifications.AuxAppName == string(auxAppName), 1);
                 screenWidth = popupSpecifications.Width(auxAppNameIdx);
@@ -662,6 +674,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.Tab1Button;
                         app.Tab2Button;
                         app.Tab3Button;
+                        app.Tab4Button;
                         app.SearchEntryPointGrid;
                         app.SearchEntryPoint;
                         app.SearchSuggestions;
@@ -695,6 +708,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                            struct('appName', appName, 'dataTag', app.Tab4Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', app.PopupTempWarning.UserData.id, 'style', struct('borderRadius', '8px', 'pointerEvents', 'none')), ...
                             struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
                             struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
@@ -788,7 +802,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog, app.jsBackDoor);
             addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', '', 'Off', ''), matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      2)
-            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab3Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "External", "auxApp.winCustoms",  app.Tab3Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab4Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      4)
             app.tabGroupController.inlineSVG = true;
 
             % Inicialização da propriedade "UserData" da tabela.
@@ -959,7 +974,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.UITable.UserData.matchRowIdxs = matchRowIdxs;
 
             updateSearchContext(app)
-            updateTableFootnote(app, homAggregatedCount)
+            updateTableNumRows(app, homAggregatedCount)
 
             if ~isempty(app.UITable.Data)
                 app.UITable.Selection = 1;
@@ -970,8 +985,16 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function updateTableFootnote(app, homAggregatedCount)
-            app.NumRows.Text = sprintf('%d REGISTROS', homAggregatedCount);
+        function updateTableNumRows(app, numRows)
+            if numRows == 0
+                numRowsText = '';
+            elseif numRows == 1
+                numRowsText = '1 REGISTRO';
+            else
+                numRowsText = sprintf('%d REGISTROS', numRows);
+            end
+
+            app.NumRows.Text = numRowsText;
         end
 
         %-----------------------------------------------------------------%
@@ -1343,7 +1366,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             arguments
                 app
                 eventName {mustBeMember(eventName, {'onFetchIssueDetails', 'onReportGenerate', 'onUploadArtifacts'})}
-                context {mustBeMember(context, {'PRODUCTS'})}
+                context {mustBeMember(context, {'PRODUCTS', 'CUSTOMS'})}
                 credentials
             end
 
@@ -1635,11 +1658,11 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         % Callback function: AppInfo, DataHubLamp, FigurePosition, 
-        % ...and 3 other components
+        % ...and 4 other components
         function onTabNavigatorButtonPushed(app, event)
 
             switch event.Source
-                case {app.Tab1Button, app.Tab2Button, app.Tab3Button}
+                case {app.Tab1Button, app.Tab2Button, app.Tab3Button, app.Tab4Button}
                     openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, app)
 
                 case app.DataHubLamp
@@ -1746,7 +1769,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             switch event.Source
                 case app.SearchSetup
-                    ipcMainMatlabOpenPopupApp(app, app, 'FilterSetup', app.Context)
+                    ipcMainMatlabOpenPopupApp(app, app, 'SearchFilter', app.Context)
 
                 case app.ProductDetails
                     if isempty(app.UITable.Data)
@@ -2365,13 +2388,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2_Products = uitab(app.TabGroup);
             app.Tab2_Products.AutoResizeChildren = 'off';
 
-            % Create Tab3_Config
-            app.Tab3_Config = uitab(app.TabGroup);
-            app.Tab3_Config.AutoResizeChildren = 'off';
+            % Create Tab3_Customs
+            app.Tab3_Customs = uitab(app.TabGroup);
+            app.Tab3_Customs.AutoResizeChildren = 'off';
+
+            % Create Tab4_Config
+            app.Tab4_Config = uitab(app.TabGroup);
 
             % Create NavBar
             app.NavBar = uigridlayout(app.GridLayout);
-            app.NavBar.ColumnWidth = {101, '1x', 34, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
+            app.NavBar.ColumnWidth = {101, '1x', 34, 34, 5, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
             app.NavBar.RowHeight = {5, 7, 20, 7, 5};
             app.NavBar.ColumnSpacing = 5;
             app.NavBar.RowSpacing = 0;
@@ -2395,6 +2421,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab1Button = uibutton(app.NavBar, 'state');
             app.Tab1Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab1Button.Tag = 'SEARCH';
+            app.Tab1Button.Tooltip = {'Pesquisa de produtos'};
             app.Tab1Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'search-sparkle-24px-yellow.svg');
             app.Tab1Button.IconAlignment = 'top';
             app.Tab1Button.Text = '';
@@ -2407,6 +2434,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2Button = uibutton(app.NavBar, 'state');
             app.Tab2Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab2Button.Tag = 'PRODUCTS';
+            app.Tab2Button.Tooltip = {'Produtos inspecionados'; '(Comércio/Aduana)'};
             app.Tab2Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'checklist-24px-white.svg');
             app.Tab2Button.IconAlignment = 'top';
             app.Tab2Button.Text = '';
@@ -2414,36 +2442,49 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab2Button.Layout.Row = [2 4];
             app.Tab2Button.Layout.Column = 4;
 
-            % Create ButtonsSeparator
-            app.ButtonsSeparator = uiimage(app.NavBar);
-            app.ButtonsSeparator.ScaleMethod = 'none';
-            app.ButtonsSeparator.Enable = 'off';
-            app.ButtonsSeparator.Layout.Row = [2 4];
-            app.ButtonsSeparator.Layout.Column = 5;
-            app.ButtonsSeparator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
-
             % Create Tab3Button
             app.Tab3Button = uibutton(app.NavBar, 'state');
             app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.Tab3Button.Tag = 'CONFIG';
-            app.Tab3Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'gear-24px-white.svg');
+            app.Tab3Button.Tag = 'CUSTOMS';
+            app.Tab3Button.Tooltip = {'Remessa conforme'; '(Aduana)'};
+            app.Tab3Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'group-by-ref-type-24px-white.svg');
             app.Tab3Button.IconAlignment = 'top';
             app.Tab3Button.Text = '';
             app.Tab3Button.BackgroundColor = [0.2 0.2 0.2];
             app.Tab3Button.Layout.Row = [2 4];
             app.Tab3Button.Layout.Column = 6;
 
+            % Create ButtonsSeparator
+            app.ButtonsSeparator = uiimage(app.NavBar);
+            app.ButtonsSeparator.ScaleMethod = 'none';
+            app.ButtonsSeparator.Enable = 'off';
+            app.ButtonsSeparator.Layout.Row = [2 4];
+            app.ButtonsSeparator.Layout.Column = 7;
+            app.ButtonsSeparator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
+
+            % Create Tab4Button
+            app.Tab4Button = uibutton(app.NavBar, 'state');
+            app.Tab4Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.Tab4Button.Tag = 'CONFIG';
+            app.Tab4Button.Tooltip = {'Configurações gerais'};
+            app.Tab4Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'gear-24px-white.svg');
+            app.Tab4Button.IconAlignment = 'top';
+            app.Tab4Button.Text = '';
+            app.Tab4Button.BackgroundColor = [0.2 0.2 0.2];
+            app.Tab4Button.Layout.Row = [2 4];
+            app.Tab4Button.Layout.Column = 8;
+
             % Create jsBackDoor
             app.jsBackDoor = uihtml(app.NavBar);
             app.jsBackDoor.Layout.Row = 3;
-            app.jsBackDoor.Layout.Column = 8;
+            app.jsBackDoor.Layout.Column = 10;
 
             % Create DataHubLamp
             app.DataHubLamp = uiimage(app.NavBar);
             app.DataHubLamp.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.DataHubLamp.Visible = 'off';
             app.DataHubLamp.Layout.Row = 3;
-            app.DataHubLamp.Layout.Column = 9;
+            app.DataHubLamp.Layout.Column = 11;
             app.DataHubLamp.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'red-circle-blink.gif');
 
             % Create FigurePosition
@@ -2452,7 +2493,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.FigurePosition.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.FigurePosition.Visible = 'off';
             app.FigurePosition.Layout.Row = 3;
-            app.FigurePosition.Layout.Column = 11;
+            app.FigurePosition.Layout.Column = 13;
             app.FigurePosition.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'screen-normal-24px-white.svg');
 
             % Create AppInfo
@@ -2460,8 +2501,16 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.AppInfo.ScaleMethod = 'none';
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.AppInfo.Layout.Row = 3;
-            app.AppInfo.Layout.Column = 12;
+            app.AppInfo.Layout.Column = 14;
             app.AppInfo.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'kebab-vertical-24px-white.svg');
+
+            % Create ButtonsSeparator_2
+            app.ButtonsSeparator_2 = uiimage(app.NavBar);
+            app.ButtonsSeparator_2.ScaleMethod = 'none';
+            app.ButtonsSeparator_2.Enable = 'off';
+            app.ButtonsSeparator_2.Layout.Row = [2 4];
+            app.ButtonsSeparator_2.Layout.Column = 5;
+            app.ButtonsSeparator_2.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV_White.svg');
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

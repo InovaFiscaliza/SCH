@@ -496,7 +496,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [20 20 20 20];
-            app.GridLayout.BackgroundColor = [1 1 1];
+            app.GridLayout.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create HomologationPanel
             app.HomologationPanel = uipanel(app.GridLayout);
@@ -548,7 +548,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             % Create Image
             app.Image = uiimage(app.GridLayout);
-            app.Image.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.Image.BackgroundColor = [1 1 1];
             app.Image.Layout.Row = 1;
             app.Image.Layout.Column = [6 11];
             app.Image.ImageSource = 'image-missing.svg';
@@ -599,6 +599,7 @@ classdef dockProductDetails_exported < matlab.apps.AppBase
 
             % Create WordCloudNote
             app.WordCloudNote = uilabel(app.WordCloud);
+            app.WordCloudNote.BackgroundColor = [1 1 1];
             app.WordCloudNote.VerticalAlignment = 'bottom';
             app.WordCloudNote.FontSize = 10;
             app.WordCloudNote.FontColor = [0.502 0.502 0.502];

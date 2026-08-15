@@ -29,7 +29,7 @@ classdef (Abstract) readExternalFile
 
             schDataCategories = struct('columnName', {}, 'numCategories', {}, 'categories', {});
 
-            schColumnTypes = matlab.Compatibility.resolveTableVariableTypes(schData, false);
+            schColumnTypes = matlab.Compatibility.resolveTableVariableTypes(schData.detailed, false);
             schColumnNames = schData.detailed.Properties.VariableNames(strcmp(schColumnTypes, 'categorical'));
             
             for ii = 1:numel(schColumnNames)
@@ -147,6 +147,49 @@ classdef (Abstract) readExternalFile
             end
             
             annotationTable(annotationTable.("Situação") == -1, :) = [];
+        end
+
+        %-----------------------------------------------------------------%
+        function varargout = Customs(operationType, varargin)
+            arguments
+                operationType {mustBeMember(operationType, {'Rules', 'Data'})}
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            varargout = {};
+
+            switch operationType
+                case 'Rules'
+                    rootFolder = varargin{1};
+
+                    [projectFolder, localCacheFolder] = appEngine.util.Path(class.Constants.appName, rootFolder);
+                    fileName = 'CustomsRules.json';
+        
+                    try
+                        localCacheFilePath = fullfile(localCacheFolder, fileName);
+                        rules = jsondecode(fileread(localCacheFilePath, 'Encoding', 'UTF-8'));
+                    catch
+                        projectFilePath = fullfile(projectFolder, fileName);
+                        rules = jsondecode(fileread(projectFilePath, 'Encoding', 'UTF-8'));
+                    end
+
+                    varargout{1} = rules;
+
+                otherwise % 'Data'
+                    fileName = varargin{1};
+                    tbl = readtable(fileName, 'VariableNamingRule', 'preserve');
+        
+                    requiredColumns = {'Codigo da Remessa', 'Importador', 'Descricao Original'};
+                    if ~all(ismember(requiredColumns, tbl.Properties.VariableNames))
+                        error('Tabela de entrada precisa ter as colunas "Codigo da Remessa" e "Descricao Original"')
+                    end
+        
+                    tbl = tbl(:, requiredColumns);
+                    varargout{1} = tbl;
+            end
         end
     end
 

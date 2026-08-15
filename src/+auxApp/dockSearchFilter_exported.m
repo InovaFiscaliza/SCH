@@ -1,4 +1,4 @@
-classdef dockFilterSetup_exported < matlab.apps.AppBase
+classdef dockSearchFilter_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -411,7 +411,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
-            app.GridLayout.BackgroundColor = [1 1 1];
+            app.GridLayout.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create filteringStrategyLabel
             app.filteringStrategyLabel = uilabel(app.GridLayout);
@@ -451,7 +451,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.columnFilterGrid.RowHeight = {22, 22, 22, 22, 18, '1x'};
             app.columnFilterGrid.ColumnSpacing = 5;
             app.columnFilterGrid.RowSpacing = 5;
-            app.columnFilterGrid.BackgroundColor = [1 1 1];
+            app.columnFilterGrid.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create symbolicNameList
             app.symbolicNameList = uidropdown(app.columnFilterGrid);
@@ -602,7 +602,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
             app.config_SearchModePanel = uibuttongroup(app.GridLayout);
             app.config_SearchModePanel.AutoResizeChildren = 'off';
             app.config_SearchModePanel.SelectionChangedFcn = createCallbackFcn(app, @onSearchModeChanged, true);
-            app.config_SearchModePanel.BackgroundColor = [1 1 1];
+            app.config_SearchModePanel.BackgroundColor = [0.9804 0.9804 0.9804];
             app.config_SearchModePanel.Layout.Row = 4;
             app.config_SearchModePanel.Layout.Column = 1;
 
@@ -647,7 +647,7 @@ classdef dockFilterSetup_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = dockFilterSetup_exported(Container, varargin)
+        function app = dockSearchFilter_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

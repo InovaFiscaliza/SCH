@@ -63,6 +63,25 @@ classdef (Abstract) ProjectBase
             'cell',        'Informações adicionais' %                        sharepoint
         }
 
+        CUSTOMSSHIPMENTSSPECIFICATION = {
+            'cell',        'remessaCodigo';
+            'cell',        'remessaImportador';
+            'cell',        'remessaDescricao';
+            'uint32',      'numRegrasAvaliadas';
+            'categorical', 'regraId';
+            'categorical', 'regraCategoria';
+            'categorical', 'regraDecisaoSugerida';  % "Perdimento" | "Devolução" | "Prazo" | "Liberado" | "Vistoria"
+            'categorical', 'regraConfianca';
+            'categorical', 'regraMotivo';
+            'cell',        'regraPalavrasEncontradas';
+            'categorical', 'estadoAmostragem';      % "-" | "Não selecionada" | "Selecionada"
+            'categorical', 'estadoRevisao';         % "Pendente" | "Em vistoria" | "Concluída"
+            'categorical', 'estadoVistoria';        % "-" | "Pendente" | "Concluída"
+            'cell',        'auditorDataHora';
+            'categorical', 'auditorDecisaoFinal';   % "-" | "Perdimento" | "Devolução" | "Prazo" | "Liberado"
+            'cell',        'auditorNota'
+        }
+
         WARNING_ENTRYEXIST = struct( ...
             'SEARCH', [ ...
                 'O(s) registro(s) selecionado(s) já consta(m) na lista de ' ...
@@ -156,6 +175,20 @@ classdef (Abstract) ProjectBase
             inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.context.PRODUCTS.situationType.options, 'Protected', true);
             inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.context.PRODUCTS.violationType.options, 'Protected', true);
             inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'},                                    'Protected', true);
+        end
+
+        %-----------------------------------------------------------------%
+        function customsShipments = createCustomsShipmentsTable(generalSettings)
+            customsShipments = table( ...
+                'Size', [0, height(model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION)], ...
+                'VariableTypes', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 1), ...
+                'VariableNames', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 2) ...
+            );
+            
+            customsShipments.("estadoAmostragem")    = categorical(customsShipments.("estadoAmostragem"),    generalSettings.context.CUSTOMS.estadoAmostragem.options,    'Protected', true);
+            customsShipments.("estadoRevisao")       = categorical(customsShipments.("estadoRevisao"),       generalSettings.context.CUSTOMS.estadoRevisao.options,       'Protected', true);
+            customsShipments.("estadoVistoria")      = categorical(customsShipments.("estadoVistoria"),      generalSettings.context.CUSTOMS.estadoVistoria.options,      'Protected', true);
+            customsShipments.("auditorDecisaoFinal") = categorical(customsShipments.("auditorDecisaoFinal"), generalSettings.context.CUSTOMS.auditorDecisaoFinal.options, 'Protected', true);
         end
 
         %-----------------------------------------------------------------%
@@ -305,6 +338,33 @@ classdef (Abstract) ProjectBase
                     productData; ...
                     [uninitializedColumns, repmat({''}, numel(uninitializedColumns), 1)] ...
                 ];
+            end
+        end
+
+        %-------------------------------------------------------------------------%
+        function rules = prepareRules(rules, generalSettings)
+            % Elimina regras inativas e ordena as regras por prioridade e peso,
+            % além de verificar se todas as categorias de sugestão são válidas.
+            rules(~strcmpi({rules.ativo}, 'SIM')) = [];
+        
+            suggestionCategories = generalSettings.context.CUSTOMS.regraDecisaoSugerida.options;
+            if any(~ismember({rules.decisao_sugerida}, suggestionCategories))
+                error('Ao menos uma das regras ativas possui uma categoria de sugestão inválida')
+            end
+        
+            priorities = [rules.prioridade];
+            weights = [rules.peso];
+        
+            [~, sortOrder] = sortrows([priorities(:), weights(:)], [1, 2], {'ascend', 'descend'});
+            rules = rules(sortOrder);
+        
+            for ii = 1:numel(rules)
+                terms = rules(ii).palavras_chave;
+                boosters = rules(ii).palavras_reforco;
+                exceptions = rules(ii).palavras_excecao;
+        
+                rules(ii).palavras_reforco = setdiff(boosters, terms);
+                rules(ii).palavras_excecao = setdiff(exceptions, union(terms, boosters));
             end
         end
     end

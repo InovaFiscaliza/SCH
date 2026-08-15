@@ -325,7 +325,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.GridLayout.RowHeight = {17, 22, 18, 22, 18, 22, 18, 22, 1, 17, 17, 17, 32, 22, 26, 22, 18, 22, 18, 22, 18, '1x', 22};
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
-            app.GridLayout.BackgroundColor = [1 1 1];
+            app.GridLayout.BackgroundColor = [0.9804 0.9804 0.9804];
 
             % Create IndexLabel
             app.IndexLabel = uilabel(app.GridLayout);
