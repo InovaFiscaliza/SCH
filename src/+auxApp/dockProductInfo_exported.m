@@ -4,20 +4,20 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure              matlab.ui.Figure
         GridLayout            matlab.ui.container.GridLayout
-        NextProduct           matlab.ui.control.Image
-        PreviousProduct       matlab.ui.control.Image
-        optNotes              matlab.ui.control.TextArea
-        optNotesLabel         matlab.ui.control.Label
+        ProductStatusPanel    matlab.ui.container.Panel
+        ProductStatusGrid     matlab.ui.container.GridLayout
+        Note                  matlab.ui.control.TextArea
+        NoteLabel             matlab.ui.control.Label
+        PLAI                  matlab.ui.control.EditField
+        PLAILabel             matlab.ui.control.Label
+        Lacre                 matlab.ui.control.EditField
+        LacreLabel            matlab.ui.control.Label
         Corrigible            matlab.ui.control.DropDown
         CorrigibleLabel       matlab.ui.control.Label
         ViolationType         matlab.ui.control.DropDown
         ViolationTypeLabel    matlab.ui.control.Label
         Situation             matlab.ui.control.DropDown
         SituationLabel        matlab.ui.control.Label
-        PLAI                  matlab.ui.control.EditField
-        PLAILabel             matlab.ui.control.Label
-        Lacre                 matlab.ui.control.EditField
-        LacreLabel            matlab.ui.control.Label
         QtdRetida             matlab.ui.control.NumericEditField
         QtdRetidaLabel        matlab.ui.control.Label
         QtdApreendida         matlab.ui.control.NumericEditField
@@ -36,9 +36,12 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         UnitPriceSourceLabel  matlab.ui.control.Label
         UnitPrice             matlab.ui.control.NumericEditField
         UnitPriceLabel        matlab.ui.control.Label
+        EvidencePanel         matlab.ui.container.Panel
+        EvidenceGrid          matlab.ui.container.GridLayout
         Interference          matlab.ui.control.CheckBox
         InUse                 matlab.ui.control.CheckBox
         RF                    matlab.ui.control.CheckBox
+        EvidenceLabel         matlab.ui.control.Label
         CodAduana             matlab.ui.control.EditField
         CodAduanaLabel        matlab.ui.control.Label
         Importador            matlab.ui.control.EditField
@@ -51,10 +54,15 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         SubtypeLabel          matlab.ui.control.Label
         Type                  matlab.ui.control.DropDown
         TypeLabel             matlab.ui.control.Label
-        nHom                  matlab.ui.control.EditField
-        nHomLabel             matlab.ui.control.Label
-        Index                 matlab.ui.control.NumericEditField
-        IndexLabel            matlab.ui.control.Label
+        ProductStatusLabel    matlab.ui.control.Label
+        HomologationPanel     matlab.ui.container.Panel
+        HomologationGrid      matlab.ui.container.GridLayout
+        Homologation          matlab.ui.control.Label
+        HomologationIcon      matlab.ui.control.Image
+        ProductNext           matlab.ui.control.Image
+        ProductPrevious       matlab.ui.control.Image
+        ProductPosition       matlab.ui.control.Label
+        Title                 matlab.ui.control.Label
     end
 
     
@@ -83,71 +91,65 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            app.Type.Items          = categories(app.projectData.inspectedProducts.("Tipo"));
-            app.Subtype.Items       = {};
-            app.Situation.Items     = categories(app.projectData.inspectedProducts.("Situação"));
+            app.Type.Items = categories(app.projectData.inspectedProducts.("Tipo"));
+            app.Subtype.Items = {};
+            app.Situation.Items = categories(app.projectData.inspectedProducts.("Situação"));
             app.ViolationType.Items = categories(app.projectData.inspectedProducts.("Infração"));
-            app.Corrigible.Items    = categories(app.projectData.inspectedProducts.("Sanável?"));
+            app.Corrigible.Items = categories(app.projectData.inspectedProducts.("Sanável?"));
 
-            idx = app.callingApp.UITable.Selection;
-            updateForm(app, idx)
-
-            % Customização de componentes, mas restrito ao modo "DOCK".
-            jsBackDoor = [];
-            switch app.UIFigure
-                case app.mainApp.UIFigure
-                    jsBackDoor = app.mainApp.jsBackDoor;
-                case app.callingApp.UIFigure
-                    jsBackDoor = app.callingApp.jsBackDoor;
-            end
-
-            if ~isempty(jsBackDoor)
-                appName    = class(app);
-                elToModify = { app.optNotes };    
-                elDataTag  = ui.CustomizationBase.getElementsDataTag(elToModify);
-                if ~isempty(elDataTag)
-                    sendEventToHTMLSource(jsBackDoor, 'initializeComponents', { ...
-                        struct('appName', appName, 'dataTag', elDataTag{1}, 'generation', 2, 'style', struct('textAlign', 'justify')) ...
-                    });
-                end
-            end
+            currentProductIdx = app.inputArgs.selectedProductIdx;
+            updateForm(app, currentProductIdx)
         end
 
         %-----------------------------------------------------------------%
-        function updateForm(app, idx)
-            app.Index.Value           = idx;
+        function updateForm(app, currentProductIdx)
+            homologation = app.projectData.inspectedProducts.("Homologação"){currentProductIdx};
+            numProducts = height(app.projectData.inspectedProducts);
+            
+            if ~strcmp(homologation, '-')
+                productInfo = sprintf('Homologação nº <font style="color: #0072bd;"><b>%s</b></font>', homologation);
+            else
+                productInfo = '<font style="color: red;">Produto não homologado</font>';
+            end
+            app.ProductPosition.Text = sprintf('%d / %d', currentProductIdx, numProducts);
+            app.Homologation.Text = productInfo;
 
-            app.nHom.Value            = app.projectData.inspectedProducts.("Homologação"){idx};
-            app.Type.Value            = char(app.projectData.inspectedProducts.("Tipo")(idx));
-            updateTypeSubtypeMapping(app, app.Type.Value, app.projectData.inspectedProducts.("Subtipo"){idx})
+            app.Type.Value = char(app.projectData.inspectedProducts.("Tipo")(currentProductIdx));
+            updateTypeSubtypeMapping(app, app.Type.Value, app.projectData.inspectedProducts.("Subtipo"){currentProductIdx})
 
-            app.Manufacturer.Value    = app.projectData.inspectedProducts.("Fabricante"){idx};
-            app.Model.Value           = app.projectData.inspectedProducts.("Modelo"){idx};
-            app.Importador.Value      = app.projectData.inspectedProducts.("Importador"){idx};
-            app.CodAduana.Value       = app.projectData.inspectedProducts.("Código aduaneiro"){idx};
+            app.Manufacturer.Value = app.projectData.inspectedProducts.("Fabricante"){currentProductIdx};
+            app.Model.Value = app.projectData.inspectedProducts.("Modelo"){currentProductIdx};
+            app.Importador.Value = app.projectData.inspectedProducts.("Importador"){currentProductIdx};
+            app.CodAduana.Value = app.projectData.inspectedProducts.("Código aduaneiro"){currentProductIdx};
 
-            app.RF.Value              = app.projectData.inspectedProducts.("RF?")(idx);
-            app.InUse.Value           = app.projectData.inspectedProducts.("Em uso?")(idx);
-            app.Interference.Value    = app.projectData.inspectedProducts.("Interferência?")(idx);
+            app.RF.Value = app.projectData.inspectedProducts.("RF?")(currentProductIdx);
+            app.InUse.Value = app.projectData.inspectedProducts.("Em uso?")(currentProductIdx);
+            app.Interference.Value = app.projectData.inspectedProducts.("Interferência?")(currentProductIdx);
 
-            app.UnitPrice.Value       = app.projectData.inspectedProducts.("Valor Unit. (R$)")(idx);
-            app.UnitPriceSource.Value = app.projectData.inspectedProducts.("Fonte do valor"){idx};
-            app.QtdUso.Value          = double(app.projectData.inspectedProducts.("Qtd. uso")(idx));
-            app.QtdVendida.Value      = double(app.projectData.inspectedProducts.("Qtd. vendida")(idx));
-            app.QtdEstoque.Value      = double(app.projectData.inspectedProducts.("Qtd. estoque/aduana")(idx));
-            app.QtdAnunciada.Value    = double(app.projectData.inspectedProducts.("Qtd. anunciada")(idx));
+            app.UnitPrice.Value = app.projectData.inspectedProducts.("Valor Unit. (R$)")(currentProductIdx);
+            app.UnitPriceSource.Value = app.projectData.inspectedProducts.("Fonte do valor"){currentProductIdx};
+            app.QtdUso.Value = double(app.projectData.inspectedProducts.("Qtd. uso")(currentProductIdx));
+            app.QtdVendida.Value = double(app.projectData.inspectedProducts.("Qtd. vendida")(currentProductIdx));
+            app.QtdEstoque.Value = double(app.projectData.inspectedProducts.("Qtd. estoque/aduana")(currentProductIdx));
+            app.QtdAnunciada.Value = double(app.projectData.inspectedProducts.("Qtd. anunciada")(currentProductIdx));
 
-            app.QtdLacrada.Value      = double(app.projectData.inspectedProducts.("Qtd. lacradas")(idx));
-            app.QtdApreendida.Value   = double(app.projectData.inspectedProducts.("Qtd. apreendidas")(idx));
-            app.QtdRetida.Value       = double(app.projectData.inspectedProducts.("Qtd. retidas (RFB)")(idx));
+            app.QtdLacrada.Value = double(app.projectData.inspectedProducts.("Qtd. lacradas")(currentProductIdx));
+            app.QtdApreendida.Value = double(app.projectData.inspectedProducts.("Qtd. apreendidas")(currentProductIdx));
+            app.QtdRetida.Value = double(app.projectData.inspectedProducts.("Qtd. retidas (RFB)")(currentProductIdx));
 
-            app.Lacre.Value           = app.projectData.inspectedProducts.("Lacre"){idx};
-            app.PLAI.Value            = app.projectData.inspectedProducts.("PLAI"){idx};
+            app.Lacre.Value = app.projectData.inspectedProducts.("Lacre"){currentProductIdx};
+            app.PLAI.Value = app.projectData.inspectedProducts.("PLAI"){currentProductIdx};
 
-            app.Situation.Value       = char(app.projectData.inspectedProducts.("Situação")(idx));
-            app.ViolationType.Value   = char(app.projectData.inspectedProducts.("Infração")(idx));
-            app.Corrigible.Value      = char(app.projectData.inspectedProducts.("Sanável?")(idx));
-            app.optNotes.Value        = app.projectData.inspectedProducts.("Informações adicionais"){idx};
+            app.Situation.Value = char(app.projectData.inspectedProducts.("Situação")(currentProductIdx));
+            app.ViolationType.Value = char(app.projectData.inspectedProducts.("Infração")(currentProductIdx));
+            app.Corrigible.Value = char(app.projectData.inspectedProducts.("Sanável?")(currentProductIdx));
+            app.Note.Value = app.projectData.inspectedProducts.("Informações adicionais"){currentProductIdx};
+        end
+
+        %-----------------------------------------------------------------%
+        function homologation = getHomolotation(app)
+            currentProductIdx = app.inputArgs.selectedProductIdx;
+            homologation = app.projectData.inspectedProducts.("Homologação"){currentProductIdx};
         end
 
         %-----------------------------------------------------------------%
@@ -164,12 +166,12 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, callingApp, context)
+        function startupFcn(app, mainApp, callingApp, context, selectedProductIdx)
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
 
-                app.inputArgs = struct('context', context);
+                app.inputArgs = struct('context', context, 'selectedProductIdx', selectedProductIdx);
                 initialValues(app)
                 
             catch ME
@@ -187,7 +189,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
         % Value changed function: CodAduana, Corrigible, Importador, 
         % ...and 21 other components
-        function ParameterValueChanged(app, event)
+        function onParameterValueChanged(app, event)
             
             % Trata dados textuais...
             srcClass = class(event.Source);
@@ -198,7 +200,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                     event.Source.Value = textFormatGUI.cellstr2TextField(event.Source.Value, '\n');
             end
 
-            optionalNotes = app.optNotes.Value;
+            optionalNotes = app.Note.Value;
             if iscellstr(optionalNotes)
                 optionalNotes = strjoin(optionalNotes, '\n');
             end
@@ -212,11 +214,13 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                 case {app.Manufacturer, app.Model}
                     % Verifica se edição ocorreu em produto NÃO homologado, o que
                     % demanda recálculo do hash.
-                    if strcmp(app.nHom.Value, '-')
+                    if strcmp(getHomolotation(app), '-')
                         newNonCertificateHash = Hash.base64encode(strjoin({'-', app.Manufacturer.Value, app.Model.Value}, ' - '));
         
                         if ismember(newNonCertificateHash, app.projectData.inspectedProducts.("Hash"))
-                            updateForm(app, app.Index.Value)
+                            currentProductIdx = app.inputArgs.selectedProductIdx;
+                            updateForm(app, currentProductIdx)
+
                             ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
                             return
                         end
@@ -229,7 +233,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             end
             
             productData = {
-                'Homologação',           app.nHom.Value;
+                'Homologação',           getHomolotation(app);
                 'Importador',            app.Importador.Value;
                 'Código aduaneiro',      app.CodAduana.Value;
                 'Tipo',                  app.Type.Value;
@@ -256,31 +260,34 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                 'Informações adicionais', optionalNotes
             };
 
-            updateInspectedProducts(app.projectData, 'edit', app.Index.Value, productData(:, 1), productData(:, 2)')
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableCellEdited', "PRODUCTS", app.Index.Value)
+            currentProductIdx = app.inputArgs.selectedProductIdx;
+            updateInspectedProducts(app.projectData, 'edit', currentProductIdx, productData(:, 1), productData(:, 2)')
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableCellEdited', "PRODUCTS", currentProductIdx)
             
         end
 
-        % Image clicked function: NextProduct, PreviousProduct
-        function PreviousProductImageClicked(app, event)
+        % Image clicked function: ProductNext, ProductPrevious
+        function onProductsArrowButtonClicked(app, event)
             
-            idxMaxRow = height(app.projectData.inspectedProducts);
+            currentProductIdx = app.inputArgs.selectedProductIdx;
+            numProducts = height(app.projectData.inspectedProducts);
 
             switch event.Source
-                case app.PreviousProduct
-                    idxNewRowSelection = app.Index.Value - 1;
-                case app.NextProduct
-                    idxNewRowSelection = app.Index.Value + 1;
+                case app.ProductPrevious
+                    newProductIdx = currentProductIdx - 1;
+                case app.ProductNext
+                    newProductIdx = currentProductIdx + 1;
             end
 
-            if idxNewRowSelection < 1
-                idxNewRowSelection = idxMaxRow;
-            elseif idxNewRowSelection > idxMaxRow
-                idxNewRowSelection = 1;
+            if newProductIdx < 1
+                newProductIdx = numProducts;
+            elseif newProductIdx > numProducts
+                newProductIdx = 1;
             end
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableSelectionChanged', "PRODUCTS", idxNewRowSelection)
-            updateForm(app, idxNewRowSelection)
+            app.inputArgs.selectedProductIdx = newProductIdx;
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onTableSelectionChanged', "PRODUCTS", newProductIdx)
+            updateForm(app, newProductIdx)
 
         end
     end
@@ -298,7 +305,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 580 640];
+                app.UIFigure.Position = [100 100 840 628];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -321,446 +328,496 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {22, 22, '1x', '1x', '1x', '1x', '1x', '1x'};
-            app.GridLayout.RowHeight = {17, 22, 18, 22, 18, 22, 18, 22, 1, 17, 17, 17, 32, 22, 26, 22, 18, 22, 18, 22, 18, '1x', 22};
+            app.GridLayout.ColumnWidth = {670, 52, 24, 24};
+            app.GridLayout.RowHeight = {40, 44, 22, 467};
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
-            app.GridLayout.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.GridLayout.BackgroundColor = [1 1 1];
 
-            % Create IndexLabel
-            app.IndexLabel = uilabel(app.GridLayout);
-            app.IndexLabel.VerticalAlignment = 'bottom';
-            app.IndexLabel.FontSize = 10.5;
-            app.IndexLabel.Layout.Row = 1;
-            app.IndexLabel.Layout.Column = [1 2];
-            app.IndexLabel.Text = '#';
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.Layout.Row = 1;
+            app.Title.Layout.Column = 1;
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Editar registro de produto inspecionado</b>'; '<font style="color: gray; font-size: 10px;">Revise e atualize as informações do produto, da remessa e da análise</font>'};
 
-            % Create Index
-            app.Index = uieditfield(app.GridLayout, 'numeric');
-            app.Index.Limits = [-1 Inf];
-            app.Index.RoundFractionalValues = 'on';
-            app.Index.ValueDisplayFormat = '%.0f';
-            app.Index.AllowEmpty = 'on';
-            app.Index.Editable = 'off';
-            app.Index.HorizontalAlignment = 'left';
-            app.Index.FontSize = 11;
-            app.Index.FontColor = [1 1 1];
-            app.Index.BackgroundColor = [0 0 0];
-            app.Index.Layout.Row = 2;
-            app.Index.Layout.Column = [1 2];
-            app.Index.Value = 1;
+            % Create ProductPosition
+            app.ProductPosition = uilabel(app.GridLayout);
+            app.ProductPosition.FontSize = 14;
+            app.ProductPosition.Layout.Row = 1;
+            app.ProductPosition.Layout.Column = 2;
+            app.ProductPosition.Text = '';
 
-            % Create nHomLabel
-            app.nHomLabel = uilabel(app.GridLayout);
-            app.nHomLabel.VerticalAlignment = 'bottom';
-            app.nHomLabel.FontSize = 10.5;
-            app.nHomLabel.Layout.Row = 1;
-            app.nHomLabel.Layout.Column = [3 4];
-            app.nHomLabel.Text = 'Homologação:';
+            % Create ProductPrevious
+            app.ProductPrevious = uiimage(app.GridLayout);
+            app.ProductPrevious.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
+            app.ProductPrevious.Tooltip = {'Navega para o produto anterior'};
+            app.ProductPrevious.Layout.Row = 1;
+            app.ProductPrevious.Layout.Column = 3;
+            app.ProductPrevious.ImageSource = 'chevron-left.svg';
 
-            % Create nHom
-            app.nHom = uieditfield(app.GridLayout, 'text');
-            app.nHom.CharacterLimits = [0 14];
-            app.nHom.Editable = 'off';
-            app.nHom.FontSize = 11;
-            app.nHom.Layout.Row = 2;
-            app.nHom.Layout.Column = [3 4];
-            app.nHom.Value = '-';
+            % Create ProductNext
+            app.ProductNext = uiimage(app.GridLayout);
+            app.ProductNext.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
+            app.ProductNext.Tooltip = {'Navega para o produto posterior'};
+            app.ProductNext.Layout.Row = 1;
+            app.ProductNext.Layout.Column = 4;
+            app.ProductNext.ImageSource = 'chevron-right.svg';
+
+            % Create HomologationPanel
+            app.HomologationPanel = uipanel(app.GridLayout);
+            app.HomologationPanel.AutoResizeChildren = 'off';
+            app.HomologationPanel.Layout.Row = 2;
+            app.HomologationPanel.Layout.Column = [1 4];
+
+            % Create HomologationGrid
+            app.HomologationGrid = uigridlayout(app.HomologationPanel);
+            app.HomologationGrid.ColumnWidth = {26, '1x'};
+            app.HomologationGrid.RowHeight = {'1x'};
+            app.HomologationGrid.BackgroundColor = [1 1 1];
+
+            % Create HomologationIcon
+            app.HomologationIcon = uiimage(app.HomologationGrid);
+            app.HomologationIcon.Enable = 'off';
+            app.HomologationIcon.Layout.Row = 1;
+            app.HomologationIcon.Layout.Column = 1;
+            app.HomologationIcon.ImageSource = 'circuit-board.svg';
+
+            % Create Homologation
+            app.Homologation = uilabel(app.HomologationGrid);
+            app.Homologation.FontColor = [0.502 0.502 0.502];
+            app.Homologation.Layout.Row = 1;
+            app.Homologation.Layout.Column = 2;
+            app.Homologation.Interpreter = 'html';
+            app.Homologation.Text = '';
+
+            % Create ProductStatusLabel
+            app.ProductStatusLabel = uilabel(app.GridLayout);
+            app.ProductStatusLabel.VerticalAlignment = 'bottom';
+            app.ProductStatusLabel.FontSize = 11;
+            app.ProductStatusLabel.FontWeight = 'bold';
+            app.ProductStatusLabel.FontColor = [0 0.451 0.7412];
+            app.ProductStatusLabel.Layout.Row = 3;
+            app.ProductStatusLabel.Layout.Column = 1;
+            app.ProductStatusLabel.Text = 'Campos editáveis';
+
+            % Create ProductStatusPanel
+            app.ProductStatusPanel = uipanel(app.GridLayout);
+            app.ProductStatusPanel.AutoResizeChildren = 'off';
+            app.ProductStatusPanel.Layout.Row = 4;
+            app.ProductStatusPanel.Layout.Column = [1 4];
+
+            % Create ProductStatusGrid
+            app.ProductStatusGrid = uigridlayout(app.ProductStatusPanel);
+            app.ProductStatusGrid.ColumnWidth = {103, 103, 102, 103, 102, 103, 102};
+            app.ProductStatusGrid.RowHeight = {15, 22, 20, 22, 20, 22, 20, 40, 20, 22, 20, 22, 20, 22, 20, 44};
+            app.ProductStatusGrid.RowSpacing = 5;
+            app.ProductStatusGrid.BackgroundColor = [1 1 1];
 
             % Create TypeLabel
-            app.TypeLabel = uilabel(app.GridLayout);
+            app.TypeLabel = uilabel(app.ProductStatusGrid);
             app.TypeLabel.VerticalAlignment = 'bottom';
-            app.TypeLabel.FontSize = 10.5;
+            app.TypeLabel.FontSize = 11;
             app.TypeLabel.Layout.Row = 1;
-            app.TypeLabel.Layout.Column = [5 6];
+            app.TypeLabel.Layout.Column = 1;
             app.TypeLabel.Text = 'Tipo:';
 
             % Create Type
-            app.Type = uidropdown(app.GridLayout);
+            app.Type = uidropdown(app.ProductStatusGrid);
             app.Type.Items = {};
-            app.Type.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Type.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Type.FontSize = 11;
             app.Type.BackgroundColor = [1 1 1];
             app.Type.Layout.Row = 2;
-            app.Type.Layout.Column = [5 8];
+            app.Type.Layout.Column = [1 4];
             app.Type.Value = {};
 
             % Create SubtypeLabel
-            app.SubtypeLabel = uilabel(app.GridLayout);
+            app.SubtypeLabel = uilabel(app.ProductStatusGrid);
             app.SubtypeLabel.VerticalAlignment = 'bottom';
-            app.SubtypeLabel.FontSize = 10.5;
-            app.SubtypeLabel.Layout.Row = 3;
-            app.SubtypeLabel.Layout.Column = [1 4];
+            app.SubtypeLabel.FontSize = 11;
+            app.SubtypeLabel.Layout.Row = 1;
+            app.SubtypeLabel.Layout.Column = 5;
             app.SubtypeLabel.Text = 'Subtipo:';
 
             % Create Subtype
-            app.Subtype = uidropdown(app.GridLayout);
+            app.Subtype = uidropdown(app.ProductStatusGrid);
             app.Subtype.Items = {''};
-            app.Subtype.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Subtype.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Subtype.Enable = 'off';
             app.Subtype.FontSize = 11;
             app.Subtype.BackgroundColor = [1 1 1];
-            app.Subtype.Layout.Row = 4;
-            app.Subtype.Layout.Column = [1 8];
+            app.Subtype.Layout.Row = 2;
+            app.Subtype.Layout.Column = [5 7];
             app.Subtype.Value = '';
 
             % Create ManufacturerLabel
-            app.ManufacturerLabel = uilabel(app.GridLayout);
+            app.ManufacturerLabel = uilabel(app.ProductStatusGrid);
             app.ManufacturerLabel.VerticalAlignment = 'bottom';
-            app.ManufacturerLabel.FontSize = 10.5;
-            app.ManufacturerLabel.Layout.Row = 5;
-            app.ManufacturerLabel.Layout.Column = [1 4];
+            app.ManufacturerLabel.FontSize = 11;
+            app.ManufacturerLabel.Layout.Row = 3;
+            app.ManufacturerLabel.Layout.Column = [1 3];
             app.ManufacturerLabel.Text = 'Fabricante:';
 
             % Create Manufacturer
-            app.Manufacturer = uieditfield(app.GridLayout, 'text');
-            app.Manufacturer.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Manufacturer = uieditfield(app.ProductStatusGrid, 'text');
+            app.Manufacturer.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Manufacturer.FontSize = 11;
-            app.Manufacturer.Layout.Row = 6;
-            app.Manufacturer.Layout.Column = [1 6];
+            app.Manufacturer.Layout.Row = 4;
+            app.Manufacturer.Layout.Column = [1 4];
 
             % Create ModelLabel
-            app.ModelLabel = uilabel(app.GridLayout);
+            app.ModelLabel = uilabel(app.ProductStatusGrid);
             app.ModelLabel.VerticalAlignment = 'bottom';
-            app.ModelLabel.FontSize = 10.5;
-            app.ModelLabel.Layout.Row = 5;
-            app.ModelLabel.Layout.Column = 7;
+            app.ModelLabel.FontSize = 11;
+            app.ModelLabel.Layout.Row = 3;
+            app.ModelLabel.Layout.Column = 5;
             app.ModelLabel.Text = 'Modelo:';
 
             % Create Model
-            app.Model = uieditfield(app.GridLayout, 'text');
-            app.Model.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Model = uieditfield(app.ProductStatusGrid, 'text');
+            app.Model.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Model.FontSize = 11;
-            app.Model.Layout.Row = 6;
-            app.Model.Layout.Column = [7 8];
+            app.Model.Layout.Row = 4;
+            app.Model.Layout.Column = [5 7];
 
             % Create ImportadorLabel
-            app.ImportadorLabel = uilabel(app.GridLayout);
+            app.ImportadorLabel = uilabel(app.ProductStatusGrid);
             app.ImportadorLabel.VerticalAlignment = 'bottom';
-            app.ImportadorLabel.FontSize = 10.5;
-            app.ImportadorLabel.Layout.Row = 7;
-            app.ImportadorLabel.Layout.Column = [1 4];
+            app.ImportadorLabel.FontSize = 11;
+            app.ImportadorLabel.Layout.Row = 5;
+            app.ImportadorLabel.Layout.Column = [1 3];
             app.ImportadorLabel.Text = 'Importador:';
 
             % Create Importador
-            app.Importador = uieditfield(app.GridLayout, 'text');
-            app.Importador.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Importador = uieditfield(app.ProductStatusGrid, 'text');
+            app.Importador.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Importador.FontSize = 11;
-            app.Importador.Layout.Row = 8;
-            app.Importador.Layout.Column = [1 6];
+            app.Importador.Layout.Row = 6;
+            app.Importador.Layout.Column = [1 4];
 
             % Create CodAduanaLabel
-            app.CodAduanaLabel = uilabel(app.GridLayout);
+            app.CodAduanaLabel = uilabel(app.ProductStatusGrid);
             app.CodAduanaLabel.VerticalAlignment = 'bottom';
-            app.CodAduanaLabel.FontSize = 10.5;
-            app.CodAduanaLabel.Layout.Row = 7;
-            app.CodAduanaLabel.Layout.Column = [7 8];
+            app.CodAduanaLabel.FontSize = 11;
+            app.CodAduanaLabel.Layout.Row = 5;
+            app.CodAduanaLabel.Layout.Column = [5 6];
             app.CodAduanaLabel.Text = 'Código aduaneiro:';
 
             % Create CodAduana
-            app.CodAduana = uieditfield(app.GridLayout, 'text');
-            app.CodAduana.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.CodAduana = uieditfield(app.ProductStatusGrid, 'text');
+            app.CodAduana.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.CodAduana.FontSize = 11;
-            app.CodAduana.Layout.Row = 8;
-            app.CodAduana.Layout.Column = [7 8];
+            app.CodAduana.Layout.Row = 6;
+            app.CodAduana.Layout.Column = [5 7];
+
+            % Create EvidenceLabel
+            app.EvidenceLabel = uilabel(app.ProductStatusGrid);
+            app.EvidenceLabel.VerticalAlignment = 'bottom';
+            app.EvidenceLabel.FontSize = 11;
+            app.EvidenceLabel.Layout.Row = 7;
+            app.EvidenceLabel.Layout.Column = [1 2];
+            app.EvidenceLabel.Text = 'Evidências:';
+
+            % Create EvidencePanel
+            app.EvidencePanel = uipanel(app.ProductStatusGrid);
+            app.EvidencePanel.AutoResizeChildren = 'off';
+            app.EvidencePanel.Layout.Row = 8;
+            app.EvidencePanel.Layout.Column = [1 7];
+
+            % Create EvidenceGrid
+            app.EvidenceGrid = uigridlayout(app.EvidencePanel);
+            app.EvidenceGrid.ColumnWidth = {206, 216, 314};
+            app.EvidenceGrid.RowHeight = {28};
+            app.EvidenceGrid.Padding = [10 5 10 5];
+            app.EvidenceGrid.BackgroundColor = [1 1 1];
 
             % Create RF
-            app.RF = uicheckbox(app.GridLayout);
-            app.RF.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.RF.Text = 'Evidenciado que se trata de produto que usa RF.';
+            app.RF = uicheckbox(app.EvidenceGrid);
+            app.RF.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.RF.Text = 'Produto usa RF';
             app.RF.FontSize = 11;
-            app.RF.Layout.Row = 10;
-            app.RF.Layout.Column = [1 5];
+            app.RF.Layout.Row = 1;
+            app.RF.Layout.Column = 1;
 
             % Create InUse
-            app.InUse = uicheckbox(app.GridLayout);
-            app.InUse.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.InUse.Text = 'Evidenciado USO do produto.';
+            app.InUse = uicheckbox(app.EvidenceGrid);
+            app.InUse.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.InUse.Text = 'Produto foi UTILIZADO';
             app.InUse.FontSize = 11;
-            app.InUse.Layout.Row = 11;
-            app.InUse.Layout.Column = [1 5];
+            app.InUse.Layout.Row = 1;
+            app.InUse.Layout.Column = 2;
 
             % Create Interference
-            app.Interference = uicheckbox(app.GridLayout);
-            app.Interference.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.Interference.Text = 'Evidenciada INTERFERÊNCIA decorrente do uso do produto.';
+            app.Interference = uicheckbox(app.EvidenceGrid);
+            app.Interference.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.Interference.Text = 'Houve INTERFERÊNCIA decorrente do uso';
+            app.Interference.WordWrap = 'on';
             app.Interference.FontSize = 11;
-            app.Interference.Layout.Row = 12;
-            app.Interference.Layout.Column = [1 8];
+            app.Interference.Layout.Row = 1;
+            app.Interference.Layout.Column = 3;
 
             % Create UnitPriceLabel
-            app.UnitPriceLabel = uilabel(app.GridLayout);
+            app.UnitPriceLabel = uilabel(app.ProductStatusGrid);
             app.UnitPriceLabel.VerticalAlignment = 'bottom';
-            app.UnitPriceLabel.FontSize = 10.5;
-            app.UnitPriceLabel.Layout.Row = 13;
+            app.UnitPriceLabel.FontSize = 11;
+            app.UnitPriceLabel.Layout.Row = 9;
             app.UnitPriceLabel.Layout.Column = [1 2];
-            app.UnitPriceLabel.Text = {'Valor unit.'; '(R$):'};
+            app.UnitPriceLabel.Text = 'Valor unitário (R$):';
 
             % Create UnitPrice
-            app.UnitPrice = uieditfield(app.GridLayout, 'numeric');
+            app.UnitPrice = uieditfield(app.ProductStatusGrid, 'numeric');
             app.UnitPrice.Limits = [0 Inf];
             app.UnitPrice.ValueDisplayFormat = '%.2f';
-            app.UnitPrice.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.UnitPrice.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.UnitPrice.FontSize = 11;
-            app.UnitPrice.Layout.Row = 14;
+            app.UnitPrice.Layout.Row = 10;
             app.UnitPrice.Layout.Column = [1 2];
 
             % Create UnitPriceSourceLabel
-            app.UnitPriceSourceLabel = uilabel(app.GridLayout);
+            app.UnitPriceSourceLabel = uilabel(app.ProductStatusGrid);
             app.UnitPriceSourceLabel.VerticalAlignment = 'bottom';
-            app.UnitPriceSourceLabel.FontSize = 10.5;
-            app.UnitPriceSourceLabel.Layout.Row = 13;
-            app.UnitPriceSourceLabel.Layout.Column = [3 8];
-            app.UnitPriceSourceLabel.Text = {'Fonte do valor:'; '(nota fiscal, site na internet, mostruário de loja etc)'};
+            app.UnitPriceSourceLabel.FontSize = 11;
+            app.UnitPriceSourceLabel.Layout.Row = 9;
+            app.UnitPriceSourceLabel.Layout.Column = [3 7];
+            app.UnitPriceSourceLabel.Text = 'Fonte do valor (nota fiscal, site na internet, mostruário de loja etc):';
 
             % Create UnitPriceSource
-            app.UnitPriceSource = uieditfield(app.GridLayout, 'text');
-            app.UnitPriceSource.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.UnitPriceSource = uieditfield(app.ProductStatusGrid, 'text');
+            app.UnitPriceSource.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.UnitPriceSource.FontSize = 11;
-            app.UnitPriceSource.Layout.Row = 14;
-            app.UnitPriceSource.Layout.Column = [3 8];
+            app.UnitPriceSource.Layout.Row = 10;
+            app.UnitPriceSource.Layout.Column = [3 7];
 
             % Create QtdVendidaLabel
-            app.QtdVendidaLabel = uilabel(app.GridLayout);
+            app.QtdVendidaLabel = uilabel(app.ProductStatusGrid);
             app.QtdVendidaLabel.VerticalAlignment = 'bottom';
-            app.QtdVendidaLabel.FontSize = 10.5;
-            app.QtdVendidaLabel.Layout.Row = 15;
-            app.QtdVendidaLabel.Layout.Column = [1 2];
-            app.QtdVendidaLabel.Text = {'Qtd.'; 'vendida:'};
+            app.QtdVendidaLabel.FontSize = 11;
+            app.QtdVendidaLabel.Layout.Row = 11;
+            app.QtdVendidaLabel.Layout.Column = 1;
+            app.QtdVendidaLabel.Text = 'Qtd. vendida:';
 
             % Create QtdVendida
-            app.QtdVendida = uieditfield(app.GridLayout, 'numeric');
+            app.QtdVendida = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdVendida.Limits = [0 Inf];
             app.QtdVendida.RoundFractionalValues = 'on';
             app.QtdVendida.ValueDisplayFormat = '%.0f';
-            app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdVendida.FontSize = 11;
-            app.QtdVendida.Layout.Row = 16;
-            app.QtdVendida.Layout.Column = [1 2];
+            app.QtdVendida.Layout.Row = 12;
+            app.QtdVendida.Layout.Column = 1;
 
             % Create QtdUsoLabel
-            app.QtdUsoLabel = uilabel(app.GridLayout);
+            app.QtdUsoLabel = uilabel(app.ProductStatusGrid);
             app.QtdUsoLabel.VerticalAlignment = 'bottom';
-            app.QtdUsoLabel.FontSize = 10.5;
-            app.QtdUsoLabel.Layout.Row = 15;
-            app.QtdUsoLabel.Layout.Column = 3;
-            app.QtdUsoLabel.Text = {'Qtd.'; 'em uso:'};
+            app.QtdUsoLabel.FontSize = 11;
+            app.QtdUsoLabel.Layout.Row = 11;
+            app.QtdUsoLabel.Layout.Column = 2;
+            app.QtdUsoLabel.Text = 'Qtd. em uso:';
 
             % Create QtdUso
-            app.QtdUso = uieditfield(app.GridLayout, 'numeric');
+            app.QtdUso = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdUso.Limits = [0 Inf];
             app.QtdUso.RoundFractionalValues = 'on';
             app.QtdUso.ValueDisplayFormat = '%.0f';
-            app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdUso.FontSize = 11;
-            app.QtdUso.Layout.Row = 16;
-            app.QtdUso.Layout.Column = 3;
+            app.QtdUso.Layout.Row = 12;
+            app.QtdUso.Layout.Column = 2;
 
             % Create QtdEstoqueLabel
-            app.QtdEstoqueLabel = uilabel(app.GridLayout);
+            app.QtdEstoqueLabel = uilabel(app.ProductStatusGrid);
             app.QtdEstoqueLabel.VerticalAlignment = 'bottom';
-            app.QtdEstoqueLabel.FontSize = 10.5;
-            app.QtdEstoqueLabel.Layout.Row = 15;
-            app.QtdEstoqueLabel.Layout.Column = [4 5];
-            app.QtdEstoqueLabel.Text = {'Qtd.'; 'estoque/aduana:'};
+            app.QtdEstoqueLabel.FontSize = 11;
+            app.QtdEstoqueLabel.Layout.Row = 11;
+            app.QtdEstoqueLabel.Layout.Column = [3 4];
+            app.QtdEstoqueLabel.Text = 'Qtd. estoque/aduana:';
 
             % Create QtdEstoque
-            app.QtdEstoque = uieditfield(app.GridLayout, 'numeric');
+            app.QtdEstoque = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdEstoque.Limits = [0 Inf];
             app.QtdEstoque.RoundFractionalValues = 'on';
             app.QtdEstoque.ValueDisplayFormat = '%.0f';
-            app.QtdEstoque.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdEstoque.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdEstoque.FontSize = 11;
-            app.QtdEstoque.Layout.Row = 16;
-            app.QtdEstoque.Layout.Column = 4;
+            app.QtdEstoque.Layout.Row = 12;
+            app.QtdEstoque.Layout.Column = 3;
 
             % Create QtdAnunciadaLabel
-            app.QtdAnunciadaLabel = uilabel(app.GridLayout);
+            app.QtdAnunciadaLabel = uilabel(app.ProductStatusGrid);
             app.QtdAnunciadaLabel.VerticalAlignment = 'bottom';
-            app.QtdAnunciadaLabel.FontSize = 10.5;
-            app.QtdAnunciadaLabel.Layout.Row = 15;
-            app.QtdAnunciadaLabel.Layout.Column = 5;
-            app.QtdAnunciadaLabel.Text = {'Qtd.'; 'anunciada:'};
+            app.QtdAnunciadaLabel.FontSize = 11;
+            app.QtdAnunciadaLabel.Layout.Row = 11;
+            app.QtdAnunciadaLabel.Layout.Column = 4;
+            app.QtdAnunciadaLabel.Text = 'Qtd. anunciada:';
 
             % Create QtdAnunciada
-            app.QtdAnunciada = uieditfield(app.GridLayout, 'numeric');
+            app.QtdAnunciada = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdAnunciada.Limits = [0 Inf];
             app.QtdAnunciada.RoundFractionalValues = 'on';
             app.QtdAnunciada.ValueDisplayFormat = '%.0f';
-            app.QtdAnunciada.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdAnunciada.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdAnunciada.FontSize = 11;
-            app.QtdAnunciada.Layout.Row = 16;
-            app.QtdAnunciada.Layout.Column = 5;
+            app.QtdAnunciada.Layout.Row = 12;
+            app.QtdAnunciada.Layout.Column = 4;
 
             % Create QtdLacradaLabel
-            app.QtdLacradaLabel = uilabel(app.GridLayout);
+            app.QtdLacradaLabel = uilabel(app.ProductStatusGrid);
             app.QtdLacradaLabel.VerticalAlignment = 'bottom';
-            app.QtdLacradaLabel.FontSize = 10.5;
-            app.QtdLacradaLabel.Layout.Row = 15;
-            app.QtdLacradaLabel.Layout.Column = 6;
-            app.QtdLacradaLabel.Text = {'Qtd.'; 'lacrada:'};
+            app.QtdLacradaLabel.FontSize = 11;
+            app.QtdLacradaLabel.Layout.Row = 11;
+            app.QtdLacradaLabel.Layout.Column = 5;
+            app.QtdLacradaLabel.Text = 'Qtd. lacrada:';
 
             % Create QtdLacrada
-            app.QtdLacrada = uieditfield(app.GridLayout, 'numeric');
+            app.QtdLacrada = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdLacrada.Limits = [0 Inf];
             app.QtdLacrada.RoundFractionalValues = 'on';
             app.QtdLacrada.ValueDisplayFormat = '%.0f';
-            app.QtdLacrada.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdLacrada.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdLacrada.FontSize = 11;
-            app.QtdLacrada.Layout.Row = 16;
-            app.QtdLacrada.Layout.Column = 6;
+            app.QtdLacrada.Layout.Row = 12;
+            app.QtdLacrada.Layout.Column = 5;
 
             % Create QtdApreendidaLabel
-            app.QtdApreendidaLabel = uilabel(app.GridLayout);
+            app.QtdApreendidaLabel = uilabel(app.ProductStatusGrid);
             app.QtdApreendidaLabel.VerticalAlignment = 'bottom';
-            app.QtdApreendidaLabel.FontSize = 10.5;
-            app.QtdApreendidaLabel.Layout.Row = 15;
-            app.QtdApreendidaLabel.Layout.Column = 7;
-            app.QtdApreendidaLabel.Text = {'Qtd.'; 'apreendida:'};
+            app.QtdApreendidaLabel.FontSize = 11;
+            app.QtdApreendidaLabel.Layout.Row = 11;
+            app.QtdApreendidaLabel.Layout.Column = 6;
+            app.QtdApreendidaLabel.Text = 'Qtd. apreendida:';
 
             % Create QtdApreendida
-            app.QtdApreendida = uieditfield(app.GridLayout, 'numeric');
+            app.QtdApreendida = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdApreendida.Limits = [0 Inf];
             app.QtdApreendida.RoundFractionalValues = 'on';
             app.QtdApreendida.ValueDisplayFormat = '%.0f';
-            app.QtdApreendida.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdApreendida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdApreendida.FontSize = 11;
-            app.QtdApreendida.Layout.Row = 16;
-            app.QtdApreendida.Layout.Column = 7;
+            app.QtdApreendida.Layout.Row = 12;
+            app.QtdApreendida.Layout.Column = 6;
 
             % Create QtdRetidaLabel
-            app.QtdRetidaLabel = uilabel(app.GridLayout);
+            app.QtdRetidaLabel = uilabel(app.ProductStatusGrid);
             app.QtdRetidaLabel.VerticalAlignment = 'bottom';
-            app.QtdRetidaLabel.FontSize = 10.5;
-            app.QtdRetidaLabel.Layout.Row = 15;
-            app.QtdRetidaLabel.Layout.Column = 8;
-            app.QtdRetidaLabel.Text = {'Qtd.'; 'retida (RFB):'};
+            app.QtdRetidaLabel.FontSize = 11;
+            app.QtdRetidaLabel.Layout.Row = 11;
+            app.QtdRetidaLabel.Layout.Column = 7;
+            app.QtdRetidaLabel.Text = 'Qtd. retida (RFB):';
 
             % Create QtdRetida
-            app.QtdRetida = uieditfield(app.GridLayout, 'numeric');
+            app.QtdRetida = uieditfield(app.ProductStatusGrid, 'numeric');
             app.QtdRetida.Limits = [0 Inf];
             app.QtdRetida.RoundFractionalValues = 'on';
             app.QtdRetida.ValueDisplayFormat = '%.0f';
-            app.QtdRetida.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.QtdRetida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdRetida.FontSize = 11;
-            app.QtdRetida.Layout.Row = 16;
-            app.QtdRetida.Layout.Column = 8;
-
-            % Create LacreLabel
-            app.LacreLabel = uilabel(app.GridLayout);
-            app.LacreLabel.VerticalAlignment = 'bottom';
-            app.LacreLabel.FontSize = 10.5;
-            app.LacreLabel.Layout.Row = 17;
-            app.LacreLabel.Layout.Column = [1 4];
-            app.LacreLabel.Text = 'Lacre:';
-
-            % Create Lacre
-            app.Lacre = uieditfield(app.GridLayout, 'text');
-            app.Lacre.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.Lacre.FontSize = 11;
-            app.Lacre.Layout.Row = 18;
-            app.Lacre.Layout.Column = [1 6];
-
-            % Create PLAILabel
-            app.PLAILabel = uilabel(app.GridLayout);
-            app.PLAILabel.VerticalAlignment = 'bottom';
-            app.PLAILabel.FontSize = 10.5;
-            app.PLAILabel.Layout.Row = 17;
-            app.PLAILabel.Layout.Column = [7 8];
-            app.PLAILabel.Text = 'PLAI:';
-
-            % Create PLAI
-            app.PLAI = uieditfield(app.GridLayout, 'text');
-            app.PLAI.CharacterLimits = [0 20];
-            app.PLAI.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.PLAI.FontSize = 11;
-            app.PLAI.Layout.Row = 18;
-            app.PLAI.Layout.Column = [7 8];
+            app.QtdRetida.Layout.Row = 12;
+            app.QtdRetida.Layout.Column = 7;
 
             % Create SituationLabel
-            app.SituationLabel = uilabel(app.GridLayout);
+            app.SituationLabel = uilabel(app.ProductStatusGrid);
             app.SituationLabel.VerticalAlignment = 'bottom';
-            app.SituationLabel.FontSize = 10.5;
-            app.SituationLabel.Layout.Row = 19;
-            app.SituationLabel.Layout.Column = [1 3];
+            app.SituationLabel.FontSize = 11;
+            app.SituationLabel.Layout.Row = 13;
+            app.SituationLabel.Layout.Column = 1;
             app.SituationLabel.Text = 'Situação:';
 
             % Create Situation
-            app.Situation = uidropdown(app.GridLayout);
-            app.Situation.Items = {'Irregular', 'Regular'};
-            app.Situation.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Situation = uidropdown(app.ProductStatusGrid);
+            app.Situation.Items = {};
+            app.Situation.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Situation.FontSize = 11;
             app.Situation.BackgroundColor = [1 1 1];
-            app.Situation.Layout.Row = 20;
-            app.Situation.Layout.Column = [1 3];
-            app.Situation.Value = 'Irregular';
+            app.Situation.Layout.Row = 14;
+            app.Situation.Layout.Column = 1;
+            app.Situation.Value = {};
 
             % Create ViolationTypeLabel
-            app.ViolationTypeLabel = uilabel(app.GridLayout);
+            app.ViolationTypeLabel = uilabel(app.ProductStatusGrid);
             app.ViolationTypeLabel.VerticalAlignment = 'bottom';
-            app.ViolationTypeLabel.FontSize = 10.5;
-            app.ViolationTypeLabel.Layout.Row = 19;
-            app.ViolationTypeLabel.Layout.Column = [4 7];
+            app.ViolationTypeLabel.FontSize = 11;
+            app.ViolationTypeLabel.Layout.Row = 13;
+            app.ViolationTypeLabel.Layout.Column = [2 3];
             app.ViolationTypeLabel.Text = 'Infração:';
 
             % Create ViolationType
-            app.ViolationType = uidropdown(app.GridLayout);
-            app.ViolationType.Items = {'Comercialização', 'Identificação homologação', 'Uso'};
-            app.ViolationType.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.ViolationType = uidropdown(app.ProductStatusGrid);
+            app.ViolationType.Items = {};
+            app.ViolationType.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.ViolationType.FontSize = 11;
             app.ViolationType.BackgroundColor = [1 1 1];
-            app.ViolationType.Layout.Row = 20;
-            app.ViolationType.Layout.Column = [4 6];
-            app.ViolationType.Value = 'Comercialização';
+            app.ViolationType.Layout.Row = 14;
+            app.ViolationType.Layout.Column = [2 3];
+            app.ViolationType.Value = {};
 
             % Create CorrigibleLabel
-            app.CorrigibleLabel = uilabel(app.GridLayout);
+            app.CorrigibleLabel = uilabel(app.ProductStatusGrid);
             app.CorrigibleLabel.VerticalAlignment = 'bottom';
-            app.CorrigibleLabel.FontSize = 10.5;
-            app.CorrigibleLabel.Layout.Row = 19;
-            app.CorrigibleLabel.Layout.Column = [7 8];
+            app.CorrigibleLabel.FontSize = 11;
+            app.CorrigibleLabel.Layout.Row = 13;
+            app.CorrigibleLabel.Layout.Column = 4;
             app.CorrigibleLabel.Text = 'Sanável?';
 
             % Create Corrigible
-            app.Corrigible = uidropdown(app.GridLayout);
-            app.Corrigible.Items = {'-', 'Sim', 'Não'};
-            app.Corrigible.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
+            app.Corrigible = uidropdown(app.ProductStatusGrid);
+            app.Corrigible.Items = {};
+            app.Corrigible.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Corrigible.FontSize = 11;
             app.Corrigible.BackgroundColor = [1 1 1];
-            app.Corrigible.Layout.Row = 20;
-            app.Corrigible.Layout.Column = [7 8];
-            app.Corrigible.Value = '-';
+            app.Corrigible.Layout.Row = 14;
+            app.Corrigible.Layout.Column = 4;
+            app.Corrigible.Value = {};
 
-            % Create optNotesLabel
-            app.optNotesLabel = uilabel(app.GridLayout);
-            app.optNotesLabel.VerticalAlignment = 'bottom';
-            app.optNotesLabel.FontSize = 10.5;
-            app.optNotesLabel.Layout.Row = 21;
-            app.optNotesLabel.Layout.Column = [1 4];
-            app.optNotesLabel.Text = 'Informações adicionais:';
+            % Create LacreLabel
+            app.LacreLabel = uilabel(app.ProductStatusGrid);
+            app.LacreLabel.VerticalAlignment = 'bottom';
+            app.LacreLabel.FontSize = 11;
+            app.LacreLabel.Layout.Row = 13;
+            app.LacreLabel.Layout.Column = 5;
+            app.LacreLabel.Text = 'Lacre:';
 
-            % Create optNotes
-            app.optNotes = uitextarea(app.GridLayout);
-            app.optNotes.ValueChangedFcn = createCallbackFcn(app, @ParameterValueChanged, true);
-            app.optNotes.FontSize = 11;
-            app.optNotes.Layout.Row = 22;
-            app.optNotes.Layout.Column = [1 8];
+            % Create Lacre
+            app.Lacre = uieditfield(app.ProductStatusGrid, 'text');
+            app.Lacre.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.Lacre.FontSize = 11;
+            app.Lacre.Layout.Row = 14;
+            app.Lacre.Layout.Column = 5;
 
-            % Create PreviousProduct
-            app.PreviousProduct = uiimage(app.GridLayout);
-            app.PreviousProduct.ImageClickedFcn = createCallbackFcn(app, @PreviousProductImageClicked, true);
-            app.PreviousProduct.Tooltip = {'Navega para o produto anterior'};
-            app.PreviousProduct.Layout.Row = 23;
-            app.PreviousProduct.Layout.Column = 1;
-            app.PreviousProduct.ImageSource = 'Previous_32.png';
+            % Create PLAILabel
+            app.PLAILabel = uilabel(app.ProductStatusGrid);
+            app.PLAILabel.VerticalAlignment = 'bottom';
+            app.PLAILabel.FontSize = 11;
+            app.PLAILabel.Layout.Row = 13;
+            app.PLAILabel.Layout.Column = [6 7];
+            app.PLAILabel.Text = 'PLAI:';
 
-            % Create NextProduct
-            app.NextProduct = uiimage(app.GridLayout);
-            app.NextProduct.ImageClickedFcn = createCallbackFcn(app, @PreviousProductImageClicked, true);
-            app.NextProduct.Tooltip = {'Navega para o produto posterior'};
-            app.NextProduct.Layout.Row = 23;
-            app.NextProduct.Layout.Column = 2;
-            app.NextProduct.ImageSource = 'After_32.png';
+            % Create PLAI
+            app.PLAI = uieditfield(app.ProductStatusGrid, 'text');
+            app.PLAI.CharacterLimits = [0 20];
+            app.PLAI.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.PLAI.FontSize = 11;
+            app.PLAI.Layout.Row = 14;
+            app.PLAI.Layout.Column = [6 7];
+
+            % Create NoteLabel
+            app.NoteLabel = uilabel(app.ProductStatusGrid);
+            app.NoteLabel.VerticalAlignment = 'bottom';
+            app.NoteLabel.FontSize = 11;
+            app.NoteLabel.Layout.Row = 15;
+            app.NoteLabel.Layout.Column = [1 4];
+            app.NoteLabel.Text = 'Informações adicionais:';
+
+            % Create Note
+            app.Note = uitextarea(app.ProductStatusGrid);
+            app.Note.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
+            app.Note.FontSize = 11;
+            app.Note.Layout.Row = 16;
+            app.Note.Layout.Column = [1 7];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

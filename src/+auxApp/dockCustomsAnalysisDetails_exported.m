@@ -213,7 +213,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 598 598];
+                app.UIFigure.Position = [100 100 598 592];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -237,7 +237,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 110};
-            app.GridLayout.RowHeight = {38, 22, 168, 22, '1x', 1, 24};
+            app.GridLayout.RowHeight = {40, 22, 168, 22, 246, 1, 24};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
@@ -378,7 +378,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create EditionGrid
             app.EditionGrid = uigridlayout(app.EditionPanel);
             app.EditionGrid.ColumnWidth = {'1x'};
-            app.EditionGrid.RowHeight = {17, 126, 22, '1x'};
+            app.EditionGrid.RowHeight = {17, 126, 22, 44};
             app.EditionGrid.RowSpacing = 5;
             app.EditionGrid.BackgroundColor = [1 1 1];
 
@@ -444,12 +444,12 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create Button
             app.Button = uibutton(app.GridLayout, 'push');
             app.Button.ButtonPushedFcn = createCallbackFcn(app, @onButtonPushed, true);
-            app.Button.BackgroundColor = [0 0.4471 0.7412];
+            app.Button.BackgroundColor = [0 0.451 0.7412];
             app.Button.FontSize = 11;
             app.Button.FontColor = [1 1 1];
             app.Button.Layout.Row = 7;
             app.Button.Layout.Column = 2;
-            app.Button.Text = 'Aplicar alterações';
+            app.Button.Text = 'Aplica alterações';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

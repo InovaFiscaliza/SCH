@@ -4,6 +4,7 @@ classdef dockCustomsManageRules_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure    matlab.ui.Figure
         GridLayout  matlab.ui.container.GridLayout
+        Title       matlab.ui.control.Label
         UITable     matlab.ui.control.Table
     end
 
@@ -79,7 +80,7 @@ classdef dockCustomsManageRules_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 1038 660];
+                app.UIFigure.Position = [100 100 1038 628];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -103,9 +104,7 @@ classdef dockCustomsManageRules_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x'};
-            app.GridLayout.RowHeight = {'1x'};
-            app.GridLayout.ColumnSpacing = 0;
-            app.GridLayout.RowSpacing = 0;
+            app.GridLayout.RowHeight = {40, '1x'};
             app.GridLayout.Padding = [20 20 20 20];
             app.GridLayout.BackgroundColor = [1 1 1];
 
@@ -116,9 +115,20 @@ classdef dockCustomsManageRules_exported < matlab.apps.AppBase
             app.UITable.ColumnSortable = true;
             app.UITable.ColumnEditable = [false false false true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @UITableCellEdit, true);
-            app.UITable.Layout.Row = 1;
+            app.UITable.Layout.Row = 2;
             app.UITable.Layout.Column = 1;
             app.UITable.FontSize = 11;
+
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.Layout.Row = 1;
+            app.Title.Layout.Column = 1;
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="color: gray; font-size: 10px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

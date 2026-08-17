@@ -405,7 +405,7 @@ classdef Project < model.ProjectCommon
                                     
                                     if any(~ismember(listOfProducts.Properties.VariableNames, generalSettings.context.PRODUCTS.reportTable.exportedFiles.sharepoint.label))
                                         error([ ...
-                                            'A estrutura dos dados dos produtos sob análise foi alterada e os dados ' ...
+                                            'A estrutura dos dados dos produtos inspecionados foi alterada e os dados ' ...
                                             'salvos no navegador não são compatíveis com a versão atual do aplicativo.<br><br>' ...
                                             'Uma nova sessão foi iniciada.' ...
                                         ])
@@ -435,7 +435,7 @@ classdef Project < model.ProjectCommon
         function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
             % Função que valida a consistência e o preenchimento de dados da
             % tabela "inspectedProducts", respeitando regras estabelecidas no
-            % eFiscaliza p/ upload de tabela com lista de produtos sob análise.
+            % eFiscaliza p/ upload de tabela com lista de produtos inspecionados.
             %
             % #01 "Tipo" e "Subtipo" devem estar preenchidos (≠ "-").
             % #02 "Fabricante" deve estar preenchido.

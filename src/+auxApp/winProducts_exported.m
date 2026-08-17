@@ -4,10 +4,14 @@ classdef winProducts_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
+        Hyperlink               matlab.ui.control.Hyperlink
+        Title                   matlab.ui.control.Label
         DockModule              matlab.ui.container.GridLayout
         dockModule_Close        matlab.ui.control.Image
         dockModule_Undock       matlab.ui.control.Image
         Toolbar                 matlab.ui.container.GridLayout
+        ToolbarSeparator        matlab.ui.control.Image
+        ShowDataRules           matlab.ui.control.Image
         tool_UploadFinalFile    matlab.ui.control.Image
         tool_GenerateReport     matlab.ui.control.Image
         tool_OpenPopupProject   matlab.ui.control.Image
@@ -16,11 +20,6 @@ classdef winProducts_exported < matlab.apps.AppBase
         ColumnWidthMode         matlab.ui.control.Hyperlink
         NumRows                 matlab.ui.control.Label
         UITable                 matlab.ui.control.Table
-        TableViewGroup          matlab.ui.container.ButtonGroup
-        CustomsView             matlab.ui.control.RadioButton
-        VendorView              matlab.ui.control.RadioButton
-        EditionWarning          matlab.ui.control.Label
-        ShowDataRules           matlab.ui.control.Image
         ContextMenu             matlab.ui.container.ContextMenu
         ContextMenu_EditFcn     matlab.ui.container.Menu
         ContextMenu_DeleteFcn   matlab.ui.container.Menu
@@ -153,13 +152,13 @@ classdef winProducts_exported < matlab.apps.AppBase
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.tool_OpenPopupEdition.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre formulário para edição de lista de produtos sob análise')), ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupEdition.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre formulário para edição de lista de produtos inspecionados')), ...
                             struct('appName', appName, 'dataTag', app.tool_AddNonCertificate.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Adiciona produto NÃO homologado à lista')), ...
-                            struct('appName', appName, 'dataTag', app.tool_OpenPopupProject.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
-                            struct('appName', appName, 'dataTag', app.tool_GenerateReport.UserData.id,    'tooltip', struct('defaultPosition', 'top',    'textContent', 'Gera relatório')), ...
-                            struct('appName', appName, 'dataTag', app.tool_UploadFinalFile.UserData.id,   'tooltip', struct('defaultPosition', 'top',    'textContent', 'Upload relatório')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id,      'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id,       'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                            struct('appName', appName, 'dataTag', app.tool_OpenPopupProject.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
+                            struct('appName', appName, 'dataTag', app.tool_GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Gera relatório')), ...
+                            struct('appName', appName, 'dataTag', app.tool_UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Upload relatório')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
                         });
                     catch
                     end
@@ -180,11 +179,17 @@ classdef winProducts_exported < matlab.apps.AppBase
                 app.dockModule_Undock.Enable = 1;
             end
 
+            app.UITable.UserData.viewType = struct( ...
+                'valueData', 1, ...
+                'options', {{'vendorView', 'customsView'}}, ...
+                'labels', {{'FORNECEDOR-USUÁRIO 👁', 'ADUANA 👁'}} ...
+            );
+
             app.UITable.UserData.columnWidth = struct( ...
                 'mode', 'initial', ...
                 'value', struct( ...
-                    'vendorView',  {{110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'}}, ...
-                    'customsView', {{110, 'auto', 'auto', 'auto', 'auto', 42, 'auto', 'auto', 90, 'auto', 66, 80, 'auto', 'auto', 70}} ...
+                    'vendorView',  {{120, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'}}, ...
+                    'customsView', {{120, 'auto', 'auto', 'auto', 'auto', 42, 'auto', 'auto', 90, 'auto', 66, 80, 'auto', 'auto', 70}} ...
                 ) ...
             );
 
@@ -206,8 +211,8 @@ classdef winProducts_exported < matlab.apps.AppBase
                 syncType char {mustBeMember(syncType, {'guiToDataSync', 'dataToGuiSync', 'tableViewChanged'})}
             end
 
-            viewType    = app.TableViewGroup.SelectedObject.Tag; % 'vendorView' | 'customsView'
-            columnList  = app.mainApp.General.context.PRODUCTS.reportTable.(viewType).name';
+            viewType = getViewType(app);
+            columnList = app.mainApp.General.context.PRODUCTS.reportTable.(viewType).name';
             columnIndex = cellfun(@(x) find(strcmp(app.projectData.inspectedProducts.Properties.VariableNames, x), 1), columnList);
 
             switch syncType
@@ -227,63 +232,75 @@ classdef winProducts_exported < matlab.apps.AppBase
             end
 
             updateTableStyle(app)
-            updateTableNumRows(app)
             updateToolbar(app)
         end
 
         %-----------------------------------------------------------------%
-        function updateTableNumRows(app)
-            numRows = height(app.UITable.Data);
-            
-            if numRows == 0
-                numRowsText = '';
-            elseif numRows == 1
-                numRowsText = '1 REGISTRO';
-            else
-                numRowsText = sprintf('%d REGISTROS', numRows);
-            end
-            
-            app.NumRows.Text = numRowsText;
+        function viewType = getViewType(app)
+            viewTypeIdx = app.UITable.UserData.viewType.valueData;
+            viewType = app.UITable.UserData.viewType.options{viewTypeIdx};
         end
 
         %-----------------------------------------------------------------%
         function updateTableStyle(app)
+            invalidRowIndexes = [];
             removeStyle(app.UITable)
 
             if ~isempty(app.projectData.inspectedProducts)
                 [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(app.projectData);
 
                 if ~isempty(invalidRowIndexes)
-                    applyRowStyle(app, invalidRowIndexes)
-                    applyCellStyle(app, ruleViolationMatrix, ruleColumns)
+                    applyRowStyle(invalidRowIndexes)
+                    applyCellStyle(ruleViolationMatrix, ruleColumns)
                 end
             end
-        end
 
-        %-----------------------------------------------------------------%
-        function applyRowStyle(app, invalidRowIndexes)
-            s = app.warningIconStyle;
-            addStyle(app.UITable, s, "cell", [invalidRowIndexes, ones(numel(invalidRowIndexes), 1)])
-        end
+            updateTableNumRows(invalidRowIndexes)
 
-        %-----------------------------------------------------------------%
-        function applyCellStyle(app, ruleViolationMatrix, ruleColumns)
-            cellList = [];
-            for ii = 1:numel(ruleColumns)
-                rowIndex = find(ruleViolationMatrix(:,ii));
-
-                if ~isempty(rowIndex)
-                    columnNames = ruleColumns{ii};
-                    columnIndex = find(ismember(app.UITable.Data.Properties.VariableNames, columnNames));
-
-                    for jj = 1:numel(columnIndex)
-                        cellList = [cellList; [rowIndex, repmat(columnIndex(jj), numel(rowIndex), 1)]];
+            function applyRowStyle(invalidRowIndexes)
+                s = app.warningIconStyle;
+                addStyle(app.UITable, s, "cell", [invalidRowIndexes, ones(numel(invalidRowIndexes), 1)])
+            end
+    
+            function applyCellStyle(ruleViolationMatrix, ruleColumns)
+                cellList = [];
+                for ii = 1:numel(ruleColumns)
+                    rowIndex = find(ruleViolationMatrix(:,ii));
+    
+                    if ~isempty(rowIndex)
+                        columnNames = ruleColumns{ii};
+                        columnIndex = find(ismember(app.UITable.Data.Properties.VariableNames, columnNames));
+    
+                        for jj = 1:numel(columnIndex)
+                            cellList = [cellList; [rowIndex, repmat(columnIndex(jj), numel(rowIndex), 1)]];
+                        end
                     end
                 end
+    
+                s = app.warningHighlightStyle;
+                addStyle(app.UITable, s, "cell", cellList)
             end
 
-            s = app.warningHighlightStyle;
-            addStyle(app.UITable, s, "cell", cellList)
+            function updateTableNumRows(invalidRowIndexes)
+                numRows = height(app.UITable.Data);
+                numInvalidRows = numel(invalidRowIndexes);
+
+                if numRows == 0
+                    numRowsText = '';
+                elseif numRows == 1
+                    numRowsText = '1 REGISTRO';
+                else
+                    numRowsText = sprintf('%d REGISTROS', numRows);
+                end
+
+                if numInvalidRows > 1
+                    numRowsText = sprintf('%s  •  %d PENDENTES', numRowsText, numInvalidRows);
+                elseif numInvalidRows == 1
+                    numRowsText = sprintf('%s  •  1 PENDENTE', numRowsText);
+                end
+
+                app.NumRows.Text = numRowsText;
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -371,27 +388,24 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Callback function: ContextMenu_EditFcn, tool_OpenPopupEdition
         function Toolbar_EditSelectedImageClicked(app, event)
             
-            % Por alguma razão desconhecida, inseri algumas validações
-            % aqui! :)
-            
-            % Enfim... a possibilidade de editar um registro não deve
-            % existir toda vez que a tabela esteja vazia ou que não
-            % esteja selecionada uma linha.
+            if isempty(app.UITable.Data)
+                updateToolbar(app)
+                return
+            end
+
             selectedRow = app.UITable.Selection;
 
             if isempty(selectedRow)
-                if isempty(app.UITable.Data)
-                    updateToolbar(app)
-                    return
-                end
-
-                app.UITable.Selection = 1;
+                selectedRow = 1;
+                app.UITable.Selection = selectedRow;
                 onTableSelectionChanged(app)
+
             elseif ~isscalar(selectedRow)
-                app.UITable.Selection = app.UITable.Selection(1);
+                selectedRow = selectedRow(1);
+                app.UITable.Selection = selectedRow;
             end
 
-            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo', app.Context)
+            ipcMainMatlabOpenPopupApp(app.mainApp, app, 'ProductInfo', app.Context, selectedRow)
 
         end
 
@@ -425,7 +439,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             reportVersion = app.projectData.modules.(context).ui.reportVersion;
 
             if isempty(app.projectData.inspectedProducts)
-                ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos sob análise está vazia.');
+                ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos inspecionados está vazia.');
                 return
             end
 
@@ -525,7 +539,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                 msg = sprintf('O arquivo "%s" não foi encontrado.', generatedHtmlFilePath);
             elseif ~strcmp(reportGenerationId, currentProjectHash)
                 msg = [ ...
-                    'A lista de produtos sob análise foi modificada após a ' ...
+                    'A lista de produtos inspecionados foi modificada após a ' ...
                     'geração do relatório. Por essa razão, é necessário gerar ' ...
                     'novamente a versão definitiva do relatório antes do seu ' ...
                     '<i>upload</i> para o SEI' ...
@@ -557,7 +571,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
                 msgQuestion = sprintf([ ...
                     'Já foi realizado <i>upload</i> para o SEI de relatório que engloba ' ...
-                    'a presente lista de produtos sob análise - SEI nº %s.<br><br>' ...
+                    'a presente lista de produtos inspecionados - SEI nº %s.<br><br>' ...
                     'Deseja realizar um novo <i>upload</i> para o SEI?' ...
                 ], uploadedStatus);
                 userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
@@ -574,9 +588,13 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Selection changed function: TableViewGroup
+        % Callback function: Hyperlink
         function onTableViewChanged(app, event)
             
+            newViewTypeIdx = setdiff([1, 2], app.UITable.UserData.viewType.valueData);
+            app.UITable.UserData.viewType.valueData = newViewTypeIdx;
+            app.Hyperlink.Text = app.UITable.UserData.viewType.labels{newViewTypeIdx};
+
             syncInspectedTableWithUI(app, 'tableViewChanged')
             
         end
@@ -666,7 +684,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                     app.UITable.ColumnWidth = 'auto';
                     app.ColumnWidthMode.Text = 'AUTO ↔';
                 otherwise % 'auto'
-                    viewType = app.TableViewGroup.SelectedObject.Tag; % 'vendorView' | 'customsView'
+                    viewType = getViewType(app); % 'vendorView' | 'customsView'
 
                     app.UITable.UserData.columnWidth.mode = 'initial';
                     app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value.(viewType);
@@ -718,77 +736,32 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {20, 18, 4, 32, '1x', 412, '1x', 16, 38, 10, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 10, 14, 14, 6, 20, '1x', 20, 34};
+            app.GridLayout.ColumnWidth = {20, '1x', 80, 16, 38, 10, 8, 2};
+            app.GridLayout.RowHeight = {2, 8, 10, 14, 20, 20, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [1 1 1];
 
-            % Create ShowDataRules
-            app.ShowDataRules = uiimage(app.GridLayout);
-            app.ShowDataRules.ScaleMethod = 'none';
-            app.ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
-            app.ShowDataRules.Layout.Row = [6 7];
-            app.ShowDataRules.Layout.Column = 2;
-            app.ShowDataRules.ImageSource = 'info-16px-gray.svg';
-
-            % Create EditionWarning
-            app.EditionWarning = uilabel(app.GridLayout);
-            app.EditionWarning.FontSize = 10;
-            app.EditionWarning.FontColor = [0.502 0.502 0.502];
-            app.EditionWarning.Layout.Row = [6 7];
-            app.EditionWarning.Layout.Column = [4 10];
-            app.EditionWarning.Interpreter = 'html';
-            app.EditionWarning.Text = {'<b>HOMOLOGAÇÃO</b> bloqueada.'; '<b>SUBTIPO</b>, <b>LACRE</b> e <b>PLAI</b> editáveis <font style="color: red;">apenas</font> em formulário.'};
-
-            % Create TableViewGroup
-            app.TableViewGroup = uibuttongroup(app.GridLayout);
-            app.TableViewGroup.AutoResizeChildren = 'off';
-            app.TableViewGroup.SelectionChangedFcn = createCallbackFcn(app, @onTableViewChanged, true);
-            app.TableViewGroup.BorderType = 'none';
-            app.TableViewGroup.TitlePosition = 'centertop';
-            app.TableViewGroup.Title = 'LISTA DE PRODUTOS SOB ANÁLISE';
-            app.TableViewGroup.BackgroundColor = [1 1 1];
-            app.TableViewGroup.Layout.Row = [4 7];
-            app.TableViewGroup.Layout.Column = 6;
-            app.TableViewGroup.FontWeight = 'bold';
-            app.TableViewGroup.FontSize = 10;
-
-            % Create VendorView
-            app.VendorView = uiradiobutton(app.TableViewGroup);
-            app.VendorView.Tag = 'vendorView';
-            app.VendorView.Text = 'Fornecedor | Usuário';
-            app.VendorView.FontSize = 11;
-            app.VendorView.Position = [103 12 125 22];
-            app.VendorView.Value = true;
-
-            % Create CustomsView
-            app.CustomsView = uiradiobutton(app.TableViewGroup);
-            app.CustomsView.Tag = 'customsView';
-            app.CustomsView.Text = 'Aduana';
-            app.CustomsView.FontSize = 11;
-            app.CustomsView.Position = [254 12 72 22];
-
             % Create UITable
             app.UITable = uitable(app.GridLayout);
             app.UITable.ColumnName = {'HOMOLOGAÇÃO'; 'TIPO'; 'SUBTIPO'; 'FABRICANTE'; 'MODELO'; 'RF?'; 'EM USO?'; 'INTERFERÊNCIA?'; 'VALOR|UNITÁRIO (R$)'; 'FONTE|VALOR'; 'QTD.|VENDIDA'; 'QTD.|EM USO'; 'QTD.|ESTOQUE'; 'QTD.|ANUNCIADA'; 'QTD.|LACRADA'; 'QTD.|APREENDIDA'; 'QTD.|RETIDA (RFB)'; 'SITUAÇÃO'; 'INFRAÇÃO'};
-            app.UITable.ColumnWidth = {110, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
+            app.UITable.ColumnWidth = {120, 'auto', 'auto', 'auto', 'auto', 42, 42, 96, 90, 'auto', 66, 66, 66, 80, 70, 80, 80, 'auto', 'auto'};
             app.UITable.RowName = {};
             app.UITable.SelectionType = 'row';
             app.UITable.ColumnEditable = [false true false true true true true true true true true true true true true true true true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
-            app.UITable.Layout.Row = 8;
-            app.UITable.Layout.Column = [2 9];
+            app.UITable.Layout.Row = 7;
+            app.UITable.Layout.Column = [2 5];
             app.UITable.FontSize = 11;
 
             % Create NumRows
             app.NumRows = uilabel(app.GridLayout);
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.502 0.502 0.502];
-            app.NumRows.Layout.Row = 9;
-            app.NumRows.Layout.Column = [2 5];
+            app.NumRows.Layout.Row = 8;
+            app.NumRows.Layout.Column = 2;
             app.NumRows.Text = '';
 
             % Create ColumnWidthMode
@@ -799,19 +772,19 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.ColumnWidthMode.FontSize = 10;
             app.ColumnWidthMode.FontWeight = 'normal';
             app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.Layout.Row = 9;
-            app.ColumnWidthMode.Layout.Column = [8 9];
+            app.ColumnWidthMode.Layout.Row = 8;
+            app.ColumnWidthMode.Layout.Column = [4 5];
             app.ColumnWidthMode.Text = 'INICIAL ↔';
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 22, '1x', 22, 22, 22};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, '1x', 22, 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
-            app.Toolbar.Layout.Row = 10;
-            app.Toolbar.Layout.Column = [1 12];
+            app.Toolbar.Layout.Row = 9;
+            app.Toolbar.Layout.Column = [1 8];
             app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create tool_OpenPopupEdition
@@ -820,14 +793,14 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupEdition.ImageClickedFcn = createCallbackFcn(app, @Toolbar_EditSelectedImageClicked, true);
             app.tool_OpenPopupEdition.Enable = 'off';
             app.tool_OpenPopupEdition.Layout.Row = [1 3];
-            app.tool_OpenPopupEdition.Layout.Column = 1;
+            app.tool_OpenPopupEdition.Layout.Column = 3;
             app.tool_OpenPopupEdition.ImageSource = 'Variable_edit_16.png';
 
             % Create tool_AddNonCertificate
             app.tool_AddNonCertificate = uiimage(app.Toolbar);
             app.tool_AddNonCertificate.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AddNonCertificateImageClicked, true);
             app.tool_AddNonCertificate.Layout.Row = [1 3];
-            app.tool_AddNonCertificate.Layout.Column = 2;
+            app.tool_AddNonCertificate.Layout.Column = 4;
             app.tool_AddNonCertificate.ImageSource = 'AddForbidden_32.png';
 
             % Create tool_OpenPopupProject
@@ -835,7 +808,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_OpenPopupProject.ScaleMethod = 'none';
             app.tool_OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @Toolbar_OpenPopupProjectImageClicked, true);
             app.tool_OpenPopupProject.Layout.Row = [1 3];
-            app.tool_OpenPopupProject.Layout.Column = 4;
+            app.tool_OpenPopupProject.Layout.Column = 6;
             app.tool_OpenPopupProject.ImageSource = 'organization-20px-black.svg';
 
             % Create tool_GenerateReport
@@ -844,7 +817,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_GenerateReport.ImageClickedFcn = createCallbackFcn(app, @Toolbar_GenerateReportImageClicked, true);
             app.tool_GenerateReport.Enable = 'off';
             app.tool_GenerateReport.Layout.Row = [1 3];
-            app.tool_GenerateReport.Layout.Column = 5;
+            app.tool_GenerateReport.Layout.Column = 7;
             app.tool_GenerateReport.ImageSource = 'Publish_HTML_16.png';
 
             % Create tool_UploadFinalFile
@@ -853,8 +826,24 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.tool_UploadFinalFile.ImageClickedFcn = createCallbackFcn(app, @Toolbar_UploadFinalFileImageClicked, true);
             app.tool_UploadFinalFile.Enable = 'off';
             app.tool_UploadFinalFile.Layout.Row = [1 3];
-            app.tool_UploadFinalFile.Layout.Column = 6;
+            app.tool_UploadFinalFile.Layout.Column = 8;
             app.tool_UploadFinalFile.ImageSource = 'up-20px.png';
+
+            % Create ShowDataRules
+            app.ShowDataRules = uiimage(app.Toolbar);
+            app.ShowDataRules.ScaleMethod = 'none';
+            app.ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
+            app.ShowDataRules.Layout.Row = [1 3];
+            app.ShowDataRules.Layout.Column = 1;
+            app.ShowDataRules.ImageSource = 'info-16px-gray.svg';
+
+            % Create ToolbarSeparator
+            app.ToolbarSeparator = uiimage(app.Toolbar);
+            app.ToolbarSeparator.ScaleMethod = 'none';
+            app.ToolbarSeparator.Enable = 'off';
+            app.ToolbarSeparator.Layout.Row = [1 3];
+            app.ToolbarSeparator.Layout.Column = 2;
+            app.ToolbarSeparator.ImageSource = 'LineV.svg';
 
             % Create DockModule
             app.DockModule = uigridlayout(app.GridLayout);
@@ -863,7 +852,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
-            app.DockModule.Layout.Column = [9 11];
+            app.DockModule.Layout.Column = [5 7];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Undock
@@ -882,6 +871,29 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.dockModule_Close.Layout.Row = 1;
             app.dockModule_Close.Layout.Column = 2;
             app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
+
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.Layout.Row = [4 5];
+            app.Title.Layout.Column = [2 5];
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Produtos inspecionados</b>'; '<font style="color: gray; font-size: 10px;">Visualize e edite informações dos produtos inspecionados. Homologação somente para consulta; subtipo, lacre e PLAI editáveis apenas pelo formulário.</font>'};
+
+            % Create Hyperlink
+            app.Hyperlink = uihyperlink(app.GridLayout);
+            app.Hyperlink.HyperlinkClickedFcn = createCallbackFcn(app, @onTableViewChanged, true);
+            app.Hyperlink.VisitedColor = [0.502 0.502 0.502];
+            app.Hyperlink.HorizontalAlignment = 'right';
+            app.Hyperlink.FontSize = 10;
+            app.Hyperlink.FontWeight = 'normal';
+            app.Hyperlink.FontColor = [0.502 0.502 0.502];
+            app.Hyperlink.Layout.Row = 6;
+            app.Hyperlink.Layout.Column = [3 5];
+            app.Hyperlink.Text = 'FORNECEDOR-USUÁRIO 👁';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

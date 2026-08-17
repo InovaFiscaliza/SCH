@@ -1,12 +1,17 @@
-classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
+classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure    matlab.ui.Figure
-        GridLayout  matlab.ui.container.GridLayout
-        Button      matlab.ui.control.Button
-        Tree        matlab.ui.container.CheckBoxTree
-        Label       matlab.ui.control.Label
+        UIFigure           matlab.ui.Figure
+        GridLayout         matlab.ui.container.GridLayout
+        Button             matlab.ui.control.Button
+        Tree               matlab.ui.container.CheckBoxTree
+        TreeLabel          matlab.ui.control.Label
+        HomologationPanel  matlab.ui.container.Panel
+        HomologationGrid   matlab.ui.container.GridLayout
+        Homologation       matlab.ui.control.Label
+        HomologationIcon   matlab.ui.control.Image
+        Title              matlab.ui.control.Label
     end
 
     
@@ -29,14 +34,9 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function updateForm(app, schDetailedIdxs)
             homologation = app.mainApp.schData.detailed.("Homologação"){schDetailedIdxs(1)};
+            app.Homologation.Text = sprintf('<font style="color:gray;">Homologação nº</font> <b>%s</b>', homologation);
 
-            app.Label.Text = sprintf([ ...
-                '<p style="text-align: justify;">A homologação nº <font ' ...
-                'style="font-size: 14px;"><b>%s</b></font> possui mais de ' ...
-                'um registro de "Solicitante", "Fabricante", "Modelo" ou ' ...
-                '"Nome Comercial". Selecione, na lista abaixo, os registros ' ...
-                'que devem ser incluídos na lista de produtos sob análise.</p>' ...
-            ], homologation);
+            checkedNodes = matlab.ui.container.TreeNode.empty;
 
             for ii = 1:numel(schDetailedIdxs)
                 idx = schDetailedIdxs(ii);
@@ -52,7 +52,20 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
                    app.mainApp.schData.detailed.("Nome Comercial"){idx} ...
                 );
 
-                uitreenode(app.Tree, 'Text', nodeText, 'NodeData', idx);
+                treeNode = uitreenode(app.Tree, 'Text', nodeText, 'NodeData', idx);
+
+                [~, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.mainApp.General, app.mainApp.schData.detailed, idx);    
+                if ismember(productHash, app.mainApp.projectData.inspectedProducts.("Hash"))
+                    checkedNodes(end+1) = treeNode;
+                end
+            end
+
+            if ~isempty(checkedNodes)
+                app.Tree.CheckedNodes = checkedNodes;
+            end
+
+            if numel(app.Tree.Children) == numel(checkedNodes)
+                app.Tree.Enable = 'off';
             end
         end
     end
@@ -117,7 +130,7 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 518 486];
+                app.UIFigure.Position = [100 100 518 518];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -140,27 +153,65 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {'1x', 90};
-            app.GridLayout.RowHeight = {56, '1x', 22};
+            app.GridLayout.ColumnWidth = {363, 110};
+            app.GridLayout.RowHeight = {40, 44, 22, 322, 1, 24};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
             app.GridLayout.BackgroundColor = [1 1 1];
 
-            % Create Label
-            app.Label = uilabel(app.GridLayout);
-            app.Label.VerticalAlignment = 'top';
-            app.Label.WordWrap = 'on';
-            app.Label.FontSize = 11;
-            app.Label.Layout.Row = 1;
-            app.Label.Layout.Column = [1 2];
-            app.Label.Interpreter = 'html';
-            app.Label.Text = '';
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.Layout.Row = 1;
+            app.Title.Layout.Column = [1 2];
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Selecionar modelos inspecionados</b>'; '<font style="color: gray; font-size: 10px;">Selecione os modelos deste certificado que devem ser incluídos na lista de produtos inspecionados</font>'};
+
+            % Create HomologationPanel
+            app.HomologationPanel = uipanel(app.GridLayout);
+            app.HomologationPanel.AutoResizeChildren = 'off';
+            app.HomologationPanel.Layout.Row = 2;
+            app.HomologationPanel.Layout.Column = [1 2];
+
+            % Create HomologationGrid
+            app.HomologationGrid = uigridlayout(app.HomologationPanel);
+            app.HomologationGrid.ColumnWidth = {26, '1x'};
+            app.HomologationGrid.RowHeight = {'1x'};
+            app.HomologationGrid.BackgroundColor = [1 1 1];
+
+            % Create HomologationIcon
+            app.HomologationIcon = uiimage(app.HomologationGrid);
+            app.HomologationIcon.Enable = 'off';
+            app.HomologationIcon.Layout.Row = 1;
+            app.HomologationIcon.Layout.Column = 1;
+            app.HomologationIcon.ImageSource = 'circuit-board.svg';
+
+            % Create Homologation
+            app.Homologation = uilabel(app.HomologationGrid);
+            app.Homologation.WordWrap = 'on';
+            app.Homologation.FontColor = [0 0.4471 0.7412];
+            app.Homologation.Layout.Row = 1;
+            app.Homologation.Layout.Column = 2;
+            app.Homologation.Interpreter = 'html';
+            app.Homologation.Text = '<font style="color:gray;">Homologação nº</font>';
+
+            % Create TreeLabel
+            app.TreeLabel = uilabel(app.GridLayout);
+            app.TreeLabel.VerticalAlignment = 'bottom';
+            app.TreeLabel.FontSize = 11;
+            app.TreeLabel.FontColor = [0 0.451 0.7412];
+            app.TreeLabel.Layout.Row = 3;
+            app.TreeLabel.Layout.Column = 1;
+            app.TreeLabel.Text = 'Registros encontrados';
 
             % Create Tree
             app.Tree = uitree(app.GridLayout, 'checkbox');
             app.Tree.FontSize = 11;
-            app.Tree.Layout.Row = 2;
+            app.Tree.Layout.Row = 4;
             app.Tree.Layout.Column = [1 2];
 
             % Assign Checked Nodes
@@ -171,11 +222,13 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
             app.Button.ButtonPushedFcn = createCallbackFcn(app, @onButtonPushed, true);
             app.Button.Tag = 'OK';
             app.Button.IconAlignment = 'right';
-            app.Button.BackgroundColor = [0.9804 0.9804 0.9804];
+            app.Button.BackgroundColor = [0 0.451 0.7412];
+            app.Button.FontSize = 11;
+            app.Button.FontColor = [1 1 1];
             app.Button.Enable = 'off';
-            app.Button.Layout.Row = 3;
+            app.Button.Layout.Row = 6;
             app.Button.Layout.Column = 2;
-            app.Button.Text = 'OK';
+            app.Button.Text = 'Confirma inclusão';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
@@ -186,7 +239,7 @@ classdef dockAddSelectedToBucket_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = dockAddSelectedToBucket_exported(Container, varargin)
+        function app = dockSearchAddSelectedToBucket_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

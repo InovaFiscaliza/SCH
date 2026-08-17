@@ -399,7 +399,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                             'Foram encontrados dados salvos localmente de uma sessão anterior.<br><br>' ...
                                             'Última atualização: <b>%s</b><br>' ...
                                             'Nome do projeto: "<b>%s</b>"<br>' ...
-                                            'Quantidade de produtos sob análise: <b>%d</b><br><br>' ...
+                                            'Quantidade de produtos inspecionados: <b>%d</b><br><br>' ...
                                             'Deseja continuar o trabalho com esses dados ou iniciar uma nova sessão?' ...
                                         ], prjData.timestamp, prjData.name, numel(prjData.inspectedProducts));
         
@@ -484,16 +484,16 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 end
         
                             % DOCKS:OTHERS
-                            case {'auxApp.dockAddSelectedToBucket', 'auxApp.dockAddSelectedToBucket_exported', ...
-                                  'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
+                            case {'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
                                   'auxApp.dockCustomsFilter', 'auxApp.dockCustomsFilter_exported', ...
                                   'auxApp.dockCustomsManageRules', 'auxApp.dockCustomsManageRules_exported', ...
-                                  'auxApp.dockProductDetails', 'auxApp.dockProductDetails_exported', ...
                                   'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
                                   'auxApp.dockReportLib', 'auxApp.dockReportLib_exported', ...
-                                  'auxApp.dockSearchFilter', 'auxApp.dockSearchFilter_exported'}
+                                  'auxApp.dockSearchAddSelectedToBucket', 'auxApp.dockSearchAddSelectedToBucket_exported', ...
+                                  'auxApp.dockSearchFilter', 'auxApp.dockSearchFilter_exported', ...
+                                  'auxApp.dockSearchProductDetails', 'auxApp.dockSearchProductDetails_exported'}
                                 switch eventName
-                                    % auxApp.dockAddSelectedToBucket
+                                    % auxApp.dockSearchAddSelectedToBucket
                                     case 'onAddSelectedToBucketRequest'
                                         schDetailedIdxs = varargin{1};
                                         addInspectedProducts(app, schDetailedIdxs)
@@ -507,14 +507,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     case 'onCustomsShipmentsTableChanged'
                                         ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName)
 
-                                    % auxApp.dockFilterSetup
+                                    % auxApp.dockSearchFilterSetup
                                     case 'onSearchModeChanged'
                                         searchComponentsInitialState(app)
 
                                     case 'onColumnFilterChanged'
                                         applyFiltering(app)
 
-                                    % auxApp.dockProductDetails
+                                    % auxApp.dockSearchProductDetails
                                     case 'onSelectedRowChangeRequest'
                                         app.UITable.Selection = varargin{1};
                                         scroll(app.UITable, 'row', varargin{1})
@@ -586,7 +586,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'ProductDetails', 'AddSelectedToBucket', 'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchFilter'})}
+                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails'})}
                 context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CUSTOMS', 'CONFIG'})}
             end
 
@@ -607,14 +607,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                     'VariableTypes', {'string', 'double', 'double', 'logical'}, ...
                     'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
                 );
-                popupSpecifications(1, :) = {"AddSelectedToBucket", 518, 486, false};
-                popupSpecifications(2, :) = {"CustomsAnalysisDetails", 598, 598, false};
-                popupSpecifications(3, :) = {"CustomsFilter", 518, 486, false};
-                popupSpecifications(4, :) = {"CustomsManageRules", 1038, 660, false};
-                popupSpecifications(5, :) = {"ProductDetails", 1038, 660, false};
-                popupSpecifications(6, :) = {"ProductInfo", 580, 640, false};
-                popupSpecifications(7, :) = {"ReportLib", 460, 598, false};
-                popupSpecifications(8, :) = {"SearchFilter", 518, 486, false};
+                popupSpecifications(1, :) = {"CustomsAnalysisDetails", 598, 592, false};
+                popupSpecifications(2, :) = {"CustomsFilter", 518, 518, false}; % PENDENTE
+                popupSpecifications(3, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
+                popupSpecifications(4, :) = {"ProductInfo", 840, 628, false};
+                popupSpecifications(5, :) = {"ReportLib", 460, 608, false};
+                popupSpecifications(6, :) = {"SearchAddSelectedToBucket", 518, 518, false};
+                popupSpecifications(7, :) = {"SearchFilter", 518, 518, false};
+                popupSpecifications(8, :) = {"SearchProductDetails", 1038, 628, false};
 
                 auxAppNameIdx = find(popupSpecifications.AuxAppName == string(auxAppName), 1);
                 screenWidth = popupSpecifications.Width(auxAppNameIdx);
@@ -701,7 +701,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             struct('appName', appName, 'dataTag', app.AttributesLabel.UserData.id, 'styleImportant', struct('borderLeft', '3px solid #a6a6a6', 'paddingLeft', '8px')), ...
                             struct('appName', appName, 'dataTag', app.SearchSetup.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Configura estratégia de filtragem')), ...
                             struct('appName', appName, 'dataTag', app.ExportVisibleTable.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exporta resultados de busca em arquivo Excel (.xlsx)')), ...
-                            struct('appName', appName, 'dataTag', app.AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos sob análise')), ...
+                            struct('appName', appName, 'dataTag', app.AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos inspecionados')), ...
                             struct('appName', appName, 'dataTag', app.ProductDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre painel de atributos em tela inteira')), ...
                             struct('appName', appName, 'dataTag', app.PanelVisibility.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Alterna visibilidade do painel')), ...
                             struct('appName', appName, 'dataTag', app.UITable.UserData.id, 'tableMultiline', true, 'tableSelectionStyle', struct('color', '#ffffff', 'backgroundColor', '#6B879D')), ...
@@ -861,9 +861,9 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             if addedCount
                 if addedCount == 1
-                    showPopupTempWarning(app, 'Incluído um registro na lista de produtos sob análise.')
+                    showPopupTempWarning(app, 'Incluído um registro na lista de produtos inspecionados.')
                 else
-                    showPopupTempWarning(app, sprintf('Incluídos %d registros na lista de produtos sob análise.', addedCount))
+                    showPopupTempWarning(app, sprintf('Incluídos %d registros na lista de produtos inspecionados.', addedCount))
                 end
                 ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
             else
@@ -1121,9 +1121,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     set([app.AttributesPrevious, app.AttributesNext, app.AttributesImageZoom], 'Enable', imagesCount, 'Visible', 'on')
 
                     if imagesCount
-                        app.AttributesCount.Text = sprintf('%d DE %d', imageIndex, imagesCount);
+                        app.AttributesCount.Text = sprintf('%d / %d', imageIndex, imagesCount);
                     else
-                        app.AttributesCount.Text = '0 DE 0';
+                        app.AttributesCount.Text = '0 / 0';
                     end
 
                 case 3
@@ -1134,9 +1134,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     set(app.AttributesImageZoom, 'Enable', 'off', 'Visible', 'off')
 
                     if adsCount
-                        app.AttributesCount.Text = sprintf('%d DE %d', adsIndex, adsCount);
+                        app.AttributesCount.Text = sprintf('%d / %d', adsIndex, adsCount);
                     else
-                        app.AttributesCount.Text = '0 DE 0';
+                        app.AttributesCount.Text = '0 / 0';
                     end
 
                 case 4
@@ -1147,9 +1147,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                     set(app.AttributesImageZoom, 'Enable', 'off', 'Visible', 'off')
 
                     if adsCount
-                        app.AttributesCount.Text = sprintf('%d DE %d', adsIndex, adsCount);
+                        app.AttributesCount.Text = sprintf('%d / %d', adsIndex, adsCount);
                     else
-                        app.AttributesCount.Text = '0 DE 0';
+                        app.AttributesCount.Text = '0 / 0';
                     end
             end
         end
@@ -1593,7 +1593,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             if checkIfUpdateNeeded(app.projectData)
                 msgQuestion = sprintf([ ...
                     'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
-                    'lista de produtos sob análise). Caso o aplicativo seja encerrado ' ...
+                    'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...
                     'agora, as alterações não serão registradas em arquivo.\n\n' ...
                     'Deseja realmente fechar o aplicativo?' ...
                 ], app.projectData.name);
@@ -1786,7 +1786,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         'selectedIndex', app.UITable.Selection ...
                     );
 
-                    ipcMainMatlabOpenPopupApp(app, app, 'ProductDetails', app.Context, homValues, app.resultContext)
+                    ipcMainMatlabOpenPopupApp(app, app, 'SearchProductDetails', app.Context, homValues, app.resultContext)
             end
 
         end
@@ -1832,7 +1832,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             schDetailedIdxs = schDetailedIdxs(schDetailedUniqueFirstIdxs);
             
             if numel(schDetailedIdxs) > 1
-                ipcMainMatlabOpenPopupApp(app, app, 'AddSelectedToBucket', app.Context, schDetailedIdxs)
+                ipcMainMatlabOpenPopupApp(app, app, 'SearchAddSelectedToBucket', app.Context, schDetailedIdxs)
                 return
             end
 
@@ -2126,7 +2126,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.NumRows.FontColor = [0.502 0.502 0.502];
             app.NumRows.Layout.Row = 2;
             app.NumRows.Layout.Column = 1;
-            app.NumRows.Text = '0 REGISTROS';
+            app.NumRows.Text = '';
 
             % Create ColumnWidthMode
             app.ColumnWidthMode = uihyperlink(app.UITableGrid);
