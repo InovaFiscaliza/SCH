@@ -184,7 +184,7 @@ classdef (Abstract) Controller
 
                 otherwise % 'CUSTOMS'
                     products = projectData.customsShipments;
-                    reportIncludeIdx = find([products.ReportInclude], 1);
+                    reportIncludeIdx = find(arrayfun(@(x) x.UserData.ReportInclude, products), 1);
                     if ~isempty(reportIncludeIdx)
                         products = products(reportIncludeIdx);
                     end

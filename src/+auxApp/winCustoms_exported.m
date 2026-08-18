@@ -2,33 +2,32 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                     matlab.ui.Figure
-        GridLayout                   matlab.ui.container.GridLayout
-        DockModule                   matlab.ui.container.GridLayout
-        dockModule_Close             matlab.ui.control.Image
-        dockModule_Undock            matlab.ui.control.Image
-        Hyperlink                    matlab.ui.control.Hyperlink
-        NenhumarquivocarregadoLabel  matlab.ui.control.Label
-        ToolbarSeparator1_2          matlab.ui.control.Image
-        Toolbar                      matlab.ui.container.GridLayout
-        UploadFinalFile              matlab.ui.control.Image
-        GenerateReport               matlab.ui.control.Image
-        OpenPopupProject             matlab.ui.control.Image
-        AnalysisDetails              matlab.ui.control.Image
-        ToolbarSeparator3            matlab.ui.control.Image
-        AnalysisComparison           matlab.ui.control.Image
-        AnalysisSummary              matlab.ui.control.Image
-        ToolbarSeparator2            matlab.ui.control.Image
-        RunAnalysis                  matlab.ui.control.Image
-        ManageRules                  matlab.ui.control.Image
-        ToolbarSeparator1            matlab.ui.control.Image
-        OpenFile                     matlab.ui.control.Image
-        ColumnWidthMode              matlab.ui.control.Hyperlink
-        NumRows                      matlab.ui.control.Label
-        UITable                      matlab.ui.control.Table
-        FilterContext                matlab.ui.control.Label
-        FilterSetup                  matlab.ui.control.Image
-        FlowList                     matlab.ui.control.DropDown
+        UIFigure            matlab.ui.Figure
+        GridLayout          matlab.ui.container.GridLayout
+        Image               matlab.ui.control.Image
+        ManageFiles         matlab.ui.control.Image
+        FileName            matlab.ui.control.Label
+        DockModule          matlab.ui.container.GridLayout
+        dockModule_Close    matlab.ui.control.Image
+        dockModule_Undock   matlab.ui.control.Image
+        Toolbar             matlab.ui.container.GridLayout
+        FilterSetup         matlab.ui.control.Image
+        UploadFinalFile     matlab.ui.control.Image
+        GenerateReport      matlab.ui.control.Image
+        OpenPopupProject    matlab.ui.control.Image
+        AnalysisDetails     matlab.ui.control.Image
+        ToolbarSeparator3   matlab.ui.control.Image
+        AnalysisComparison  matlab.ui.control.Image
+        AnalysisSummary     matlab.ui.control.Image
+        ToolbarSeparator2   matlab.ui.control.Image
+        RunAnalysis         matlab.ui.control.Image
+        ManageRules         matlab.ui.control.Image
+        ToolbarSeparator1   matlab.ui.control.Image
+        OpenFile            matlab.ui.control.Image
+        ColumnWidthMode     matlab.ui.control.Hyperlink
+        NumRows             matlab.ui.control.Label
+        UITable             matlab.ui.control.Table
+        Title               matlab.ui.control.Label
     end
 
     
@@ -54,6 +53,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         projectData
+        customsShipmentsIndex
     end
 
 
@@ -89,7 +89,16 @@ classdef winCustoms_exported < matlab.apps.AppBase
                         switch eventName
                             % auxApp.dockCustomsAnalysisDetails >> winSCH >> auxApp.winCustoms
                             case 'onCustomsShipmentsTableChanged'
-                                loadSelectedFlow(app)
+                                loadSelectedFile(app)
+
+                            % audApp.dockCustomsFilter >> winSCH >> auxApp.winCustoms
+                            case 'onCustomsColumnFilterChanged'
+                                uialert(app.UIFigure, '', '')
+
+                            % audApp.dockCustomsManageFiles >> winSCH >> auxApp.winCustoms
+                            case 'onCustomsShipmentsFileChangeRequest'
+                                app.customsShipmentsIndex = varargin{1};
+                                applyInitialLayout(app)
 
                             % auxApp.dockReportLib >> winSCH >> auxApp.winCustoms
                             case {'onReportGenerate', 'onFinalReportFileChanged'}
@@ -132,8 +141,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 case 1
                     appName = class(app);
                     elToModify = {
-                        app.FlowList;
                         app.UITable;
+                        app.ManageFiles;
                         app.OpenFile;
                         app.ManageRules;
                         app.RunAnalysis;
@@ -150,8 +159,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.FlowList.UserData.id, 'selector', 'input', 'styleImportant', struct('height', '44px'), 'dropDownBackgroundColor', struct('items', 'rgba(183, 49, 44, 0.75)', 'selectedItem', 'rgb(108, 4, 4)')), ...
                             struct('appName', appName, 'dataTag', app.OpenFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Seleciona arquivos')), ...
+                            struct('appName', appName, 'dataTag', app.ManageFiles.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Gerencia arquivos')), ...
                             struct('appName', appName, 'dataTag', app.ManageRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gerencia regras')), ...
                             struct('appName', appName, 'dataTag', app.RunAnalysis.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Executa uma nova análise')), ...
                             struct('appName', appName, 'dataTag', app.AnalysisSummary.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Mostra sumário da análise')), ...
@@ -187,71 +196,53 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 'value', {{110, 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'}} ...
             );
 
-            % app.UITable.RowName = 'numbered';
+            app.UITable.RowName = 'numbered';
         end
 
         %-----------------------------------------------------------------%
         function applyInitialLayout(app)
-            refreshFlowDropDown(app)
-            loadSelectedFlow(app)
+            refreshFileSummary(app)
+            loadSelectedFile(app)
         end
     end
 
 
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function refreshFlowDropDown(app)
+        function refreshFileSummary(app)
             customsShipments = app.projectData.customsShipments;
 
-            % Aberto, em 10/03/2026, reporte de BUG relacionado ao uidropdown, 
-            % quando aplicado estilo "html". Ao apagar lista, o MATLAB não
-            % apaga o valor atual do elemento na GUI. Assim que resolver
-            % isso, basta inserir o addStyle uma única vez, não precisando
-            % removê-lo.
-
             if ~isempty(customsShipments)
-                if isempty(app.FlowList.StyleConfigurations)
-                    addStyle(app.FlowList, uistyle('Interpreter', 'html'))
+                if isempty(app.customsShipmentsIndex)
+                    app.customsShipmentsIndex = 1;
                 end
 
-                customsShipmentsIdx = app.FlowList.Value;
-            
-                items = {};
-                itemsData = 1:numel(customsShipments);
+                customsShipmentsIdx = app.customsShipmentsIndex;
+                [~, fileName, fileExt] = fileparts(customsShipments(customsShipmentsIdx).FileName);
+                fileName = [fileName, fileExt];
 
-                for ii = 1:numel(customsShipments)
-                    fileName = customsShipments(ii).FileName;
-                    
-                    reportStatus = '';
-                    if customsShipments(ii).ReportInclude
-                        reportStatus = '&emsp;&#x1F7E2;';
-                    end
-
-                    numRows = height(customsShipments(ii).Data);
-                    processedAt = customsShipments(ii).Analysis.ProcessedAt;
-                
-                    items{end+1} = sprintf('%s%s<br>└── %d registros • %s', fileName, reportStatus, numRows, processedAt);
+                numFiles = numel(customsShipments);
+                if numFiles == 1
+                    numFilesText = '1 arquivo carregado';
+                else
+                    numFilesText = sprintf('%d arquivos carregados', numFiles);
                 end
-            
-                currentValue = {};    
-                if ~isempty(customsShipmentsIdx)
-                    if isnumeric(customsShipmentsIdx) && ismember(customsShipmentsIdx, itemsData)
-                        currentValue = {'Value', customsShipmentsIdx};
-                    end
-                end
-            
-                set(app.FlowList, 'Items', items, 'ItemsData', itemsData, currentValue{:})
 
-            else             
-                removeStyle(app.FlowList)
-                app.FlowList.Items = {};
+                fileSummary = sprintf([ ...
+                    '<font style="color: gray; font-size: 11px;">%s </font>' ...
+                    '<br><b>%s </b>' ...
+                ], numFilesText, fileName);
+
+            else
+                fileSummary = '<font style="color: gray; font-size: 11px;">Nenhum arquivo carregado </font>';
             end
+
+            app.FileName.Text = fileSummary;
         end
-        
 
         %-----------------------------------------------------------------%
-        function loadSelectedFlow(app)
-            customsShipmentsIdx = app.FlowList.Value;
+        function loadSelectedFile(app)
+            customsShipmentsIdx = app.customsShipmentsIndex;
 
             if ~isempty(customsShipmentsIdx)
                 customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
@@ -261,7 +252,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             end            
     
             app.UITable.UserData.columnWidth.mode = 'initial';
-            app.ColumnWidthMode.Text = 'INICIAL ↔';
+            app.ColumnWidthMode.Text = '↔ INICIAL';
 
             updateTableStyle(app)
             updateToolbar(app)
@@ -273,7 +264,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             removeStyle(app.UITable)
 
             if ~isempty(app.projectData.customsShipments)
-                customsShipmentsIdx = app.FlowList.Value;
+                customsShipmentsIdx = app.customsShipmentsIndex;
                 [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(app.projectData, customsShipmentsIdx);
 
                 if ~isempty(invalidRowIndexes)
@@ -336,6 +327,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             nonEmptyTableSelection = ~isempty(app.UITable.Selection);
 
             set([ 
+                app.ManageFiles;
                 app.RunAnalysis;
                 app.AnalysisSummary;
                 app.AnalysisComparison;
@@ -348,7 +340,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.UploadFinalFile.Enable = ~isempty(app.projectData.modules.(app.Context).generatedFiles.lastHTMLDocFullPath);
 
             if ~isempty(app.projectData.customsShipments)
-                customsShipmentsIdx = app.FlowList.Value;
+                customsShipmentsIdx = app.customsShipmentsIndex;
                 customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
                 
                 app.RunAnalysis.Enable = ~isequal(app.projectData.customsRules, customsShipments.Analysis.Rules);
@@ -414,13 +406,6 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: FlowList
-        function onFlowListValueChanged(app, event)
-            
-            loadSelectedFlow(app)
-            
-        end
-
         % Selection changed function: UITable
         function onTableSelectionChanged(app, event)
             
@@ -449,7 +434,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     return
                     
                 else
-                    customsShipmentsIdx = app.FlowList.Value;
+                    customsShipmentsIdx = app.customsShipmentsIndex;
 
                     currentRow = event.Indices(1);
                     columnName = event.Source.Data.Properties.VariableNames{event.Indices(2)};                    
@@ -477,15 +462,15 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 case 'initial'
                     app.UITable.UserData.columnWidth.mode = 'fix';
                     app.UITable.ColumnWidth = '1x';
-                    app.ColumnWidthMode.Text = 'FIXO ↔';
+                    app.ColumnWidthMode.Text = '↔ FIXO';
                 case 'fix'
                     app.UITable.UserData.columnWidth.mode = 'auto';
                     app.UITable.ColumnWidth = 'auto';
-                    app.ColumnWidthMode.Text = 'AUTO ↔';
+                    app.ColumnWidthMode.Text = '↔ AUTO';
                 otherwise % 'auto'
                     app.UITable.UserData.columnWidth.mode = 'initial';
                     app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value;
-                    app.ColumnWidthMode.Text = 'INICIAL ↔';
+                    app.ColumnWidthMode.Text = '↔ INICIAL';
             end
             
             pause(.150)
@@ -563,7 +548,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
         % Image clicked function: AnalysisSummary
         function onAnalysisSummaryButtonClicked(app, event)
             
-            customsShipmentsIdx = app.FlowList.Value;
+            customsShipmentsIdx = app.customsShipmentsIndex;
             customsData = app.projectData.customsShipments(customsShipmentsIdx).Data;
 
             suggestionCategories = unique(customsData.("regraDecisaoSugerida"));
@@ -581,27 +566,32 @@ classdef winCustoms_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: AnalysisDetails, FilterSetup, 
-        % ...and 2 other components
+        % ...and 3 other components
         function onOpenPopupApp(app, event)
             
-            optionalArgs = {};
+            customsShipmentsIdx = app.customsShipmentsIndex;
+            customsDataIdxs = app.UITable.Selection;
 
             switch event.Source
+                case app.AnalysisDetails
+                    dockAppTag = 'CustomsAnalysisDetails';
+                    optionalArgs = {customsShipmentsIdx, customsDataIdxs};
+
                 case app.FilterSetup
                     dockAppTag = 'CustomsFilter';
+                    optionalArgs = {customsShipmentsIdx};
+
+                case app.ManageFiles
+                    dockAppTag = 'CustomsManageFiles';
+                    optionalArgs = {customsShipmentsIdx};
 
                 case app.ManageRules
                     dockAppTag = 'CustomsManageRules';
-
-                case app.AnalysisDetails
-                    dockAppTag = 'CustomsAnalysisDetails';
-                    
-                    customsShipmentsIdx = app.FlowList.Value;
-                    customsDataIdxs = app.UITable.Selection;
                     optionalArgs = {customsShipmentsIdx, customsDataIdxs};
 
                 case app.OpenPopupProject
                     dockAppTag = 'ReportLib';
+                    optionalArgs = {};
             end
 
             ipcMainMatlabOpenPopupApp(app.mainApp, app, dockAppTag, app.Context, optionalArgs{:})
@@ -621,7 +611,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos inspecionados está vazia.');
                 return
             end
-            customsShipmentsIdx = app.FlowList.Value;
+            customsShipmentsIdx = app.customsShipmentsIndex;
             updateCustomsShipments(app.projectData, 'reportInclude', customsShipmentsIdx)
 
             if ~validateReportRequirements(app.projectData, context, 'reportModel')
@@ -802,40 +792,23 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {20, 18, 5, 40, '1x', 412, 10, 5, 10, '1x', 38, 10, 8, 2};
-            app.GridLayout.RowHeight = {2, 8, 10, 14, 14, 6, 10, 10, '1x', 20, 34};
+            app.GridLayout.ColumnWidth = {20, 54, '1x', 6, 10, 22, 10, 8, 2};
+            app.GridLayout.RowHeight = {2, 8, 10, 14, 20, 20, '1x', 20, 10, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [1 1 1];
 
-            % Create FlowList
-            app.FlowList = uidropdown(app.GridLayout);
-            app.FlowList.Items = {};
-            app.FlowList.ValueChangedFcn = createCallbackFcn(app, @onFlowListValueChanged, true);
-            app.FlowList.FontSize = 11;
-            app.FlowList.FontColor = [1 1 1];
-            app.FlowList.BackgroundColor = [0.7176 0.1922 0.1725];
-            app.FlowList.Layout.Row = [4 7];
-            app.FlowList.Layout.Column = 6;
-            app.FlowList.Value = {};
-
-            % Create FilterSetup
-            app.FilterSetup = uiimage(app.GridLayout);
-            app.FilterSetup.ScaleMethod = 'none';
-            app.FilterSetup.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
-            app.FilterSetup.Layout.Row = [6 8];
-            app.FilterSetup.Layout.Column = 2;
-            app.FilterSetup.ImageSource = 'settings.svg';
-
-            % Create FilterContext
-            app.FilterContext = uilabel(app.GridLayout);
-            app.FilterContext.FontSize = 10;
-            app.FilterContext.FontColor = [0.502 0.502 0.502];
-            app.FilterContext.Layout.Row = [6 8];
-            app.FilterContext.Layout.Column = [4 5];
-            app.FilterContext.Interpreter = 'html';
-            app.FilterContext.Text = {'[FC] '; 'Nenhum filtro por coluna ativo '};
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.Layout.Row = [4 5];
+            app.Title.Layout.Column = [2 4];
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Análise e destinação das remessas</b>'; '<font style="color: gray; font-size: 10px;">Analise as remessas de produtos importados e avalie a destinação final sugerida para cada uma.</font>'};
 
             % Create UITable
             app.UITable = uitable(app.GridLayout);
@@ -847,39 +820,39 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.UITable.ColumnEditable = [false false false false false false false true true];
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
-            app.UITable.Layout.Row = 9;
-            app.UITable.Layout.Column = [2 11];
+            app.UITable.Layout.Row = 7;
+            app.UITable.Layout.Column = [2 6];
             app.UITable.FontSize = 11;
 
             % Create NumRows
             app.NumRows = uilabel(app.GridLayout);
+            app.NumRows.HorizontalAlignment = 'right';
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.502 0.502 0.502];
-            app.NumRows.Layout.Row = 10;
-            app.NumRows.Layout.Column = [2 6];
+            app.NumRows.Layout.Row = 8;
+            app.NumRows.Layout.Column = [3 5];
             app.NumRows.Text = '';
 
             % Create ColumnWidthMode
             app.ColumnWidthMode = uihyperlink(app.GridLayout);
             app.ColumnWidthMode.HyperlinkClickedFcn = createCallbackFcn(app, @onTableColumnWidthModeChanged, true);
             app.ColumnWidthMode.VisitedColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.HorizontalAlignment = 'right';
             app.ColumnWidthMode.FontSize = 10;
             app.ColumnWidthMode.FontWeight = 'normal';
             app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.Layout.Row = 10;
-            app.ColumnWidthMode.Layout.Column = 11;
-            app.ColumnWidthMode.Text = 'INICIAL ↔';
+            app.ColumnWidthMode.Layout.Row = 8;
+            app.ColumnWidthMode.Layout.Column = 2;
+            app.ColumnWidthMode.Text = '↔ INICIAL';
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
-            app.Toolbar.ColumnWidth = {22, 5, 22, 22, 5, 22, 22, 5, 22, '1x', 22, 22, 22};
+            app.Toolbar.ColumnWidth = {22, 5, 22, 22, 5, 22, 22, 5, 22, 22, '1x', 22, 22, 22};
             app.Toolbar.RowHeight = {'1x', 17, '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
-            app.Toolbar.Layout.Row = 11;
-            app.Toolbar.Layout.Column = [1 14];
+            app.Toolbar.Layout.Row = 10;
+            app.Toolbar.Layout.Column = [1 9];
             app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create OpenFile
@@ -958,7 +931,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.AnalysisDetails.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
             app.AnalysisDetails.Enable = 'off';
             app.AnalysisDetails.Layout.Row = [1 3];
-            app.AnalysisDetails.Layout.Column = 9;
+            app.AnalysisDetails.Layout.Column = 10;
             app.AnalysisDetails.ImageSource = 'Variable_edit_16.png';
 
             % Create OpenPopupProject
@@ -966,7 +939,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.OpenPopupProject.ScaleMethod = 'none';
             app.OpenPopupProject.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
             app.OpenPopupProject.Layout.Row = [1 3];
-            app.OpenPopupProject.Layout.Column = 11;
+            app.OpenPopupProject.Layout.Column = 12;
             app.OpenPopupProject.ImageSource = 'organization-20px-black.svg';
 
             % Create GenerateReport
@@ -975,7 +948,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.GenerateReport.ImageClickedFcn = createCallbackFcn(app, @onGeneralReportButtonClicked, true);
             app.GenerateReport.Enable = 'off';
             app.GenerateReport.Layout.Row = [1 3];
-            app.GenerateReport.Layout.Column = 12;
+            app.GenerateReport.Layout.Column = 13;
             app.GenerateReport.ImageSource = 'Publish_HTML_16.png';
 
             % Create UploadFinalFile
@@ -984,32 +957,16 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.UploadFinalFile.ImageClickedFcn = createCallbackFcn(app, @onUploadFinalFileButtonClicked, true);
             app.UploadFinalFile.Enable = 'off';
             app.UploadFinalFile.Layout.Row = [1 3];
-            app.UploadFinalFile.Layout.Column = 13;
+            app.UploadFinalFile.Layout.Column = 14;
             app.UploadFinalFile.ImageSource = 'up-20px.png';
 
-            % Create ToolbarSeparator1_2
-            app.ToolbarSeparator1_2 = uiimage(app.GridLayout);
-            app.ToolbarSeparator1_2.Enable = 'off';
-            app.ToolbarSeparator1_2.Layout.Row = [4 7];
-            app.ToolbarSeparator1_2.Layout.Column = 8;
-            app.ToolbarSeparator1_2.VerticalAlignment = 'bottom';
-            app.ToolbarSeparator1_2.ImageSource = 'LineV.svg';
-
-            % Create NenhumarquivocarregadoLabel
-            app.NenhumarquivocarregadoLabel = uilabel(app.GridLayout);
-            app.NenhumarquivocarregadoLabel.FontSize = 11;
-            app.NenhumarquivocarregadoLabel.Layout.Row = [4 5];
-            app.NenhumarquivocarregadoLabel.Layout.Column = 10;
-            app.NenhumarquivocarregadoLabel.Text = 'Nenhum arquivo carregado';
-
-            % Create Hyperlink
-            app.Hyperlink = uihyperlink(app.GridLayout);
-            app.Hyperlink.VisitedColor = [0 0.4 0.8];
-            app.Hyperlink.FontSize = 11;
-            app.Hyperlink.FontColor = [0 0.4 0.8];
-            app.Hyperlink.Layout.Row = [5 7];
-            app.Hyperlink.Layout.Column = 10;
-            app.Hyperlink.Text = 'Gerenciar arquivos';
+            % Create FilterSetup
+            app.FilterSetup = uiimage(app.Toolbar);
+            app.FilterSetup.ScaleMethod = 'none';
+            app.FilterSetup.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
+            app.FilterSetup.Layout.Row = [1 3];
+            app.FilterSetup.Layout.Column = 9;
+            app.FilterSetup.ImageSource = 'filter.svg';
 
             % Create DockModule
             app.DockModule = uigridlayout(app.GridLayout);
@@ -1018,7 +975,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
-            app.DockModule.Layout.Column = [11 13];
+            app.DockModule.Layout.Column = [4 8];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Undock
@@ -1037,6 +994,31 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.dockModule_Close.Layout.Row = 1;
             app.dockModule_Close.Layout.Column = 2;
             app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
+
+            % Create FileName
+            app.FileName = uilabel(app.GridLayout);
+            app.FileName.HorizontalAlignment = 'right';
+            app.FileName.FontSize = 13;
+            app.FileName.Layout.Row = [5 6];
+            app.FileName.Layout.Column = [2 4];
+            app.FileName.Interpreter = 'html';
+            app.FileName.Text = '<font style="color: gray; font-size: 11px;">Nenhum arquivo carregado </font>';
+
+            % Create ManageFiles
+            app.ManageFiles = uiimage(app.GridLayout);
+            app.ManageFiles.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
+            app.ManageFiles.Enable = 'off';
+            app.ManageFiles.Layout.Row = [5 6];
+            app.ManageFiles.Layout.Column = 6;
+            app.ManageFiles.ImageSource = 'files.svg';
+
+            % Create Image
+            app.Image = uiimage(app.GridLayout);
+            app.Image.ScaleMethod = 'none';
+            app.Image.Enable = 'off';
+            app.Image.Layout.Row = 8;
+            app.Image.Layout.Column = 6;
+            app.Image.ImageSource = 'filter.svg';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

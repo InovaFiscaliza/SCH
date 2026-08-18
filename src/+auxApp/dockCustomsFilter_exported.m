@@ -41,6 +41,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
         isDocked = true        
         mainApp
         callingApp
+        projectData
     end
 
 
@@ -52,14 +53,12 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
     
     methods (Access = private)
         %-----------------------------------------------------------------%
-        function initialLayout(app)
-            % DROPDOWN "COLUNAS"
-            columnRawNames = app.mainApp.schData.detailed.Properties.VariableNames;
-            columnRawTypes = matlab.Compatibility.resolveTableVariableTypes(app.mainApp.schData.detailed);
+        function initialLayout(app, customsShipmentsIdx)
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
 
-            filterableMask = ~startsWith(columnRawNames, '_');
-            columnRawNames = columnRawNames(filterableMask);
-            columnRawTypes = columnRawTypes(filterableMask);
+            % DROPDOWN "COLUNAS"
+            columnRawNames = customsShipments.Data.Properties.VariableNames;
+            columnRawTypes = matlab.Compatibility.resolveTableVariableTypes(customsShipments.Data);
 
             [columnNames, sortedIdxs] = textAnalysis.sort(columnRawNames);
             columnTypes = columnRawTypes(sortedIdxs);
@@ -70,12 +69,14 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Atualiza componente dropdown com os nomes símbolicos das
             % colunas, além de armazenar em "UserData" detalhes sobre os
             % tipos de dados (nome, tipo e pseudo classe de cada coluna).
-            app.symbolicNameList.Items = [{''}; symbolicNames'];
+            app.SymbolicNameList.Items = [{''}; symbolicNames'];
             
             restartState(app)            
-            app.symbolicNameList.UserData.columnNames   = columnNames;
-            app.symbolicNameList.UserData.columnTypes   = columnTypes;
-            app.symbolicNameList.UserData.pseudoClasses = pseudoClasses;
+            app.SymbolicNameList.UserData.columnNames   = columnNames;
+            app.SymbolicNameList.UserData.columnTypes   = columnTypes;
+            app.SymbolicNameList.UserData.pseudoClasses = pseudoClasses;
+
+            updateTree(app)
         end
 
         %-----------------------------------------------------------------%
@@ -83,77 +84,58 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % O componente de INPUT do valor do filtro pode ser uidatepicker,
             % uieditfield (numeric/text) ou uidropdown, a depender da pseudo 
             % classe da coluna. Guarda-se um handle p/ o elemento ativo.
-            app.operation1_List.UserData.inputHandle = [];
-            app.operation2_List.UserData.inputHandle = [];
-        end
-
-        %-----------------------------------------------------------------%
-        function updateForm(app)
-            switch app.mainApp.General.context.SEARCH.type
-                case 'FreeText'
-                    app.filteringStrategy.Value = 'Texto livre';
-                case 'ColumnFilter'
-                    app.filteringStrategy.Value = 'Filtro por coluna';
-                otherwise % FreeText+ColumnFilter
-                    app.filteringStrategy.Value = 'Texto livre + Filtro por coluna';
-            end
-
-            switch app.mainApp.General.context.SEARCH.mode
-                case 'tokens'
-                    app.config_SearchModeTokenSuggestion.Value = 1;
-                otherwise % words
-                    app.config_SearchModeListOfWords.Value = 1;
-            end
-
-            set(app.config_SearchModePanel.Children, 'Enable', contains(app.filteringStrategy.Value, 'Texto livre'))
-            set(app.ColumnFilterPanel,               'Enable', contains(app.filteringStrategy.Value, 'Filtro por coluna'))
-
-            updateTree(app)
+            app.Operation1_List.UserData.inputHandle = [];
+            app.Operation2_List.UserData.inputHandle = [];
         end
 
         %-----------------------------------------------------------------%
         function updateTree(app)
-            if ~isempty(app.columnFilterList.Children)
-                delete(app.columnFilterList.Children)
+            customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
+            if ~isempty(app.ColumnFilterList.Children)
+                delete(app.ColumnFilterList.Children)
             end
 
-            filterList = getFilterList(app.mainApp.filteringObj, 'SCH');
+            filterList = getFilterList(customsShipments.UserData.Filter, 'SCH');
             if ~isempty(filterList)
                 checkedNodes = [];
     
                 for ii = 1:numel(filterList)
-                    childNode = uitreenode(app.columnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
+                    childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
     
-                    if app.mainApp.filteringObj.filterRules.Enable(ii)
+                    if customsShipments.UserData.Filter.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];
                     end
                 end
     
-                app.columnFilterList.CheckedNodes = checkedNodes;
+                app.ColumnFilterList.CheckedNodes = checkedNodes;
             end
         end
 
         %-----------------------------------------------------------------%
         function [columName, pseudoClass] = inspectColumnData(app)
-            symbolicName = app.symbolicNameList.Value;
-            [~, symbolicIndex] = ismember(symbolicName, app.symbolicNameList.Items);
+            symbolicName = app.SymbolicNameList.Value;
+            [~, symbolicIndex] = ismember(symbolicName, app.SymbolicNameList.Items);
             columnIndex = symbolicIndex-1;
 
             if columnIndex == 0
                 columName   = '';
                 pseudoClass = '';
             else
-                columName   = app.symbolicNameList.UserData.columnNames{columnIndex};
-                pseudoClass = app.symbolicNameList.UserData.pseudoClasses{columnIndex};
+                columName   = app.SymbolicNameList.UserData.columnNames{columnIndex};
+                pseudoClass = app.SymbolicNameList.UserData.pseudoClasses{columnIndex};
             end
         end
 
         %-----------------------------------------------------------------%
-        function categories = getCategories(app, columnName)
-            categories = {};
-            categoriesIndex = find(strcmp({app.mainApp.schDataCategories.columnName}, columnName), 1);
-            if ~isempty(categoriesIndex)
-                categories = app.mainApp.schDataCategories(categoriesIndex).categories;
+        function cats = getCategories(app, columnName)
+            customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
+            cats = {};
+            if iscategorical(customsShipments.Data.(columnName))
+                cats = categories(customsShipments.Data.(columnName));
             end
         end
     end
@@ -163,14 +145,13 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
     methods (Access = private)
 
         % Code that executes after component creation
-        function startupFcn(app, mainApp, callingApp, context)
+        function startupFcn(app, mainApp, callingApp, context, customsShipmentsIdx)
             
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
                 
-                app.inputArgs = struct('context', context);
-                initialLayout(app)
-                updateForm(app)
+                app.inputArgs = struct('context', context, 'customsShipmentsIdx', customsShipmentsIdx);
+                initialLayout(app, customsShipmentsIdx)
                 
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -185,47 +166,13 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function
-        function onSearchModeChanged(app, event)
-            
-            switch event.Source
-                case app.filteringStrategy
-                    switch app.filteringStrategy.Value
-                        case 'Texto livre'
-                            app.mainApp.General.context.SEARCH.type = 'FreeText';
-                        case 'Filtro por coluna'
-                            app.mainApp.General.context.SEARCH.type = 'ColumnFilter';
-                        otherwise % 'Texto livre + Filtro por coluna'
-                            app.mainApp.General.context.SEARCH.type = 'FreeText+ColumnFilter';
-                    end
-
-                case app.config_SearchModePanel            
-                    switch app.config_SearchModePanel.SelectedObject
-                        case app.config_SearchModeTokenSuggestion
-                            app.mainApp.General.context.SEARCH.mode     = 'tokens';
-                            app.mainApp.General.context.SEARCH.function = 'strcmp';
-        
-                        otherwise % app.config_SearchModeListOfWords
-                            app.mainApp.General.context.SEARCH.mode     = 'words';
-                            app.mainApp.General.context.SEARCH.function = 'contains';
-                    end
-            end
-
-            app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
-            appEngine.util.generalSettingsSave(class.Constants.appName, app.mainApp.rootFolder, app.mainApp.General_I, app.mainApp.executionMode)
-            
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onSearchModeChanged')
-            updateForm(app)
-
-        end
-
-        % Callback function: not associated with a component
+        % Value changed function: SymbolicNameList
         function onFilterColumnChanged(app, event)
             
             restartState(app)
 
             [columnName, pseudoClass] = inspectColumnData(app);
-            app.symbolicNameList.UserData.selected = struct('columnName', columnName, 'pseudoClass', pseudoClass);
+            app.SymbolicNameList.UserData.selected = struct('columnName', columnName, 'pseudoClass', pseudoClass);
 
             if isempty(pseudoClass)
                 operations = {};
@@ -233,44 +180,44 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
                 operations = tableFiltering.getFilterCapabilities(pseudoClass);
             end
             
-            app.operation1_List.Items = operations;
-            set(app.operation2_List, 'Items', [{''}, operations], 'Value', '')
+            app.Operation1_List.Items = operations;
+            set(app.Operation2_List, 'Items', [{''}, operations], 'Value', '')
 
             if ~isempty(operations)
-                app.operation1_List.Value = app.operation1_List.Items{1};
-                onFilterOperatorChanged(app, struct('Source', app.operation1_List))
-                onFilterOperatorChanged(app, struct('Source', app.operation2_List))
+                app.Operation1_List.Value = app.Operation1_List.Items{1};
+                onFilterOperatorChanged(app, struct('Source', app.Operation1_List))
+                onFilterOperatorChanged(app, struct('Source', app.Operation2_List))
             end
 
-            app.columnFilterAdd.Enable = ~isempty(operations);
+            app.ColumnFilterAdd.Enable = ~isempty(operations);
 
         end
 
-        % Callback function: not associated with a component
+        % Value changed function: Operation1_List, Operation2_List
         function onFilterOperatorChanged(app, event)
             
             switch event.Source
-                case app.operation1_List
+                case app.Operation1_List
                     valueHandles = [ ...
-                        app.value1_Date, ...
-                        app.value1_Numeric, ...
-                        app.value1_TextFree, ...
-                        app.value1_TextList ...
+                        app.Value1_Date, ...
+                        app.Value1_Numeric, ...
+                        app.Value1_TextFree, ...
+                        app.Value1_TextList ...
                     ];
                     
-                case app.operation2_List
+                case app.Operation2_List
                     valueHandles = [ ...
-                        app.value2_Date, ...
-                        app.value2_Numeric, ...
-                        app.value2_TextFree, ...
-                        app.value2_TextList ...
+                        app.Value2_Date, ...
+                        app.Value2_Numeric, ...
+                        app.Value2_TextFree, ...
+                        app.Value2_TextList ...
                     ];
             end
             tagHandles  = arrayfun(@(x) x.Tag, valueHandles, 'UniformOutput', false);
 
-            columnName  = app.symbolicNameList.UserData.selected.columnName;
-            pseudoClass = app.symbolicNameList.UserData.selected.pseudoClass;
-            categories  = getCategories(app, columnName);
+            columnName  = app.SymbolicNameList.UserData.selected.columnName;
+            pseudoClass = app.SymbolicNameList.UserData.selected.pseudoClass;
+            cats  = getCategories(app, columnName);
 
             switch pseudoClass
                 case 'cellstr'
@@ -289,12 +236,12 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
                 case 'categorical'
                     % Se a coluna tiver mais de 500 categorias, apresenta-se 
                     % como uieditfield (text) ao invés de dropdown.
-                    if isempty(categories)
+                    if isempty(cats)
                         [~, tagIndex] = ismember('textFree', tagHandles);
                         optionalArgs  = {};
                     else
                         [~, tagIndex] = ismember('textList', tagHandles);
-                        optionalArgs  = {'Items', [{''}; categories]};
+                        optionalArgs  = {'Items', [{''}; cats]};
                     end
             end
 
@@ -304,62 +251,71 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             
         end
 
-        % Callback function: not associated with a component
+        % Image clicked function: ColumnFilterAdd
         function onFilterAddImageClicked(app, event)
             
-            columnName = app.symbolicNameList.UserData.selected.columnName;            
-            operators  = {app.operation1_List.Value};
-            values     = {app.operation1_List.UserData.inputHandle.Value};
-            connector  = app.operation2_LogicalGrid.SelectedObject.Text;
+            customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
 
-            if ~isempty(app.operation2_List.Value) && (~strcmp(app.operation1_List.Value, app.operation2_List.Value) || ~isequal(app.operation1_List.UserData.inputHandle.Value, app.operation2_List.UserData.inputHandle.Value))
-                operators = [operators, {app.operation2_List.Value}];
-                values    = [values, {app.operation2_List.UserData.inputHandle.Value}];
+            columnName = app.SymbolicNameList.UserData.selected.columnName;            
+            operators  = {app.Operation1_List.Value};
+            values     = {app.Operation1_List.UserData.inputHandle.Value};
+            connector  = app.Operation2_LogicalGrid.SelectedObject.Text;
+
+            if ~isempty(app.Operation2_List.Value) && (~strcmp(app.Operation1_List.Value, app.Operation2_List.Value) || ~isequal(app.Operation1_List.UserData.inputHandle.Value, app.Operation2_List.UserData.inputHandle.Value))
+                operators = [operators, {app.Operation2_List.Value}];
+                values    = [values, {app.Operation2_List.UserData.inputHandle.Value}];
             end
 
             try
-                addFilterRule(app.mainApp.filteringObj, columnName, operators, values, connector);
+                addFilterRule(customsShipments.UserData.Filter, columnName, operators, values, connector);
             catch ME
                 ui.Dialog(app.UIFigure, 'warning', ME.message);
                 return
             end
             updateTree(app)
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onColumnFilterChanged')
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
 
         end
 
         % Menu selected function: columnFilterDel
         function onFilterDelImageClicked(app, event)
             
-            selectedNodes = app.columnFilterList.SelectedNodes;
+            selectedNodes = app.ColumnFilterList.SelectedNodes;
 
             if ~isempty(selectedNodes)
-                removeFilterRule(app.mainApp.filteringObj, [selectedNodes.NodeData])
+                customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+                customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
+                removeFilterRule(customsShipments.UserData.Filter, [selectedNodes.NodeData])
                 updateTree(app)
 
-                ipcMainMatlabCallsHandler(app.mainApp, app, 'onColumnFilterChanged')
+                ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
             end
 
         end
 
-        % Callback function: not associated with a component
+        % Callback function: ColumnFilterList
         function onColumnFilterCheckedNodesChanged(app, event)
 
             checkedNodes = [];            
-            if ~isempty(app.columnFilterList.CheckedNodes)
-                checkedNodes = [app.columnFilterList.CheckedNodes.NodeData];
+            if ~isempty(app.ColumnFilterList.CheckedNodes)
+                checkedNodes = [app.ColumnFilterList.CheckedNodes.NodeData];
             end
 
-            initialEnableArray = app.mainApp.filteringObj.filterRules.Enable;
+            customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
+            initialEnableArray = customsShipments.UserData.Filter.filterRules.Enable;
             currentEnableArray = zeros(height(initialEnableArray), 1, 'logical');
             if ~isempty(checkedNodes)
                 currentEnableArray(checkedNodes) = true;
             end
 
             if ~isequal(initialEnableArray, currentEnableArray)
-                toogleFilterRule(app.mainApp.filteringObj, currentEnableArray)
-                ipcMainMatlabCallsHandler(app.mainApp, app, 'onColumnFilterChanged')
+                toogleFilterRule(customsShipments.UserData.Filter, currentEnableArray)
+                ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
             end
             
         end
@@ -446,6 +402,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Create SymbolicNameList
             app.SymbolicNameList = uidropdown(app.ColumnFilterGrid);
             app.SymbolicNameList.Items = {};
+            app.SymbolicNameList.ValueChangedFcn = createCallbackFcn(app, @onFilterColumnChanged, true);
             app.SymbolicNameList.FontSize = 11;
             app.SymbolicNameList.BackgroundColor = [1 1 1];
             app.SymbolicNameList.Layout.Row = 1;
@@ -455,6 +412,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Create Operation1_List
             app.Operation1_List = uidropdown(app.ColumnFilterGrid);
             app.Operation1_List.Items = {};
+            app.Operation1_List.ValueChangedFcn = createCallbackFcn(app, @onFilterOperatorChanged, true);
             app.Operation1_List.FontSize = 11;
             app.Operation1_List.BackgroundColor = [1 1 1];
             app.Operation1_List.Layout.Row = 2;
@@ -524,6 +482,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Create Operation2_List
             app.Operation2_List = uidropdown(app.ColumnFilterGrid);
             app.Operation2_List.Items = {};
+            app.Operation2_List.ValueChangedFcn = createCallbackFcn(app, @onFilterOperatorChanged, true);
             app.Operation2_List.FontSize = 11;
             app.Operation2_List.BackgroundColor = [1 1 1];
             app.Operation2_List.Layout.Row = 4;
@@ -572,6 +531,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Create ColumnFilterAdd
             app.ColumnFilterAdd = uiimage(app.ColumnFilterGrid);
             app.ColumnFilterAdd.ScaleMethod = 'none';
+            app.ColumnFilterAdd.ImageClickedFcn = createCallbackFcn(app, @onFilterAddImageClicked, true);
             app.ColumnFilterAdd.Enable = 'off';
             app.ColumnFilterAdd.Layout.Row = 5;
             app.ColumnFilterAdd.Layout.Column = 3;
@@ -582,6 +542,9 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             app.ColumnFilterList.FontSize = 11;
             app.ColumnFilterList.Layout.Row = 6;
             app.ColumnFilterList.Layout.Column = [1 3];
+
+            % Assign Checked Nodes
+            app.ColumnFilterList.CheckedNodesChangedFcn = createCallbackFcn(app, @onColumnFilterCheckedNodesChanged, true);
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);

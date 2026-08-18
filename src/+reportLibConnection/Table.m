@@ -196,9 +196,9 @@ classdef (Abstract) Table
 
                 otherwise % 'CUSTOMS
                     customsShipments = projectData.customsShipments;
-                    reportIncludeIdx = find([customsShipments.ReportInclude], 1);
+                    reportIncludeIdx = find(arrayfun(@(x) x.UserData.ReportInclude, customsShipments), 1);
                     if ~isempty(reportIncludeIdx)
-                        customsData = customsShipments.Data;
+                        customsData = customsShipments(reportIncludeIdx).Data;
                     end
             end
 

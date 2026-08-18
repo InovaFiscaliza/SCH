@@ -228,7 +228,7 @@ classdef winProducts_exported < matlab.apps.AppBase
                                      'ColumnWidth', app.mainApp.General.context.PRODUCTS.reportTable.(viewType).columnWidth')
 
                     app.UITable.UserData.columnWidth.mode = 'initial';
-                    app.ColumnWidthMode.Text = 'INICIAL ↔';
+                    app.ColumnWidthMode.Text = '↔ INICIAL';
             end
 
             updateTableStyle(app)
@@ -678,17 +678,17 @@ classdef winProducts_exported < matlab.apps.AppBase
                 case 'initial'
                     app.UITable.UserData.columnWidth.mode = 'fix';
                     app.UITable.ColumnWidth = '1x';
-                    app.ColumnWidthMode.Text = 'FIXO ↔';
+                    app.ColumnWidthMode.Text = '↔ FIXO';
                 case 'fix'
                     app.UITable.UserData.columnWidth.mode = 'auto';
                     app.UITable.ColumnWidth = 'auto';
-                    app.ColumnWidthMode.Text = 'AUTO ↔';
+                    app.ColumnWidthMode.Text = '↔ AUTO';
                 otherwise % 'auto'
                     viewType = getViewType(app); % 'vendorView' | 'customsView'
 
                     app.UITable.UserData.columnWidth.mode = 'initial';
                     app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value.(viewType);
-                    app.ColumnWidthMode.Text = 'INICIAL ↔';
+                    app.ColumnWidthMode.Text = '↔ INICIAL';
             end
             
             pause(.150)
@@ -736,7 +736,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {20, '1x', 80, 16, 38, 10, 8, 2};
+            app.GridLayout.ColumnWidth = {20, 54, '1x', 96, 38, 10, 8, 2};
             app.GridLayout.RowHeight = {2, 8, 10, 14, 20, 20, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -758,23 +758,23 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create NumRows
             app.NumRows = uilabel(app.GridLayout);
+            app.NumRows.HorizontalAlignment = 'right';
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.502 0.502 0.502];
             app.NumRows.Layout.Row = 8;
-            app.NumRows.Layout.Column = 2;
+            app.NumRows.Layout.Column = [3 5];
             app.NumRows.Text = '';
 
             % Create ColumnWidthMode
             app.ColumnWidthMode = uihyperlink(app.GridLayout);
             app.ColumnWidthMode.HyperlinkClickedFcn = createCallbackFcn(app, @ColumnWidthModeHyperlinkClicked, true);
             app.ColumnWidthMode.VisitedColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.HorizontalAlignment = 'right';
             app.ColumnWidthMode.FontSize = 10;
             app.ColumnWidthMode.FontWeight = 'normal';
             app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
             app.ColumnWidthMode.Layout.Row = 8;
-            app.ColumnWidthMode.Layout.Column = [4 5];
-            app.ColumnWidthMode.Text = 'INICIAL ↔';
+            app.ColumnWidthMode.Layout.Column = 2;
+            app.ColumnWidthMode.Text = '↔ INICIAL';
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.GridLayout);
@@ -831,11 +831,10 @@ classdef winProducts_exported < matlab.apps.AppBase
 
             % Create ShowDataRules
             app.ShowDataRules = uiimage(app.Toolbar);
-            app.ShowDataRules.ScaleMethod = 'none';
             app.ShowDataRules.ImageClickedFcn = createCallbackFcn(app, @Toolbar_ShowRulesImageClicked, true);
             app.ShowDataRules.Layout.Row = [1 3];
             app.ShowDataRules.Layout.Column = 1;
-            app.ShowDataRules.ImageSource = 'info-16px-gray.svg';
+            app.ShowDataRules.ImageSource = 'Info_36.png';
 
             % Create ToolbarSeparator
             app.ToolbarSeparator = uiimage(app.Toolbar);
@@ -850,7 +849,6 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.RowHeight = {'1x'};
             app.DockModule.ColumnSpacing = 2;
             app.DockModule.Padding = [5 2 5 2];
-            app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
             app.DockModule.Layout.Column = [5 7];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
@@ -892,7 +890,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.Hyperlink.FontWeight = 'normal';
             app.Hyperlink.FontColor = [0.502 0.502 0.502];
             app.Hyperlink.Layout.Row = 6;
-            app.Hyperlink.Layout.Column = [3 5];
+            app.Hyperlink.Layout.Column = [4 5];
             app.Hyperlink.Text = 'FORNECEDOR-USUÁRIO 👁';
 
             % Create ContextMenu

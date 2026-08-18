@@ -487,6 +487,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                             case {'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
                                   'auxApp.dockCustomsFilter', 'auxApp.dockCustomsFilter_exported', ...
                                   'auxApp.dockCustomsManageRules', 'auxApp.dockCustomsManageRules_exported', ...
+                                  'auxApp.dockCustomsManageFiles', 'auxApp.dockCustomsManageFiles_exported', ...
                                   'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
                                   'auxApp.dockReportLib', 'auxApp.dockReportLib_exported', ...
                                   'auxApp.dockSearchAddSelectedToBucket', 'auxApp.dockSearchAddSelectedToBucket_exported', ...
@@ -505,7 +506,19 @@ classdef winSCH_exported < matlab.apps.AppBase
                                         end
 
                                     case 'onCustomsShipmentsTableChanged'
-                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName)
+                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
+
+                                    case 'onCustomsShipmentsFileChangeRequest'
+                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
+
+                                        if callingApp.isDocked
+                                            sendEventToHTMLSource(callingApp.callingApp.jsBackDoor, 'closePopupAppRequest', struct('dataTag', callingApp.GridLayout.UserData.id))
+                                        else
+                                            delete(callingApp)
+                                        end
+
+                                    case 'onCustomsColumnFilterChanged'
+                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
 
                                     % auxApp.dockSearchFilterSetup
                                     case 'onSearchModeChanged'
@@ -586,7 +599,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails'})}
+                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageFiles', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails'})}
                 context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CUSTOMS', 'CONFIG'})}
             end
 
@@ -608,13 +621,14 @@ classdef winSCH_exported < matlab.apps.AppBase
                     'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
                 );
                 popupSpecifications(1, :) = {"CustomsAnalysisDetails", 598, 592, false};
-                popupSpecifications(2, :) = {"CustomsFilter", 518, 518, false}; % PENDENTE
-                popupSpecifications(3, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
-                popupSpecifications(4, :) = {"ProductInfo", 840, 628, false};
-                popupSpecifications(5, :) = {"ReportLib", 460, 608, false};
-                popupSpecifications(6, :) = {"SearchAddSelectedToBucket", 518, 518, false};
-                popupSpecifications(7, :) = {"SearchFilter", 518, 518, false};
-                popupSpecifications(8, :) = {"SearchProductDetails", 1038, 628, false};
+                popupSpecifications(2, :) = {"CustomsFilter", 518, 376, false};
+                popupSpecifications(3, :) = {"CustomsManageFiles", 518, 518, false};
+                popupSpecifications(4, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
+                popupSpecifications(5, :) = {"ProductInfo", 840, 628, false};
+                popupSpecifications(6, :) = {"ReportLib", 460, 608, false};
+                popupSpecifications(7, :) = {"SearchAddSelectedToBucket", 518, 518, false};
+                popupSpecifications(8, :) = {"SearchFilter", 518, 518, false};
+                popupSpecifications(9, :) = {"SearchProductDetails", 1038, 628, false};
 
                 auxAppNameIdx = find(popupSpecifications.AuxAppName == string(auxAppName), 1);
                 screenWidth = popupSpecifications.Width(auxAppNameIdx);
@@ -1852,15 +1866,15 @@ classdef winSCH_exported < matlab.apps.AppBase
                 case 'initial'
                     app.UITable.UserData.columnWidth.mode = 'fix';
                     app.UITable.ColumnWidth = '1x';
-                    app.ColumnWidthMode.Text = 'FIXO ↔';
+                    app.ColumnWidthMode.Text = '↔ FIXO';
                 case 'fix'
                     app.UITable.UserData.columnWidth.mode = 'auto';
                     app.UITable.ColumnWidth = 'auto';
-                    app.ColumnWidthMode.Text = 'AUTO ↔';
+                    app.ColumnWidthMode.Text = '↔ AUTO';
                 otherwise % 'auto'
                     app.UITable.UserData.columnWidth.mode = 'initial';
                     app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value;
-                    app.ColumnWidthMode.Text = 'INICIAL ↔';
+                    app.ColumnWidthMode.Text = '↔ INICIAL';
             end
             
             pause(.150)
@@ -2097,7 +2111,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create UITableGrid
             app.UITableGrid = uigridlayout(app.Tab1Grid);
-            app.UITableGrid.ColumnWidth = {'1x', 54, 320};
+            app.UITableGrid.ColumnWidth = {54, '1x', 320};
             app.UITableGrid.RowHeight = {'1x', 20};
             app.UITableGrid.ColumnSpacing = 20;
             app.UITableGrid.RowSpacing = 0;
@@ -2122,23 +2136,23 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create NumRows
             app.NumRows = uilabel(app.UITableGrid);
+            app.NumRows.HorizontalAlignment = 'right';
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.502 0.502 0.502];
             app.NumRows.Layout.Row = 2;
-            app.NumRows.Layout.Column = 1;
+            app.NumRows.Layout.Column = 2;
             app.NumRows.Text = '';
 
             % Create ColumnWidthMode
             app.ColumnWidthMode = uihyperlink(app.UITableGrid);
             app.ColumnWidthMode.HyperlinkClickedFcn = createCallbackFcn(app, @onColumnWidthModeChanged, true);
             app.ColumnWidthMode.VisitedColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.HorizontalAlignment = 'right';
             app.ColumnWidthMode.FontSize = 10;
             app.ColumnWidthMode.FontWeight = 'normal';
             app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
             app.ColumnWidthMode.Layout.Row = 2;
-            app.ColumnWidthMode.Layout.Column = 2;
-            app.ColumnWidthMode.Text = 'INICIAL ↔';
+            app.ColumnWidthMode.Layout.Column = 1;
+            app.ColumnWidthMode.Text = '↔ INICIAL';
 
             % Create ProductDetailsGrid
             app.ProductDetailsGrid = uigridlayout(app.UITableGrid);

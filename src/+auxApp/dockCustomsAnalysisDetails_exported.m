@@ -44,8 +44,6 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
         isDocked = true        
         mainApp
         callingApp
-        jsBackDoor
-        progressDialog
         projectData
     end
 
@@ -135,7 +133,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
 
-                app.inputArgs = struct('customsShipmentsIdx', customsShipmentsIdx, 'customsDataIdxs', customsDataIdxs');
+                app.inputArgs = struct('context', context, 'customsShipmentsIdx', customsShipmentsIdx, 'customsDataIdxs', customsDataIdxs');
                 updateForm(app, customsShipmentsIdx, customsDataIdxs)
                 
             catch ME
