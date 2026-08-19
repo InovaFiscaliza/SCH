@@ -300,17 +300,15 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateToolbar(app)
-            context = 'PRODUCTS';
-
-            nonEmptyListOfProducts           = ~isempty(app.projectData.inspectedProducts);
-            nonEmptyTableSelection           = ~isempty(app.UITable.Selection);            
-            reportFinalVersionGenerated      = ~isempty(app.projectData.modules.(context).generatedFiles.lastHTMLDocFullPath);
+            nonEmptyListOfProducts = ~isempty(app.projectData.inspectedProducts);
+            nonEmptyTableSelection = ~isempty(app.UITable.Selection);            
+            reportFinalVersionGenerated = ~isempty(app.projectData.modules.(app.Context).generatedFiles.lastHTMLDocFullPath);
 
             app.AnalysisDetails.Enable = nonEmptyListOfProducts;
-            app.AnalysisDetailsViaContext.Enable   = nonEmptyListOfProducts;
+            app.AnalysisDetailsViaContext.Enable = nonEmptyListOfProducts;
             app.TableRowDelete.Enable = nonEmptyTableSelection;
-            app.GenerateReport.Enable   = nonEmptyListOfProducts;
-            app.UploadFinalFile.Enable  = reportFinalVersionGenerated;
+            app.GenerateReport.Enable = nonEmptyListOfProducts;
+            app.UploadFinalFile.Enable = reportFinalVersionGenerated;
         end
 
         %-----------------------------------------------------------------%
@@ -343,7 +341,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', "PRODUCTS")
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', app.Context)
             delete(app)
             
         end
@@ -372,7 +370,7 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: not associated with a component
+        % Callback function
         function onTableColumnWidthModeChanged(app, event)
             
             % app.ColumnWidthMode.Enable = "off";
@@ -537,7 +535,7 @@ classdef winProducts_exported < matlab.apps.AppBase
         function onGeneralReportButtonClicked(app, event)
             
             % <VALIDAÇÕES>
-            context = 'PRODUCTS';
+            context = app.Context;
             issue = app.projectData.modules.(context).ui.issue;
             reportVersion = app.projectData.modules.(context).ui.reportVersion;
 

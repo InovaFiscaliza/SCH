@@ -142,15 +142,18 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "false",
-                        "Text": "Na tabela apresentada a seguir constam informações acerca das remessas de produtos analisadas.",
-                        "Variable": []
+                        "Text": "Foram analisadas %d remessas de produtos, distribuídos segundo a destinação final: %s.",
+                        "Variable": [
+                            "var_CustomsShipmentsTotal",
+                            "var_CustomsShipmentsDestinationSummary"                        
+                        ]
                     }
                 },
                 {
                     "Type": "Table",
                     "Data": {
                         "Origin": "FunctionEvaluation",
-                        "Source": "tableCustomsShipments",
+                        "Source": "tableCustomsShipments_Liberado",
                         "Columns": [
                             "#", 
                             "remessaCodigo",
@@ -160,7 +163,199 @@
                             "Sanável?",
                             "auditorNota"
                         ],
-                        "Caption": "Informações acerca das remessas de produtos analisadas.",
+                        "Caption": "Informações acerca das remessas de produtos analisadas que tiveram destinação \"Liberado\".",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Código aduaneiro",
+                                "Precision": "%s",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Importador",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Decisão",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Situação",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Sanável?",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Informações adicionais<br>(opcional)",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            }
+                        ],
+                        "Intro": "",
+                        "Error": "",
+                        "LineBreak": 0
+                    }
+                },
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableCustomsShipments_Prazo",
+                        "Columns": [
+                            "#", 
+                            "remessaCodigo",
+                            "remessaImportador",
+                            "auditorDecisaoFinal",
+                            "Situação",
+                            "Sanável?",
+                            "auditorNota"
+                        ],
+                        "Caption": "Informações acerca das remessas de produtos analisadas que tiveram destinação \"Prazo\".",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Código aduaneiro",
+                                "Precision": "%s",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Importador",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Decisão",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Situação",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Sanável?",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Informações adicionais<br>(opcional)",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            }
+                        ],
+                        "Intro": "",
+                        "Error": "",
+                        "LineBreak": 0
+                    }
+                },
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableCustomsShipments_Devolucao",
+                        "Columns": [
+                            "#", 
+                            "remessaCodigo",
+                            "remessaImportador",
+                            "auditorDecisaoFinal",
+                            "Situação",
+                            "Sanável?",
+                            "auditorNota"
+                        ],
+                        "Caption": "Informações acerca das remessas de produtos analisadas que tiveram destinação \"Devolução\".",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Código aduaneiro",
+                                "Precision": "%s",
+                                "Width": "70px"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Importador",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Decisão",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Situação",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Sanável?",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "true",
+                                "ColumnName": "Informações adicionais<br>(opcional)",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            }
+                        ],
+                        "Intro": "",
+                        "Error": "",
+                        "LineBreak": 0
+                    }
+                },
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableCustomsShipments_Perdimento",
+                        "Columns": [
+                            "#", 
+                            "remessaCodigo",
+                            "remessaImportador",
+                            "auditorDecisaoFinal",
+                            "Situação",
+                            "Sanável?",
+                            "auditorNota"
+                        ],
+                        "Caption": "Informações acerca das remessas de produtos analisadas que tiveram destinação \"Perdimento\".",
                         "Settings": [
                             {
                                 "Editable": "false",

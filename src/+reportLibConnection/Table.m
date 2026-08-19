@@ -159,12 +159,12 @@ classdef (Abstract) Table
             customsData.("#") = (1:height(customsData))';
 
             regularityDict = dictionary([true, false], ["Regular", "Irregular"]);
-            regularStatus = strcmp(customsData.("auditorDecisaoFinal"), 'Liberado');
-            customsData.("Situação") = regularityDict(regularStatus);
+            regularStatusMask = customsData.("auditorDecisaoFinal") == "Liberado";
+            customsData.("Situação") = regularityDict(regularStatusMask);
 
             customsData.("Sanável?")(:) = "-";
-            customsData.("Sanável?")(strcmp(customsData.("auditorDecisaoFinal"), 'Prazo')) = "Sim";
-            customsData.("Sanável?")(ismember(customsData.("auditorDecisaoFinal"), {'Perdimento', 'Devolução'})) = "Não";
+            customsData.("Sanável?")(customsData.("auditorDecisaoFinal") == "Prazo") = "Sim";
+            customsData.("Sanável?")(ismember(customsData.("auditorDecisaoFinal"), ["Perdimento", "Devolução"])) = "Não";
         
             % A tabela renderizada no arquivo .HTML possuirá todas as linhas da tabela
             % "customsShipments.Data", mas apenas as colunas definidas no arquivo .JSON que 

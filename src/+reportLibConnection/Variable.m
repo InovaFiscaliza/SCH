@@ -31,5 +31,40 @@ classdef (Abstract) Variable
                     error('reportLibConnection:Variable:UnexpectedFieldName', 'Unexpected field name "%s"', fieldName)
             end
         end
+
+        %-----------------------------------------------------------------%
+        function fieldValue = CustomsShipments(reportInfo, fieldName, varargin)
+            projectData = reportInfo.Project;
+            
+            customsShipments = projectData.customsShipments;
+            reportIncludeIdx = find(arrayfun(@(x) x.UserData.ReportInclude, customsShipments), 1);
+
+            customsData = [];
+            if ~isempty(reportIncludeIdx)
+                customsData = customsShipments(reportIncludeIdx).Data;
+            end
+
+            if isempty(customsData)
+                error('reportLibConnection:Variable:UnexpectedEmptyTable', 'Unexpected empty table')
+            end
+
+            switch fieldName
+                case 'Total'
+                    fieldValue = height(customsData);
+
+                case 'DestinationSummary'
+                    categoriesList = categories(categorical(customsData.("auditorDecisaoFinal")));
+                    categoriesCount = countcats(categorical(customsData.("auditorDecisaoFinal")));
+        
+                    [categoriesCount, sortIdx] = sort(categoriesCount, 'descend');
+                    categoriesList = categoriesList(sortIdx);
+
+                    fieldValue = string(categoriesList) + " (" + string(categoriesCount) + ")";
+                    fieldValue = textFormatGUI.cellstr2FriendlyListWithQuotes(fieldValue);
+
+                otherwise
+                    error('reportLibConnection:Variable:UnexpectedFieldName', 'Unexpected field name "%s"', fieldName)
+            end
+        end
     end
 end

@@ -448,6 +448,11 @@ classdef winSCH_exported < matlab.apps.AppBase
                         filePath = varargin{1};
                         updateLastVisitedFolder(app, filePath)
 
+                    case {'onReportGenerate', 'onUploadArtifacts'}
+                        context = varargin{1};
+                        varargin = varargin(2:end);
+                        reportHandleOperation(app, eventName, context, [], varargin{:})
+
                     otherwise
                         switch class(callingApp)
                             % auxApp.winConfig (CONFIG)
@@ -469,19 +474,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     otherwise
                                         error('SCH:UnexpectedCall', 'Unexpected call "%s"', eventName)
                                 end
-        
-                            % auxApp.winProducts (PRODUCTS)
-                            case {'auxApp.winProducts', 'auxApp.winProducts_exported'}
-                                switch eventName
-                                    case {'onReportGenerate', 'onUploadArtifacts'}
-                                        context = varargin{1};
-                                        varargin = varargin(2:end);
-                                        reportHandleOperation(app, eventName, context, [], varargin{:})
 
-                                    otherwise
-                                        error('SCH:UnexpectedCall', 'Unexpected call "%s"', eventName)
-                                end
-        
                             % DOCKS:OTHERS
                             case {'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
                                   'auxApp.dockCustomsFilter', 'auxApp.dockCustomsFilter_exported', ...

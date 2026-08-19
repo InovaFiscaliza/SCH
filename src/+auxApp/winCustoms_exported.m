@@ -417,7 +417,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', "PRODUCTS")
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'closeFcn', app.Context)
             delete(app)
             
         end
@@ -654,7 +654,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             reportVersion = app.projectData.modules.(context).ui.reportVersion;
 
             if isempty(app.projectData.customsShipments)
-                ui.Dialog(app.UIFigure, 'warning', 'A lista de produtos inspecionados está vazia.');
+                ui.Dialog(app.UIFigure, 'warning', 'A lista de remessas está vazia.');
                 return
             end
             customsShipmentsIdx = app.customsShipmentsIndex;
@@ -674,7 +674,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 msgWarning{end+1} = '• Unidade geradora do documento precisa ser selecionada.';
             end
 
-            invalidRowIndexes = validateCustomsShipments(app.projectData, customsShipmentsIdx);
+            customsData = app.projectData.customsShipments(customsShipmentsIdx).Data;
+            invalidRowIndexes = validateCustomsShipments(app.projectData, customsData);
             if ~isempty(invalidRowIndexes)
                 msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(invalidRowIndexes), ', '));
             end
@@ -693,7 +694,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 end
 
             else
-                msgInfo = model.ProjectBase.WARNING_VALIDATIONSRULES.PRODUCTS.entity;
+                msgInfo = model.ProjectBase.WARNING_VALIDATIONSRULES.CUSTOMS.entity;
 
                 switch reportVersion
                     case 'Definitiva'
