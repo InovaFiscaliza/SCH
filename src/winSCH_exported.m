@@ -29,6 +29,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         AddSelectedToBucket     matlab.ui.control.Image
         ToolbarSeparator        matlab.ui.control.Image
         ExportVisibleTable      matlab.ui.control.Image
+        SearchSetup             matlab.ui.control.Image
         PopupTempWarning        matlab.ui.control.Label
         UITableGrid             matlab.ui.container.GridLayout
         ProductDetailsGrid      matlab.ui.container.GridLayout
@@ -47,11 +48,9 @@ classdef winSCH_exported < matlab.apps.AppBase
         AttributesLeftButton    matlab.ui.control.Image
         AttributesVisibleIndex  matlab.ui.control.Label
         AttributesLabel         matlab.ui.control.Label
-        ColumnWidthMode         matlab.ui.control.Hyperlink
         NumRows                 matlab.ui.control.Label
         UITable                 matlab.ui.control.Table
         SearchContext           matlab.ui.control.Label
-        SearchSetup             matlab.ui.control.Image
         Tab2_Products           matlab.ui.container.Tab
         Tab3_Customs            matlab.ui.container.Tab
         Tab4_Config             matlab.ui.container.Tab
@@ -511,11 +510,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                                     case 'onCustomsShipmentsFileChangeRequest'
                                         ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
 
-                                        if callingApp.isDocked
-                                            sendEventToHTMLSource(callingApp.callingApp.jsBackDoor, 'closePopupAppRequest', struct('dataTag', callingApp.GridLayout.UserData.id))
-                                        else
-                                            delete(callingApp)
-                                        end
+                                    case 'onCustomsShipmentsFileDeleteRequest'
+                                        customsShipmentsIdx = varargin{1};
+                                        updateCustomsShipments(app.projectData, 'delete', customsShipmentsIdx)
+                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName)
 
                                     case 'onCustomsColumnFilterChanged'
                                         ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
@@ -822,7 +820,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Inicialização da propriedade "UserData" da tabela.
             app.UITable.UserData.matchRowIdxs = [];
-            app.UITable.UserData.columnWidth = struct('mode', 'initial', 'value', {{110, 300, 'auto', 'auto', 'auto', 'auto'}});
 
             % Armazena informação do valor textual buscado, no modo "FreeText" 
             % ou "FreeText+ColumnFilter".
@@ -1854,37 +1851,6 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function: ColumnWidthMode
-        function onColumnWidthModeChanged(app, event)
-            
-            app.ColumnWidthMode.Enable = "off";
-
-            previousSelectedRow = app.UITable.Selection;
-            app.UITable.Selection = [];
-            
-            switch app.UITable.UserData.columnWidth.mode
-                case 'initial'
-                    app.UITable.UserData.columnWidth.mode = 'fix';
-                    app.UITable.ColumnWidth = '1x';
-                    app.ColumnWidthMode.Text = '↔ FIXO';
-                case 'fix'
-                    app.UITable.UserData.columnWidth.mode = 'auto';
-                    app.UITable.ColumnWidth = 'auto';
-                    app.ColumnWidthMode.Text = '↔ AUTO';
-                otherwise % 'auto'
-                    app.UITable.UserData.columnWidth.mode = 'initial';
-                    app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value;
-                    app.ColumnWidthMode.Text = '↔ INICIAL';
-            end
-            
-            pause(.150)
-            app.UITable.Selection = previousSelectedRow;            
-            
-            pause(1)
-            app.ColumnWidthMode.Enable = "on";
-
-        end
-
         % Image clicked function: AttributesLeftButton, 
         % ...and 1 other component
         function onPanelViewChanged(app, event)
@@ -2085,39 +2051,31 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create Tab1Grid
             app.Tab1Grid = uigridlayout(app.Tab1_Search);
-            app.Tab1Grid.ColumnWidth = {20, 18, 5, '1x', 412, '1x', 23, 20};
+            app.Tab1Grid.ColumnWidth = {20, '1x', 412, '1x', 20};
             app.Tab1Grid.RowHeight = {20, 28, 6, 20, 342, '1x', 34, 20, 34};
             app.Tab1Grid.ColumnSpacing = 0;
             app.Tab1Grid.RowSpacing = 0;
             app.Tab1Grid.Padding = [0 0 0 30];
             app.Tab1Grid.BackgroundColor = [1 1 1];
 
-            % Create SearchSetup
-            app.SearchSetup = uiimage(app.Tab1Grid);
-            app.SearchSetup.ScaleMethod = 'none';
-            app.SearchSetup.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
-            app.SearchSetup.Layout.Row = [3 4];
-            app.SearchSetup.Layout.Column = 2;
-            app.SearchSetup.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'settings.svg');
-
             % Create SearchContext
             app.SearchContext = uilabel(app.Tab1Grid);
             app.SearchContext.FontSize = 10;
             app.SearchContext.FontColor = [0.502 0.502 0.502];
             app.SearchContext.Layout.Row = [3 4];
-            app.SearchContext.Layout.Column = [4 7];
+            app.SearchContext.Layout.Column = [2 4];
             app.SearchContext.Interpreter = 'html';
             app.SearchContext.Text = {'[TS] [FC] '; 'Nenhuma palavra + Nenhum filtro por coluna ativo '};
 
             % Create UITableGrid
             app.UITableGrid = uigridlayout(app.Tab1Grid);
-            app.UITableGrid.ColumnWidth = {54, '1x', 320};
+            app.UITableGrid.ColumnWidth = {'1x', 320};
             app.UITableGrid.RowHeight = {'1x', 20};
             app.UITableGrid.ColumnSpacing = 20;
             app.UITableGrid.RowSpacing = 0;
             app.UITableGrid.Padding = [0 0 0 0];
             app.UITableGrid.Layout.Row = [5 8];
-            app.UITableGrid.Layout.Column = [2 7];
+            app.UITableGrid.Layout.Column = [2 4];
             app.UITableGrid.BackgroundColor = [1 1 1];
 
             % Create UITable
@@ -2131,7 +2089,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Multiselect = 'off';
             app.UITable.Layout.Row = 1;
-            app.UITable.Layout.Column = [1 2];
+            app.UITable.Layout.Column = 1;
             app.UITable.FontSize = 11;
 
             % Create NumRows
@@ -2140,19 +2098,8 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.502 0.502 0.502];
             app.NumRows.Layout.Row = 2;
-            app.NumRows.Layout.Column = 2;
+            app.NumRows.Layout.Column = 1;
             app.NumRows.Text = '';
-
-            % Create ColumnWidthMode
-            app.ColumnWidthMode = uihyperlink(app.UITableGrid);
-            app.ColumnWidthMode.HyperlinkClickedFcn = createCallbackFcn(app, @onColumnWidthModeChanged, true);
-            app.ColumnWidthMode.VisitedColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.FontSize = 10;
-            app.ColumnWidthMode.FontWeight = 'normal';
-            app.ColumnWidthMode.FontColor = [0.502 0.502 0.502];
-            app.ColumnWidthMode.Layout.Row = 2;
-            app.ColumnWidthMode.Layout.Column = 1;
-            app.ColumnWidthMode.Text = '↔ INICIAL';
 
             % Create ProductDetailsGrid
             app.ProductDetailsGrid = uigridlayout(app.UITableGrid);
@@ -2162,7 +2109,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.ProductDetailsGrid.RowSpacing = 0;
             app.ProductDetailsGrid.Padding = [0 0 0 0];
             app.ProductDetailsGrid.Layout.Row = [1 2];
-            app.ProductDetailsGrid.Layout.Column = 3;
+            app.ProductDetailsGrid.Layout.Column = 2;
             app.ProductDetailsGrid.BackgroundColor = [1 1 1];
 
             % Create AttributesLabel
@@ -2303,18 +2250,26 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.PopupTempWarning.FontColor = [1 1 1];
             app.PopupTempWarning.Visible = 'off';
             app.PopupTempWarning.Layout.Row = 7;
-            app.PopupTempWarning.Layout.Column = [2 7];
+            app.PopupTempWarning.Layout.Column = [2 4];
             app.PopupTempWarning.Text = '';
 
             % Create Toolbar
             app.Toolbar = uigridlayout(app.Tab1Grid);
-            app.Toolbar.ColumnWidth = {22, 5, 22, '1x', 22, 22};
+            app.Toolbar.ColumnWidth = {22, 22, 5, 22, '1x', 22, 22};
             app.Toolbar.RowHeight = {4, 17, '1x', '1x'};
             app.Toolbar.ColumnSpacing = 5;
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 9;
-            app.Toolbar.Layout.Column = [1 8];
+            app.Toolbar.Layout.Column = [1 5];
+
+            % Create SearchSetup
+            app.SearchSetup = uiimage(app.Toolbar);
+            app.SearchSetup.ScaleMethod = 'none';
+            app.SearchSetup.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
+            app.SearchSetup.Layout.Row = [1 4];
+            app.SearchSetup.Layout.Column = 1;
+            app.SearchSetup.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'settings.svg');
 
             % Create ExportVisibleTable
             app.ExportVisibleTable = uiimage(app.Toolbar);
@@ -2322,7 +2277,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.ExportVisibleTable.ImageClickedFcn = createCallbackFcn(app, @onExportVisibleTable, true);
             app.ExportVisibleTable.Enable = 'off';
             app.ExportVisibleTable.Layout.Row = [1 4];
-            app.ExportVisibleTable.Layout.Column = 1;
+            app.ExportVisibleTable.Layout.Column = 2;
             app.ExportVisibleTable.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Export_16.png');
 
             % Create ToolbarSeparator
@@ -2330,7 +2285,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.ToolbarSeparator.ScaleMethod = 'none';
             app.ToolbarSeparator.Enable = 'off';
             app.ToolbarSeparator.Layout.Row = [1 4];
-            app.ToolbarSeparator.Layout.Column = 2;
+            app.ToolbarSeparator.Layout.Column = 3;
             app.ToolbarSeparator.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'LineV.svg');
 
             % Create AddSelectedToBucket
@@ -2338,7 +2293,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.AddSelectedToBucket.ImageClickedFcn = createCallbackFcn(app, @onAddSelectedToBucket, true);
             app.AddSelectedToBucket.Enable = 'off';
             app.AddSelectedToBucket.Layout.Row = [1 4];
-            app.AddSelectedToBucket.Layout.Column = 3;
+            app.AddSelectedToBucket.Layout.Column = 4;
             app.AddSelectedToBucket.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'Picture1.png');
 
             % Create ProductDetails
@@ -2347,7 +2302,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.ProductDetails.ImageClickedFcn = createCallbackFcn(app, @onOpenPopupApp, true);
             app.ProductDetails.Enable = 'off';
             app.ProductDetails.Layout.Row = [1 4];
-            app.ProductDetails.Layout.Column = 5;
+            app.ProductDetails.Layout.Column = 6;
             app.ProductDetails.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'open-in-window.svg');
 
             % Create PanelVisibility
@@ -2355,7 +2310,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.PanelVisibility.ScaleMethod = 'none';
             app.PanelVisibility.ImageClickedFcn = createCallbackFcn(app, @onPanelVisibilityChanged, true);
             app.PanelVisibility.Layout.Row = [1 4];
-            app.PanelVisibility.Layout.Column = 6;
+            app.PanelVisibility.Layout.Column = 7;
             app.PanelVisibility.ImageSource = fullfile(pathToMLAPP, 'resources', 'Icons', 'layout-sidebar-right.svg');
 
             % Create SearchEntryPointGrid
@@ -2366,7 +2321,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SearchEntryPointGrid.RowSpacing = 0;
             app.SearchEntryPointGrid.Padding = [0 0 0 0];
             app.SearchEntryPointGrid.Layout.Row = [2 3];
-            app.SearchEntryPointGrid.Layout.Column = 5;
+            app.SearchEntryPointGrid.Layout.Column = 3;
             app.SearchEntryPointGrid.BackgroundColor = [1 1 1];
 
             % Create SearchEntryPoint
@@ -2395,7 +2350,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.SearchSuggestions.Visible = 'off';
             app.SearchSuggestions.FontSize = 14;
             app.SearchSuggestions.Layout.Row = [4 5];
-            app.SearchSuggestions.Layout.Column = 5;
+            app.SearchSuggestions.Layout.Column = 3;
             app.SearchSuggestions.Value = {};
 
             % Create Tab2_Products

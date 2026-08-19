@@ -5,6 +5,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
         UIFigure    matlab.ui.Figure
         GridLayout  matlab.ui.container.GridLayout
         Button      matlab.ui.control.Button
+        Delete      matlab.ui.control.Image
         Tree        matlab.ui.container.CheckBoxTree
         Title       matlab.ui.control.Label
     end
@@ -38,6 +39,10 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             customsShipments = app.projectData.customsShipments;
             checkedNodes = matlab.ui.container.TreeNode.empty;
 
+            if ~isempty(app.Tree.Children)
+                delete(app.Tree.Children)
+            end
+
             for ii = 1:numel(customsShipments)
                 [~, fileName, fileExt] = fileparts(customsShipments(ii).FileName);
                 fileName = [fileName, fileExt];
@@ -63,6 +68,12 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
                 app.Tree.CheckedNodes = checkedNodes;
             end
         end
+
+        %-----------------------------------------------------------------%
+        function updateToolbar(app)
+            app.Delete.Enable = ~isempty(app.Tree.CheckedNodes);
+            app.Button.Enable = ~isempty(app.Tree.CheckedNodes) && ~isequal(app.Tree.CheckedNodes, app.inputArgs.customsShipmentsTreeNode);
+        end
     end
     
 
@@ -77,7 +88,9 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
                 
                 addStyle(app.Tree, uistyle('Interpreter', 'html'))
                 app.inputArgs = struct('context', context, 'customsShipmentsIdx', customsShipmentsIdx, 'customsShipmentsTreeNode', []);
+
                 updateForm(app, customsShipmentsIdx)
+                updateToolbar(app)
                 
             catch ME
                 ui.Dialog(app.UIFigure, 'error', getReport(ME), 'CloseFcn', @(~,~)closeFcn(app));
@@ -106,7 +119,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             end
 
             app.inputArgs.customsShipmentsIdx = find(arrayfun(@(x) isequal(x, app.Tree.CheckedNodes), app.Tree.Children), 1);
-            app.Button.Enable = ~isequal(app.Tree.CheckedNodes, app.inputArgs.customsShipmentsTreeNode);
+            updateToolbar(app)
             
         end
 
@@ -115,6 +128,37 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             
             customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsShipmentsFileChangeRequest', customsShipmentsIdx)
+            
+            % Atualiza gui...
+            updateForm(app, customsShipmentsIdx)
+            updateToolbar(app)
+
+        end
+
+        % Image clicked function: Delete
+        function DeleteClicked(app, event)
+            
+            % Confirma e apaga fluxo...
+            questionMsg = 'Confirma a exclusão do arquivo de remessa selecionado?';
+            userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', questionMsg, {'Sim', 'Não'}, 1, 2);
+            if userSelection == "Não"
+                return
+            end
+
+            customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsShipmentsFileDeleteRequest', customsShipmentsIdx)
+
+            % Define o primeiro como novo fluxo, caso exista.
+            customsShipments = app.projectData.customsShipments;
+            customsShipmentsIdx = [];
+            if ~isempty(customsShipments)
+                customsShipmentsIdx = 1;
+            end
+            app.inputArgs.customsShipmentsIdx = customsShipmentsIdx;
+
+            % Atualiza gui...
+            updateForm(app, customsShipmentsIdx)
+            updateToolbar(app)
 
         end
     end
@@ -155,7 +199,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {363, 110};
+            app.GridLayout.ColumnWidth = {22, 336, 110};
             app.GridLayout.RowHeight = {40, 398, 1, 24};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
@@ -169,7 +213,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Title.FontSize = 15;
             app.Title.FontColor = [0 0.4471 0.7412];
             app.Title.Layout.Row = 1;
-            app.Title.Layout.Column = [1 2];
+            app.Title.Layout.Column = [1 3];
             app.Title.Interpreter = 'html';
             app.Title.Text = {'<b>Arquivos da remessa</b>'; '<font style="color: gray; font-size: 10px;">Selecione o arquivo que deseja visualizar</font>'};
 
@@ -177,10 +221,18 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Tree = uitree(app.GridLayout, 'checkbox');
             app.Tree.FontSize = 11;
             app.Tree.Layout.Row = 2;
-            app.Tree.Layout.Column = [1 2];
+            app.Tree.Layout.Column = [1 3];
 
             % Assign Checked Nodes
             app.Tree.CheckedNodesChangedFcn = createCallbackFcn(app, @onTreeCheckedNodesChanged, true);
+
+            % Create Delete
+            app.Delete = uiimage(app.GridLayout);
+            app.Delete.ImageClickedFcn = createCallbackFcn(app, @DeleteClicked, true);
+            app.Delete.Enable = 'off';
+            app.Delete.Layout.Row = 4;
+            app.Delete.Layout.Column = 1;
+            app.Delete.ImageSource = 'Delete_32Red.png';
 
             % Create Button
             app.Button = uibutton(app.GridLayout, 'push');
@@ -192,7 +244,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Button.FontColor = [1 1 1];
             app.Button.Enable = 'off';
             app.Button.Layout.Row = 4;
-            app.Button.Layout.Column = 2;
+            app.Button.Layout.Column = 3;
             app.Button.Text = 'Confirma troca';
 
             % Show the figure after all components are created

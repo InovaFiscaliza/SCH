@@ -355,6 +355,58 @@ classdef (Abstract) HtmlTextGenerator
                 '</section>' ...
             ], adName, adDate, marketplace, pdfURL, adURL, infoTable, characteristicsTableRows, llmAnalysis);
         end
+
+        %-----------------------------------------------------------------%
+        function htmlContent = createCustomsAnalysisSummary(customsData, summaryIntroduction, addSampleData)
+            arguments
+                customsData table
+                summaryIntroduction (1,:) char = 'Destinações sugeridas pela análise automatizada:'
+                addSampleData (1,1) logical = true
+            end
+
+            message = buildCategorySummarySection(summaryIntroduction, customsData, 'regraDecisaoSugerida');
+            
+            if addSampleData
+                sampledCustomsData = customsData(customsData.("estadoAmostragem") == "Selecionada", :);
+                message = [message, buildCategorySummarySection('<br>Destinações sugeridas para os registros escolhidos via amostragem para vistoria:', sampledCustomsData, 'regraDecisaoSugerida')];
+            end
+
+            htmlContent = strjoin(message, '<br>');
+
+            function sectionMessage = buildCategorySummarySection(header, data, columnName)
+                [categoriesList, categoriesCount, totalCount] = sortedCategoryCounts(data, columnName);
+    
+                sectionMessage = {sprintf([ ...
+                    '%s<br>' ...
+                    '<font style="color: gray; font-size: 10px;">%d registros</font>' ...
+                ], header, height(data))};
+    
+                for ii = 1:numel(categoriesList)
+                    if categoriesCount(ii) == 0
+                        continue
+                    end
+    
+                    percentage = 100 * categoriesCount(ii) / totalCount;
+                    catMessage = sprintf('•&thinsp;<b>%s:</b> %d registros (%.1f%%)', categoriesList{ii}, categoriesCount(ii), percentage);
+    
+                    if categoriesCount(ii) == 1
+                        catMessage = replace(catMessage, 'registros', 'registro');
+                    end
+    
+                    sectionMessage{end+1} = catMessage;
+                end
+            end
+    
+            function [categoriesList, categoriesCount, totalCount] = sortedCategoryCounts(data, columnName)
+                categoriesList = categories(categorical(data.(columnName)));
+                categoriesCount = countcats(categorical(data.(columnName)));
+    
+                [categoriesCount, sortIdx] = sort(categoriesCount, 'descend');
+                categoriesList = categoriesList(sortIdx);
+    
+                totalCount = sum(categoriesCount);
+            end
+        end
     end
 
 

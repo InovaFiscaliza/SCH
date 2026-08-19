@@ -513,19 +513,19 @@ classdef Project < model.ProjectCommon
         end
 
         %-----------------------------------------------------------------%
-        function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(obj, index)
-            customsData = obj.customsShipments(index).Data;
-
+        function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(~, customsData)
             ruleColumns = { ...
                 'auditorDecisaoFinal', ... #01
                 {'estadoAmostragem', 'auditorNota'} ... #02
                 {'auditorDecisaoFinal', 'auditorNota'} ... #03
+                {'estadoVistoria', 'auditorNota'} ... #05
             };
 
             ruleViolationMatrix = zeros(height(customsData), numel(ruleColumns), 'logical');
-            ruleViolationMatrix(:, 1) = string(customsData.("auditorDecisaoFinal")) == "-";
+            ruleViolationMatrix(:, 1) = ismember(string(customsData.("auditorDecisaoFinal")), ["-", "Vistoria"]);
             ruleViolationMatrix(:, 2) = (string(customsData.("estadoAmostragem")) == "Selecionada") & (string(customsData.("auditorNota")) == "");
-            ruleViolationMatrix(:, 3) = (string(customsData.("auditorDecisaoFinal")) == "Perdimento") & (string(customsData.("auditorNota")) == "");
+            ruleViolationMatrix(:, 3) = ismember(string(customsData.("auditorDecisaoFinal")), ["Vistoria", "Perdimento"]) & (string(customsData.("auditorNota")) == "");
+            ruleViolationMatrix(:, 4) = (string(customsData.("estadoVistoria")) ~= "-") & (string(customsData.("auditorNota")) == "");
 
             invalidRowIndexes = find(any(ruleViolationMatrix, 2));
         end

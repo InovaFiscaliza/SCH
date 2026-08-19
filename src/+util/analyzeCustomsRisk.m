@@ -89,6 +89,13 @@ function result = analyzeDescriptionAgainstRules(description, rules)
 
     for ii = 1:numel(rules)
         rule = rules(ii);
+
+        % Regras estão ordenadas por prioridade (asc) e peso (desc): uma vez achada uma
+        % correspondência, nenhuma regra de prioridade pior pode superá-la.
+        if ~isempty(bestResult) && rule.prioridade > bestResult.priority
+            break
+        end
+
         rulesEvaluated = rulesEvaluated + 1;
 
         foundExceptions = findMatchingTerms(normalizedDescription, rule.palavras_excecao);

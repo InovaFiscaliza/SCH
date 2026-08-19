@@ -97,7 +97,7 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
                 delete(app.ColumnFilterList.Children)
             end
 
-            filterList = getFilterList(customsShipments.UserData.Filter, 'SCH');
+            filterList = getFilterList(customsShipments.UserData.Filter, 'tbl');
             if ~isempty(filterList)
                 checkedNodes = [];
     
