@@ -118,7 +118,7 @@ classdef Project < model.ProjectCommon
         function save(obj, context, prjName, prjFile, outputFileCompressionMode)
             arguments
                 obj
-                context char {mustBeMember(context, {'SEARCH', 'PRODUCTS'})}
+                context char {mustBeMember(context, {'SEARCH', 'PRODUCTS', 'CUSTOMS'})}
                 prjName
                 prjFile
                 outputFileCompressionMode

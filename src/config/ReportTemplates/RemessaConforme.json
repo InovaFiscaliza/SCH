@@ -84,7 +84,7 @@
                 {
                     "Type": "ItemN2",
                     "Data": {
-                        "Editable": "false",
+                        "Editable": "true",
                         "Text": "A fiscalização foi realizada em apoio à Receita Federal do Brasil (RFB) e consistiu na análise de remessas de produtos, sob gestão do Serviço de Controle de Remessas Postais Internacionais (SCRPI), com o objetivo de indicar a situação de cada remessa e, quando identificada irregularidade, avaliar se esta é sanável.",
                         "Variable": []
                     }
@@ -141,7 +141,7 @@
                 {
                     "Type": "ItemN2",
                     "Data": {
-                        "Editable": "false",
+                        "Editable": "true",
                         "Text": "Foram analisadas %d remessas de produtos, distribuídos segundo a destinação final: %s.",
                         "Variable": [
                             "var_CustomsShipmentsTotal",
@@ -175,7 +175,7 @@
                                 "Editable": "true",
                                 "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
-                                "Width": "70px"
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "true",
@@ -185,7 +185,7 @@
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Decisão",
+                                "ColumnName": "Destinação",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },
@@ -210,7 +210,7 @@
                         ],
                         "Intro": "",
                         "Error": "",
-                        "LineBreak": 0
+                        "LineBreak": 1
                     }
                 },
                 {
@@ -239,7 +239,7 @@
                                 "Editable": "true",
                                 "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
-                                "Width": "70px"
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "true",
@@ -249,7 +249,7 @@
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Decisão",
+                                "ColumnName": "Destinação",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },
@@ -274,7 +274,7 @@
                         ],
                         "Intro": "",
                         "Error": "",
-                        "LineBreak": 0
+                        "LineBreak": 1
                     }
                 },
                 {
@@ -303,7 +303,7 @@
                                 "Editable": "true",
                                 "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
-                                "Width": "70px"
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "true",
@@ -313,7 +313,7 @@
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Decisão",
+                                "ColumnName": "Destinação",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },
@@ -338,7 +338,7 @@
                         ],
                         "Intro": "",
                         "Error": "",
-                        "LineBreak": 0
+                        "LineBreak": 1
                     }
                 },
                 {
@@ -367,7 +367,7 @@
                                 "Editable": "true",
                                 "ColumnName": "Código aduaneiro",
                                 "Precision": "%s",
-                                "Width": "70px"
+                                "Width": "auto"
                             },
                             {
                                 "Editable": "true",
@@ -377,7 +377,7 @@
                             },
                             {
                                 "Editable": "true",
-                                "ColumnName": "Decisão",
+                                "ColumnName": "Destinação",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },

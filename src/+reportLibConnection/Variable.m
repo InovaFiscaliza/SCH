@@ -59,8 +59,14 @@ classdef (Abstract) Variable
                     [categoriesCount, sortIdx] = sort(categoriesCount, 'descend');
                     categoriesList = categoriesList(sortIdx);
 
-                    fieldValue = string(categoriesList) + " (" + string(categoriesCount) + ")";
-                    fieldValue = textFormatGUI.cellstr2FriendlyListWithQuotes(fieldValue);
+                    validMask = categoriesCount ~= 0;
+                    categoriesList = categoriesList(validMask);
+                    categoriesCount = categoriesCount(validMask);
+
+                    fieldValue = cellstr(string(categoriesList) + " (" + string(categoriesCount) + ")");
+                    if numel(fieldValue) > 1
+                        fieldValue = strjoin({strjoin(fieldValue(1:end-1), ', '), fieldValue{end}}, ' e ');
+                    end
 
                 otherwise
                     error('reportLibConnection:Variable:UnexpectedFieldName', 'Unexpected field name "%s"', fieldName)

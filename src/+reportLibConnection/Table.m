@@ -149,7 +149,7 @@ classdef (Abstract) Table
             % Atualmente é previsto aplicar filtragem apenas pela decisão
             % final do auditor.
             if ~strcmp(finalDecision, 'any')
-                customsData(~strcmp(customsData.("auditorDecisaoFinal"), finalDecision)) = [];
+                customsData(customsData.("auditorDecisaoFinal") ~= finalDecision, :) = [];
             end
         
             % Na presente função, criam-se três colunas calculadas:

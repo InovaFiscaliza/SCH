@@ -261,34 +261,34 @@ classdef (Abstract) Controller
                         error('reportLibConnection:Controller:UnexpectedMacrothemes', 'O macrotema "%s" não está configurado para geração de relatórios.', macrotheme)
                     end
 
-                    JSONFile  = '';
-                    TEAMSFile = '';
-                    XLSXFile  = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.xlsx']);
+                    JSONFile  = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.json']);
+                    TEAMSFile = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.teams']);
+                    XLSXFile  = '';
                     RAWFiles  = {};
                     ZIPFile   = ui.Dialog(callingApp.UIFigure, 'uiputfile', '', {'*.zip', [appName ' (*.zip)']}, fullfile(generalSettings.fileFolder.userPath, [zipFileBase '.zip']));
                     if isempty(ZIPFile)
                         return
                     end
 
-                    XLSXFileConfig  = generalSettings.context.PRODUCTS.reportTable.exportedFiles.eFiscaliza;
-                    XLSXFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, XLSXFileConfig);
-                    XLSXFileContent = renamevars(XLSXFileContent, XLSXFileConfig.Columns, {XLSXFileConfig.Settings.ColumnName});
-                    writetable(XLSXFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
+                    JSONContent  = reportLibConnection.Table.scarabJsonFile(projectData, context, correlationKey, mainApp.executionMode, issueDetails, generalSettings);
+                    TEAMSContent = reportLibConnection.Table.scarabTeamsFileContent(issueDetails, sharepointFileBase);
 
-                    ZIPFileList = {HTMLFile, XLSXFile};
+                    writematrix(JSONContent,  JSONFile,  "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
+                    writematrix(TEAMSContent, TEAMSFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
+
+                    ZIPFileList = {HTMLFile, JSONFile, TEAMSFile};
 
                     switch context
                         case 'PRODUCTS'
-                            JSONFile  = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.json']);
-                            TEAMSFile = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.teams']);
+                            XLSXFile  = fullfile(generalSettings.fileFolder.tempPath, [sharepointFileBase '.xlsx']);
+
+                            XLSXFileConfig  = generalSettings.context.PRODUCTS.reportTable.exportedFiles.eFiscaliza;
+                            XLSXFileContent = reportLibConnection.Table.InspectedProducts(projectData.inspectedProducts, XLSXFileConfig);
+                            XLSXFileContent = renamevars(XLSXFileContent, XLSXFileConfig.Columns, {XLSXFileConfig.Settings.ColumnName});
+                            
+                            writetable(XLSXFileContent, XLSXFile, "UseExcel", false, "Sheet", "Upload", "FileType", "spreadsheet", "WriteMode", "replacefile")
     
-                            JSONContent  = reportLibConnection.Table.scarabJsonFile(projectData, context, correlationKey, mainApp.executionMode, issueDetails, generalSettings);
-                            TEAMSContent = reportLibConnection.Table.scarabTeamsFileContent(issueDetails, sharepointFileBase);
-    
-                            writematrix(JSONContent,  JSONFile,  "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
-                            writematrix(TEAMSContent, TEAMSFile, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
-    
-                            ZIPFileList = [ZIPFileList, {JSONFile, TEAMSFile}];
+                            ZIPFileList = [ZIPFileList, {XLSXFile}];
 
                         otherwise % 'CUSTOMS'
                             % ...

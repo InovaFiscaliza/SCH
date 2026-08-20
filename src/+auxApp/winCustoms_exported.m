@@ -106,6 +106,10 @@ classdef winCustoms_exported < matlab.apps.AppBase
                                 applyInitialLayout(app)
 
                             % auxApp.dockReportLib >> winSCH >> auxApp.winCustoms
+                            case {'onProjectLoad', 'onProjectRestart'}
+                                app.customsShipmentsIndex = [];
+                                applyInitialLayout(app)
+
                             case {'onReportGenerate', 'onFinalReportFileChanged'}
                                 updateToolbar(app)
 
@@ -123,11 +127,11 @@ classdef winCustoms_exported < matlab.apps.AppBase
                                 ui.Dialog(app.UIFigure, 'info', msg);
 
                             otherwise
-                                error('UnexpectedCall')
+                                error('auxApp:winCustoms:UnexpectedCall', 'Unexpected call "%s"', eventName)
                         end
     
                     otherwise
-                        error('UnexpectedCall')
+                        error('auxApp:winCustoms:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
                 end
 
             catch ME
@@ -481,8 +485,30 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     columnName = event.Source.Data.Properties.VariableNames{event.Indices(2)};                    
                     
                     updateCustomsShipments(app.projectData, 'annotationSingleEdit', customsShipmentsIdx, currentRow, columnName, event.NewData)
-                    app.UITable.Data(displayRow, :) = app.projectData.customsShipments(customsShipmentsIdx).Data(currentRow, app.COLUMNS_VISIBLE);
-                    updateTableStyle(app)
+
+                    % Atualiza toda a linha para garantir sincronismo com
+                    % a tabela "customsData", o que se faz necessário por
+                    % conta da atualização automática das colunas "situacaoVistoria" 
+                    % e "situacaoRevisao". Além disso, deve-se atualizar 
+                    % toda a tabela sempre que houver filtro pois o novo
+                    % valor da célula pode não mais atender aos critérios 
+                    % de filtragem.
+                    customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+                    customsData = customsShipments.Data;
+
+                    filterObj = customsShipments.UserData.Filter;
+                    filterStatus = false;
+                    if ~isempty(filterObj)
+                        filterRules = filterObj.filterRules(filterObj.filterRules.Enable, :);
+                        filterStatus = any(ismember(filterRules.Field, {'estadoRevisao', 'estadoVistoria', 'auditorDecisaoFinal', 'auditorNota'}));
+                    end
+                    
+                    if filterStatus
+                        loadSelectedFile(app)
+                    else
+                        app.UITable.Data(displayRow, :) = customsData(currentRow, app.COLUMNS_VISIBLE);
+                        updateTableStyle(app)
+                    end
                 end
 
             catch ME
