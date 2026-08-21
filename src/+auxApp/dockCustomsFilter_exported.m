@@ -97,9 +97,14 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
                 delete(app.ColumnFilterList.Children)
             end
 
+            if ~isempty(app.ColumnFilterList.StyleConfigurations)
+                removeStyle(app.ColumnFilterList)
+            end
+
             filterList = getFilterList(customsShipments.UserData.Filter, 'tbl');
             if ~isempty(filterList)
                 checkedNodes = [];
+                undeletable = [];
     
                 for ii = 1:numel(filterList)
                     childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
@@ -107,9 +112,19 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
                     if customsShipments.UserData.Filter.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];
                     end
+
+                    if ~customsShipments.UserData.Filter.filterRules.Deletable(ii)
+                        undeletable = [undeletable, childNode];
+                    end
                 end
     
-                app.ColumnFilterList.CheckedNodes = checkedNodes;
+                if ~isempty(checkedNodes)
+                    app.ColumnFilterList.CheckedNodes = checkedNodes;
+                end
+                
+                if ~isempty(undeletable)
+                    addStyle(app.ColumnFilterList, uistyle('FontColor', '#808080', 'Icon', 'lock_20Gray.svg'), 'node', undeletable)
+                end
             end
         end
 
@@ -287,11 +302,15 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             if ~isempty(selectedNodes)
                 customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
                 customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
-
+                
+                initialFilterRules = customsShipments.UserData.Filter.filterRules;
                 removeFilterRule(customsShipments.UserData.Filter, [selectedNodes.NodeData])
-                updateTree(app)
+                currentFilterRules = customsShipments.UserData.Filter.filterRules;
 
-                ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
+                if ~isequal(initialFilterRules, currentFilterRules)
+                    updateTree(app)
+                    ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
+                end
             end
 
         end
@@ -299,9 +318,9 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
         % Callback function: ColumnFilterList
         function onColumnFilterCheckedNodesChanged(app, event)
 
-            checkedNodes = [];            
+            checkedNodesData = [];            
             if ~isempty(app.ColumnFilterList.CheckedNodes)
-                checkedNodes = [app.ColumnFilterList.CheckedNodes.NodeData];
+                checkedNodesData = [app.ColumnFilterList.CheckedNodes.NodeData];
             end
 
             customsShipmentsIdx = app.inputArgs.customsShipmentsIdx;
@@ -309,14 +328,22 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
 
             initialEnableArray = customsShipments.UserData.Filter.filterRules.Enable;
             currentEnableArray = zeros(height(initialEnableArray), 1, 'logical');
-            if ~isempty(checkedNodes)
-                currentEnableArray(checkedNodes) = true;
+
+            if ~isempty(checkedNodesData)
+                currentEnableArray(checkedNodesData) = true;
+            end
+
+            undeletableFilterMask = ~customsShipments.UserData.Filter.filterRules.Deletable;
+            if any(undeletableFilterMask)
+                currentEnableArray(undeletableFilterMask) = true;
             end
 
             if ~isequal(initialEnableArray, currentEnableArray)
                 toogleFilterRule(customsShipments.UserData.Filter, currentEnableArray)
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onCustomsColumnFilterChanged')
             end
+
+            updateTree(app)
             
         end
     end

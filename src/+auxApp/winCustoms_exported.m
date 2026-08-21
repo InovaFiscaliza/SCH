@@ -25,6 +25,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
         FilterIconStatus           matlab.ui.control.Image
         NumRows                    matlab.ui.control.Label
         UITable                    matlab.ui.control.Table
+        ReportContent              matlab.ui.control.Hyperlink
         Title                      matlab.ui.control.Label
         ContextMenu                matlab.ui.container.ContextMenu
         AnalysisDetailsViaContext  matlab.ui.container.Menu
@@ -275,11 +276,13 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
                 set(app.UITable, 'RowName', rowNames, 'Data', customsData(displayDataIdxs, app.COLUMNS_VISIBLE))
                 app.UITable.UserData.visibleRows = displayDataIdxs;
+                app.ReportContent.Text = sprintf('%s 👁', customsShipments.UserData.ReportContent);
                 updateRowStatusIndicators(app, numRows, numVisibleRows, filterIconTooltip)
 
             else
                 app.UITable.Data = [];
                 app.UITable.UserData.visibleRow = [];
+                app.ReportContent.Text = 'TODOS OS REGISTROS 👁';
                 updateRowStatusIndicators(app)
             end
 
@@ -337,17 +340,17 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 visibleRows = app.UITable.UserData.visibleRows;
                 customsData = app.projectData.customsShipments(customsShipmentsIdx).Data(visibleRows, :);
 
-                [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(app.projectData, customsData);
+                [pendingDisplayRowIdxs, ruleViolationMatrix, ruleColumns] = model.ProjectBase.validateCustomsData(customsData);
 
-                if ~isempty(invalidRowIndexes)
-                    applyRowStyle(invalidRowIndexes)
+                if ~isempty(pendingDisplayRowIdxs)
+                    applyRowStyle(pendingDisplayRowIdxs)
                     applyCellStyle(ruleViolationMatrix, ruleColumns)
                 end
             end
 
-            function applyRowStyle(invalidRowIndexes)
+            function applyRowStyle(pendingDisplayRowIdxs)
                 s = app.STYLE_ROW_ICON;
-                addStyle(app.UITable, s, "cell", [invalidRowIndexes, ones(numel(invalidRowIndexes), 1)])
+                addStyle(app.UITable, s, "cell", [pendingDisplayRowIdxs, ones(numel(pendingDisplayRowIdxs), 1)])
             end
     
             function applyCellStyle(ruleViolationMatrix, ruleColumns)
@@ -375,7 +378,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
             nonEmptyCustomsShipments = ~isempty(app.projectData.customsShipments);
             nonEmptyTableSelection = ~isempty(app.UITable.Selection);
 
-            set([ 
+            set([
+                app.ReportContent;
                 app.FilterSetup;
                 app.ManageFiles;
                 app.AnalysisSummary;
@@ -447,6 +451,49 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 case app.dockModule_Close
                     closeModule(app.mainApp.tabGroupController, auxAppTag, app.mainApp.General)
             end
+
+        end
+
+        % Callback function: ReportContent
+        function onReportContentHyperlinkClicked(app, event)
+            
+            customsShipmentsIdx = app.customsShipmentsIndex;
+            customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+            
+            reportContentOptions = {'TODOS OS REGISTROS', 'NÃO VISTORIADOS', 'VISTORIADOS'};
+            currentReportContent = customsShipments.UserData.ReportContent;
+            [~, currentReportContentIdx] = ismember(currentReportContent, reportContentOptions);
+
+            questionMsg = [ ...
+                'O universo de dados para geração do relatório pode ' ...
+                'contemplar:<br>• todos os registros;<br>• apenas os ' ...
+                'registros que não serão vistoriados; ou<br>• apenas ' ...
+                'os registros vistoriados ou a vistoriar.<br><br>Qual ' ...
+                'opção deseja utilizar?' ...
+            ];
+            userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', questionMsg, reportContentOptions, currentReportContentIdx, currentReportContentIdx);
+
+            if strcmp(userSelection, currentReportContent)
+                return
+            end
+            app.projectData.customsShipments(customsShipmentsIdx).UserData.ReportContent = userSelection;
+
+            undeletableFilterIdxs = find(~customsShipments.UserData.Filter.filterRules.Deletable);
+            if ~isempty(undeletableFilterIdxs)
+                removeFilterRule(customsShipments.UserData.Filter, undeletableFilterIdxs, true)
+            end
+
+            switch userSelection
+                case 'TODOS OS REGISTROS'
+                    % ...
+                case 'VISTORIADOS'
+                    addFilterRule(customsShipments.UserData.Filter, 'estadoVistoria', {'≠'}, {'-'}, 'E', false)
+                case 'NÃO VISTORIADOS'
+                    addFilterRule(customsShipments.UserData.Filter, 'estadoVistoria', {'='}, {'-'}, 'E', false)
+            end
+
+            loadSelectedFile(app)
+            app.ReportContent.Text = sprintf('%s 👁', userSelection);
 
         end
 
@@ -701,16 +748,18 @@ classdef winCustoms_exported < matlab.apps.AppBase
             end
 
             customsData = app.projectData.customsShipments(customsShipmentsIdx).Data;
-            invalidRowIndexes = validateCustomsShipments(app.projectData, customsData);
-            if ~isempty(invalidRowIndexes)
-                msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(invalidRowIndexes), ', '));
+            reportContent = app.projectData.customsShipments(customsShipmentsIdx).UserData.ReportContent;
+
+            rowIdxs = model.ProjectBase.validateCustomsData(customsData, reportContent, 'ReportGenerate');
+            if ~isempty(rowIdxs)
+                msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(rowIdxs), ', '));
             end
 
             if isempty(msgWarning)
                 switch reportVersion
                     case 'Definitiva'
-                        msgQuestion = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', issue);
-                        userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        questionMsg = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', issue);
+                        userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', questionMsg, {'Sim', 'Não'}, 1, 2);
                         if userSelection == "Não"
                             return
                         end
@@ -737,7 +786,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                         return
 
                     case 'Preliminar'
-                        msgQuestion = sprintf([ ...
+                        questionMsg = sprintf([ ...
                                 'Foi(ram) identificado(s) a(s) pendência(s):<br>%s' ...
                                 '<br><br>' ...
                                 '<b>Continuar mesmo assim?</b>' ...
@@ -745,7 +794,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                                 '<font style="color: gray; font-size: 11px;">%s</font></p>' ...
                             ], strjoin(msgWarning, '<br>'), msgInfo ...
                         );
-                        selection = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
+                        selection = ui.Dialog(app.UIFigure, "uiconfirm", questionMsg, {'Sim', 'Não'}, 1, 2);
                         if strcmp(selection, 'Não')
                             return
                         end
@@ -809,12 +858,12 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     uploadedStatus = strjoin([{strjoin(uploadedStatus(1:end-1), ', ')}, uploadedStatus(end)], ' e ');
                 end
 
-                msgQuestion = sprintf([ ...
+                questionMsg = sprintf([ ...
                     'Já foi realizado <i>upload</i> para o SEI de relatório que engloba ' ...
                     'a presente lista de produtos inspecionados - SEI nº %s.<br><br>' ...
                     'Deseja realizar um novo <i>upload</i> para o SEI?' ...
                 ], uploadedStatus);
-                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', questionMsg, {'Sim', 'Não'}, 2, 2);
 
                 if strcmp(userSelection, 'Não')
                     return
@@ -873,7 +922,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {20, '1x', 16, 22, 10, 8, 2};
+            app.GridLayout.ColumnWidth = {20, '1x', 96, 16, 22, 10, 8, 2};
             app.GridLayout.RowHeight = {2, 8, 10, 14, 20, 20, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
@@ -891,6 +940,19 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.Title.Interpreter = 'html';
             app.Title.Text = {'<b>Análise e destinação das remessas</b>'; '<font style="color: gray; font-size: 10px;">Analise as remessas de produtos importados e avalie a destinação final sugerida para cada uma.</font>'};
 
+            % Create ReportContent
+            app.ReportContent = uihyperlink(app.GridLayout);
+            app.ReportContent.HyperlinkClickedFcn = createCallbackFcn(app, @onReportContentHyperlinkClicked, true);
+            app.ReportContent.VisitedColor = [0.502 0.502 0.502];
+            app.ReportContent.HorizontalAlignment = 'right';
+            app.ReportContent.FontSize = 10;
+            app.ReportContent.FontWeight = 'normal';
+            app.ReportContent.FontColor = [0.502 0.502 0.502];
+            app.ReportContent.Enable = 'off';
+            app.ReportContent.Layout.Row = 6;
+            app.ReportContent.Layout.Column = [3 5];
+            app.ReportContent.Text = 'TODOS OS REGISTROS 👁';
+
             % Create UITable
             app.UITable = uitable(app.GridLayout);
             app.UITable.ColumnName = {'REMESSA|CÓDIGO'; 'REMESSA|DESCRIÇÃO'; 'REGRAS|AVALIADAS'; 'REGRA|CATEGORIA'; 'REGRA|DECISÃO SUGERIDA'; 'ESTADO|AMOSTRAGEM'; 'ESTADO|REVISÃO'; 'ESTADO|VISTORIA'; 'AUDITOR|DECISÃO FINAL'; 'AUDITOR|NOTA'};
@@ -902,7 +964,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Layout.Row = 7;
-            app.UITable.Layout.Column = [2 4];
+            app.UITable.Layout.Column = [2 5];
             app.UITable.FontSize = 11;
 
             % Create NumRows
@@ -911,7 +973,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.651 0.651 0.651];
             app.NumRows.Layout.Row = 8;
-            app.NumRows.Layout.Column = [2 3];
+            app.NumRows.Layout.Column = [2 4];
             app.NumRows.Text = '';
 
             % Create FilterIconStatus
@@ -920,7 +982,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.FilterIconStatus.Enable = 'off';
             app.FilterIconStatus.Visible = 'off';
             app.FilterIconStatus.Layout.Row = 8;
-            app.FilterIconStatus.Layout.Column = 4;
+            app.FilterIconStatus.Layout.Column = 5;
             app.FilterIconStatus.HorizontalAlignment = 'right';
             app.FilterIconStatus.ImageSource = 'filter.svg';
 
@@ -932,7 +994,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 9;
-            app.Toolbar.Layout.Column = [1 7];
+            app.Toolbar.Layout.Column = [1 8];
             app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create FilterSetup
@@ -1062,7 +1124,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
-            app.DockModule.Layout.Column = [3 6];
+            app.DockModule.Layout.Column = [4 7];
             app.DockModule.BackgroundColor = [0.2 0.2 0.2];
 
             % Create dockModule_Undock

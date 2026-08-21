@@ -11,7 +11,7 @@
                     "Type": "ItemN2",
                     "Data": {
                         "Editable": "true",
-                        "Text": "Atendimento à demanda de fiscalização cadastrada no Fiscaliza sob a <b>Atividade de Inspeção nº %.0f</b>.",
+                        "Text": "Atendimento à demanda de fiscalização cadastrada no eFiscaliza sob a <b>Atividade de Inspeção nº %.0f</b>.",
                         "Variable": "var_Issue"
                     }
                 }
@@ -158,7 +158,7 @@
                             "Situação",
                             "Sanável?"
                         ],
-                        "Caption": "Informações acerca das remessas de produtos analisadas que tiveram destinação \"Liberado\".",
+                        "Caption": "Informações consolidadas das remessas de produtos analisadas, por destinação final.",
                         "Settings": [
                             {
                                 "Editable": "false",
@@ -167,13 +167,13 @@
                                 "Width": "90px"
                             },
                             {
-                                "Editable": "true",
+                                "Editable": "false",
                                 "ColumnName": "Códigos aduaneiros",
                                 "Precision": "%s",
                                 "Width": "auto"
                             },
                             {
-                                "Editable": "true",
+                                "Editable": "false",
                                 "ColumnName": "Destinação",
                                 "Precision": "%s",
                                 "Width": "90px"
@@ -194,6 +194,70 @@
                         "Intro": "",
                         "Error": "",
                         "LineBreak": 1
+                    }
+                },
+                {
+                    "Type": "Table",
+                    "Data": {
+                        "Origin": "FunctionEvaluation",
+                        "Source": "tableCustomsShipments_Vistoria",
+                        "Columns": [
+                            "#",
+                            "remessaCodigo",
+                            "remessaImportador",
+                            "auditorDecisaoFinal",
+                            "Situação",
+                            "Sanável?",
+                            "auditorNota"
+                        ],
+                        "Caption": "Informações individualizadas das remessas de produtos submetidas à vistoria.",
+                        "Settings": [
+                            {
+                                "Editable": "false",
+                                "ColumnName": "#",
+                                "Precision": "%.0f",
+                                "Width": "35px"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Código aduaneiro",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Importador",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Destinação",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Situação",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Sanável?",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            },
+                            {
+                                "Editable": "false",
+                                "ColumnName": "Informações adicionais",
+                                "Precision": "%s",
+                                "Width": "auto"
+                            }
+                        ],
+                        "Intro": "{\"Type\":\"ItemN2\",\"Editable\":\"true\",\"Text\":\"Por se tratar de remessas que foram submetidas à vistoria, a tabela a seguir apresenta informações individualizadas de cada remessa.\"}",
+                        "Error": "",
+                        "LineBreak": 0
                     }
                 }
             ]

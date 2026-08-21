@@ -17,6 +17,11 @@ classdef winConfig_exported < matlab.apps.AppBase
         versionInfoLabel             matlab.ui.control.Label
         SubTab2                      matlab.ui.container.Tab
         SubGrid2                     matlab.ui.container.GridLayout
+        config_MiscelaneousPanel3    matlab.ui.container.Panel
+        config_MiscelaneousGrid3     matlab.ui.container.GridLayout
+        CustomsSampleRate            matlab.ui.control.Spinner
+        CustomsSampleRateLabel       matlab.ui.control.Label
+        config_MiscelaneousLabel3    matlab.ui.control.Label
         config_MiscelaneousPanel2    matlab.ui.container.Panel
         config_MiscelaneousGrid2     matlab.ui.container.GridLayout
         config_WordCloudColumn       matlab.ui.control.DropDown
@@ -176,9 +181,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                     'minCharacters',      projectGeneral.context.SEARCH.minCharacters, ...
                     'minDisplayedTokens', projectGeneral.context.SEARCH.minDisplayedTokens, ...
                     'wordCloud',          projectGeneral.context.SEARCH.wordCloud, ...
-                    'searchTable',        projectGeneral.context.SEARCH.ui.searchTable ...
+                    'customsSampleRate',  projectGeneral.context.CUSTOMS.amostragemVistoria ...
                 ), ...
-                'PRODUCTS',               projectGeneral.context.PRODUCTS, ...
                 'reportLib',              projectGeneral.reportLib ...
             );
         end
@@ -238,6 +242,9 @@ classdef winConfig_exported < matlab.apps.AppBase
             % ANOTAÇÃO DO TIPO "WORDCLOUD"
             app.config_WordCloudColumn.Value = app.mainApp.General.context.SEARCH.wordCloud.column;
 
+            % REMESSA EM LOTE
+            app.CustomsSampleRate.Value = app.mainApp.General.context.CUSTOMS.amostragemVistoria;
+
             app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'SEARCH');
         end
 
@@ -280,9 +287,8 @@ classdef winConfig_exported < matlab.apps.AppBase
                     'minCharacters',      app.mainApp.General.context.SEARCH.minCharacters, ...
                     'minDisplayedTokens', app.mainApp.General.context.SEARCH.minDisplayedTokens, ...
                     'wordCloud',          app.mainApp.General.context.SEARCH.wordCloud, ...
-                    'searchTable',        app.mainApp.General.context.SEARCH.ui.searchTable ...
+                    'customsSampleRate',  app.mainApp.General.context.CUSTOMS.amostragemVistoria ...
                 ), ...
-                'PRODUCTS',               app.mainApp.General.context.PRODUCTS, ...
                 'reportLib',              app.mainApp.General.reportLib ...
             );
 
@@ -442,8 +448,8 @@ classdef winConfig_exported < matlab.apps.AppBase
 
         end
 
-        % Value changed function: config_WordCloudColumn, 
-        % ...and 2 other components
+        % Value changed function: CustomsSampleRate, 
+        % ...and 3 other components
         function Analysis_ParameterValueChanged(app, event)
             
             ipcEventName = '';
@@ -457,11 +463,16 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                 case app.config_WordCloudColumn
                     app.mainApp.General.context.SEARCH.wordCloud.column = app.config_WordCloudColumn.Value;
+
+                case app.CustomsSampleRate
+                    app.CustomsSampleRate.Value = round(app.CustomsSampleRate.Value, 2);
+                    app.mainApp.General.context.CUSTOMS.amostragemVistoria = app.CustomsSampleRate.Value;
             end
 
             app.progressDialog.Visible = 'visible';
 
             app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
+            app.mainApp.General_I.context.CUSTOMS.amostragemVistoria = app.mainApp.General.context.CUSTOMS.amostragemVistoria;
             
             updatePanel_Analysis(app)
             saveGeneralSettings(app)
@@ -801,7 +812,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 122, 22, 70, 1};
+            app.SubGrid2.RowHeight = {17, 122, 22, 70, 22, 70};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -912,6 +923,46 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.Layout.Row = 2;
             app.config_WordCloudColumn.Layout.Column = 1;
             app.config_WordCloudColumn.Value = 'Modelo';
+
+            % Create config_MiscelaneousLabel3
+            app.config_MiscelaneousLabel3 = uilabel(app.SubGrid2);
+            app.config_MiscelaneousLabel3.VerticalAlignment = 'bottom';
+            app.config_MiscelaneousLabel3.FontSize = 10;
+            app.config_MiscelaneousLabel3.Layout.Row = 5;
+            app.config_MiscelaneousLabel3.Layout.Column = 1;
+            app.config_MiscelaneousLabel3.Text = 'REMESSAS EM LOTE';
+
+            % Create config_MiscelaneousPanel3
+            app.config_MiscelaneousPanel3 = uipanel(app.SubGrid2);
+            app.config_MiscelaneousPanel3.AutoResizeChildren = 'off';
+            app.config_MiscelaneousPanel3.Layout.Row = 6;
+            app.config_MiscelaneousPanel3.Layout.Column = [1 2];
+
+            % Create config_MiscelaneousGrid3
+            app.config_MiscelaneousGrid3 = uigridlayout(app.config_MiscelaneousPanel3);
+            app.config_MiscelaneousGrid3.ColumnWidth = {110, 110, 110};
+            app.config_MiscelaneousGrid3.RowHeight = {17, 22};
+            app.config_MiscelaneousGrid3.RowSpacing = 5;
+            app.config_MiscelaneousGrid3.BackgroundColor = [1 1 1];
+
+            % Create CustomsSampleRateLabel
+            app.CustomsSampleRateLabel = uilabel(app.config_MiscelaneousGrid3);
+            app.CustomsSampleRateLabel.VerticalAlignment = 'bottom';
+            app.CustomsSampleRateLabel.FontSize = 11;
+            app.CustomsSampleRateLabel.Layout.Row = 1;
+            app.CustomsSampleRateLabel.Layout.Column = [1 3];
+            app.CustomsSampleRateLabel.Text = 'Amostragem para vistoria:';
+
+            % Create CustomsSampleRate
+            app.CustomsSampleRate = uispinner(app.config_MiscelaneousGrid3);
+            app.CustomsSampleRate.Step = 0.01;
+            app.CustomsSampleRate.Limits = [0 1];
+            app.CustomsSampleRate.ValueDisplayFormat = '%.2f';
+            app.CustomsSampleRate.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
+            app.CustomsSampleRate.FontSize = 11;
+            app.CustomsSampleRate.Layout.Row = 2;
+            app.CustomsSampleRate.Layout.Column = 1;
+            app.CustomsSampleRate.Value = 0.01;
 
             % Create SubTab3
             app.SubTab3 = uitab(app.SubTabGroup);

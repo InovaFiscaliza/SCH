@@ -2408,7 +2408,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.Tab3Button = uibutton(app.NavBar, 'state');
             app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.Tab3Button.Tag = 'CUSTOMS';
-            app.Tab3Button.Tooltip = {'Remessa conforme'; '(Aduana)'};
+            app.Tab3Button.Tooltip = {'Remessa em lote'; '(Aduana)'};
             app.Tab3Button.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'group-by-ref-type-24px-white.svg');
             app.Tab3Button.IconAlignment = 'top';
             app.Tab3Button.Text = '';

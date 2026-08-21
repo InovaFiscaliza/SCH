@@ -183,7 +183,13 @@ classdef (Abstract) ProjectBase
         function hash = computeInspectedProductHash(homologation, manufacturer, model)
             hash = Hash.sha1(strjoin({homologation, manufacturer, model}, ' - '));
         end
+    end
 
+
+    methods (Static = true)
+        %-----------------------------------------------------------------%
+        % Métodos estáticos relacionados à propriedade "inspectedProducts"
+        % (visualizada em auxApp.winProducts)
         %-----------------------------------------------------------------%
         function inspectedProducts = createInspectedProductsTable(generalSettings)
             inspectedProducts = table( ...
@@ -196,20 +202,6 @@ classdef (Abstract) ProjectBase
             inspectedProducts.("Situação") = categorical(inspectedProducts.("Situação"), generalSettings.context.PRODUCTS.situationType.options, 'Protected', true);
             inspectedProducts.("Infração") = categorical(inspectedProducts.("Infração"), generalSettings.context.PRODUCTS.violationType.options, 'Protected', true);
             inspectedProducts.("Sanável?") = categorical(inspectedProducts.("Sanável?"), {'-', 'Sim', 'Não'},                                    'Protected', true);
-        end
-
-        %-----------------------------------------------------------------%
-        function customsShipments = createCustomsShipmentsTable(generalSettings)
-            customsShipments = table( ...
-                'Size', [0, height(model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION)], ...
-                'VariableTypes', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 1), ...
-                'VariableNames', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 2) ...
-            );
-            
-            customsShipments.("estadoAmostragem")    = categorical(customsShipments.("estadoAmostragem"),    generalSettings.context.CUSTOMS.estadoAmostragem.options,    'Protected', true);
-            customsShipments.("estadoRevisao")       = categorical(customsShipments.("estadoRevisao"),       generalSettings.context.CUSTOMS.estadoRevisao.options,       'Protected', true);
-            customsShipments.("estadoVistoria")      = categorical(customsShipments.("estadoVistoria"),      generalSettings.context.CUSTOMS.estadoVistoria.options,      'Protected', true);
-            customsShipments.("auditorDecisaoFinal") = categorical(customsShipments.("auditorDecisaoFinal"), generalSettings.context.CUSTOMS.auditorDecisaoFinal.options, 'Protected', true);
         end
 
         %-----------------------------------------------------------------%
@@ -361,9 +353,15 @@ classdef (Abstract) ProjectBase
                 ];
             end
         end
+    end
 
-        %-------------------------------------------------------------------------%
-        function rules = prepareRules(rules, generalSettings)
+
+    methods (Static = true)
+        %-----------------------------------------------------------------%
+        % Métodos estáticos relacionados às propriedades "customsRules" e 
+        % "customsShipments" (visualizada em auxApp.winCustoms)
+        %-----------------------------------------------------------------%
+        function rules = prepareCustomsRules(rules, generalSettings)
             % Elimina regras inativas e ordena as regras por prioridade e peso,
             % além de verificar se todas as categorias de sugestão são válidas.
             rules(~strcmpi({rules.ativo}, 'SIM')) = [];
@@ -386,6 +384,74 @@ classdef (Abstract) ProjectBase
         
                 rules(ii).palavras_reforco = setdiff(boosters, terms);
                 rules(ii).palavras_excecao = setdiff(exceptions, union(terms, boosters));
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function customsData = createCustomsData(generalSettings)
+            customsData = table( ...
+                'Size', [0, height(model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION)], ...
+                'VariableTypes', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 1), ...
+                'VariableNames', model.ProjectBase.CUSTOMSSHIPMENTSSPECIFICATION(:, 2) ...
+            );
+            
+            customsData.("estadoAmostragem")    = categorical(customsData.("estadoAmostragem"),    generalSettings.context.CUSTOMS.estadoAmostragem.options,    'Protected', true);
+            customsData.("estadoRevisao")       = categorical(customsData.("estadoRevisao"),       generalSettings.context.CUSTOMS.estadoRevisao.options,       'Protected', true);
+            customsData.("estadoVistoria")      = categorical(customsData.("estadoVistoria"),      generalSettings.context.CUSTOMS.estadoVistoria.options,      'Protected', true);
+            customsData.("auditorDecisaoFinal") = categorical(customsData.("auditorDecisaoFinal"), generalSettings.context.CUSTOMS.auditorDecisaoFinal.options, 'Protected', true);
+        end
+
+        %-----------------------------------------------------------------%
+        function [customsData, rowIdxs] = applyReportContentFilter(customsData, reportContent)
+            arguments
+                customsData table
+                reportContent {mustBeMember(reportContent, {'TODOS OS REGISTROS', 'VISTORIADOS', 'NÃO VISTORIADOS'})}
+            end
+
+            switch reportContent
+                case 'TODOS OS REGISTROS'
+                    rowIdxs = (1:height(customsData))';
+                case 'VISTORIADOS'
+                    rowIdxs = find(customsData.("estadoVistoria") ~= "-");
+                case 'NÃO VISTORIADOS'
+                    rowIdxs = find(customsData.("estadoVistoria") == "-");
+            end
+
+            customsData = customsData(rowIdxs, :);
+        end
+
+        %-----------------------------------------------------------------%
+        function varargout = validateCustomsData(customsData, reportContent, validationContext)
+            arguments
+                customsData
+                reportContent {mustBeMember(reportContent, {'TODOS OS REGISTROS', 'VISTORIADOS', 'NÃO VISTORIADOS'})} = 'TODOS OS REGISTROS'
+                validationContext {mustBeMember(validationContext, {'TableDisplay', 'ReportGenerate'})} = 'TableDisplay'
+            end
+            
+            [customsData, rowIdxs] = model.ProjectBase.applyReportContentFilter(customsData, reportContent);
+
+            ruleColumns = { ...
+                'auditorDecisaoFinal', ... #01
+                {'estadoAmostragem', 'auditorNota'} ... #02
+                {'auditorDecisaoFinal', 'auditorNota'} ... #03
+                {'estadoVistoria', 'auditorNota'} ... #05
+            };
+
+            ruleViolationMatrix = zeros(height(customsData), numel(ruleColumns), 'logical');
+            ruleViolationMatrix(:, 1) = ismember(string(customsData.("auditorDecisaoFinal")), ["-", "Vistoria"]);
+            ruleViolationMatrix(:, 2) = (string(customsData.("estadoAmostragem")) == "Selecionada") & (string(customsData.("auditorNota")) == "");
+            ruleViolationMatrix(:, 3) = ismember(string(customsData.("auditorDecisaoFinal")), ["Vistoria", "Perdimento"]) & (string(customsData.("auditorNota")) == "");
+            ruleViolationMatrix(:, 4) = (string(customsData.("estadoVistoria")) ~= "-") & (string(customsData.("auditorNota")) == "");
+
+            pendingDisplayRowIdxs = find(any(ruleViolationMatrix, 2));
+
+            switch validationContext
+                case 'TableDisplay'
+                    varargout = {pendingDisplayRowIdxs, ruleViolationMatrix, ruleColumns};
+                
+                otherwise % 'ReportGenerate'
+                    rowIdxs = rowIdxs(pendingDisplayRowIdxs);
+                    varargout = {rowIdxs};
             end
         end
     end

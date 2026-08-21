@@ -40,7 +40,7 @@ classdef Project < model.ProjectCommon
             'Type', {}, ...
             'Data', {}, ...
             'Analysis', {}, ...
-            'UserData', {} ... % struct('Filter', {}, 'ReportInclude', {})
+            'UserData', {} ... % struct('ReportInclude', {}, 'ReportContent', {}, 'Filter', {})
         )
 
         typeSubtypeProductsMapping        
@@ -513,24 +513,6 @@ classdef Project < model.ProjectCommon
         end
 
         %-----------------------------------------------------------------%
-        function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateCustomsShipments(~, customsData)
-            ruleColumns = { ...
-                'auditorDecisaoFinal', ... #01
-                {'estadoAmostragem', 'auditorNota'} ... #02
-                {'auditorDecisaoFinal', 'auditorNota'} ... #03
-                {'estadoVistoria', 'auditorNota'} ... #05
-            };
-
-            ruleViolationMatrix = zeros(height(customsData), numel(ruleColumns), 'logical');
-            ruleViolationMatrix(:, 1) = ismember(string(customsData.("auditorDecisaoFinal")), ["-", "Vistoria"]);
-            ruleViolationMatrix(:, 2) = (string(customsData.("estadoAmostragem")) == "Selecionada") & (string(customsData.("auditorNota")) == "");
-            ruleViolationMatrix(:, 3) = ismember(string(customsData.("auditorDecisaoFinal")), ["Vistoria", "Perdimento"]) & (string(customsData.("auditorNota")) == "");
-            ruleViolationMatrix(:, 4) = (string(customsData.("estadoVistoria")) ~= "-") & (string(customsData.("auditorNota")) == "");
-
-            invalidRowIndexes = find(any(ruleViolationMatrix, 2));
-        end
-
-        %-----------------------------------------------------------------%
         % ## UPDATE ##
         %-----------------------------------------------------------------%
         function updateInspectedProducts(obj, operation, varargin)
@@ -603,23 +585,23 @@ classdef Project < model.ProjectCommon
 
                         [~, fileName, fileExt] = fileparts(fileFullName);
 
-                        customsData = model.ProjectBase.createCustomsShipmentsTable(generalSettings);
+                        customsData = model.ProjectBase.createCustomsData(generalSettings);
                         customsData(1:height(tbl), {'remessaCodigo', 'remessaImportador', 'remessaDescricao'}) = tbl(:, :);
 
                         rules = obj.customsRules;
                         if isempty(rules)
                             rules = util.readExternalFile.Customs('Rules', rootFolder);
-                            rules = model.ProjectBase.prepareRules(rules, generalSettings);
+                            rules = model.ProjectBase.prepareCustomsRules(rules, generalSettings);
                             obj.customsRules = rules;
                         end
 
                         obj.customsShipments(end+1) = struct( ...
                             'FileName', [fileName fileExt], ...
                             'Hash', customsDataHash, ...
-                            'Type', 'REMESSA CONFORME', ...
+                            'Type', 'REMESSA EM LOTE', ...
                             'Data', util.analyzeCustomsRisk(customsData, rules, generalSettings), ...
                             'Analysis', struct('ProcessedAt', datestr(now, 'yyyy-mm-ddTHH:MM:SS'), 'Rules', rules), ...
-                            'UserData', struct('Filter', tableFiltering, 'ReportInclude', false) ...
+                            'UserData', struct('ReportInclude', false, 'ReportContent', 'TODOS OS REGISTROS', 'Filter', tableFiltering) ...
                         );
 
                         updateCustomsShipments(obj, 'statusColumns', numel(obj.customsShipments), 1:height(obj.customsShipments(end).Data))

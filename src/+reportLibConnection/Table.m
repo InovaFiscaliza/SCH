@@ -134,11 +134,12 @@ classdef (Abstract) Table
             arguments
                 customsShipments struct
                 configTable struct
-                finalDecision {mustBeMember(finalDecision, {'any', 'Perdimento', 'Devolução', 'Prazo', 'Liberado'})} = 'any'
+                finalDecision {mustBeMember(finalDecision, {'any', 'Vistoria', 'Perdimento', 'Devolução', 'Prazo', 'Liberado'})} = 'any'
                 summarizeValues (1,1) logical = false
             end
 
-            customsData = customsShipments.Data;
+            reportContent = customsShipments.UserData.ReportContent;
+            customsData = model.ProjectBase.applyReportContentFilter(customsShipments.Data, reportContent);
         
             % A tabela "customsShipments" possui dezesseis colunas - 'remessaCodigo',
             % 'remessaImportador', 'remessaDescricao', 'numRegrasAvaliadas',
@@ -148,9 +149,16 @@ classdef (Abstract) Table
             % e 'auditorNota'.
 
             % Atualmente é previsto aplicar filtragem apenas pela decisão
-            % final do auditor.
-            if ~strcmp(finalDecision, 'any')
-                customsData(customsData.("auditorDecisaoFinal") ~= finalDecision, :) = [];
+            % final do auditor, assim como por ter passado por vistoria.
+            switch finalDecision
+                case 'any'
+                    % ...
+                case 'Vistoria'
+                    if ~strcmp(reportContent, 'VISTORIADOS')
+                        error('reportLibConnection:Table:CustomsShipments:UnexpectedReportContent', 'A tabela de registros vistoriados está disponível apenas no contexto "VISTORIADOS"')
+                    end
+                otherwise % 'Perdimento', 'Devolução', 'Prazo', 'Liberado'
+                    customsData(customsData.("auditorDecisaoFinal") ~= finalDecision, :) = [];
             end
         
             % Na presente função, criam-se três colunas calculadas:

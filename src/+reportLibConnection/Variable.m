@@ -39,14 +39,8 @@ classdef (Abstract) Variable
             customsShipments = projectData.customsShipments;
             reportIncludeIdx = find(arrayfun(@(x) x.UserData.ReportInclude, customsShipments), 1);
 
-            customsData = [];
-            if ~isempty(reportIncludeIdx)
-                customsData = customsShipments(reportIncludeIdx).Data;
-            end
-
-            if isempty(customsData)
-                error('reportLibConnection:Variable:UnexpectedEmptyTable', 'Unexpected empty table')
-            end
+            reportContent = customsShipments(reportIncludeIdx).UserData.ReportContent;
+            customsData = model.ProjectBase.applyReportContentFilter(customsShipments(reportIncludeIdx).Data, reportContent);
 
             switch fieldName
                 case 'Total'
