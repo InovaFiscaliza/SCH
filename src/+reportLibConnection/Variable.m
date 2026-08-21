@@ -52,7 +52,7 @@ classdef (Abstract) Variable
                 case 'Total'
                     fieldValue = height(customsData);
 
-                case 'DestinationSummary'
+                case {'SummarySimple', 'SummaryFluid'}
                     categoriesList = categories(categorical(customsData.("auditorDecisaoFinal")));
                     categoriesCount = countcats(categorical(customsData.("auditorDecisaoFinal")));
         
@@ -63,9 +63,37 @@ classdef (Abstract) Variable
                     categoriesList = categoriesList(validMask);
                     categoriesCount = categoriesCount(validMask);
 
-                    fieldValue = cellstr(string(categoriesList) + " (" + string(categoriesCount) + ")");
-                    if numel(fieldValue) > 1
-                        fieldValue = strjoin({strjoin(fieldValue(1:end-1), ', '), fieldValue{end}}, ' e ');
+                    switch fieldName
+                        case 'SummarySimple'
+                            fieldValue = cellstr(string(categoriesList) + " (" + string(categoriesCount) + ")");
+                            if numel(fieldValue) > 1
+                                fieldValue = strjoin({strjoin(fieldValue(1:end-1), ', '), fieldValue{end}}, ' e ');
+                            end
+
+                        otherwise % 'SummaryFluid'
+                            numTotal = height(customsData);
+                            numLiberados = sum(customsData.("auditorDecisaoFinal") == "Liberado");
+                            numNaoLiberados = numTotal - numLiberados;
+
+                            if numTotal == 1
+                                fieldValue = 'Foi analisada <b>uma remessa de produtos</b>';
+                            else
+                                fieldValue = sprintf('Foram analisadas <b>%d remessas de produtos</b>', numTotal);
+                            end
+
+                            if numLiberados > 0
+                                if numLiberados == 1
+                                    fieldValue = sprintf('%s. A análise resultou na indicação de liberação para uma remessa', fieldValue);
+                                else
+                                    fieldValue = sprintf('%s. A análise resultou na indicação de liberação para %d remessas', fieldValue, numLiberados);
+                                end
+
+                                if numNaoLiberados > 0
+                                    fieldValue = sprintf('%s, enquanto as demais apresentaram situações que ensejam devolução, perdimento ou concessão de prazo para regularização', fieldValue);
+                                end
+                            end
+
+                            fieldValue = sprintf('%s. A sua distribuição em relação à destinação final é indicada na tabela apresentada a seguir.', fieldValue);
                     end
 
                 otherwise

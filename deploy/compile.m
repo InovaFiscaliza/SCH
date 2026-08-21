@@ -13,7 +13,7 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
         rootCompiledFolder      char    = 'C:\InovaFiscaliza (AppsDeployVersions)'
         matlabRuntimeFolder     char    = 'E:\MATLAB Runtime\MATLAB Runtime (Custom)\R2024a'
         showConsoleInDesktopBuild  (1,1) logical = false % versão desktop apresenta console
-        createGitHubReleaseForDesktopBuild (1,1) logical = true
+        createGitHubReleaseForDesktopBuild (1,1) logical = false
         githubCLIFolder         char    = 'C:\Program Files\GitHub CLI'
         githubAccount           char    = 'EricMagalhaesDelgado'
     end
@@ -58,8 +58,8 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
     preCompile()
 
     % Atualiza base de dados, caso necessário.
-    SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData_v2.mat');
-    SCHDataEditedFile   = "C:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData_v2.mat";
+    SCHDataOriginalFile = fullfile(fileparts(initFolder), 'src', 'config', 'DataBase', 'SCHData_v3.mat');
+    SCHDataEditedFile   = 'D:\_ANATEL - AppsDeployVersions\_Post Or Get (scarab DEV)\SCHData_v3.mat';
     if ~isfile(SCHDataEditedFile)
         error('File does not exist')
     end

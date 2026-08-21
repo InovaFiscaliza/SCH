@@ -130,11 +130,12 @@ classdef (Abstract) Table
         end
 
         %-----------------------------------------------------------------%
-        function tbl = CustomsShipments(customsShipments, configTable, finalDecision)
+        function tbl = CustomsShipments(customsShipments, configTable, finalDecision, summarizeValues)
             arguments
                 customsShipments struct
                 configTable struct
                 finalDecision {mustBeMember(finalDecision, {'any', 'Perdimento', 'Devolução', 'Prazo', 'Liberado'})} = 'any'
+                summarizeValues (1,1) logical = false
             end
 
             customsData = customsShipments.Data;
@@ -158,18 +159,47 @@ classdef (Abstract) Table
             % - "Sanável?"
             customsData.("#") = (1:height(customsData))';
 
-            regularityDict = dictionary([true, false], ["Regular", "Irregular"]);
-            regularStatusMask = customsData.("auditorDecisaoFinal") == "Liberado";
-            customsData.("Situação") = regularityDict(regularStatusMask);
+            customsData.("Situação")(:) = "-";
+            customsData.("Situação")(customsData.("auditorDecisaoFinal") == "Liberado") = "Regular";
+            customsData.("Situação")(ismember(customsData.("auditorDecisaoFinal"), ["Prazo", "Devolução", "Perdimento"])) = "Irregular";
 
             customsData.("Sanável?")(:) = "-";
             customsData.("Sanável?")(customsData.("auditorDecisaoFinal") == "Prazo") = "Sim";
-            customsData.("Sanável?")(ismember(customsData.("auditorDecisaoFinal"), ["Perdimento", "Devolução"])) = "Não";
+            customsData.("Sanável?")(ismember(customsData.("auditorDecisaoFinal"), ["Devolução", "Perdimento"])) = "Não";
+
+            % Quando "summarizeValues" é true, as remessas são agrupadas por
+            % "auditorDecisaoFinal", consolidando os códigos de remessa de
+            % cada grupo em uma única linha (célula "remessaCodigo").
+            if ~summarizeValues
+                tbl = customsData;
+
+            else
+                summaryColumns = {'auditorDecisaoFinal', 'Situação', 'Sanável?'};
+                [uniqueFinalDecisions, firstRowIdxPerDecision, decisionGroupIdx] = unique(cellstr(customsData.("auditorDecisaoFinal")));
+                summarizedCustomsData = customsData(firstRowIdxPerDecision, summaryColumns);
+
+                for ii = 1:numel(uniqueFinalDecisions)
+                    rowIdxsInGroup = find(decisionGroupIdx == ii);
+                    remessaCodigoList = sort(customsData.("remessaCodigo")(rowIdxsInGroup));
+
+                    if isscalar(rowIdxsInGroup)
+                        remessaCodigoList = char(remessaCodigoList);
+                    else
+                        remessaCodigoList = strjoin({strjoin(remessaCodigoList(1:end-1), ", "), remessaCodigoList{end}}, " e ");
+                    end
+
+                    summarizedCustomsData.("numRemessas")(ii) = numel(rowIdxsInGroup);
+                    summarizedCustomsData.("remessas"){ii} = remessaCodigoList;
+                end
+                summarizedCustomsData = sortrows(summarizedCustomsData, 'numRemessas', 'descend');
+
+                tbl = summarizedCustomsData;
+            end
         
             % A tabela renderizada no arquivo .HTML possuirá todas as linhas da tabela
             % "customsShipments.Data", mas apenas as colunas definidas no arquivo .JSON que 
             % alimenta a lib "reportLib".        
-            tbl = customsData(:, configTable.Columns);
+            tbl = tbl(:, configTable.Columns);
         end
 
         %-----------------------------------------------------------------%
