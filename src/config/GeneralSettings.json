@@ -1,5 +1,5 @@
 {
-    "version": 2.30,
+    "version": 2.32,
     "operationMode": {
         "Debug": false,
         "Dock": true,
@@ -611,6 +611,17 @@
             }
         },
         "CUSTOMS": {
+            "requiredColumns": {
+                "rawFile": [
+                    "Codigo da Remessa", 
+                    "Importador", 
+                    "Descricao Original"
+                ],
+                "externalDecisions": {
+                    "remessaCodigo": "Codigo da Remessa",
+                    "regraDecisaoSugerida": "Sugestao do Sistema"
+                }
+            },
             "amostragemVistoria": 0.01,
             "regraDecisaoSugerida": {
                 "default": "Vistoria",

@@ -460,9 +460,9 @@ classdef winCustoms_exported < matlab.apps.AppBase
             customsShipmentsIdx = app.customsShipmentsIndex;
             customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
             
-            reportContentOptions = {'TODOS OS REGISTROS', 'NÃO VISTORIADOS', 'VISTORIADOS'};
+            reportContentOptions = {'Todos os Registros', 'Não Vistoriados', 'Vistoriados'};
             currentReportContent = customsShipments.UserData.ReportContent;
-            [~, currentReportContentIdx] = ismember(currentReportContent, reportContentOptions);
+            [~, currentReportContentIdx] = ismember(currentReportContent, upper(reportContentOptions));
 
             questionMsg = [ ...
                 'O universo de dados para geração do relatório pode ' ...
@@ -471,7 +471,9 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 'os registros vistoriados ou a vistoriar.<br><br>Qual ' ...
                 'opção deseja utilizar?' ...
             ];
+            
             userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', questionMsg, reportContentOptions, currentReportContentIdx, currentReportContentIdx);
+            userSelection = upper(userSelection);
 
             if strcmp(userSelection, currentReportContent)
                 return
@@ -653,24 +655,28 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
             customsShipmentsIdx = app.customsShipmentsIndex;
             customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
             customsData = customsShipments.Data;
+            customsData = sortrows(customsData, 'remessaCodigo');
 
             try
+                requiredColumnsInfo = app.mainApp.General.context.CUSTOMS.requiredColumns.externalDecisions;
+
                 externalDecisions = readtable(fileFullName, "VariableNamingRule", "preserve");
-                externalDecisions = sortrows(externalDecisions(:, {'Codigo da Remessa', 'Sugestao do Sistema'}), 'Codigo da Remessa');
+                externalDecisions = externalDecisions(:, struct2cell(requiredColumnsInfo));
+                externalDecisions = sortrows(externalDecisions, requiredColumnsInfo.remessaCodigo);
 
                 externalToInternalDecisionMap = dictionary( ...
                     ["DEVOLUÇÃO", "LIBERADO", "PERDIMENTO", "PRAZO", "REVISÃO MANUAL"], ...
                     ["Devolução", "Liberado", "Perdimento", "Prazo", "Vistoria"] ...
                 );
 
-                externalShipmentsHash = Hash.sha1(strjoin(sort(externalDecisions.("Codigo da Remessa")), ' - '));
+                externalShipmentsHash = Hash.sha1(strjoin(externalDecisions.(requiredColumnsInfo.remessaCodigo), ' - '));
                 if ~strcmp(externalShipmentsHash, customsShipments.Hash)
                     error('onAnalysisComparisonButtonClicked:shipmentsMismatch', 'O arquivo selecionado não corresponde às remessas do arquivo atualmente carregado.')
                 end
 
-                externalDecisions.("regraDecisaoSugerida") = categorical(externalToInternalDecisionMap(externalDecisions.("Sugestao do Sistema")));
-                customsData = sortrows(customsData, 'remessaCodigo');
+                externalDecisions.("regraDecisaoSugerida") = categorical(externalToInternalDecisionMap(externalDecisions.(requiredColumnsInfo.regraDecisaoSugerida)));
                 
                 matchingSuggestionPercentage = 100 * sum(externalDecisions.("regraDecisaoSugerida") == customsData.("regraDecisaoSugerida")) / height(customsData);
                 msg = sprintf('Percentual de registros que possuem a mesma destinação sugerida: <b>%.1f%%</b><br><br>%s<br><br>%s', ...

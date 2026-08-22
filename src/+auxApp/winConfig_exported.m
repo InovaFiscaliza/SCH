@@ -21,6 +21,9 @@ classdef winConfig_exported < matlab.apps.AppBase
         config_MiscelaneousGrid3     matlab.ui.container.GridLayout
         CustomsSampleRate            matlab.ui.control.Spinner
         CustomsSampleRateLabel       matlab.ui.control.Label
+        CustomsColumnNames           matlab.ui.control.EditField
+        CustomsColumnNamesButton     matlab.ui.control.Image
+        CustomsColumnNamesLabel      matlab.ui.control.Label
         config_MiscelaneousLabel3    matlab.ui.control.Label
         config_MiscelaneousPanel2    matlab.ui.container.Panel
         config_MiscelaneousGrid2     matlab.ui.container.GridLayout
@@ -146,6 +149,15 @@ classdef winConfig_exported < matlab.apps.AppBase
                     end
 
                 case 2
+                    ui.CustomizationBase.getElementsDataTag({app.CustomsColumnNamesButton});
+
+                    try
+                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', class(app), 'dataTag', app.CustomsColumnNamesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição dos nomes das colunas<br>Ex: "Código da Remessa", "Importador", "Descrição"')) ...
+                        });
+                    catch
+                    end
+
                     updatePanel_Analysis(app)
 
                 case 3
@@ -177,13 +189,14 @@ classdef winConfig_exported < matlab.apps.AppBase
             projectGeneral  = jsondecode(fileread(projectFilePath));
 
             app.defaultValues = struct( ...
-                'SEARCH', struct( ...
-                    'minCharacters',      projectGeneral.context.SEARCH.minCharacters, ...
+                'ANALYSIS', struct( ...
+                    'minCharacters', projectGeneral.context.SEARCH.minCharacters, ...
                     'minDisplayedTokens', projectGeneral.context.SEARCH.minDisplayedTokens, ...
-                    'wordCloud',          projectGeneral.context.SEARCH.wordCloud, ...
-                    'customsSampleRate',  projectGeneral.context.CUSTOMS.amostragemVistoria ...
+                    'wordCloud', projectGeneral.context.SEARCH.wordCloud, ...
+                    'customsRawFileColumnNames', projectGeneral.context.CUSTOMS.requiredColumns.rawFile, ...
+                    'customsSampleRate', projectGeneral.context.CUSTOMS.amostragemVistoria ...
                 ), ...
-                'reportLib',              projectGeneral.reportLib ...
+                'REPORT', projectGeneral.reportLib ...
             );
         end
 
@@ -243,9 +256,12 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.Value = app.mainApp.General.context.SEARCH.wordCloud.column;
 
             % REMESSA EM LOTE
+            app.CustomsColumnNamesButton.UserData.status = false;
+            app.CustomsColumnNamesButton.ImageSource = 'Edit_32.png';
+            set(app.CustomsColumnNames, 'Editable', 'off', 'FontColor', [0.65,0.65,0.65], 'Value', textFormatGUI.cellstr2ListWithQuotes(app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile, 'none'))
             app.CustomsSampleRate.Value = app.mainApp.General.context.CUSTOMS.amostragemVistoria;
 
-            app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'SEARCH');
+            app.config_SearchModeDefaultParameters.Visible = checkEdition(app, 'ANALYSIS');
         end
 
         %-----------------------------------------------------------------%
@@ -283,26 +299,23 @@ classdef winConfig_exported < matlab.apps.AppBase
         function editionFlag = checkEdition(app, tabName)
             editionFlag = false;
             currentValues = struct( ...
-                'SEARCH', struct( ...
-                    'minCharacters',      app.mainApp.General.context.SEARCH.minCharacters, ...
+                'ANALYSIS', struct( ...
+                    'minCharacters', app.mainApp.General.context.SEARCH.minCharacters, ...
                     'minDisplayedTokens', app.mainApp.General.context.SEARCH.minDisplayedTokens, ...
-                    'wordCloud',          app.mainApp.General.context.SEARCH.wordCloud, ...
-                    'customsSampleRate',  app.mainApp.General.context.CUSTOMS.amostragemVistoria ...
+                    'wordCloud', app.mainApp.General.context.SEARCH.wordCloud, ...
+                    'customsRawFileColumnNames', app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile, ...
+                    'customsSampleRate', app.mainApp.General.context.CUSTOMS.amostragemVistoria ...
                 ), ...
-                'reportLib',              app.mainApp.General.reportLib ...
+                'REPORT', app.mainApp.General.reportLib ...
             );
 
             switch tabName
-                case 'SEARCH'
-                    if ~isequal(currentValues.SEARCH, app.defaultValues.SEARCH)
-                        editionFlag = true;
-                    end
-                case 'PRODUCTS'
-                    if ~isequal(currentValues.PRODUCTS, app.defaultValues.PRODUCTS)
+                case 'ANALYSIS'
+                    if ~isequal(currentValues.ANALYSIS, app.defaultValues.ANALYSIS)
                         editionFlag = true;
                     end
                 case 'REPORT'
-                    if ~isequal(currentValues.reportLib, app.defaultValues.reportLib)
+                    if ~isequal(currentValues.REPORT, app.defaultValues.REPORT)
                         editionFlag = true;
                     end
             end
@@ -424,7 +437,10 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             projectFileContent = jsondecode(fileread(projectFilePath));
 
-            if isequal(app.mainApp.General.context.SEARCH, projectFileContent.context.SEARCH) && isequal(app.mainApp.General.context.SEARCH.ui, projectFileContent.context.SEARCH.ui)
+            if isequal(app.mainApp.General.context.SEARCH, projectFileContent.context.SEARCH) && ...
+                    isequal(app.mainApp.General.context.SEARCH.ui, projectFileContent.context.SEARCH.ui) && ...
+                    isequal(app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile, projectFileContent.context.CUSTOMS.requiredColumns.rawFile) && ...
+                    isequal(app.mainApp.General.context.CUSTOMS.amostragemVistoria, projectFileContent.context.CUSTOMS.amostragemVistoria)
                 msgWarning = 'Configurações atuais já coincidem com as iniciais.';
                 ui.Dialog(app.UIFigure, 'warning', msgWarning);
                 return
@@ -435,8 +451,11 @@ classdef winConfig_exported < matlab.apps.AppBase
                     ipcEventName{end+1} = 'onWordCloudAlgorithmChanged';
                 end
 
-                app.mainApp.General.context.SEARCH   = projectFileContent.context.SEARCH;                
+                app.mainApp.General.context.SEARCH = projectFileContent.context.SEARCH;
+                app.mainApp.General.context.CUSTOMS = projectFileContent.context.CUSTOMS;
+
                 app.mainApp.General_I.context.SEARCH = app.mainApp.General.context.SEARCH;
+                app.mainApp.General_I.context.CUSTOMS = app.mainApp.General.context.CUSTOMS;
                 
                 updatePanel_Analysis(app)
                 saveGeneralSettings(app)
@@ -661,6 +680,56 @@ classdef winConfig_exported < matlab.apps.AppBase
             end
 
         end
+
+        % Callback function: CustomsColumnNames, CustomsColumnNamesButton
+        function CustomsColumnNamesButtonImageClicked(app, event)
+            
+            switch event.Source
+                case app.CustomsColumnNamesButton
+                    app.CustomsColumnNamesButton.UserData.status = ~app.CustomsColumnNamesButton.UserData.status;
+                    if app.CustomsColumnNamesButton.UserData.status
+                        app.CustomsColumnNamesButton.ImageSource = 'Edit_32Filled.png';
+                        set(app.CustomsColumnNames, 'Editable', 'on', 'FontColor', [0,0,0])
+                    else
+                        app.CustomsColumnNamesButton.ImageSource = 'Edit_32.png';
+                        set(app.CustomsColumnNames, 'Editable', 'off', 'FontColor', [0.65,0.65,0.65])
+                    end
+
+                case app.CustomsColumnNames
+                    parts = strsplit(event.Value, ',');
+                    try
+                        requiredColumnNames = strtrim(extractBetween(parts, '"', '"'));
+                    catch
+                        app.CustomsColumnNames.Value = event.PreviousValue;
+                        return
+                    end
+
+                    currentColumnNames = app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile;
+
+                    if numel(requiredColumnNames) ~= numel(parts) || numel(requiredColumnNames) ~= numel(currentColumnNames) || isequal(currentColumnNames, requiredColumnNames)
+                        app.CustomsColumnNames.Value = event.PreviousValue;
+                        return
+                    end
+
+                    msgQuestion = sprintf([ ...
+                        'LISTA ATUAL:\n%s\n\nLISTA PROPOSTA:\n%s\n\n' ...
+                        'Confirma a troca do nome das colunas do arquivo bruto de entrada?' ...
+                    ], textFormatGUI.cellstr2ListWithQuotes(currentColumnNames, 'none'), textFormatGUI.cellstr2ListWithQuotes(requiredColumnNames, 'none'));
+
+                    userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                    if userSelection == "Não"
+                        app.CustomsColumnNames.Value = event.PreviousValue;
+                        return
+                    end
+
+                    app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile = requiredColumnNames;
+                    app.mainApp.General_I.context.CUSTOMS.requiredColumns.rawFile = app.mainApp.General.context.CUSTOMS.requiredColumns.rawFile;
+
+                    updatePanel_Analysis(app)
+                    saveGeneralSettings(app)
+            end
+
+        end
     end
 
     % Component initialization
@@ -812,7 +881,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             % Create SubGrid2
             app.SubGrid2 = uigridlayout(app.SubTab2);
             app.SubGrid2.ColumnWidth = {'1x', 22};
-            app.SubGrid2.RowHeight = {17, 122, 22, 70, 22, 70};
+            app.SubGrid2.RowHeight = {17, 122, 22, 70, 22, 130};
             app.SubGrid2.RowSpacing = 5;
             app.SubGrid2.BackgroundColor = [1 1 1];
 
@@ -940,17 +1009,42 @@ classdef winConfig_exported < matlab.apps.AppBase
 
             % Create config_MiscelaneousGrid3
             app.config_MiscelaneousGrid3 = uigridlayout(app.config_MiscelaneousPanel3);
-            app.config_MiscelaneousGrid3.ColumnWidth = {110, 110, 110};
-            app.config_MiscelaneousGrid3.RowHeight = {17, 22};
+            app.config_MiscelaneousGrid3.ColumnWidth = {110, '1x', 18};
+            app.config_MiscelaneousGrid3.RowHeight = {27, 22, 22, 22};
             app.config_MiscelaneousGrid3.RowSpacing = 5;
             app.config_MiscelaneousGrid3.BackgroundColor = [1 1 1];
+
+            % Create CustomsColumnNamesLabel
+            app.CustomsColumnNamesLabel = uilabel(app.config_MiscelaneousGrid3);
+            app.CustomsColumnNamesLabel.FontSize = 11;
+            app.CustomsColumnNamesLabel.Layout.Row = 1;
+            app.CustomsColumnNamesLabel.Layout.Column = [1 2];
+            app.CustomsColumnNamesLabel.Interpreter = 'html';
+            app.CustomsColumnNamesLabel.Text = {'Definição dos nomes das colunas do arquivo bruto de entrada:'; '<font style="font-size: 10px; color: gray;">("Código aduaneiro", "Importador" e "Descrição" da remessa, nessa ordem)</font>'};
+
+            % Create CustomsColumnNamesButton
+            app.CustomsColumnNamesButton = uiimage(app.config_MiscelaneousGrid3);
+            app.CustomsColumnNamesButton.ImageClickedFcn = createCallbackFcn(app, @CustomsColumnNamesButtonImageClicked, true);
+            app.CustomsColumnNamesButton.Layout.Row = 1;
+            app.CustomsColumnNamesButton.Layout.Column = 3;
+            app.CustomsColumnNamesButton.VerticalAlignment = 'bottom';
+            app.CustomsColumnNamesButton.ImageSource = 'Edit_32.png';
+
+            % Create CustomsColumnNames
+            app.CustomsColumnNames = uieditfield(app.config_MiscelaneousGrid3, 'text');
+            app.CustomsColumnNames.ValueChangedFcn = createCallbackFcn(app, @CustomsColumnNamesButtonImageClicked, true);
+            app.CustomsColumnNames.Editable = 'off';
+            app.CustomsColumnNames.FontSize = 11;
+            app.CustomsColumnNames.FontColor = [0.651 0.651 0.651];
+            app.CustomsColumnNames.Layout.Row = 2;
+            app.CustomsColumnNames.Layout.Column = [1 3];
 
             % Create CustomsSampleRateLabel
             app.CustomsSampleRateLabel = uilabel(app.config_MiscelaneousGrid3);
             app.CustomsSampleRateLabel.VerticalAlignment = 'bottom';
             app.CustomsSampleRateLabel.FontSize = 11;
-            app.CustomsSampleRateLabel.Layout.Row = 1;
-            app.CustomsSampleRateLabel.Layout.Column = [1 3];
+            app.CustomsSampleRateLabel.Layout.Row = 3;
+            app.CustomsSampleRateLabel.Layout.Column = [1 2];
             app.CustomsSampleRateLabel.Text = 'Amostragem para vistoria:';
 
             % Create CustomsSampleRate
@@ -960,7 +1054,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.CustomsSampleRate.ValueDisplayFormat = '%.2f';
             app.CustomsSampleRate.ValueChangedFcn = createCallbackFcn(app, @Analysis_ParameterValueChanged, true);
             app.CustomsSampleRate.FontSize = 11;
-            app.CustomsSampleRate.Layout.Row = 2;
+            app.CustomsSampleRate.Layout.Row = 4;
             app.CustomsSampleRate.Layout.Column = 1;
             app.CustomsSampleRate.Value = 0.01;
 

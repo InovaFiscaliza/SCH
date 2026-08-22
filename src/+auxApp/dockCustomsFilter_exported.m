@@ -103,18 +103,20 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
 
             filterList = getFilterList(customsShipments.UserData.Filter, 'tbl');
             if ~isempty(filterList)
-                checkedNodes = [];
                 undeletable = [];
+                checkedNodes = [];
     
                 for ii = 1:numel(filterList)
-                    childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
+                    childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii);
+
+                    if customsShipments.UserData.Filter.filterRules.Deletable(ii)
+                        childNode.ContextMenu = app.ContextMenu;
+                    else
+                        undeletable = [undeletable, childNode];
+                    end
     
                     if customsShipments.UserData.Filter.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];
-                    end
-
-                    if ~customsShipments.UserData.Filter.filterRules.Deletable(ii)
-                        undeletable = [undeletable, childNode];
                     end
                 end
     

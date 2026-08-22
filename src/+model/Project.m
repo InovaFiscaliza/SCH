@@ -572,13 +572,13 @@ classdef Project < model.ProjectCommon
                     rootFolder = varargin{3};
 
                     try
-                        tbl = util.readExternalFile.Customs('Data', fileFullName);
+                        tbl = util.readExternalFile.CustomsShipments('Data', fileFullName, generalSettings);
 
                         if isempty(tbl)
                             error('O arquivo de produtos aduaneiros não contém registros válidos.')
                         end
 
-                        customsDataHash = Hash.sha1(strjoin(sort(tbl.("Codigo da Remessa")), ' - '));
+                        customsDataHash = Hash.sha1(strjoin(sort(tbl.("remessaCodigo")), ' - '));
                         if ismember(customsDataHash, {obj.customsShipments.Hash})
                             error('O arquivo de produtos aduaneiros já foi carregado anteriormente.')
                         end
@@ -590,7 +590,7 @@ classdef Project < model.ProjectCommon
 
                         rules = obj.customsRules;
                         if isempty(rules)
-                            rules = util.readExternalFile.Customs('Rules', rootFolder);
+                            rules = util.readExternalFile.CustomsShipments('Rules', rootFolder);
                             rules = model.ProjectBase.prepareCustomsRules(rules, generalSettings);
                             obj.customsRules = rules;
                         end

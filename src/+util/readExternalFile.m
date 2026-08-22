@@ -150,7 +150,7 @@ classdef (Abstract) readExternalFile
         end
 
         %-----------------------------------------------------------------%
-        function varargout = Customs(operationType, varargin)
+        function varargout = CustomsShipments(operationType, varargin)
             arguments
                 operationType {mustBeMember(operationType, {'Rules', 'Data'})}
             end
@@ -180,14 +180,18 @@ classdef (Abstract) readExternalFile
 
                 otherwise % 'Data'
                     fileName = varargin{1};
+                    generalSettings = varargin{2};
+
                     tbl = readtable(fileName, 'VariableNamingRule', 'preserve');
         
-                    requiredColumns = {'Codigo da Remessa', 'Importador', 'Descricao Original'};
+                    requiredColumns = generalSettings.context.CUSTOMS.requiredColumns.rawFile;
                     if ~all(ismember(requiredColumns, tbl.Properties.VariableNames))
-                        error('Tabela de entrada precisa ter as colunas "Codigo da Remessa" e "Descricao Original"')
+                        error('Tabela de entrada precisa ter as colunas %s', textFormatGUI.cellstr2FriendlyListWithQuotes(requiredColumns))
                     end
         
                     tbl = tbl(:, requiredColumns);
+                    tbl = renamevars(tbl, requiredColumns, {'remessaCodigo', 'remessaImportador', 'remessaDescricao'});
+                    
                     varargout{1} = tbl;
             end
         end
