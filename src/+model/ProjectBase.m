@@ -3,6 +3,7 @@ classdef (Abstract) ProjectBase
     % ## model.ProjectBase ##      
     % - *.*
     %   ├── INSPECTEDPRODUCTSSPECIFICATION                  (Constant)
+    %   ├── CUSTOMSSHIPMENTSSPECIFICATION                   (Constant)
     %   ├── WARNING_ENTRYEXIST                              (Constant)
     %   ├── WARNING_VALIDATIONSRULES                        (Constant)
     %   |── model.ProjectBase.readRegulatronData            (Static)
@@ -10,9 +11,15 @@ classdef (Abstract) ProjectBase
     %   |   └── util.readExternalFile.RegulatronData
     %   ├── model.ProjectBase.computeProjectHash            (Static)
     %   ├── model.ProjectBase.computeInspectedProductHash   (Static)
-    %   |── model.ProjectBase.createInspectedProductsTable  (Static)
-    %   └── model.ProjectBase.initializeInspectedProduct    (Static)
-    %       └── model.ProjectBase.computeInspectedProductHash
+    %   ├── model.ProjectBase.createInspectedProductsTable  (Static)
+    %   ├── model.ProjectBase.validateCategoricalColumns    (Static)
+    %   ├── model.ProjectBase.initializeInspectedProduct    (Static)
+    %   │   └── model.ProjectBase.computeInspectedProductHash
+    %   ├── model.ProjectBase.prepareCustomsRules           (Static)
+    %   ├── model.ProjectBase.createCustomsData             (Static)
+    %   ├── model.ProjectBase.applyReportContentFilter      (Static)
+    %   └── model.ProjectBase.validateCustomsData           (Static)
+    %       └── model.ProjectBase.applyReportContentFilter
 
     properties (Constant)
     %---------------------------------------------------------------------%
@@ -434,7 +441,7 @@ classdef (Abstract) ProjectBase
                 'auditorDecisaoFinal', ... #01
                 {'estadoAmostragem', 'auditorNota'} ... #02
                 {'auditorDecisaoFinal', 'auditorNota'} ... #03
-                {'estadoVistoria', 'auditorNota'} ... #05
+                {'estadoVistoria', 'auditorNota'} ... #04
             };
 
             ruleViolationMatrix = zeros(height(customsData), numel(ruleColumns), 'logical');

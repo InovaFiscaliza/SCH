@@ -4,7 +4,7 @@ classdef (Abstract) Regulatron
         %-----------------------------------------------------------------%
         function updateAdsTable(schFilePath, regulatronFilePath)
             arguments
-                schFilePath (1, :) char = 'D:\_ANATEL - AppsDeployVersions\_Post Or Get (scarab DEV)\SCHData_v2.mat'
+                schFilePath (1, :) char = 'D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData_v2.mat'
                 regulatronFilePath (1, :) char = 'C:\Users\anatel_master\Downloads\Anuncios.xlsx'
             end
 
@@ -13,9 +13,14 @@ classdef (Abstract) Regulatron
             validCertificadoSet = unique(replace(sch.rawDataTable.("Homologação"), '-', ''));
 
             % Lê as abas "LLM" e "Anúncio" de "Anuncios.xlsx", faz o relacionamento
-            % por "key" e retorna a tabela principal com colunas selecionadas.
+            % por "key" e retorna a tabela principal com colunas selecionadas. Como 
+            % a relação pode ser 1:n (um anúncio pode ter múltiplos LLMs), mantém-se
+            % apenas a última ocorrência de cada chave.
             llm = readtable(regulatronFilePath, "VariableNamingRule", "preserve", "Sheet", "LLM");
+            llm = keepLastOccurrence(llm, 'key');
+            
             anuncio = readtable(regulatronFilePath, "VariableNamingRule", "preserve", "Sheet", "Anúncio");
+            anuncio = keepLastOccurrence(anuncio, 'key');
 
             adsTable = join( ...
                 anuncio, llm, ...
@@ -42,6 +47,11 @@ classdef (Abstract) Regulatron
             srcFolder = fileparts(utilFolder);
             outputFilePath = fullfile(srcFolder, 'config', 'DataBase', 'Regulatron.mat');
             save(outputFilePath, 'adsTable', '-mat')
+
+            function tbl = keepLastOccurrence(tbl, keyColumn)
+                [~, lastIdxs] = unique(tbl.(keyColumn), 'last');
+                tbl = tbl(lastIdxs, :);
+            end
         end
 
         %-----------------------------------------------------------------%

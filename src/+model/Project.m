@@ -22,12 +22,17 @@ classdef Project < model.ProjectCommon
     %   │   |── checkTypeSubtypeProductsMapping
     %   │   |── model.ProjectBase.initializeInspectedProduct
     %   │   |── updateInspectedProducts
+    %   │   |── model.ProjectBase.validateCategoricalColumns
     %   │   └── model.ProjectBase.computeProjectHash
     %   ├── validateInspectedProducts
     %   ├── checkTypeSubtypeProductsMapping
-    %   └── updateInspectedProducts
-    %       |── model.ProjectBase.computeInspectedProductHash
-    %       └── IndexedDBCache
+    %   ├── updateInspectedProducts
+    %   │   └── model.ProjectBase.computeInspectedProductHash
+    %   └── updateCustomsShipments
+    %       |── util.readExternalFile.CustomsShipments
+    %       |── model.ProjectBase.createCustomsData
+    %       |── model.ProjectBase.prepareCustomsRules
+    %       └── util.analyzeCustomsRisk
     
     properties
         %-----------------------------------------------------------------%
@@ -432,7 +437,7 @@ classdef Project < model.ProjectCommon
         %-----------------------------------------------------------------%
         % ## VALIDATION ##
         %-----------------------------------------------------------------%
-        function [invalidRowIndexes, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
+        function [pendingDisplayRowIdxs, ruleViolationMatrix, ruleColumns] = validateInspectedProducts(obj)
             % Função que valida a consistência e o preenchimento de dados da
             % tabela "inspectedProducts", respeitando regras estabelecidas no
             % eFiscaliza p/ upload de tabela com lista de produtos inspecionados.
@@ -453,20 +458,20 @@ classdef Project < model.ProjectCommon
             % #12 Se a soma "Qtd. lacradas" e "Qtd. apreendidas" for maior que zero, então "PLAI"  deve ser preenchido.
             % #13 Se a soma "Qtd. lacradas" e "Qtd. apreendidas" for maior que zero, então "Lacre" deve ser preenchido.
 
-            ruleColumns = {                                                                                     ...
-                {'Tipo', 'Subtipo'},                                                                            ... #01
-                'Fabricante',                                                                                   ... #02
-                'Modelo',                                                                                       ... #03    
-                'Valor Unit. (R$)',                                                                             ... #04
-                {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'},                          ... #05
+            ruleColumns = { ...
+                {'Tipo', 'Subtipo'}, ... #01
+                'Fabricante', ... #02
+                'Modelo', ... #03
+                'Valor Unit. (R$)', ... #04
+                {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}, ... #05
                 {'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ... #06
-                'Situação',                                                                                     ... #07
-                {'Situação', 'Infração'}                                                                        ... #08
-                {'Situação', 'Valor Unit. (R$)'},                                                               ... #09
-                {'Situação', 'Fonte do valor'},                                                                 ... #10
-                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'},                        ... #11
-                {'Qtd. lacradas', 'Qtd. apreendidas', 'Lacre'},                                                 ... #12
-                {'Qtd. lacradas', 'Qtd. apreendidas', 'PLAI'}                                                   ... #13
+                'Situação', ... #07
+                {'Situação', 'Infração'}, ... #08
+                {'Situação', 'Valor Unit. (R$)'}, ... #09
+                {'Situação', 'Fonte do valor'}, ... #10
+                {'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ... #11
+                {'Qtd. lacradas', 'Qtd. apreendidas', 'Lacre'}, ... #12
+                {'Qtd. lacradas', 'Qtd. apreendidas', 'PLAI'} ... #13
             };
 
             ruleViolationMatrix = zeros(height(obj.inspectedProducts), numel(ruleColumns), 'logical');
@@ -488,7 +493,7 @@ classdef Project < model.ProjectCommon
             ruleViolationMatrix(:, 12) = sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas'}}, 2) > 0 & (string(obj.inspectedProducts.("Lacre")) == "");
             ruleViolationMatrix(:, 13) = sum(obj.inspectedProducts{:, {'Qtd. lacradas', 'Qtd. apreendidas'}}, 2) > 0 & (string(obj.inspectedProducts.("PLAI")) == "");
 
-            invalidRowIndexes = find(any(ruleViolationMatrix, 2));
+            pendingDisplayRowIdxs = find(any(ruleViolationMatrix, 2));
         end
 
         %-----------------------------------------------------------------%
