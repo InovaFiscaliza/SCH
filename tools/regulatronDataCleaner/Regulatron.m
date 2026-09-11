@@ -2,59 +2,6 @@ classdef (Abstract) Regulatron
 
     methods (Static = true)
         %-----------------------------------------------------------------%
-        function updateAdsTable(schFilePath, regulatronFilePath)
-            arguments
-                schFilePath (1, :) char = 'D:\OneDrive - ANATEL\InovaFiscaliza - GetPost\InovaFiscaliza - SCH (Get)\SCHData_v2.mat'
-                regulatronFilePath (1, :) char = 'C:\Users\anatel_master\Downloads\Anuncios.xlsx'
-            end
-
-            % Lê a base de referência do SCH para filtrar os certificados válidos.
-            sch = load(schFilePath, 'rawDataTable');
-            validCertificadoSet = unique(replace(sch.rawDataTable.("Homologação"), '-', ''));
-
-            % Lê as abas "LLM" e "Anúncio" de "Anuncios.xlsx", faz o relacionamento
-            % por "key" e retorna a tabela principal com colunas selecionadas. Como 
-            % a relação pode ser 1:n (um anúncio pode ter múltiplos LLMs), mantém-se
-            % apenas a última ocorrência de cada chave.
-            llm = readtable(regulatronFilePath, "VariableNamingRule", "preserve", "Sheet", "LLM");
-            llm = keepLastOccurrence(llm, 'key');
-            
-            anuncio = readtable(regulatronFilePath, "VariableNamingRule", "preserve", "Sheet", "Anúncio");
-            anuncio = keepLastOccurrence(anuncio, 'key');
-
-            adsTable = join( ...
-                anuncio, llm, ...
-                'Keys', 'key', ...
-                'LeftVariables', {'certificado', 'data', 'marketplace', 'nome', 'vendedor', 'marca', 'modelo', 'características', 'preço', 'screenshot', 'url', 'imagem', 'imagens'}, ...
-                'RightVariables', {'anuncio_produto_telecom', 'justificativa_produto_telecom', 'llm_model'} ...
-            );
-
-            invalidCertificadoMask = ~ismember(anuncio.certificado, validCertificadoSet);
-            invalidScreenshotMask = ~endsWith(anuncio.screenshot, '.pdf');
-            telecomFlagMask = ~ismember(adsTable.anuncio_produto_telecom, {'Proibido', 'Sim'});
-
-            removeMask = invalidCertificadoMask | invalidScreenshotMask | telecomFlagMask;
-            adsTable(removeMask, :) = [];
-
-            adsTable = sortrows(adsTable, 'data', 'descend');
-            [~, uniqueIdxs] = unique(adsTable.url, 'stable');
-            adsTable = adsTable(uniqueIdxs, :);
-
-            adsTable.('#') = uint32((1:height(adsTable))');
-            adsTable = movevars(adsTable, '#', 'Before', 1);
-
-            utilFolder = fileparts(mfilename('fullpath'));
-            srcFolder = fileparts(utilFolder);
-            outputFilePath = fullfile(srcFolder, 'config', 'DataBase', 'Regulatron.mat');
-            save(outputFilePath, 'adsTable', '-mat')
-
-            function tbl = keepLastOccurrence(tbl, keyColumn)
-                [~, lastIdxs] = unique(tbl.(keyColumn), 'last');
-                tbl = tbl(lastIdxs, :);
-            end
-        end
-
-        %-----------------------------------------------------------------%
         function annotationTable = downloadAdsImages(annotationTable, adsTable, downloadFolder)
             % Cria a pasta de download se não existir
             if ~isfolder(downloadFolder)

@@ -1,0 +1,21 @@
+{
+    "version": 1,
+    "computerName": {
+        "deskopApp": "",
+        "webServer": "WIMATLABPDIN01"
+    },
+    "fileFolder": {
+        "userPath": "",
+        "tempPath": "",
+        "pythonPath": "",
+        "dataHub": {
+            "sch": {
+                "get": "C:\\OneDrive - ANATEL\\Shortcuts\\InovaFiscaliza - SCH (Get)",
+                "post": "C:\\OneDrive - ANATEL\\Shortcuts\\InovaFiscaliza - SCH (Get)"
+            },
+            "regulatron": {
+                "get": "C:\\OneDrive - ANATEL\\Shortcuts\\InovaFiscaliza - Regulatron (Get)"
+            }
+        }
+    }
+}
