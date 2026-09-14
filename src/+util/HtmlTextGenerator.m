@@ -17,7 +17,7 @@ classdef (Abstract) HtmlTextGenerator
         %-----------------------------------------------------------------%
         % SCH:INFO
         %-----------------------------------------------------------------%
-        function htmlContent = AppInfo(generalSettings, rootFolder, executionMode, renderCount, schDataTable, releasedData, cacheData, annotationTable, outputFormat)
+        function htmlContent = AppInfo(generalSettings, rootFolder, executionMode, renderCount, schDataTable, releasedData, cacheData, annotationTable, eFiscalizaObj, outputFormat)
             arguments
                 generalSettings 
                 rootFolder 
@@ -27,6 +27,7 @@ classdef (Abstract) HtmlTextGenerator
                 releasedData
                 cacheData
                 annotationTable
+                eFiscalizaObj
                 outputFormat char {mustBeMember(outputFormat, {'popup', 'textview'})} = 'textview'
             end
         
@@ -57,6 +58,10 @@ classdef (Abstract) HtmlTextGenerator
 
             dataStruct(end+1) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(schDataTable), 'numberOfUniqueHom', numel(unique(schDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
             dataStruct(end+1) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
+
+            if ~isempty(eFiscalizaObj)
+                dataStruct(end+1) = struct('group', 'USUÁRIO AUTENTICADO', 'value', eFiscalizaObj.login);
+            end
 
             freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Laboratório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
             htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', freeInitialText, outputFormat);

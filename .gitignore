@@ -1,6 +1,7 @@
 # List of folder to ignore:
 deploy/desktop/
 deploy/webapp/
+tools/dataUpdate/SCHDataUpdate
 
 # Autosave files
 *.asv

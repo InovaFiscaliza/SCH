@@ -13,7 +13,7 @@ function SCHDataUpdate()
     fprintf(sprintf('%s: Tentativa de atualização da base de dados "%s.mat" iniciada.\n', datestr(now), fileName))
     
     try
-        [fileUrls, schDataHubGet, regulatronDataHubGet] = initialValidations(rootFolder);
+        [fileUrls, schDataHubGet, schDataHubPost, regulatronDataHubGet] = initialValidations(rootFolder);
 
         % REFERENCE TABLE, AND REFERENCE RELEASED DATE
         schData = [];
@@ -61,15 +61,15 @@ function SCHDataUpdate()
             );
         
             % .MAT
-            save(fullfile(schDataHubGet, [fileName '.mat']), 'schData', 'cacheData', 'releasedData', '-mat', '-v7')
+            save(fullfile(schDataHubPost, [fileName '.mat']), 'schData', 'cacheData', 'releasedData', '-mat', '-v7')
             fprintf(sprintf('%s: Base de dados "%s.mat" atualizada em %s, sendo composta por %d linhas.\n', datestr(now), fileName, releasedData, height(schRawData)))
 
             % .XLSX
-            writetable(schRawData(:, 1:19), fullfile(schDataHubGet, [fileName '.xlsx']), "UseExcel", false, "PreserveFormat", true)
-            fprintf(sprintf('%s: Base de dados exportada como "%s.xlsx".\n\n', datestr(now), fileName))
+            writetable(schRawData(:, 1:19), fullfile(schDataHubPost, [fileName '.xlsx']), "UseExcel", false, "PreserveFormat", true)
+            fprintf(sprintf('%s: Base de dados exportada como "%s.xlsx".\n', datestr(now), fileName))
 
             % REGULATRON ADS
-            updateAdsTable(aggregatedTable, schDataHubGet, regulatronDataHubGet)
+            updateAdsTable(aggregatedTable, schDataHubPost, regulatronDataHubGet)
 
         else
             error('Dados idênticos ao da última extração.')
@@ -89,12 +89,13 @@ end
 
 
 %-------------------------------------------------------------------------%
-function [fileURLs, schDataHubGet, regulatronDataHubGet] = initialValidations(rootFolder)
+function [fileURLs, schDataHubGet, schDataHubPost, regulatronDataHubGet] = initialValidations(rootFolder)
     publicLinks = jsondecode(fileread(fullfile(rootFolder, 'config', 'public-links.json')));
     fileURLs = {publicLinks.SCH.Dashboard_File1, publicLinks.SCH.Dashboard_File2};
 
     generalSettings = jsondecode(fileread(fullfile(rootFolder, 'config', 'general-settings.json')));
     schDataHubGet = generalSettings.fileFolder.dataHub.sch.get;
+    schDataHubPost = generalSettings.fileFolder.dataHub.sch.post;
     regulatronDataHubGet = generalSettings.fileFolder.dataHub.regulatron.get;
 
     if ~isfolder(schDataHubGet)
@@ -308,6 +309,7 @@ function updateAdsTable(schAggregatedTable, schDataHubGet, regulatronDataHubGet)
     adsTable = movevars(adsTable, '#', 'Before', 1);
 
     save(fullfile(schDataHubGet, 'Regulatron.mat'), 'adsTable', '-mat')
+    fprintf(sprintf('%s: Base de dados "Regulatron.mat" atualizada, sendo composta por %d linhas.\n\n', datestr(now), height(adsTable)))
 
     function tbl = keepLastOccurrence(tbl, keyColumn)
         [~, lastIdxs] = unique(tbl.(keyColumn), 'last');

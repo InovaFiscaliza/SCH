@@ -205,9 +205,17 @@ classdef winSCH_exported < matlab.apps.AppBase
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
+                            case 'getAuthenticatedUser'
+                                createEFiscalizaObject(app, event.HTMLEventData)
+
                             case {'onFetchIssueDetails', 'onReportGenerate', 'onUploadArtifacts'}
                                 eventName = event.HTMLEventData.uuid;
                                 context = event.HTMLEventData.context;
+                                
+                                if isfield(event.HTMLEventData, 'error')
+                                    ws.eFiscaliza.getCredentials('manual', app.executionMode, app.jsBackDoor, eventName, context);
+                                    return
+                                end
 
                                 varargin = {};
                                 if isfield(event.HTMLEventData, 'varargin')
@@ -241,7 +249,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                                 end
 
                                 requestKey = char(matlab.lang.internal.uuid());
-                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('RequestToRegulatron_%s_%s.json',  datestr(now, 'yyyymmdd'), requestKey));
+                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('regulatron_%s_%s.request',  datestr(now, 'yyyymmdd'), requestKey));
                                 jsonContent = jsonencode(struct( ...
                                     'requestKey', requestKey, ...
                                     'createdAt', datestr(now, 'yyyy-mm-ddTHH:MM:SS'), ...
@@ -797,6 +805,11 @@ classdef winSCH_exported < matlab.apps.AppBase
             
             if ~strcmp(app.executionMode, 'desktopStandaloneApp') && app.General.reportLib.indexedDBCache.status
                 appEngine.indexedDB.openDB(app.jsBackDoor, class.Constants.appName)
+            end
+
+            if strcmp(app.executionMode, 'webApp')
+                url = ws.eFiscaliza.CURRENT_USER_URL;
+                sendEventToHTMLSource(app.jsBackDoor, 'getAuthenticatedUser', struct('eventName', 'getAuthenticatedUser', 'context', app.Context, 'url', url));
             end
 
             readDataBaseExternalFiles(app)
@@ -1361,7 +1374,12 @@ classdef winSCH_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function createEFiscalizaObject(app, credentials)
             if ~isempty(credentials)
-                app.eFiscalizaObj = ws.eFiscaliza(credentials.login, credentials.password);
+                loginMode = 'mfa';
+                if ~isfield(credentials, 'mfaLogin')
+                    loginMode = 'manual';
+                end
+
+                app.eFiscalizaObj = ws.eFiscaliza(loginMode, credentials.login, credentials.password);
             end
         end
 
@@ -1692,6 +1710,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         app.releasedData, ...
                         app.cacheData, ...
                         app.annotationTable, ...
+                        app.eFiscalizaObj, ...
                         "popup" ...
                     );
                     ui.Dialog(app.UIFigure, 'info', appInfo);
@@ -2359,7 +2378,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
             % Create NavBar
             app.NavBar = uigridlayout(app.GridLayout);
-            app.NavBar.ColumnWidth = {101, '1x', 34, 34, 5, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
+            app.NavBar.ColumnWidth = {106, '1x', 34, 34, 5, 34, 5, 34, '1x', 20, 20, 1, 20, 20};
             app.NavBar.RowHeight = {5, 7, 20, 7, 5};
             app.NavBar.ColumnSpacing = 5;
             app.NavBar.RowSpacing = 0;
@@ -2377,7 +2396,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             app.AppName.Layout.Row = [1 5];
             app.AppName.Layout.Column = [1 2];
             app.AppName.Interpreter = 'html';
-            app.AppName.Text = {'SCH v. 1.10.0'; '<font style="font-size: 9px;">R2024a</font>'};
+            app.AppName.Text = {'SCH v. 1.30.0'; '<font style="font-size: 9px;">R2024a</font>'};
 
             % Create Tab1Button
             app.Tab1Button = uibutton(app.NavBar, 'state');

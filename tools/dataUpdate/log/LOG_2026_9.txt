@@ -3,4 +3,7 @@
 11-Sep-2026 12:00:18: Base de dados exportada como "SCHData_v3.xlsx".
 
 11-Sep-2026 13:04:30: Tentativa de atualização da base de dados "SCHData_v3.mat" iniciada.
-11-Sep-2026 13:04:49: Dados idênticos ao da última extração.
+11-Sep-2026 13:04:49: Dados idênticos ao da última extração.14-Sep-2026 00:33:10: Tentativa de atualização da base de dados "SCHData_v3.mat" iniciada.
+14-Sep-2026 00:41:12: Base de dados "SCHData_v3.mat" atualizada em 13/09/2026, sendo composta por 312883 linhas.
+14-Sep-2026 00:44:57: Base de dados exportada como "SCHData_v3.xlsx".
+

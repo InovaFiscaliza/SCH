@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration build-checksum="1508280670" file="C:\InovaFiscaliza\Miscellaneous\SCHDataUpdate\SCHDataUpdate.prj" location="C:\InovaFiscaliza\Miscellaneous\SCHDataUpdate" name="SCHDataUpdate" preferred-package-location="D:\InovaFiscaliza\SCHDataUpdate\SCHDataUpdate\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration build-checksum="1508280670" file="C:\InovaFiscaliza\SCH\tools\dataUpdate\SCHDataUpdate.prj" location="C:\InovaFiscaliza\SCH\tools\dataUpdate" name="SCHDataUpdate" preferred-package-location="D:\InovaFiscaliza\SCHDataUpdate\SCHDataUpdate\for_redistribution" preferred-package-type="package.type.exe" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>SCHDataUpdate</param.appname>
     <param.icon />
     <param.icons />
@@ -14,7 +14,7 @@
     <param.installpath.string>\ANATEL\SCHDataUpdate\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
-    <param.install.notes>Versão compilada em 12/01/2026</param.install.notes>
+    <param.install.notes />
     <param.target.install.notes />
     <param.intermediate>${PROJECT_ROOT}\SCHDataUpdate\for_testing</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\SCHDataUpdate\for_redistribution_files_only</param.files.only>
@@ -52,6 +52,7 @@
       <param.installpath.string />
       <param.installpath.combo />
       <param.logo />
+      <param.install.notes />
       <param.target.install.notes />
       <param.intermediate />
       <param.files.only />
@@ -86,9 +87,9 @@
     </fileset.package>
     <fileset.depfun />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="SCHDataUpdate.exe" optional="false">C:\InovaFiscaliza\Miscellaneous\SCHDataUpdate\SCHDataUpdate\for_testing\SCHDataUpdate.exe</file>
-      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="readme.txt" optional="true">C:\InovaFiscaliza\Miscellaneous\SCHDataUpdate\SCHDataUpdate\for_testing\readme.txt</file>
-      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="splash.png" optional="false">C:\InovaFiscaliza\Miscellaneous\SCHDataUpdate\SCHDataUpdate\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="SCHDataUpdate.exe" optional="false">C:\InovaFiscaliza\SCH\tools\dataUpdate\SCHDataUpdate\for_testing\SCHDataUpdate.exe</file>
+      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="splash.png" optional="false">C:\InovaFiscaliza\SCH\tools\dataUpdate\SCHDataUpdate\for_testing\splash.png</file>
+      <file location="${PROJECT_ROOT}\SCHDataUpdate\for_testing" name="readme.txt" optional="true">C:\InovaFiscaliza\SCH\tools\dataUpdate\SCHDataUpdate\for_testing\readme.txt</file>
     </build-deliverables>
     <workflow />
     <matlab>

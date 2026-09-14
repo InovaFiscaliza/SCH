@@ -314,9 +314,13 @@ classdef winProducts_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function reportDispatchOperation(app, eventName)
             if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
-                dialogBox    = struct('id', 'login',    'label', 'Usuário: ', 'type', 'text');
-                dialogBox(2) = struct('id', 'password', 'label', 'Senha: ',   'type', 'password');
-                sendEventToHTMLSource(app.jsBackDoor, 'customForm', struct('UUID', eventName, 'Fields', dialogBox, 'Context', app.Context))
+                eventData = ws.eFiscaliza.getCredentials('auto', app.mainApp.executionMode, app.jsBackDoor, eventName, app.Context);
+                if ~isempty(eventData)
+                    eventData.uuid = eventName;
+                    eventData.context = app.Context;
+
+                    ipcMainJSEventsHandler(app.mainApp, struct('HTMLEventName', 'customForm', 'HTMLEventData', eventData))
+                end
             else
                 ipcMainMatlabCallsHandler(app.mainApp, app, eventName, app.Context)
             end

@@ -13,12 +13,12 @@ function varargout = compile(compilationType, rootCompiledFolder, matlabRuntimeF
         rootCompiledFolder      char    = 'C:\InovaFiscaliza (AppsDeployVersions)'
         matlabRuntimeFolder     char    = 'E:\MATLAB Runtime\MATLAB Runtime (Custom)\R2024a'
         showConsoleInDesktopBuild  (1,1) logical = false % versão desktop apresenta console
-        createGitHubReleaseForDesktopBuild (1,1) logical = false
+        createGitHubReleaseForDesktopBuild (1,1) logical = true
         githubCLIFolder         char    = 'C:\Program Files\GitHub CLI'
         githubAccount           char    = 'EricMagalhaesDelgado'
     end
 
-    appName     = 'SCH';
+    appName = 'SCH';
 
     initFolder  = fileparts(mfilename('fullpath'));
     finalFolder = fullfile(rootCompiledFolder, appName);
