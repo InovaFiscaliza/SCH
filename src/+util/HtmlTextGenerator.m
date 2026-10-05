@@ -59,7 +59,7 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(end+1) = struct('group', [upper(appName) 'Data'], 'value', struct('releasedDate', releasedData, 'numberOfRows', height(schDataTable), 'numberOfUniqueHom', numel(unique(schDataTable.("Homologação"))), 'cacheColumns', cacheColumns));
             dataStruct(end+1) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
 
-            if ~isempty(eFiscalizaObj)
+            if ~isempty(eFiscalizaObj) && isvalid(eFiscalizaObj)
                 dataStruct(end+1) = struct('group', 'USUÁRIO AUTENTICADO', 'value', eFiscalizaObj.login);
             end
 
