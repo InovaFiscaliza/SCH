@@ -374,39 +374,6 @@ classdef winProducts_exported < matlab.apps.AppBase
 
         end
 
-        % Callback function
-        function onTableColumnWidthModeChanged(app, event)
-            
-            % app.ColumnWidthMode.Enable = "off";
-            % 
-            % previousSelectedRow = app.UITable.Selection;
-            % app.UITable.Selection = [];
-            % 
-            % switch app.UITable.UserData.columnWidth.mode
-            %     case 'initial'
-            %         app.UITable.UserData.columnWidth.mode = 'fix';
-            %         app.UITable.ColumnWidth = '1x';
-            %         app.ColumnWidthMode.Text = 'FIXO ↔';
-            %     case 'fix'
-            %         app.UITable.UserData.columnWidth.mode = 'auto';
-            %         app.UITable.ColumnWidth = 'auto';
-            %         app.ColumnWidthMode.Text = 'AUTO ↔';
-            %     otherwise % 'auto'
-            %         viewType = getViewType(app); % 'vendorView' | 'customsView'
-            % 
-            %         app.UITable.UserData.columnWidth.mode = 'initial';
-            %         app.UITable.ColumnWidth = app.UITable.UserData.columnWidth.value.(viewType);
-            %         app.ColumnWidthMode.Text = 'INICIAL ↔';
-            % end
-            % 
-            % pause(.150)
-            % app.UITable.Selection = previousSelectedRow;            
-            % 
-            % pause(1)
-            % app.ColumnWidthMode.Enable = "on";
-
-        end
-
         % Callback function: TableView
         function onTableViewChanged(app, event)
             

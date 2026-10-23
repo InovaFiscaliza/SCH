@@ -472,6 +472,7 @@ classdef dockSearchProductDetails_exported < matlab.apps.AppBase
                 app.UIFigure.Position = [100 100 1038 628];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
+                app.UIFigure.Resize = 'off';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
 
                 app.Container = app.UIFigure;
