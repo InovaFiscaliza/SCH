@@ -182,7 +182,7 @@ classdef desktop_exported < matlab.apps.AppBase
                         app.renderCount = app.renderCount+1;
     
                     case 'unload'
-                        closeFcn(app)
+                        closeFcn(app, event)
 
                     case 'closeFcnCallFromPopupApp'
                         context = event.HTMLEventData.context;
@@ -434,7 +434,7 @@ classdef desktop_exported < matlab.apps.AppBase
                         end
     
                     otherwise
-                        error('winSCH:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
+                        error('mainApp:desktop:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
                 end
                 drawnow
 
@@ -485,7 +485,7 @@ classdef desktop_exported < matlab.apps.AppBase
                                         app.progressDialog.Visible = 'hidden';
         
                                     otherwise
-                                        error('SCH:UnexpectedCall', 'Unexpected call "%s"', eventName)
+                                        error('mainApp:desktop:UnexpectedCall', 'Unexpected call "%s"', eventName)
                                 end
 
                             % DOCKS:OTHERS
@@ -569,11 +569,11 @@ classdef desktop_exported < matlab.apps.AppBase
                                         reportFetchIssueDetails(app, context, [])
         
                                     otherwise
-                                        error('SCH:UnexpectedCall', 'Unexpected call "%s"', eventName)
+                                        error('mainApp:desktop:UnexpectedCall', 'Unexpected call "%s"', eventName)
                                 end
         
                             otherwise
-                                error('SCH:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
+                                error('mainApp:desktop:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
                         end
                 end
 
@@ -719,7 +719,7 @@ classdef desktop_exported < matlab.apps.AppBase
                             struct('appName', appName, 'dataTag', app.AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos inspecionados')), ...
                             struct('appName', appName, 'dataTag', app.ProductDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre painel de atributos em tela inteira')), ...
                             struct('appName', appName, 'dataTag', app.PanelVisibility.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Alterna visibilidade do painel')), ...
-                            struct('appName', appName, 'dataTag', app.UITable.UserData.id, 'tableMultiline', struct('status', true, 'verticalCenter', true), 'tableSelectionStyle', struct('color', '#ffffff', 'backgroundColor', '#6B879D')), ...
+                            struct('appName', appName, 'dataTag', app.UITable.UserData.id, 'tableMultiline', struct('status', true, 'verticalCenter', true), 'tableSelectionStyle', struct('color', '#ffffff', 'backgroundColor', '#21333d')), ...
                             struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
                             struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
@@ -1567,14 +1567,14 @@ classdef desktop_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            if exist('event', 'var') && event.Source == app.UIFigure
+            if exist('event', 'var') && isfield(struct(event), 'Source') && event.Source == app.Container
                 if strcmp(app.progressDialog.Visible, 'visible')
                     app.progressDialog.Visible = 'hidden';
                     return
                 end
     
                 msgQuestion = '';
-                if checkIfUpdateNeeded(app.projectData, app.measData)
+                if checkIfUpdateNeeded(app.projectData)
                     msgQuestion = sprintf([ ...
                         'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
                         'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...

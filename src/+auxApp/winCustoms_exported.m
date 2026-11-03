@@ -87,17 +87,17 @@ classdef winCustoms_exported < matlab.apps.AppBase
         function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
             try
                 switch class(callingApp)
-                    case {'winSCH', 'winSCH_exported'}
+                    case 'mainApp.desktop_exported'
                         switch eventName
-                            % auxApp.dockCustomsAnalysisDetails >> winSCH >> auxApp.winCustoms
+                            % auxApp.dockCustomsAnalysisDetails >> mainApp.desktop >> auxApp.winCustoms
                             case 'onCustomsShipmentsTableChanged'
                                 loadSelectedFile(app)
 
-                            % audApp.dockCustomsFilter >> winSCH >> auxApp.winCustoms
+                            % audApp.dockCustomsFilter >> mainApp.desktop >> auxApp.winCustoms
                             case 'onCustomsColumnFilterChanged'
                                 loadSelectedFile(app)
 
-                            % audApp.dockCustomsManageFiles >> winSCH >> auxApp.winCustoms
+                            % audApp.dockCustomsManageFiles >> mainApp.desktop >> auxApp.winCustoms
                             case 'onCustomsShipmentsFileChangeRequest'
                                 app.customsShipmentsIndex = varargin{1};
                                 applyInitialLayout(app)
@@ -106,7 +106,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                                 app.customsShipmentsIndex = [];
                                 applyInitialLayout(app)
 
-                            % auxApp.dockReportLib >> winSCH >> auxApp.winCustoms
+                            % auxApp.dockReportLib >> mainApp.desktop >> auxApp.winCustoms
                             case {'onProjectLoad', 'onProjectRestart'}
                                 app.customsShipmentsIndex = [];
                                 applyInitialLayout(app)
@@ -1016,7 +1016,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.FilterSetup.Enable = 'off';
             app.FilterSetup.Layout.Row = [1 3];
             app.FilterSetup.Layout.Column = 1;
-            app.FilterSetup.ImageSource = 'settings.svg';
+            app.FilterSetup.ImageSource = 'settings-20px.svg';
 
             % Create AnalysisDetails
             app.AnalysisDetails = uiimage(app.Toolbar);
@@ -1137,7 +1137,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
             app.DockModule.Layout.Column = [4 7];
-            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
+            app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create dockModule_Undock
             app.dockModule_Undock = uiimage(app.DockModule);

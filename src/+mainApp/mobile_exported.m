@@ -116,7 +116,7 @@ classdef mobile_exported < matlab.apps.AppBase
                         app.renderCount = app.renderCount+1;
     
                     case 'unload'
-                        closeFcn(app)
+                        closeFcn(app, event)
 
                     case 'textHighlight'
                         uialert(app.UIFigure, jsonencode(event.HTMLEventData), '', 'Icon', 'success')
@@ -369,7 +369,7 @@ classdef mobile_exported < matlab.apps.AppBase
                         end
     
                     otherwise
-                        error('winSCH:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
+                        error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
                 end
                 drawnow
 
@@ -871,14 +871,14 @@ classdef mobile_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            if exist('event', 'var') && event.Source == app.UIFigure
+            if exist('event', 'var') && isfield(struct(event), 'Source') && event.Source == app.Container
                 if strcmp(app.progressDialog.Visible, 'visible')
                     app.progressDialog.Visible = 'hidden';
                     return
                 end
     
                 msgQuestion = '';
-                if checkIfUpdateNeeded(app.projectData, app.measData)
+                if checkIfUpdateNeeded(app.projectData)
                     msgQuestion = sprintf([ ...
                         'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
                         'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...

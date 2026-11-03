@@ -208,7 +208,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         function closeFcn(app, event)
  
             if ~isempty(app.mainApp) && isvalid(app.mainApp)
-                ipcMainJSEventsHandler(app.mainApp, struct('HTMLEventName', 'unload'))
+                ipcMainJSEventsHandler(app.mainApp, struct('Source', app.UIFigure, 'EventName', 'Close', 'HTMLEventName', 'unload'))
 
                 % Mantém a figura se o mainApp não foi encerrado (usuário cancelou).
                 if isvalid(app.mainApp)

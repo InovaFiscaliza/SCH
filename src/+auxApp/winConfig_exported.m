@@ -530,7 +530,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                 return
             
             else
-                app.mainApp.General.reportLib   = app.defaultValues.reportLib;
+                app.mainApp.General.reportLib   = app.defaultValues.REPORT;
                 app.mainApp.General_I.reportLib = app.mainApp.General.reportLib;
                 
                 updatePanel_Report(app)
@@ -1301,7 +1301,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 3];
             app.DockModule.Layout.Column = [3 5];
-            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
+            app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create dockModule_Undock
             app.dockModule_Undock = uiimage(app.DockModule);

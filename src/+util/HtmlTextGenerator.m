@@ -176,7 +176,7 @@ classdef (Abstract) HtmlTextGenerator
                     displayEntry(3) = struct('group', 'Modelo:',     'value', Modelo);
             end
 
-            freeInitialText = sprintf('<font style="color: white; background-color: #8caec9; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            freeInitialText = sprintf('<font style="color: white; background-color: #638094; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
             %freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
             htmlContent     = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, 'textview', 'normal+gray', 'margin-top: 7px; ');
             
@@ -262,7 +262,13 @@ classdef (Abstract) HtmlTextGenerator
         % AUXAPP.DOCKREPORTLIB
         %-----------------------------------------------------------------%
         function htmlContent = issueDetails(system, issue, details)
-            dataStruct      = struct('group', 'CADASTRO', 'value', details);
+            dataStruct = [ ...
+                struct('group', 'ATIVIDADE DE INSPEÇÃO',   'value', details.issueContext.atividade), ...
+                struct('group', 'AÇÃO DE INSPEÇÃO',        'value', details.issueContext.acao), ...
+                struct('group', 'SOLICITAÇÃO DE INSPEÇÃO', 'value', details.issueContext.solicitacao), ...
+                struct('group', 'USUÁRIO',                 'value', details.usuario) ...
+            ];
+
             freeInitialText = sprintf('<font style="font-size: 16px;"><b>Atividade de Inspeção #%d</b></font> %s<br><br>', issue, system);
             htmlContent     = textFormatGUI.struct2PrettyPrintList(dataStruct, 'print -1', freeInitialText, 'popup');
         end

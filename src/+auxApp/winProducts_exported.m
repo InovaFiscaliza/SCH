@@ -79,26 +79,26 @@ classdef winProducts_exported < matlab.apps.AppBase
         function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
             try
                 switch class(callingApp)
-                    case {'winSCH', 'winSCH_exported'}
+                    case 'mainApp.desktop_exported'
                         switch eventName                                
-                            % winSCH >> auxApp.winProducts
-                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
-                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts                            
+                            % mainApp.desktop >> auxApp.winProducts
+                            % auxApp.dockReportLib >> mainApp.desktop >> auxApp.winProducts
+                            % auxApp.dockProductInfo >> mainApp.desktop >> auxApp.winProducts                            
                             case {'updateInspectedProducts', ...
                                   'onProjectRestart',        ...
                                   'onProjectLoad',           ...
                                   'onTableCellEdited'}
                                 syncInspectedTableWithUI(app, 'dataToGuiSync')
 
-                            % auxApp.dockProductInfo >> winSCH >> auxApp.winProducts
+                            % auxApp.dockProductInfo >> mainApp.desktop >> auxApp.winProducts
                             case 'onTableSelectionChanged'
                                 selectedRow = varargin{1};
 
                                 app.UITable.Selection = selectedRow;
                                 onTableSelectionChanged(app)
 
-                            % winSCH >> auxApp.winProducts
-                            % auxApp.dockReportLib >> winSCH >> auxApp.winProducts
+                            % mainApp.desktop >> auxApp.winProducts
+                            % auxApp.dockReportLib >> mainApp.desktop >> auxApp.winProducts
                             case {'onReportGenerate', 'onFinalReportFileChanged'}
                                 updateToolbar(app)
 
@@ -116,11 +116,11 @@ classdef winProducts_exported < matlab.apps.AppBase
                                 ui.Dialog(app.UIFigure, 'info', msg);
 
                             otherwise
-                                error('UnexpectedCall')
+                                error('auxApp:winProducts:UnexpectedCall', 'Unexpected call "%s"', eventName)
                         end
     
                     otherwise
-                        error('UnexpectedCall')
+                        error('auxApp:winProducts:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
                 end
 
             catch ME
@@ -382,7 +382,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.TableView.Text = app.UITable.UserData.viewType.labels{newViewTypeIdx};
 
             syncInspectedTableWithUI(app, 'tableViewChanged')
-            focus(app.jsBackDoor)
+            focus(app.UITable)
             
         end
 
@@ -845,7 +845,7 @@ classdef winProducts_exported < matlab.apps.AppBase
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
             app.DockModule.Layout.Column = [4 7];
-            app.DockModule.BackgroundColor = [0.2 0.2 0.2];
+            app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create dockModule_Undock
             app.dockModule_Undock = uiimage(app.DockModule);
