@@ -57,6 +57,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
         launcherApp
         rootFolder
+        tabGroupController
         renderCount = 0
 
         executionMode
@@ -91,8 +92,6 @@ classdef mobile_exported < matlab.apps.AppBase
             'Ads',        struct('data', [], 'index', [], 'isRendered', false) ...
         )
         adLastUpdate = ''
-
-        sessionInfo = struct('startedAt', [], 'lastPing', [], 'pingTimer', [])
     end
 
 
@@ -501,8 +500,10 @@ classdef mobile_exported < matlab.apps.AppBase
 
             app.General = app.General_I;
             app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir);
-            sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
-
+            app.General.AppVersion.browser = app.launcherApp.navigatorBasicInformation;
+            if isempty(app.General.AppVersion.browser)
+                sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
+            end
 
             % Ideia é identificar URL de pasta estática servida pelo backend, de 
             % forma que possam ser inseridas imagens em uilabel (como ui.TextView).
@@ -533,7 +534,6 @@ classdef mobile_exported < matlab.apps.AppBase
             app.cacheData         = app.launcherApp.cacheData;
             app.cacheColumns      = app.launcherApp.cacheColumns;
             app.annotationTable   = app.launcherApp.annotationTable;
-            startPingTimer(app)
 
             app.Tab1Button.UserData.status = true;
             app.Tab2Button.UserData.status = false;
@@ -572,45 +572,6 @@ classdef mobile_exported < matlab.apps.AppBase
                     app.ReturnButton.Visible = 'on';
                     app.CloseButton.Visible = 'on';
             end
-        end
-
-        %-----------------------------------------------------------------%
-        function startPingTimer(app)
-            stopPingTimer(app)
-
-            app.sessionInfo.startedAt = datetime('now');
-            app.sessionInfo.lastPing  = app.sessionInfo.startedAt;
-            app.sessionInfo.pingTimer = timer( ...
-                'ExecutionMode', 'fixedSpacing', ...
-                'BusyMode', 'drop', ...
-                'StartDelay', 60, ...
-                'Period', 60, ...
-                'TimerFcn', @(~,~)onPingTimer(app) ...
-            );
-            start(app.sessionInfo.pingTimer)
-        end
-
-        %-----------------------------------------------------------------%
-        function stopPingTimer(app)
-            pingTimer = app.sessionInfo.pingTimer;
-            if ~isempty(pingTimer) && isvalid(pingTimer)
-                stop(pingTimer)
-                delete(pingTimer)
-            end
-            app.sessionInfo.pingTimer = [];
-        end
-
-        %-----------------------------------------------------------------%
-        function onPingTimer(app)
-            if ~isvalid(app)
-                return
-            end
-
-            if strcmp(app.progressDialog.Visible, 'visible')
-                return
-            end
-
-            app.sessionInfo.lastPing = datetime('now');
         end
 
         %-----------------------------------------------------------------%
@@ -809,8 +770,6 @@ classdef mobile_exported < matlab.apps.AppBase
 
             setComponentsState(app, 'rangeControlsVisible')
             renderSearchResults(app)
-
-            focus(app.jsBackDoor)
         end
 
         %-----------------------------------------------------------------%
@@ -912,9 +871,31 @@ classdef mobile_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
             
-            if strcmp(app.progressDialog.Visible, 'visible')
-                app.progressDialog.Visible = 'hidden';
-                return
+            if exist('event', 'var') && event.Source == app.UIFigure
+                if strcmp(app.progressDialog.Visible, 'visible')
+                    app.progressDialog.Visible = 'hidden';
+                    return
+                end
+    
+                msgQuestion = '';
+                if checkIfUpdateNeeded(app.projectData, app.measData)
+                    msgQuestion = sprintf([ ...
+                        'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
+                        'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...
+                        'agora, as alterações não serão registradas em arquivo.\n\n' ...
+                        'Deseja realmente fechar o aplicativo?' ...
+                    ], app.projectData.name);
+    
+                elseif ~strcmp(app.executionMode, 'webApp')
+                    msgQuestion = 'Deseja fechar o aplicativo?';
+                end
+    
+                if ~isempty(msgQuestion)                
+                    userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                    if userSelection == "Não"
+                        return
+                    end
+                end
             end
 
             IndexedDBCache(app.projectData)
@@ -924,31 +905,10 @@ classdef mobile_exported < matlab.apps.AppBase
             catch
             end
 
-            msgQuestion = '';
-            if checkIfUpdateNeeded(app.projectData)
-                msgQuestion = sprintf([ ...
-                    'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
-                    'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...
-                    'agora, as alterações não serão registradas em arquivo.\n\n' ...
-                    'Deseja realmente fechar o aplicativo?' ...
-                ], app.projectData.name);
-            
-            elseif ~strcmp(app.executionMode, 'webApp')
-                msgQuestion = 'Deseja fechar o aplicativo?';
-            end
-
-            if ~isempty(msgQuestion)                
-                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-                if userSelection == "Não"
-                    return
-                end
-            end
-
-            stopPingTimer(app)
-            delete(timerfindall)
-
-            if ~isempty(app.AppHandleNameInBase)
-                ui.Table.deleteAppHandleFromBaseWorkspace(app.AppHandleNameInBase)
+            try
+                appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
+            catch ME
+                appEngine.util.killingMATLABRuntime(app.executionMode)
             end
 
             delete(app)
@@ -1151,7 +1111,6 @@ classdef mobile_exported < matlab.apps.AppBase
                 app.Container = app.UIFigure;
 
             else
-                % O jsBackDoor pertence ao app que criou a figura (launcher) e não pode ser excluído.
                 children = Container.Children;
                 if isa(Container, 'matlab.ui.Figure') && isprop(Container, 'RunningAppInstance') && isprop(Container.RunningAppInstance, 'jsBackDoor')
                     children(children == Container.RunningAppInstance.jsBackDoor) = [];

@@ -750,8 +750,10 @@ classdef desktop_exported < matlab.apps.AppBase
 
             app.General = app.General_I;
             app.General.AppVersion = util.getAppVersion(app.rootFolder, MFilePath, tempDir);
-            sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
-
+            app.General.AppVersion.browser = app.launcherApp.navigatorBasicInformation;
+            if isempty(app.General.AppVersion.browser)
+                sendEventToHTMLSource(app.jsBackDoor, 'getNavigatorBasicInformation')
+            end
 
             % Ideia é identificar URL de pasta estática servida pelo backend, de 
             % forma que possam ser inseridas imagens em uilabel (como ui.TextView).
@@ -960,8 +962,6 @@ classdef desktop_exported < matlab.apps.AppBase
                 app.UITable.Selection = 1;
             end
             onTableSelectionChanged(app)
-
-            focus(app.jsBackDoor)
         end
 
         %-----------------------------------------------------------------%
@@ -1567,9 +1567,31 @@ classdef desktop_exported < matlab.apps.AppBase
         % Close request function: UIFigure
         function closeFcn(app, event)
 
-            if strcmp(app.progressDialog.Visible, 'visible')
-                app.progressDialog.Visible = 'hidden';
-                return
+            if exist('event', 'var') && event.Source == app.UIFigure
+                if strcmp(app.progressDialog.Visible, 'visible')
+                    app.progressDialog.Visible = 'hidden';
+                    return
+                end
+    
+                msgQuestion = '';
+                if checkIfUpdateNeeded(app.projectData, app.measData)
+                    msgQuestion = sprintf([ ...
+                        'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
+                        'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...
+                        'agora, as alterações não serão registradas em arquivo.\n\n' ...
+                        'Deseja realmente fechar o aplicativo?' ...
+                    ], app.projectData.name);
+    
+                elseif ~strcmp(app.executionMode, 'webApp')
+                    msgQuestion = 'Deseja fechar o aplicativo?';
+                end
+    
+                if ~isempty(msgQuestion)                
+                    userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
+                    if userSelection == "Não"
+                        return
+                    end
+                end
             end
 
             IndexedDBCache(app.projectData)
@@ -1579,28 +1601,12 @@ classdef desktop_exported < matlab.apps.AppBase
             catch
             end
 
-            msgQuestion = '';
-            if checkIfUpdateNeeded(app.projectData)
-                msgQuestion = sprintf([ ...
-                    'O projeto "%s" foi modificado (nome, arquivo de saída ou ' ...
-                    'lista de produtos inspecionados). Caso o aplicativo seja encerrado ' ...
-                    'agora, as alterações não serão registradas em arquivo.\n\n' ...
-                    'Deseja realmente fechar o aplicativo?' ...
-                ], app.projectData.name);
-            
-            elseif ~strcmp(app.executionMode, 'webApp')
-                msgQuestion = 'Deseja fechar o aplicativo?';
+            try
+                appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
+            catch ME
+                appEngine.util.killingMATLABRuntime(app.executionMode)
             end
 
-            if ~isempty(msgQuestion)                
-                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 1, 2);
-                if userSelection == "Não"
-                    return
-                end
-            end
-
-            % Aspectos gerais (comum em todos os apps):
-            appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
             delete(app)
 
         end
@@ -2015,7 +2021,6 @@ classdef desktop_exported < matlab.apps.AppBase
                 app.Container = app.UIFigure;
 
             else
-                % O jsBackDoor pertence ao app que criou a figura (launcher) e não pode ser excluído.
                 children = Container.Children;
                 if isa(Container, 'matlab.ui.Figure') && isprop(Container, 'RunningAppInstance') && isprop(Container.RunningAppInstance, 'jsBackDoor')
                     children(children == Container.RunningAppInstance.jsBackDoor) = [];

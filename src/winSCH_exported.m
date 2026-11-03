@@ -21,6 +21,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         rootFolder
         renderCount = 0
         
+        navigatorBasicInformation
         executionMode = ''
         isMobile = []
         
@@ -44,7 +45,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                     % MATLAB-JS BRIDGE (matlabJSBridge.js)
                     case 'renderer'
                         MFilePath   = fileparts(mfilename('fullpath'));
-                        parpoolFlag = false;
+                        parpoolFlag = true;
+
+                        updateLog(app, 'Iniciando sessão do SCH...')
+                        if parpoolFlag
+                            updateLog(app, 'Inicializando workers para execução de operações em paralelo...')
+                        end
 
                         if ~app.renderCount
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
@@ -53,9 +59,9 @@ classdef winSCH_exported < matlab.apps.AppBase
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         end
 
-                        updateLog(app, 'Criada nova sessão do SCH...')
+                        app.navigatorBasicInformation = event.HTMLEventData;
                         if isempty(app.isMobile)
-                            app.isMobile = event.HTMLEventData.mobile;
+                            app.isMobile = app.navigatorBasicInformation.mobile;
                         end
                         
                         app.renderCount = app.renderCount+1;
@@ -83,7 +89,7 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function loadConfigurationFile(app, MFilePath)
-            updateLog(app, 'Em andamento a leitura do arquivo de configuração "GeneralSettings.json"...')
+            updateLog(app, 'Lendo arquivo de configuração "GeneralSettings.json"...')
 
             % "GeneralSettings.json"
             [app.General_I, msgWarning] = appEngine.util.generalSettingsLoad(class.Constants.appName, app.rootFolder, {'Annotation.xlsx'});
@@ -135,7 +141,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                 generalSettings = app.General_I;
             end
 
-            updateLog(app, 'Em andamento a leitura dos arquivos externos com as bases de referência...')
+            updateLog(app, 'Lendo bases de dados de referência do SCH e Regulatron...')
 
             [app.schData, ...
              app.schDataCategories, ...

@@ -47,7 +47,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
     
     properties (Access = private)
         %-----------------------------------------------------------------%
-        Role = 'secondaryDockApp'
+        Role = 'secondaryAppMobile'
     end
 
 
@@ -503,7 +503,6 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
                 app.Container = app.UIFigure;
 
             else
-                % O jsBackDoor pertence ao app que criou a figura (launcher) e não pode ser excluído.
                 children = Container.Children;
                 if isa(Container, 'matlab.ui.Figure') && isprop(Container, 'RunningAppInstance') && isprop(Container.RunningAppInstance, 'jsBackDoor')
                     children(children == Container.RunningAppInstance.jsBackDoor) = [];
