@@ -47,7 +47,6 @@ classdef winCustoms_exported < matlab.apps.AppBase
         jsBackDoor
         progressDialog
         popupContainer
-        SubTabGroup = struct('Children', -1, 'UserData', [])
     end
 
 
@@ -141,54 +140,43 @@ classdef winCustoms_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function applyJSCustomizations(app, tabIndex)
-            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
-                return
-            end
-            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
-            
-            switch tabIndex
-                case 1
-                    appName = class(app);
-                    elToModify = {
-                        app.UITable;
-                        app.FilterIconStatus;
-                        app.FilterSetup;
-                        app.AnalysisDetails;
-                        app.OpenFile;
-                        app.ManageFiles;
-                        app.AnalysisSummary;
-                        app.AnalysisComparison;
-                        app.OpenPopupProject;
-                        app.GenerateReport;
-                        app.UploadFinalFile;
-                        app.ShowDataRules;
-                        app.dockModule_Undock;
-                        app.dockModule_Close
-                    };
-                    ui.CustomizationBase.getElementsDataTag(elToModify);
+        function applyJSCustomizations(app)
+            appName = class(app);
+            elToModify = {
+                app.UITable;
+                app.FilterIconStatus;
+                app.FilterSetup;
+                app.AnalysisDetails;
+                app.OpenFile;
+                app.ManageFiles;
+                app.AnalysisSummary;
+                app.AnalysisComparison;
+                app.OpenPopupProject;
+                app.GenerateReport;
+                app.UploadFinalFile;
+                app.ShowDataRules;
+                app.dockModule_Undock;
+                app.dockModule_Close
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
 
-                    try
-                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.FilterIconStatus.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', '')), ...
-                            struct('appName', appName, 'dataTag', app.FilterSetup.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Configura filtros')), ...
-                            struct('appName', appName, 'dataTag', app.AnalysisDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre formulário para edição em lote de registros')), ...
-                            struct('appName', appName, 'dataTag', app.OpenFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Seleciona arquivos')), ...
-                            struct('appName', appName, 'dataTag', app.ManageFiles.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gerencia arquivos')), ...
-                            struct('appName', appName, 'dataTag', app.AnalysisSummary.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Mostra sumário da análise')), ...
-                            struct('appName', appName, 'dataTag', app.AnalysisComparison.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Compara com resultado obtido em ferramenta externa')), ...
-                            struct('appName', appName, 'dataTag', app.OpenPopupProject.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
-                            struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
-                            struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
-                            struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
-                        });
-                    catch
-                    end
-
-                otherwise
-                    % ...
+            try
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.FilterIconStatus.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', '')), ...
+                    struct('appName', appName, 'dataTag', app.FilterSetup.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Configura filtros')), ...
+                    struct('appName', appName, 'dataTag', app.AnalysisDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre formulário para edição em lote de registros')), ...
+                    struct('appName', appName, 'dataTag', app.OpenFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Seleciona arquivos')), ...
+                    struct('appName', appName, 'dataTag', app.ManageFiles.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gerencia arquivos')), ...
+                    struct('appName', appName, 'dataTag', app.AnalysisSummary.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Mostra sumário da análise')), ...
+                    struct('appName', appName, 'dataTag', app.AnalysisComparison.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Compara com resultado obtido em ferramenta externa')), ...
+                    struct('appName', appName, 'dataTag', app.OpenPopupProject.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
+                    struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
+                    struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
+                    struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
+                    struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                    struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                });
+            catch
             end
         end
 

@@ -2,52 +2,49 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                 matlab.ui.Figure
-        GridLayout               matlab.ui.container.GridLayout
-        SaveButton               matlab.ui.control.Button
-        RefreshButton            matlab.ui.control.Button
-        ColumnFilterPanel        matlab.ui.container.Panel
-        ColumnFilterGrid         matlab.ui.container.GridLayout
-        ColumnFilterList         matlab.ui.container.CheckBoxTree
-        ColumnFilterAdd          matlab.ui.control.Image
-        Value2_TextFree          matlab.ui.control.EditField
-        Value2_TextList          matlab.ui.control.DropDown
-        Value2_Numeric           matlab.ui.control.NumericEditField
-        Value2_Date              matlab.ui.control.DatePicker
-        Operation2_List          matlab.ui.control.DropDown
-        Operation2_LogicalGrid   matlab.ui.container.ButtonGroup
-        Operation2_LogicalOr     matlab.ui.control.RadioButton
-        Operation2_LogicalAnd    matlab.ui.control.RadioButton
-        Value1_TextFree          matlab.ui.control.EditField
-        Value1_TextList          matlab.ui.control.DropDown
-        Value1_Numeric           matlab.ui.control.NumericEditField
-        Value1_Date              matlab.ui.control.DatePicker
-        Operation1_List          matlab.ui.control.DropDown
-        SymbolicNameList         matlab.ui.control.DropDown
-        ColumnFilterLabel        matlab.ui.control.Label
-        FreeTextRadioGroup       matlab.ui.container.ButtonGroup
-        FreeTextByMatch          matlab.ui.control.RadioButton
-        FreeTextBySimilatiry     matlab.ui.control.RadioButton
-        FreeTextLabel            matlab.ui.control.Label
-        FilterStrategy           matlab.ui.control.DropDown
-        FilterStrategyLabel      matlab.ui.control.Label
-        CurrentFilterPanel       matlab.ui.container.Panel
-        CurrentFilterGrid        matlab.ui.container.GridLayout
-        CurrentFilterColumn      matlab.ui.control.Label
-        CurrentFilterSeparator2  matlab.ui.control.Image
-        CurrentFilterText        matlab.ui.control.Label
-        CurrentFilterSeparator1  matlab.ui.control.Image
-        CurrentFilterStrategy    matlab.ui.control.Label
-        CurrentFilterLabel       matlab.ui.control.Label
-        CurrentFilterIcon        matlab.ui.control.Image
-        ContextMenu              matlab.ui.container.ContextMenu
-        ColumnFilterDel          matlab.ui.container.Menu
+        UIFigure                matlab.ui.Figure
+        GridLayout              matlab.ui.container.GridLayout
+        CurrentFilterPanel      matlab.ui.container.Panel
+        CurrentFilterGrid       matlab.ui.container.GridLayout
+        CurrentFilterColumn     matlab.ui.control.Label
+        CurrentFilterText       matlab.ui.control.Label
+        CurrentFilterStrategy   matlab.ui.control.Label
+        CurrentFilterLabel      matlab.ui.control.Label
+        CurrentFilterIcon       matlab.ui.control.Image
+        SaveButton              matlab.ui.control.Button
+        RefreshButton           matlab.ui.control.Button
+        ColumnFilterPanel       matlab.ui.container.Panel
+        ColumnFilterGrid        matlab.ui.container.GridLayout
+        ColumnFilterList        matlab.ui.container.CheckBoxTree
+        ColumnFilterDel         matlab.ui.control.Image
+        ColumnFilterAdd         matlab.ui.control.Image
+        Value2_TextFree         matlab.ui.control.EditField
+        Value2_TextList         matlab.ui.control.DropDown
+        Value2_Numeric          matlab.ui.control.NumericEditField
+        Value2_Date             matlab.ui.control.DatePicker
+        Operation2_List         matlab.ui.control.DropDown
+        Operation2_LogicalGrid  matlab.ui.container.ButtonGroup
+        Operation2_LogicalOr    matlab.ui.control.RadioButton
+        Operation2_LogicalAnd   matlab.ui.control.RadioButton
+        Value1_TextFree         matlab.ui.control.EditField
+        Value1_TextList         matlab.ui.control.DropDown
+        Value1_Numeric          matlab.ui.control.NumericEditField
+        Value1_Date             matlab.ui.control.DatePicker
+        Operation1_List         matlab.ui.control.DropDown
+        SymbolicNameList        matlab.ui.control.DropDown
+        ColumnFilterLabel       matlab.ui.control.Label
+        FreeTextRadioGroup      matlab.ui.container.ButtonGroup
+        FreeTextByMatch         matlab.ui.control.RadioButton
+        FreeTextBySimilatiry    matlab.ui.control.RadioButton
+        FreeTextLabel           matlab.ui.control.Label
+        FilterStrategy          matlab.ui.control.DropDown
+        FilterStrategyLabel     matlab.ui.control.Label
     end
 
     
     properties (Access = private)
         %-----------------------------------------------------------------%
-        Role = 'secondaryAppMobile'
+        Role = 'secondaryDockAppMobile'
     end
 
 
@@ -66,14 +63,84 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
         draftSearch
         draftFilteringObj
     end
+
+
+    methods
+        %-----------------------------------------------------------------%
+        function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
+            try
+                switch class(callingApp)
+                    case {'mainApp.mobile', 'mainApp.mobile_exported'}
+                        switch eventName
+                            case 'updateForm'
+                                % ...
+
+                            otherwise
+                                error('auxApp:mobileSearchFilter:UnexpectedCall', 'Unexpected call "%s"', eventName)
+                        end
+    
+                    otherwise
+                        error('auxApp:mobileSearchFilter:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.message);
+            end
+        end
+    end
     
     
     methods (Access = private)
         %-----------------------------------------------------------------%
+        function applyJSCustomizations(app)
+            appName = class(app);
+            elToModify = {
+                app.CurrentFilterPanel;
+                app.FilterStrategy;
+                app.FreeTextRadioGroup;
+                app.ColumnFilterPanel;
+                app.SymbolicNameList;
+                app.Operation1_List;
+                app.Value1_Date;
+                app.Value1_Numeric;
+                app.Value1_TextList;
+                app.Value1_TextFree;
+                app.Operation2_List;
+                app.Value2_Date;
+                app.Value2_Numeric;
+                app.Value2_TextList;
+                app.Value2_TextFree;
+                app.ColumnFilterList
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
+    
+            try
+                sendEventToHTMLSource(app.mainApp.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.CurrentFilterPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.FilterStrategy.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.FreeTextRadioGroup.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.ColumnFilterPanel.UserData.id,  'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.SymbolicNameList.UserData.id,   'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Operation1_List.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value1_Date.UserData.id,        'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'backgroundColor', '#FFFFFF')), ...
+                    struct('appName', appName, 'dataTag', app.Value1_Numeric.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value1_TextList.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value1_TextFree.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Operation2_List.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value2_Date.UserData.id,        'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'backgroundColor', '#FFFFFF')), ...
+                    struct('appName', appName, 'dataTag', app.Value2_Numeric.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value2_TextList.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.Value2_TextFree.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.ColumnFilterList.UserData.id,   'generation', 1, 'style', struct('borderColor', '#AEBBC2')) ...
+                });
+            catch
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function initialLayout(app)
-            app.CurrentFilterPanel.BorderColor = [0.8275 0.8275 0.8275];
-            app.FreeTextRadioGroup.BorderColor = [0.8275 0.8275 0.8275];
-            app.ColumnFilterPanel.BorderColor = [0.8275 0.8275 0.8275];
+            app.CurrentFilterPanel.BorderColor = '#c9d9ec';
+            set([app.FreeTextRadioGroup, app.ColumnFilterPanel], 'BorderColor', '#D5DDE1')
             addStyle(app.ColumnFilterList, uistyle('Interpreter', 'html'))
 
             % DROPDOWN "COLUNAS"
@@ -119,42 +186,65 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.draftFilteringObj = tableFiltering;
             app.draftFilteringObj.filterRules = app.mainApp.filteringObj.filterRules;
 
-            updateCurrentFilterPanel(app)
+            updateSearchContext(app)
             updateForm(app)
             updateButtonsState(app)
         end
 
         %-----------------------------------------------------------------%
-        function updateCurrentFilterPanel(app)
+        function updateSearchContext(app)
             searchType = app.mainApp.General.context.SEARCH.type;
             searchMode = app.mainApp.General.context.SEARCH.mode;
 
-            strategyTypes = {'FreeText', 'ColumnFilter', 'FreeText+ColumnFilter'};
-            strategyText  = app.FilterStrategy.Items{strcmp(strategyTypes, searchType)};
+            switch searchType
+                case 'FreeText'
+                    searchStrategy = 'Texto livre';
+                    app.CurrentFilterText.Visible = 'on';
+                    app.CurrentFilterColumn.Visible = 'off';
+                    app.CurrentFilterText.Layout.Column = [3 6];
 
-            if ~contains(searchType, 'FreeText')
-                textModeText = 'Não utilizada';
-            elseif strcmp(searchMode, 'tokens')
-                textModeText = 'Similaridade';
+                case 'ColumnFilter'
+                    searchStrategy = 'Filtro por coluna';
+                    app.CurrentFilterText.Visible = 'off';
+                    app.CurrentFilterColumn.Visible = 'on';
+                    app.CurrentFilterColumn.Layout.Column = [3 6];
+
+                case 'FreeText+ColumnFilter'
+                    searchStrategy = 'Texto livre +<br>Filtro por coluna';
+                    set([app.CurrentFilterText, app.CurrentFilterColumn], 'Visible', 'on')
+                    app.CurrentFilterText.Layout.Column = [3 4];
+                    app.CurrentFilterColumn.Layout.Column = [5 6];
+            end
+            app.CurrentFilterStrategy.Text = sprintf('Estratégia:<br><font style="font-size:11px; color: #00213d;">%s</font>', searchStrategy);
+
+            if contains(searchType, 'FreeText')
+                switch searchMode
+                    case 'tokens'
+                        searchTextMode  = 'Similaridade';
+
+                    otherwise % 'words'
+                        searchTextMode  = 'Exata';
+                end
+                app.CurrentFilterText.Text = sprintf('Pesquisa textual:<br><font style="font-size:11px; color: #00213d;">%s</font>', searchTextMode);
+
             else
-                textModeText = 'Texto exato';
+                app.CurrentFilterText.Text = '';
             end
 
-            nActiveFilters = numel(getFilterList(app.mainApp.filteringObj, 'SCH', 'on'));
-            if ~contains(searchType, 'ColumnFilter')
-                columnText = 'Não utilizados';
-            elseif nActiveFilters == 0
-                columnText = 'Nenhum aplicado';
-            elseif nActiveFilters == 1
-                columnText = '1 aplicado';
-            else
-                columnText = sprintf('%d aplicados', nActiveFilters);
-            end
+            if contains(searchType, 'ColumnFilter')
+                filterList = getFilterList(app.mainApp.filteringObj, 'SCH', 'on');
+                
+                if isempty(filterList)
+                    app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Nenhum aplicado</font>';
+                elseif isscalar(filterList)
+                    app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Um aplicado</font>';
+                else
+                    app.CurrentFilterColumn.Text = sprintf('Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">%d aplicados</font>', numel(filterList));
+                end
 
-            htmlTemplate = '%s<br><font style="font-size:11px; color: #00213d;">%s</font>';
-            app.CurrentFilterStrategy.Text = sprintf(htmlTemplate, 'Estratégia:',         strategyText);
-            app.CurrentFilterText.Text     = sprintf(htmlTemplate, 'Pesquisa textual:',    textModeText);
-            app.CurrentFilterColumn.Text   = sprintf(htmlTemplate, 'Filtros por coluna:',  columnText);
+            else
+                app.CurrentFilterColumn.Text = '';
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -199,6 +289,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
         function updateTree(app)
             if ~isempty(app.ColumnFilterList.Children)
                 delete(app.ColumnFilterList.Children)
+                app.ColumnFilterDel.Visible = 'off';
             end
 
             filterList = getFilterList(app.draftFilteringObj, 'SCH');
@@ -207,7 +298,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
     
                 for ii = 1:numel(filterList)
                     childNodeText = replace(filterList{ii}, {' && ', ' || '}, {' && ...<br>', ' || ...<br>'});
-                    childNode = uitreenode(app.ColumnFilterList, 'Text', childNodeText, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
+                    childNode = uitreenode(app.ColumnFilterList, 'Text', childNodeText, 'NodeData', ii);
     
                     if app.draftFilteringObj.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];
@@ -254,6 +345,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
                 appEngine.boot(app, app.Role, mainApp, callingApp)
                 
                 app.inputArgs = struct('context', context);
+                applyJSCustomizations(app)
                 initialLayout(app)
                 refreshModule(app)
                 
@@ -408,8 +500,8 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: ColumnFilterDel
-        function onFilterDelImageClicked(app, event)
+        % Image clicked function: ColumnFilterDel
+        function onFilterDelColumnFilterDelClicked(app, event)
             
             selectedNodes = app.ColumnFilterList.SelectedNodes;
 
@@ -472,6 +564,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             end
 
             app.mainApp.filteringObj.filterRules = app.draftFilteringObj.filterRules;
+            refreshModule(app)
 
             if modeChanged
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onSearchModeChanged')
@@ -479,6 +572,13 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onColumnFilterChanged')
             end
 
+        end
+
+        % Selection changed function: ColumnFilterList
+        function ColumnFilterListSelectionChanged(app, event)
+            
+            app.ColumnFilterDel.Visible = ~isempty(app.ColumnFilterList.SelectedNodes);
+            
         end
     end
 
@@ -521,98 +621,20 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {28, '1x', '1x', 28};
-            app.GridLayout.RowHeight = {102, 22, 38, 22, 94, 22, '1x', 1, 38};
+            app.GridLayout.RowHeight = {92, 22, 38, 22, 94, 22, '1x', 1, 38};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
-            app.GridLayout.BackgroundColor = [0.9608 0.9686 0.9686];
-
-            % Create CurrentFilterPanel
-            app.CurrentFilterPanel = uipanel(app.GridLayout);
-            app.CurrentFilterPanel.Layout.Row = 1;
-            app.CurrentFilterPanel.Layout.Column = [1 4];
-
-            % Create CurrentFilterGrid
-            app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
-            app.CurrentFilterGrid.ColumnWidth = {18, '1x', 1, 18, '1x', 1, 18, '1x'};
-            app.CurrentFilterGrid.RowHeight = {22, '1x'};
-            app.CurrentFilterGrid.ColumnSpacing = 5;
-            app.CurrentFilterGrid.RowSpacing = 5;
-            app.CurrentFilterGrid.BackgroundColor = [0.9608 0.9686 0.9686];
-
-            % Create CurrentFilterIcon
-            app.CurrentFilterIcon = uiimage(app.CurrentFilterGrid);
-            app.CurrentFilterIcon.ScaleMethod = 'none';
-            app.CurrentFilterIcon.Layout.Row = 1;
-            app.CurrentFilterIcon.Layout.Column = 1;
-            app.CurrentFilterIcon.ImageSource = 'filter-filled.svg';
-
-            % Create CurrentFilterLabel
-            app.CurrentFilterLabel = uilabel(app.CurrentFilterGrid);
-            app.CurrentFilterLabel.FontSize = 14;
-            app.CurrentFilterLabel.FontWeight = 'bold';
-            app.CurrentFilterLabel.FontColor = [0 0.1294 0.2392];
-            app.CurrentFilterLabel.Layout.Row = 1;
-            app.CurrentFilterLabel.Layout.Column = 2;
-            app.CurrentFilterLabel.Text = 'Filtro atual';
-
-            % Create CurrentFilterStrategy
-            app.CurrentFilterStrategy = uilabel(app.CurrentFilterGrid);
-            app.CurrentFilterStrategy.VerticalAlignment = 'top';
-            app.CurrentFilterStrategy.WordWrap = 'on';
-            app.CurrentFilterStrategy.FontSize = 10;
-            app.CurrentFilterStrategy.FontColor = [0.4588 0.5294 0.6];
-            app.CurrentFilterStrategy.Layout.Row = 2;
-            app.CurrentFilterStrategy.Layout.Column = [1 2];
-            app.CurrentFilterStrategy.Interpreter = 'html';
-            app.CurrentFilterStrategy.Text = 'Estratégia:<br><font style="font-size:11px; color: #00213d;">Texto livre + Filtro por coluna</font>';
-
-            % Create CurrentFilterSeparator1
-            app.CurrentFilterSeparator1 = uiimage(app.CurrentFilterGrid);
-            app.CurrentFilterSeparator1.ScaleMethod = 'fill';
-            app.CurrentFilterSeparator1.Enable = 'off';
-            app.CurrentFilterSeparator1.Layout.Row = 2;
-            app.CurrentFilterSeparator1.Layout.Column = 3;
-            app.CurrentFilterSeparator1.ImageSource = 'LineV.svg';
-
-            % Create CurrentFilterText
-            app.CurrentFilterText = uilabel(app.CurrentFilterGrid);
-            app.CurrentFilterText.VerticalAlignment = 'top';
-            app.CurrentFilterText.WordWrap = 'on';
-            app.CurrentFilterText.FontSize = 10;
-            app.CurrentFilterText.FontColor = [0.4588 0.5294 0.6];
-            app.CurrentFilterText.Layout.Row = 2;
-            app.CurrentFilterText.Layout.Column = [4 5];
-            app.CurrentFilterText.Interpreter = 'html';
-            app.CurrentFilterText.Text = 'Pesquisa textual:<br><font style="font-size:11px; color: #00213d;">Similaridade</font>';
-
-            % Create CurrentFilterSeparator2
-            app.CurrentFilterSeparator2 = uiimage(app.CurrentFilterGrid);
-            app.CurrentFilterSeparator2.ScaleMethod = 'fill';
-            app.CurrentFilterSeparator2.Enable = 'off';
-            app.CurrentFilterSeparator2.Layout.Row = 2;
-            app.CurrentFilterSeparator2.Layout.Column = 6;
-            app.CurrentFilterSeparator2.ImageSource = 'LineV.svg';
-
-            % Create CurrentFilterColumn
-            app.CurrentFilterColumn = uilabel(app.CurrentFilterGrid);
-            app.CurrentFilterColumn.VerticalAlignment = 'top';
-            app.CurrentFilterColumn.WordWrap = 'on';
-            app.CurrentFilterColumn.FontSize = 10;
-            app.CurrentFilterColumn.FontColor = [0.4588 0.5294 0.6];
-            app.CurrentFilterColumn.Layout.Row = 2;
-            app.CurrentFilterColumn.Layout.Column = [7 8];
-            app.CurrentFilterColumn.Interpreter = 'html';
-            app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Nenhum aplicado</font>';
+            app.GridLayout.Padding = [10 10 10 12];
+            app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create FilterStrategyLabel
             app.FilterStrategyLabel = uilabel(app.GridLayout);
             app.FilterStrategyLabel.VerticalAlignment = 'bottom';
-            app.FilterStrategyLabel.FontSize = 11;
             app.FilterStrategyLabel.FontWeight = 'bold';
-            app.FilterStrategyLabel.FontColor = [0.0314 0.4902 0.7294];
+            app.FilterStrategyLabel.FontColor = [0 0.1294 0.2392];
             app.FilterStrategyLabel.Layout.Row = 2;
             app.FilterStrategyLabel.Layout.Column = [1 2];
-            app.FilterStrategyLabel.Text = 'Estratégia de filtragem';
+            app.FilterStrategyLabel.Text = 'Estratégia:';
 
             % Create FilterStrategy
             app.FilterStrategy = uidropdown(app.GridLayout);
@@ -627,18 +649,17 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             % Create FreeTextLabel
             app.FreeTextLabel = uilabel(app.GridLayout);
             app.FreeTextLabel.VerticalAlignment = 'bottom';
-            app.FreeTextLabel.FontSize = 11;
             app.FreeTextLabel.FontWeight = 'bold';
-            app.FreeTextLabel.FontColor = [0.0314 0.4902 0.7294];
+            app.FreeTextLabel.FontColor = [0 0.1294 0.2392];
             app.FreeTextLabel.Layout.Row = 4;
             app.FreeTextLabel.Layout.Column = [1 2];
-            app.FreeTextLabel.Text = 'Pesquisa textual';
+            app.FreeTextLabel.Text = 'Pesquisa textual:';
 
             % Create FreeTextRadioGroup
             app.FreeTextRadioGroup = uibuttongroup(app.GridLayout);
             app.FreeTextRadioGroup.AutoResizeChildren = 'off';
             app.FreeTextRadioGroup.SelectionChangedFcn = createCallbackFcn(app, @onSearchModeChanged, true);
-            app.FreeTextRadioGroup.BackgroundColor = [1 1 1];
+            app.FreeTextRadioGroup.BackgroundColor = [0.9686 0.9765 0.9804];
             app.FreeTextRadioGroup.Layout.Row = 5;
             app.FreeTextRadioGroup.Layout.Column = [1 4];
 
@@ -647,7 +668,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextBySimilatiry.Text = {'Similaridade'; '<font style="color: gray; font-size:11px">Apresenta sugestões conforme o texto é digitado</font>'};
             app.FreeTextBySimilatiry.FontColor = [0 0.1294 0.2392];
             app.FreeTextBySimilatiry.Interpreter = 'html';
-            app.FreeTextBySimilatiry.Position = [11 53 352 32];
+            app.FreeTextBySimilatiry.Position = [11 52 352 32];
             app.FreeTextBySimilatiry.Value = true;
 
             % Create FreeTextByMatch
@@ -656,17 +677,16 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextByMatch.WordWrap = 'on';
             app.FreeTextByMatch.FontColor = [0 0.1294 0.2392];
             app.FreeTextByMatch.Interpreter = 'html';
-            app.FreeTextByMatch.Position = [12 12 352 32];
+            app.FreeTextByMatch.Position = [12 10 352 32];
 
             % Create ColumnFilterLabel
             app.ColumnFilterLabel = uilabel(app.GridLayout);
             app.ColumnFilterLabel.VerticalAlignment = 'bottom';
-            app.ColumnFilterLabel.FontSize = 11;
             app.ColumnFilterLabel.FontWeight = 'bold';
-            app.ColumnFilterLabel.FontColor = [0.0314 0.4902 0.7294];
+            app.ColumnFilterLabel.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterLabel.Layout.Row = 6;
             app.ColumnFilterLabel.Layout.Column = [1 2];
-            app.ColumnFilterLabel.Text = 'Filtro por coluna';
+            app.ColumnFilterLabel.Text = 'Filtro por coluna:';
 
             % Create ColumnFilterPanel
             app.ColumnFilterPanel = uipanel(app.GridLayout);
@@ -676,11 +696,12 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
 
             % Create ColumnFilterGrid
             app.ColumnFilterGrid = uigridlayout(app.ColumnFilterPanel);
-            app.ColumnFilterGrid.ColumnWidth = {130, '1x', 22};
+            app.ColumnFilterGrid.ColumnWidth = {22, 110, '1x', 22};
             app.ColumnFilterGrid.RowHeight = {38, 38, 22, 38, 22, '1x'};
             app.ColumnFilterGrid.ColumnSpacing = 5;
             app.ColumnFilterGrid.RowSpacing = 5;
-            app.ColumnFilterGrid.BackgroundColor = [1 1 1];
+            app.ColumnFilterGrid.Padding = [10 10 10 11];
+            app.ColumnFilterGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
             % Create SymbolicNameList
             app.SymbolicNameList = uidropdown(app.ColumnFilterGrid);
@@ -690,7 +711,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.SymbolicNameList.BackgroundColor = [1 1 1];
             app.SymbolicNameList.Placeholder = 'Selecione uma coluna';
             app.SymbolicNameList.Layout.Row = 1;
-            app.SymbolicNameList.Layout.Column = [1 3];
+            app.SymbolicNameList.Layout.Column = [1 4];
             app.SymbolicNameList.Value = {};
 
             % Create Operation1_List
@@ -701,7 +722,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Operation1_List.BackgroundColor = [1 1 1];
             app.Operation1_List.Placeholder = 'Selecione';
             app.Operation1_List.Layout.Row = 2;
-            app.Operation1_List.Layout.Column = 1;
+            app.Operation1_List.Layout.Column = [1 2];
             app.Operation1_List.Value = {};
 
             % Create Value1_Date
@@ -709,11 +730,10 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value1_Date.Editable = 'off';
             app.Value1_Date.Tag = 'datePicker';
             app.Value1_Date.FontColor = [0 0.1294 0.2392];
-            app.Value1_Date.BackgroundColor = [0.96 0.96 0.96];
             app.Value1_Date.Visible = 'off';
             app.Value1_Date.Placeholder = 'Informe a data';
             app.Value1_Date.Layout.Row = 2;
-            app.Value1_Date.Layout.Column = [2 3];
+            app.Value1_Date.Layout.Column = [3 4];
 
             % Create Value1_Numeric
             app.Value1_Numeric = uieditfield(app.ColumnFilterGrid, 'numeric');
@@ -722,7 +742,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value1_Numeric.Visible = 'off';
             app.Value1_Numeric.Placeholder = 'Informe o valor';
             app.Value1_Numeric.Layout.Row = 2;
-            app.Value1_Numeric.Layout.Column = [2 3];
+            app.Value1_Numeric.Layout.Column = [3 4];
             app.Value1_Numeric.Value = 1;
 
             % Create Value1_TextList
@@ -735,7 +755,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value1_TextList.BackgroundColor = [1 1 1];
             app.Value1_TextList.Placeholder = 'Informe o valor';
             app.Value1_TextList.Layout.Row = 2;
-            app.Value1_TextList.Layout.Column = [2 3];
+            app.Value1_TextList.Layout.Column = [3 4];
             app.Value1_TextList.Value = '';
 
             % Create Value1_TextFree
@@ -744,15 +764,15 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value1_TextFree.FontColor = [0 0.1294 0.2392];
             app.Value1_TextFree.Placeholder = 'Informe o valor';
             app.Value1_TextFree.Layout.Row = 2;
-            app.Value1_TextFree.Layout.Column = [2 3];
+            app.Value1_TextFree.Layout.Column = [3 4];
 
             % Create Operation2_LogicalGrid
             app.Operation2_LogicalGrid = uibuttongroup(app.ColumnFilterGrid);
             app.Operation2_LogicalGrid.AutoResizeChildren = 'off';
             app.Operation2_LogicalGrid.BorderType = 'none';
-            app.Operation2_LogicalGrid.BackgroundColor = [1 1 1];
+            app.Operation2_LogicalGrid.BackgroundColor = [0.9686 0.9765 0.9804];
             app.Operation2_LogicalGrid.Layout.Row = 3;
-            app.Operation2_LogicalGrid.Layout.Column = 1;
+            app.Operation2_LogicalGrid.Layout.Column = [1 2];
 
             % Create Operation2_LogicalAnd
             app.Operation2_LogicalAnd = uiradiobutton(app.Operation2_LogicalGrid);
@@ -774,7 +794,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Operation2_List.FontColor = [0 0.1294 0.2392];
             app.Operation2_List.BackgroundColor = [1 1 1];
             app.Operation2_List.Layout.Row = 4;
-            app.Operation2_List.Layout.Column = 1;
+            app.Operation2_List.Layout.Column = [1 2];
             app.Operation2_List.Value = {};
 
             % Create Value2_Date
@@ -782,10 +802,9 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value2_Date.Editable = 'off';
             app.Value2_Date.Tag = 'datePicker';
             app.Value2_Date.FontColor = [0 0.1294 0.2392];
-            app.Value2_Date.BackgroundColor = [0.96 0.96 0.96];
             app.Value2_Date.Visible = 'off';
             app.Value2_Date.Layout.Row = 4;
-            app.Value2_Date.Layout.Column = [2 3];
+            app.Value2_Date.Layout.Column = [3 4];
 
             % Create Value2_Numeric
             app.Value2_Numeric = uieditfield(app.ColumnFilterGrid, 'numeric');
@@ -793,7 +812,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value2_Numeric.FontColor = [0 0.1294 0.2392];
             app.Value2_Numeric.Visible = 'off';
             app.Value2_Numeric.Layout.Row = 4;
-            app.Value2_Numeric.Layout.Column = [2 3];
+            app.Value2_Numeric.Layout.Column = [3 4];
             app.Value2_Numeric.Value = 1;
 
             % Create Value2_TextList
@@ -805,7 +824,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value2_TextList.FontColor = [0 0.1294 0.2392];
             app.Value2_TextList.BackgroundColor = [1 1 1];
             app.Value2_TextList.Layout.Row = 4;
-            app.Value2_TextList.Layout.Column = [2 3];
+            app.Value2_TextList.Layout.Column = [3 4];
             app.Value2_TextList.Value = '';
 
             % Create Value2_TextFree
@@ -813,7 +832,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.Value2_TextFree.Tag = 'textFree';
             app.Value2_TextFree.FontColor = [0 0.1294 0.2392];
             app.Value2_TextFree.Layout.Row = 4;
-            app.Value2_TextFree.Layout.Column = [2 3];
+            app.Value2_TextFree.Layout.Column = [3 4];
 
             % Create ColumnFilterAdd
             app.ColumnFilterAdd = uiimage(app.ColumnFilterGrid);
@@ -821,14 +840,23 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.ColumnFilterAdd.ImageClickedFcn = createCallbackFcn(app, @onFilterAddImageClicked, true);
             app.ColumnFilterAdd.Enable = 'off';
             app.ColumnFilterAdd.Layout.Row = 5;
-            app.ColumnFilterAdd.Layout.Column = 3;
+            app.ColumnFilterAdd.Layout.Column = 1;
             app.ColumnFilterAdd.ImageSource = 'Add_16.png';
+
+            % Create ColumnFilterDel
+            app.ColumnFilterDel = uiimage(app.ColumnFilterGrid);
+            app.ColumnFilterDel.ImageClickedFcn = createCallbackFcn(app, @onFilterDelColumnFilterDelClicked, true);
+            app.ColumnFilterDel.Visible = 'off';
+            app.ColumnFilterDel.Layout.Row = 5;
+            app.ColumnFilterDel.Layout.Column = 4;
+            app.ColumnFilterDel.ImageSource = 'close-16px-red.svg';
 
             % Create ColumnFilterList
             app.ColumnFilterList = uitree(app.ColumnFilterGrid, 'checkbox');
+            app.ColumnFilterList.SelectionChangedFcn = createCallbackFcn(app, @ColumnFilterListSelectionChanged, true);
             app.ColumnFilterList.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterList.Layout.Row = 6;
-            app.ColumnFilterList.Layout.Column = [1 3];
+            app.ColumnFilterList.Layout.Column = [1 4];
 
             % Assign Checked Nodes
             app.ColumnFilterList.CheckedNodesChangedFcn = createCallbackFcn(app, @onColumnFilterCheckedNodesChanged, true);
@@ -855,14 +883,64 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.SaveButton.Layout.Column = [3 4];
             app.SaveButton.Text = 'Salvar alterações';
 
-            % Create ContextMenu
-            app.ContextMenu = uicontextmenu(app.UIFigure);
-            app.ContextMenu.Tag = 'auxApp.dockFilterSetup';
+            % Create CurrentFilterPanel
+            app.CurrentFilterPanel = uipanel(app.GridLayout);
+            app.CurrentFilterPanel.Layout.Row = 1;
+            app.CurrentFilterPanel.Layout.Column = [1 4];
 
-            % Create ColumnFilterDel
-            app.ColumnFilterDel = uimenu(app.ContextMenu);
-            app.ColumnFilterDel.MenuSelectedFcn = createCallbackFcn(app, @onFilterDelImageClicked, true);
-            app.ColumnFilterDel.Text = '❌ Excluir';
+            % Create CurrentFilterGrid
+            app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
+            app.CurrentFilterGrid.ColumnWidth = {18, '1x', 18, '1x', '1x', 18};
+            app.CurrentFilterGrid.RowHeight = {22, '1x'};
+            app.CurrentFilterGrid.ColumnSpacing = 5;
+            app.CurrentFilterGrid.RowSpacing = 5;
+            app.CurrentFilterGrid.BackgroundColor = [0.9333 0.9569 0.9843];
+
+            % Create CurrentFilterIcon
+            app.CurrentFilterIcon = uiimage(app.CurrentFilterGrid);
+            app.CurrentFilterIcon.ScaleMethod = 'none';
+            app.CurrentFilterIcon.Layout.Row = 1;
+            app.CurrentFilterIcon.Layout.Column = 1;
+            app.CurrentFilterIcon.ImageSource = 'filter-filled.svg';
+
+            % Create CurrentFilterLabel
+            app.CurrentFilterLabel = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterLabel.FontWeight = 'bold';
+            app.CurrentFilterLabel.FontColor = [0 0.1294 0.2392];
+            app.CurrentFilterLabel.Layout.Row = 1;
+            app.CurrentFilterLabel.Layout.Column = [2 5];
+            app.CurrentFilterLabel.Text = 'Especificação do filtro atual';
+
+            % Create CurrentFilterStrategy
+            app.CurrentFilterStrategy = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterStrategy.VerticalAlignment = 'top';
+            app.CurrentFilterStrategy.FontSize = 10;
+            app.CurrentFilterStrategy.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterStrategy.Layout.Row = 2;
+            app.CurrentFilterStrategy.Layout.Column = [1 2];
+            app.CurrentFilterStrategy.Interpreter = 'html';
+            app.CurrentFilterStrategy.Text = 'Estratégia:<br><font style="font-size:11px; color: #00213d;">Texto livre +<br>Filtro por coluna</font>';
+
+            % Create CurrentFilterText
+            app.CurrentFilterText = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterText.VerticalAlignment = 'top';
+            app.CurrentFilterText.FontSize = 10;
+            app.CurrentFilterText.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterText.Layout.Row = 2;
+            app.CurrentFilterText.Layout.Column = [3 4];
+            app.CurrentFilterText.Interpreter = 'html';
+            app.CurrentFilterText.Text = 'Pesquisa textual:<br><font style="font-size:11px; color: #00213d;">Similaridade</font>';
+
+            % Create CurrentFilterColumn
+            app.CurrentFilterColumn = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterColumn.VerticalAlignment = 'top';
+            app.CurrentFilterColumn.WordWrap = 'on';
+            app.CurrentFilterColumn.FontSize = 10;
+            app.CurrentFilterColumn.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterColumn.Layout.Row = 2;
+            app.CurrentFilterColumn.Layout.Column = [5 6];
+            app.CurrentFilterColumn.Interpreter = 'html';
+            app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Nenhum aplicado</font>';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

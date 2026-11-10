@@ -4,40 +4,40 @@ classdef mobile_exported < matlab.apps.AppBase
     properties (Access = public)
         UIFigure                 matlab.ui.Figure
         GridLayout               matlab.ui.container.GridLayout
-        TabNavigator             matlab.ui.container.GridLayout
-        Tab3Label                matlab.ui.control.Label
-        Tab3Button               matlab.ui.control.Image
-        Tab2Label                matlab.ui.control.Label
-        Tab2Button               matlab.ui.control.Image
-        Tab1Label                matlab.ui.control.Label
-        Tab1Button               matlab.ui.control.Image
-        ContainerMainApp         matlab.ui.container.Panel
-        ContainerMainAppGrid     matlab.ui.container.GridLayout
+        TitleGrid                matlab.ui.container.GridLayout
+        AppInfo                  matlab.ui.control.Image
+        AppTitle                 matlab.ui.control.Label
+        ReturnButton             matlab.ui.control.Image
+        TabGroup                 matlab.ui.container.TabGroup
+        Tab1                     matlab.ui.container.Tab
+        Grid1                    matlab.ui.container.GridLayout
         SearchSuggestions        matlab.ui.control.ListBox
         SearchResults            matlab.ui.control.Label
         ViewNextRangeButton      matlab.ui.control.Image
         ViewPreviousRangeButton  matlab.ui.control.Image
         ViewRange                matlab.ui.control.Label
-        LastSearch               matlab.ui.control.Label
+        CurrentFilterPanel       matlab.ui.container.Panel
+        CurrentFilterGrid        matlab.ui.container.GridLayout
+        CurrentFilterColumn      matlab.ui.control.Label
+        CurrentFilterText        matlab.ui.control.Label
+        CurrentFilterStrategy    matlab.ui.control.Label
+        CurrentFilterVisibility  matlab.ui.control.Image
+        CurrentFilterLabel       matlab.ui.control.Label
+        CurrentFilterIcon        matlab.ui.control.Image
         SearchSetupButton        matlab.ui.control.Image
         SearchEntryButton        matlab.ui.control.Image
         SearchEntryPoint         matlab.ui.control.EditField
+        Tab2                     matlab.ui.container.Tab
+        Tab3                     matlab.ui.container.Tab
         ContainerAuxApps         matlab.ui.container.Panel
-        ContainerAuxAppsGrid     matlab.ui.container.GridLayout
-        ContainerAuxAppsContent  matlab.ui.control.Image
-        CloseButton              matlab.ui.control.Image
-        AppTitle                 matlab.ui.control.Label
-        ReturnButton             matlab.ui.control.Image
-        AppInfo                  matlab.ui.control.Image
+        NavBar                   matlab.ui.container.GridLayout
+        Image                    matlab.ui.control.Image
+        Tab3Button               matlab.ui.control.StateButton
+        Tab2Button               matlab.ui.control.StateButton
+        Tab1Button               matlab.ui.control.StateButton
     end
 
     
-    properties (Constant, Access = private)
-        %-----------------------------------------------------------------%
-        MAX_RESULTS_PER_PAGE = 10
-    end
-
-
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'mainAppMobile'
@@ -46,7 +46,7 @@ classdef mobile_exported < matlab.apps.AppBase
     end
 
 
-    properties
+    properties (Access = public)
         %-----------------------------------------------------------------%
         Container
         isDocked = false
@@ -64,8 +64,6 @@ classdef mobile_exported < matlab.apps.AppBase
         progressDialog
         popupContainer
         popupCurrentApp
-
-        SubTabGroup = struct('Children', -1, 'UserData', [])
 
         eFiscalizaObj
         filteringObj = tableFiltering
@@ -95,6 +93,12 @@ classdef mobile_exported < matlab.apps.AppBase
     end
 
 
+    properties (Constant, Access = private)
+        %-----------------------------------------------------------------%
+        MAX_RESULTS_PER_PAGE = 10
+    end
+
+
     methods
         %-----------------------------------------------------------------%
         function ipcMainJSEventsHandler(app, event)
@@ -107,9 +111,6 @@ classdef mobile_exported < matlab.apps.AppBase
                         parpoolFlag = true;
 
                         if ~app.renderCount
-                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
-                        else
-                            appEngine.beforeReload(app, app.Role)
                             appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         end
                         
@@ -138,11 +139,6 @@ classdef mobile_exported < matlab.apps.AppBase
 
                         delete(app.popupCurrentApp)
                         app.popupCurrentApp = [];
-
-                    case 'syncPopupWithPanel'
-                        if ~isempty(app.popupCurrentApp) && isvalid(app.popupCurrentApp)
-                            app.popupCurrentApp.Container.Position(1:2) = [event.HTMLEventData.x, event.HTMLEventData.y];
-                        end
 
                     case 'customForm'
                         switch event.HTMLEventData.uuid
@@ -353,9 +349,9 @@ classdef mobile_exported < matlab.apps.AppBase
                                         switch userSelection
                                             case 'Usar dados salvos'
                                                 msg = load(app.projectData, "indexedDB", prjData);
-    
+                                                
                                                 if ~isempty(msg)
-                                                    ui.Dialog(app.UIFigure, 'error', msg);
+                                                    error('mainApp:mobile:IndexedDB', msg)
                                                 end
         
                                             case 'Apagar e iniciar nova sessão'
@@ -382,15 +378,45 @@ classdef mobile_exported < matlab.apps.AppBase
         function varargout = ipcMainMatlabCallsHandler(app, callingApp, eventName, varargin)
             varargout = {};
 
-            switch eventName
-                case 'onSearchModeChanged'
-                    setComponentsState(app, 'searchInitial')
+            try
+                switch class(callingApp)
+                    case {'auxApp.mobileSearchFilter', 'auxApp.mobileSearchFilter_exported'}
+                        switch eventName
+                            case 'onSearchModeChanged'
+                                app.SearchEntryButton.UserData = struct('valueToSearch', '', 'wordsToSearch', {{}});
+                                setComponentsState(app, 'searchInitial')
+            
+                            case 'onColumnFilterChanged'
+                                if strcmp(app.General.context.SEARCH.type, 'ColumnFilter') || (strcmp(app.General.context.SEARCH.type, 'FreeText+ColumnFilter') && ~isempty(app.searchResults))
+                                    applyFiltering(app)
+                                else
+                                    updateSearchContext(app)
+                                end
 
-                case 'onColumnFilterChanged'
-                    applyFiltering(app)
+                            otherwise
+                                error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
+                        end
+    
+                        applyLayout(app, 'mainAppMobile')
+    
+                    case {'auxApp.mobileProductInfo', 'auxApp.mobileProductInfo_exported'}
+                        switch eventName
+                            case 'onInspectedProductEdited'
+                                context  = varargin{1};
+                                varargin = [{eventName}, varargin(2:end)];
+                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
+
+                            otherwise
+                                error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
+                        end
+    
+                    otherwise
+                        error('mainApp:mobile:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.message);
             end
-
-            onTabNavigatorButtonPushed(app, struct('Source', app.CloseButton))
         end
 
         %-----------------------------------------------------------------%
@@ -414,8 +440,8 @@ classdef mobile_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageFiles', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails'})}
-                context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CUSTOMS', 'CONFIG'})}
+                auxAppName char {mustBeMember(auxAppName, {'SearchFilter', 'ProductInfo'})}
+                context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'REPORT'})}
             end
 
             arguments (Repeating)
@@ -425,9 +451,12 @@ classdef mobile_exported < matlab.apps.AppBase
             auxDockAppName = sprintf('auxApp.mobile%s', auxAppName);
             if ~isempty(app.popupCurrentApp) && isvalid(app.popupCurrentApp)
                 if contains(class(app.popupCurrentApp), auxDockAppName)
-                    applyLayout(app, 'secondaryApp')
+                    ipcSecondaryMatlabCallsHandler(app.popupCurrentApp, app, 'updateForm', varargin{:})
+                    applyLayout(app, 'secondaryDockAppMobile')
                     return
                 end
+
+                delete(app.popupCurrentApp)
             end
 
             requestVisibilityChange(callingApp.progressDialog, 'visible', 'unlocked')
@@ -441,53 +470,49 @@ classdef mobile_exported < matlab.apps.AppBase
             else
                 auxAppContainer = app.ContainerAuxApps;
                 app.popupCurrentApp = feval([auxDockAppName '_exported'], auxAppContainer, inputArguments{:});
-                applyLayout(app, 'secondaryDockApp')
+                applyLayout(app, 'secondaryDockAppMobile')
             end
 
             requestVisibilityChange(callingApp.progressDialog, 'hidden', 'unlocked')
         end
 
         %-----------------------------------------------------------------%
-        function navigateToTab(app, clickedButton)
-            onTabNavigatorButtonPushed(app, struct('Source', clickedButton, 'PreviousValue', false))
-        end
-
-        %-----------------------------------------------------------------%
-        function applyJSCustomizations(app, tabIndex)
-            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
-                return
+        function applyJSCustomizations(app)
+            appName = class(app);
+            elToModify = {
+                app.Tab1Button;
+                app.Tab2Button;
+                app.Tab3Button;
+                app.TitleGrid;
+                app.AppInfo;
+                app.SearchEntryPoint;
+                app.CurrentFilterPanel;
+                app.SearchSuggestions;
+                app.SearchResults;
+                app.ContainerAuxApps
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
+    
+            try
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.TitleGrid.UserData.id, 'styleImportant', struct('borderRadius', '0')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderRadius', '8px 0 0 0')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'selector', 'input', 'style', struct('paddingRight', '60px')), ...
+                    struct('appName', appName, 'dataTag', app.CurrentFilterPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderTop', '0')), ...
+                    struct('appName', appName, 'dataTag', app.ContainerAuxApps.UserData.id, 'style', struct('borderRadius', '0 0 5px 5px')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                });
+            catch
             end
-            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
 
-            switch tabIndex
-                case 1
-                    appName = class(app);
-                    elToModify = {
-                        app.AppInfo;
-                        app.SearchEntryPoint;
-                        app.SearchSuggestions;
-                        app.SearchResults
-                    };
-                    ui.CustomizationBase.getElementsDataTag(elToModify);
-
-                    try
-                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 1, 'style', struct('borderColor', 'lightgray', 'borderRadius', '8px 0 0 0')), ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'selector', 'input', 'style', struct('paddingRight', '60px')), ...
-                            struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'style', struct('borderColor', 'lightgray', 'borderTop', '0')), ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
-                            struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
-                        });
-                    catch
-                    end
-
-                    try
-                        ui.TextView.startup(app.jsBackDoor, app.SearchResults, appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
-                    catch
-                    end
-
-                otherwise
-                    % ...
+            try
+                ui.TextView.startup(app.jsBackDoor, app.SearchResults, appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
+            catch
             end
         end
 
@@ -534,19 +559,28 @@ classdef mobile_exported < matlab.apps.AppBase
             app.cacheData         = app.launcherApp.cacheData;
             app.cacheColumns      = app.launcherApp.cacheColumns;
             app.annotationTable   = app.launcherApp.annotationTable;
-
-            app.Tab1Button.UserData.status = true;
-            app.Tab2Button.UserData.status = false;
-            app.Tab3Button.UserData.status = false;
         end
 
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
+            app.AppTitle.Text = sprintf('<font style="font-size: 16px; line-height: 16px;"><b>SCH+</b></font><br>v.%s', class.Constants.appVersion);
             app.SearchEntryButton.UserData = struct('valueToSearch', '', 'wordsToSearch', {{}});
+            app.CurrentFilterPanel.UserData.status = true;
+            app.CurrentFilterPanel.BorderColor = '#c9d9ec';
         end
 
         %-----------------------------------------------------------------%
         function applyInitialLayout(app)
+            app.tabGroupController = ui.TabNavigator(app);
+            addComponent(app.tabGroupController, "Built-in", "",                       app.Tab1Button, "AlwaysOn", matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "External", "auxApp.mobileProducts",  app.Tab2Button, "AlwaysOn", app.Tab1Button,                      2)
+            addComponent(app.tabGroupController, "External", "auxApp.mobileReportLib", app.Tab3Button, "AlwaysOn", app.Tab1Button,                      3)
+            app.Tab1Button.Value = true;
+
+            if any(app.filteringObj.filterRules.Enable)
+                app.filteringObj.filterRules.Enable(:) = false;
+            end
+
             setComponentsState(app, 'searchInitial')
         end
     end
@@ -557,20 +591,14 @@ classdef mobile_exported < matlab.apps.AppBase
         function applyLayout(app, mode)
             switch mode
                 case 'mainAppMobile'
-                    app.AppInfo.Visible = 'on';
-                    app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>SCH</b></font>'; 'v.1.00.0'};
-                    app.ContainerMainApp.Visible = 'on';
-                    app.ContainerAuxApps.Visible = 'off';
-                    app.ReturnButton.Visible = 'off';
-                    app.CloseButton.Visible = 'off';
+                    set([app.AppInfo, app.TabGroup], 'Visible', 'on')
+                    set([app.ContainerAuxApps, app.ReturnButton], 'Visible', 'off')
+                    app.TabGroup.Layout.Row = [1 2];
 
-                otherwise % {'secondaryApp', 'secondaryDockApp}
-                    app.AppInfo.Visible = 'off';
-                    app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>Configurações de filtragem e exibição</b></font>'; 'Defina como os filtros serão aplicados'};
-                    app.ContainerMainApp.Visible = 'off';
-                    app.ContainerAuxApps.Visible = 'on';
-                    app.ReturnButton.Visible = 'on';
-                    app.CloseButton.Visible = 'on';
+                case 'secondaryDockAppMobile'
+                    set([app.AppInfo, app.TabGroup], 'Visible', 'off')
+                    set([app.ContainerAuxApps, app.ReturnButton], 'Visible', 'on')
+                    app.TabGroup.Layout.Row = 1;
             end
         end
 
@@ -578,7 +606,7 @@ classdef mobile_exported < matlab.apps.AppBase
         function setComponentsState(app, state)
             arguments
                 app
-                state char {mustBeMember(state, {'searchInitial', 'entryEnabled', 'entryDisabled', 'resultsRange', 'rangeControlsVisible'})}
+                state char {mustBeMember(state, {'searchInitial', 'entryEnabled', 'entryDisabled', 'resultsRange', 'rangeControlsVisible', 'rangeControlsInvisible'})}
             end
 
             switch state
@@ -588,7 +616,8 @@ classdef mobile_exported < matlab.apps.AppBase
                             enable = true;
                             value = app.SearchEntryButton.UserData.valueToSearch;
                             placeholder = 'O que você quer pesquisar?';
-                        otherwise
+                            
+                        otherwise % 'ColumnFilter'
                             enable = false;
                             value = '';
                             placeholder = 'Busca por texto indisponível neste modo';
@@ -604,19 +633,21 @@ classdef mobile_exported < matlab.apps.AppBase
                     app.searchResultSituations = strings(0, 1);
                     app.resultPageStart = 1;
                     app.SearchResults.Text = '';
-                    app.LastSearch.Text = '';
                     set([app.ViewPreviousRangeButton, app.ViewNextRangeButton], 'Visible', 0)
                     setComponentsState(app, 'resultsRange')
+                    updateSearchContext(app)
 
                 case 'rangeControlsVisible'
                     set([app.ViewPreviousRangeButton, app.ViewNextRangeButton], 'Visible', 1)
+
+                case 'rangeControlsInvisible'
+                    set([app.ViewPreviousRangeButton, app.ViewNextRangeButton], 'Visible', 0)
 
                 case 'entryEnabled'
                     app.SearchEntryButton.Enable = 1;
 
                 case 'entryDisabled'
                     app.SearchEntryButton.Enable = 0;
-                    app.LastSearch.Text = '';
                     set(app.SearchSuggestions, Visible=0, Items={}, ItemsData=[])
 
                 case 'resultsRange'
@@ -668,9 +699,110 @@ classdef mobile_exported < matlab.apps.AppBase
                     end
             end
             updateResults(app, matchRowIdxs)
-            app.LastSearch.Text = app.SearchEntryButton.UserData.valueToSearch;
+            updateSearchContext(app)
 
             app.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function updateSearchContext(app)
+            searchType = app.General.context.SEARCH.type;
+            searchMode = app.General.context.SEARCH.mode;
+
+            switch searchType
+                case 'FreeText'
+                    searchStrategy = 'Texto livre';
+                    app.CurrentFilterText.Visible = 'on';
+                    app.CurrentFilterColumn.Visible = 'off';
+                    app.CurrentFilterText.Layout.Column = [3 6];
+
+                case 'ColumnFilter'
+                    searchStrategy = 'Filtro por coluna';
+                    app.CurrentFilterText.Visible = 'off';
+                    app.CurrentFilterColumn.Visible = 'on';
+                    app.CurrentFilterColumn.Layout.Column = [3 6];
+
+                case 'FreeText+ColumnFilter'
+                    searchStrategy = 'Texto livre +<br>Filtro por coluna';
+                    set([app.CurrentFilterText, app.CurrentFilterColumn], 'Visible', 'on')
+                    app.CurrentFilterText.Layout.Column = [3 4];
+                    app.CurrentFilterColumn.Layout.Column = [5 6];
+            end
+            app.CurrentFilterStrategy.Text = sprintf('Estratégia:<br><font style="font-size:11px; color: #00213d;">%s</font>', searchStrategy);
+
+            if contains(searchType, 'FreeText')
+                searchData = app.SearchEntryButton.UserData;
+                searchTextValue = '';
+
+                switch searchMode
+                    case 'tokens'
+                        searchTextMode  = 'Similaridade';
+                        if ~isempty(searchData.valueToSearch)
+                            searchTextValue = sprintf('"%s"', searchData.valueToSearch);
+                        end
+
+                    otherwise % 'words'
+                        searchTextMode  = 'Exata';
+                        if ~isempty(searchData.wordsToSearch)
+                            searchTextValue = textFormatGUI.cellstr2FriendlyListWithQuotes(searchData.wordsToSearch);
+                        end
+                end
+                app.CurrentFilterText.Text = sprintf('Pesquisa textual:<br><font style="font-size:11px; color: #00213d;">%s<br>%s</font>', searchTextMode, searchTextValue);
+
+            else
+                app.CurrentFilterText.Text = '';
+            end
+
+            if contains(searchType, 'ColumnFilter')
+                filterList = getFilterList(app.filteringObj, 'SCH', 'on');
+                
+                if isempty(filterList)
+                    app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Nenhum aplicado</font>';
+                elseif isscalar(filterList)
+                    app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Um aplicado</font>';
+                else
+                    app.CurrentFilterColumn.Text = sprintf('Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">%d aplicados</font>', numel(filterList));
+                end
+
+            else
+                app.CurrentFilterColumn.Text = '';
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function ruleText = formatColumnFilterRule(~, filterRule)
+            operators = filterRule.Operators{1};
+            values    = filterRule.Values{1};
+
+            switch lower(filterRule.Connector{1})
+                case {'and', 'e'}
+                    connector = ' e ';
+                otherwise
+                    connector = ' ou ';
+            end
+
+            operatorNames = containers.Map( ...
+                {'begins with', 'does not begin with', 'ends with', 'does not end with', 'contains', 'does not contain'}, ...
+                {'começa com', 'não começa com', 'termina com', 'não termina com', 'contém', 'não contém'} ...
+            );
+
+            conditions = strings(1, numel(operators));
+            for ii = 1:numel(operators)
+                operator = operators{ii};
+                value = strjoin(string(values{ii}), ', ');
+
+                if isKey(operatorNames, operator)
+                    operator = operatorNames(operator);
+                end
+
+                if isscalar(operators) && strcmp(operator, '=')
+                    conditions(ii) = value;
+                else
+                    conditions(ii) = sprintf('%s %s', operator, value);
+                end
+            end
+
+            ruleText = sprintf('%s: %s', filterRule.Field{1}, strjoin(conditions, connector));
         end
 
         %-----------------------------------------------------------------%
@@ -768,7 +900,12 @@ classdef mobile_exported < matlab.apps.AppBase
             [~, firstDetailedIdxs] = ismember(aggregatedIdxs, app.schData.detailed.("Índice Homologação Agregada"));
             app.searchResultSituations = string(app.schData.detailed.("Situação")(firstDetailedIdxs));
 
-            setComponentsState(app, 'rangeControlsVisible')
+            if ~isempty(matchRowIdxs)
+                setComponentsState(app, 'rangeControlsVisible')
+            else
+                setComponentsState(app, 'rangeControlsInvisible')
+            end
+
             renderSearchResults(app)
         end
 
@@ -899,17 +1036,6 @@ classdef mobile_exported < matlab.apps.AppBase
             end
 
             IndexedDBCache(app.projectData)
-            
-            try
-                util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
-            catch
-            end
-
-            try
-                appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
-            catch ME
-                appEngine.util.killingMATLABRuntime(app.executionMode)
-            end
 
             delete(app)
 
@@ -920,7 +1046,7 @@ classdef mobile_exported < matlab.apps.AppBase
             
             % O listener que captura cliques do mouse só é aplicável no
             % modo SEARCH.
-            if ~app.Tab1Button.UserData.status
+            if app.TabGroup.SelectedTab == app.TabGroup.Children(1)
                 return
             end
 
@@ -1015,33 +1141,23 @@ classdef mobile_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: AppInfo, CloseButton, ReturnButton, 
-        % ...and 3 other components
+        % Callback function: AppInfo, ReturnButton, Tab1Button, Tab2Button,
+        % 
+        % ...and 1 other component
         function onTabNavigatorButtonPushed(app, event)
             
             switch event.Source
-                case app.Tab1Button
+                case {app.Tab1Button, app.Tab2Button, app.Tab3Button}
                     applyLayout(app, 'mainAppMobile')
-                
-                case app.Tab2Button
-                    applyLayout(app, 'secondaryApp')
-
-                case app.Tab3Button
-                    webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
-                    webWin.openDevTools();
+                    openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, app)
 
                 case app.ReturnButton
-                    app.ContainerMainApp.Visible = 'off';
-                    onTabNavigatorButtonPushed(app, struct('Source', app.Tab1Button))
-
-                case app.CloseButton
-                    app.ContainerMainApp.Visible = 'off';
-                    onTabNavigatorButtonPushed(app, struct('Source', app.Tab1Button))
-                    
-                    delete(app.popupCurrentApp)
-                    app.popupCurrentApp = [];
+                    applyLayout(app, 'mainAppMobile')
 
                 case app.AppInfo
+                    delete(app.popupCurrentApp) %% APAGAR DEPOIS %%
+                    delete(app.tabGroupController.Components.appHandle{2}) %% APAGAR DEPOIS %%
+
                     appInfo = util.HtmlTextGenerator.AppInfo( ...
                         app.General, ...
                         app.rootFolder, ...
@@ -1086,6 +1202,30 @@ classdef mobile_exported < matlab.apps.AppBase
             end
 
             renderSearchResults(app)
+            focus(app.UIFigure)
+
+        end
+
+        % Image clicked function: Image
+        function DevToolsButtonPushed(app, event)
+            webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
+                                    webWin.openDevTools();
+        end
+
+        % Image clicked function: CurrentFilterVisibility
+        function CurrentFilterVisibilityImageClicked(app, event)
+            
+            app.CurrentFilterPanel.UserData.status = ~app.CurrentFilterPanel.UserData.status;
+
+            if app.CurrentFilterPanel.UserData.status
+                app.Grid1.RowHeight([3, 7]) = {92, 138};
+                app.CurrentFilterVisibility.ImageSource = 'chevron-up.svg';
+            else
+                app.Grid1.RowHeight([3, 7]) = {44, 186};
+                app.CurrentFilterVisibility.ImageSource = 'chevron-down.svg';
+            end
+
+            focus(app.UIFigure)
 
         end
     end
@@ -1128,22 +1268,255 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {28, '1x', 28};
+            app.GridLayout.ColumnWidth = {'1x'};
             app.GridLayout.RowHeight = {56, '1x', 76};
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [3 0 3 0];
             app.GridLayout.BackgroundColor = [0.1294 0.2 0.2392];
 
-            % Create AppInfo
-            app.AppInfo = uiimage(app.GridLayout);
-            app.AppInfo.ScaleMethod = 'none';
-            app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.AppInfo.Layout.Row = 1;
-            app.AppInfo.Layout.Column = 1;
-            app.AppInfo.ImageSource = 'kebab-vertical-24px-white.svg';
+            % Create NavBar
+            app.NavBar = uigridlayout(app.GridLayout);
+            app.NavBar.ColumnWidth = {20, '1x', '1x', '1x', 20};
+            app.NavBar.RowHeight = {'1x', 22};
+            app.NavBar.RowSpacing = 0;
+            app.NavBar.Padding = [10 10 10 16];
+            app.NavBar.Layout.Row = 3;
+            app.NavBar.Layout.Column = 1;
+            app.NavBar.BackgroundColor = [0.1294 0.2 0.2392];
+
+            % Create Tab1Button
+            app.Tab1Button = uibutton(app.NavBar, 'state');
+            app.Tab1Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.Tab1Button.Tag = 'SEARCH';
+            app.Tab1Button.Icon = 'search-sparkle-24px-yellow.svg';
+            app.Tab1Button.IconAlignment = 'top';
+            app.Tab1Button.Text = 'Pesquisa';
+            app.Tab1Button.BackgroundColor = [0.1294 0.2 0.2392];
+            app.Tab1Button.FontSize = 11;
+            app.Tab1Button.FontColor = [0.9412 0.9412 0.1333];
+            app.Tab1Button.Layout.Row = [1 2];
+            app.Tab1Button.Layout.Column = 2;
+
+            % Create Tab2Button
+            app.Tab2Button = uibutton(app.NavBar, 'state');
+            app.Tab2Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.Tab2Button.Tag = 'PRODUCTS';
+            app.Tab2Button.Icon = 'checklist-24px-white.svg';
+            app.Tab2Button.IconAlignment = 'top';
+            app.Tab2Button.Text = 'Produtos';
+            app.Tab2Button.BackgroundColor = [0.1294 0.2 0.2392];
+            app.Tab2Button.FontSize = 11;
+            app.Tab2Button.FontColor = [1 1 1];
+            app.Tab2Button.Layout.Row = [1 2];
+            app.Tab2Button.Layout.Column = 3;
+
+            % Create Tab3Button
+            app.Tab3Button = uibutton(app.NavBar, 'state');
+            app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.Tab3Button.Tag = 'CONFIG';
+            app.Tab3Button.Icon = 'gear-24px-white.svg';
+            app.Tab3Button.IconAlignment = 'top';
+            app.Tab3Button.Text = 'Configurações';
+            app.Tab3Button.BackgroundColor = [0.1294 0.2 0.2392];
+            app.Tab3Button.FontSize = 11;
+            app.Tab3Button.FontColor = [1 1 1];
+            app.Tab3Button.Layout.Row = [1 2];
+            app.Tab3Button.Layout.Column = 4;
+
+            % Create Image
+            app.Image = uiimage(app.NavBar);
+            app.Image.ImageClickedFcn = createCallbackFcn(app, @DevToolsButtonPushed, true);
+            app.Image.Layout.Row = 2;
+            app.Image.Layout.Column = 5;
+            app.Image.ImageSource = 'Debug_18.png';
+
+            % Create ContainerAuxApps
+            app.ContainerAuxApps = uipanel(app.GridLayout);
+            app.ContainerAuxApps.BorderType = 'none';
+            app.ContainerAuxApps.Layout.Row = 2;
+            app.ContainerAuxApps.Layout.Column = 1;
+
+            % Create TabGroup
+            app.TabGroup = uitabgroup(app.GridLayout);
+            app.TabGroup.AutoResizeChildren = 'off';
+            app.TabGroup.Layout.Row = [1 2];
+            app.TabGroup.Layout.Column = 1;
+
+            % Create Tab1
+            app.Tab1 = uitab(app.TabGroup);
+            app.Tab1.AutoResizeChildren = 'off';
+
+            % Create Grid1
+            app.Grid1 = uigridlayout(app.Tab1);
+            app.Grid1.ColumnWidth = {'1x', 90, 10, 28, 28};
+            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, '1x'};
+            app.Grid1.ColumnSpacing = 0;
+            app.Grid1.RowSpacing = 0;
+            app.Grid1.Padding = [10 10 10 42];
+            app.Grid1.BackgroundColor = [0.9451 0.9569 0.9608];
+
+            % Create SearchEntryPoint
+            app.SearchEntryPoint = uieditfield(app.Grid1, 'text');
+            app.SearchEntryPoint.CharacterLimits = [0 128];
+            app.SearchEntryPoint.ValueChangingFcn = createCallbackFcn(app, @onSearchEntryPointChanging, true);
+            app.SearchEntryPoint.Tag = 'PROMPT';
+            app.SearchEntryPoint.FontSize = 14;
+            app.SearchEntryPoint.FontColor = [0 0.1294 0.2392];
+            app.SearchEntryPoint.Placeholder = 'O que você quer pesquisar?';
+            app.SearchEntryPoint.Layout.Row = 1;
+            app.SearchEntryPoint.Layout.Column = [1 5];
+
+            % Create SearchEntryButton
+            app.SearchEntryButton = uiimage(app.Grid1);
+            app.SearchEntryButton.ScaleMethod = 'none';
+            app.SearchEntryButton.ImageClickedFcn = createCallbackFcn(app, @onSearchEntryButtonPushed, true);
+            app.SearchEntryButton.Enable = 'off';
+            app.SearchEntryButton.Layout.Row = 1;
+            app.SearchEntryButton.Layout.Column = 4;
+            app.SearchEntryButton.ImageSource = 'search-20px.svg';
+
+            % Create SearchSetupButton
+            app.SearchSetupButton = uiimage(app.Grid1);
+            app.SearchSetupButton.ScaleMethod = 'none';
+            app.SearchSetupButton.ImageClickedFcn = createCallbackFcn(app, @SearchSetupButtonImageClicked, true);
+            app.SearchSetupButton.Layout.Row = 1;
+            app.SearchSetupButton.Layout.Column = 5;
+            app.SearchSetupButton.ImageSource = 'settings-20px.svg';
+
+            % Create CurrentFilterPanel
+            app.CurrentFilterPanel = uipanel(app.Grid1);
+            app.CurrentFilterPanel.Layout.Row = 3;
+            app.CurrentFilterPanel.Layout.Column = [1 5];
+
+            % Create CurrentFilterGrid
+            app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
+            app.CurrentFilterGrid.ColumnWidth = {18, '1x', 18, '1x', '1x', 18};
+            app.CurrentFilterGrid.RowHeight = {22, '1x'};
+            app.CurrentFilterGrid.ColumnSpacing = 5;
+            app.CurrentFilterGrid.RowSpacing = 5;
+            app.CurrentFilterGrid.BackgroundColor = [0.9333 0.9569 0.9843];
+
+            % Create CurrentFilterIcon
+            app.CurrentFilterIcon = uiimage(app.CurrentFilterGrid);
+            app.CurrentFilterIcon.ScaleMethod = 'none';
+            app.CurrentFilterIcon.Layout.Row = 1;
+            app.CurrentFilterIcon.Layout.Column = 1;
+            app.CurrentFilterIcon.ImageSource = 'filter-filled.svg';
+
+            % Create CurrentFilterLabel
+            app.CurrentFilterLabel = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterLabel.FontWeight = 'bold';
+            app.CurrentFilterLabel.FontColor = [0 0.1294 0.2392];
+            app.CurrentFilterLabel.Layout.Row = 1;
+            app.CurrentFilterLabel.Layout.Column = [2 5];
+            app.CurrentFilterLabel.Text = 'Especificação do filtro atual';
+
+            % Create CurrentFilterVisibility
+            app.CurrentFilterVisibility = uiimage(app.CurrentFilterGrid);
+            app.CurrentFilterVisibility.ImageClickedFcn = createCallbackFcn(app, @CurrentFilterVisibilityImageClicked, true);
+            app.CurrentFilterVisibility.Layout.Row = 1;
+            app.CurrentFilterVisibility.Layout.Column = [1 6];
+            app.CurrentFilterVisibility.HorizontalAlignment = 'right';
+            app.CurrentFilterVisibility.ImageSource = 'chevron-up.svg';
+
+            % Create CurrentFilterStrategy
+            app.CurrentFilterStrategy = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterStrategy.VerticalAlignment = 'top';
+            app.CurrentFilterStrategy.FontSize = 10;
+            app.CurrentFilterStrategy.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterStrategy.Layout.Row = 2;
+            app.CurrentFilterStrategy.Layout.Column = [1 2];
+            app.CurrentFilterStrategy.Interpreter = 'html';
+            app.CurrentFilterStrategy.Text = 'Estratégia:<br><font style="font-size:11px; color: #00213d;">Texto livre +<br>Filtro por coluna</font>';
+
+            % Create CurrentFilterText
+            app.CurrentFilterText = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterText.VerticalAlignment = 'top';
+            app.CurrentFilterText.FontSize = 10;
+            app.CurrentFilterText.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterText.Layout.Row = 2;
+            app.CurrentFilterText.Layout.Column = [3 4];
+            app.CurrentFilterText.Interpreter = 'html';
+            app.CurrentFilterText.Text = 'Pesquisa textual:<br><font style="font-size:11px; color: #00213d;">Similaridade</font>';
+
+            % Create CurrentFilterColumn
+            app.CurrentFilterColumn = uilabel(app.CurrentFilterGrid);
+            app.CurrentFilterColumn.VerticalAlignment = 'top';
+            app.CurrentFilterColumn.WordWrap = 'on';
+            app.CurrentFilterColumn.FontSize = 10;
+            app.CurrentFilterColumn.FontColor = [0.4588 0.5294 0.6];
+            app.CurrentFilterColumn.Layout.Row = 2;
+            app.CurrentFilterColumn.Layout.Column = [5 6];
+            app.CurrentFilterColumn.Interpreter = 'html';
+            app.CurrentFilterColumn.Text = 'Filtros por coluna:<br><font style="font-size:11px; color: #00213d;">Nenhum aplicado</font>';
+
+            % Create ViewRange
+            app.ViewRange = uilabel(app.Grid1);
+            app.ViewRange.HorizontalAlignment = 'right';
+            app.ViewRange.FontSize = 11;
+            app.ViewRange.FontColor = [0.4588 0.5294 0.6];
+            app.ViewRange.Layout.Row = 5;
+            app.ViewRange.Layout.Column = 2;
+            app.ViewRange.Text = '';
+
+            % Create ViewPreviousRangeButton
+            app.ViewPreviousRangeButton = uiimage(app.Grid1);
+            app.ViewPreviousRangeButton.ImageClickedFcn = createCallbackFcn(app, @onViewRangeButtonClicked, true);
+            app.ViewPreviousRangeButton.Enable = 'off';
+            app.ViewPreviousRangeButton.Visible = 'off';
+            app.ViewPreviousRangeButton.Layout.Row = 5;
+            app.ViewPreviousRangeButton.Layout.Column = 4;
+            app.ViewPreviousRangeButton.ImageSource = 'chevron-left.svg';
+
+            % Create ViewNextRangeButton
+            app.ViewNextRangeButton = uiimage(app.Grid1);
+            app.ViewNextRangeButton.ImageClickedFcn = createCallbackFcn(app, @onViewRangeButtonClicked, true);
+            app.ViewNextRangeButton.Enable = 'off';
+            app.ViewNextRangeButton.Visible = 'off';
+            app.ViewNextRangeButton.Layout.Row = 5;
+            app.ViewNextRangeButton.Layout.Column = 5;
+            app.ViewNextRangeButton.ImageSource = 'chevron-right.svg';
+
+            % Create SearchResults
+            app.SearchResults = uilabel(app.Grid1);
+            app.SearchResults.VerticalAlignment = 'top';
+            app.SearchResults.WordWrap = 'on';
+            app.SearchResults.FontSize = 11;
+            app.SearchResults.Layout.Row = [7 8];
+            app.SearchResults.Layout.Column = [1 5];
+            app.SearchResults.Interpreter = 'html';
+            app.SearchResults.Text = '';
+
+            % Create SearchSuggestions
+            app.SearchSuggestions = uilistbox(app.Grid1);
+            app.SearchSuggestions.Items = {''};
+            app.SearchSuggestions.Tag = 'CAIXA DE BUSCA';
+            app.SearchSuggestions.Visible = 'off';
+            app.SearchSuggestions.FontSize = 14;
+            app.SearchSuggestions.FontColor = [0 0.1294 0.2392];
+            app.SearchSuggestions.Layout.Row = [2 7];
+            app.SearchSuggestions.Layout.Column = [1 5];
+            app.SearchSuggestions.Value = {};
+
+            % Create Tab2
+            app.Tab2 = uitab(app.TabGroup);
+            app.Tab2.AutoResizeChildren = 'off';
+
+            % Create Tab3
+            app.Tab3 = uitab(app.TabGroup);
+            app.Tab3.AutoResizeChildren = 'off';
+
+            % Create TitleGrid
+            app.TitleGrid = uigridlayout(app.GridLayout);
+            app.TitleGrid.ColumnWidth = {32, '1x', 28};
+            app.TitleGrid.RowHeight = {'1x'};
+            app.TitleGrid.Padding = [0 0 0 0];
+            app.TitleGrid.Layout.Row = 1;
+            app.TitleGrid.Layout.Column = 1;
+            app.TitleGrid.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create ReturnButton
-            app.ReturnButton = uiimage(app.GridLayout);
+            app.ReturnButton = uiimage(app.TitleGrid);
             app.ReturnButton.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.ReturnButton.Visible = 'off';
             app.ReturnButton.Layout.Row = 1;
@@ -1151,201 +1524,22 @@ classdef mobile_exported < matlab.apps.AppBase
             app.ReturnButton.ImageSource = 'chevron-left-white.svg';
 
             % Create AppTitle
-            app.AppTitle = uilabel(app.GridLayout);
+            app.AppTitle = uilabel(app.TitleGrid);
+            app.AppTitle.HorizontalAlignment = 'center';
             app.AppTitle.FontSize = 10;
             app.AppTitle.FontColor = [1 1 1];
             app.AppTitle.Layout.Row = 1;
             app.AppTitle.Layout.Column = 2;
             app.AppTitle.Interpreter = 'html';
-            app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>SCH</b></font>'; 'v.1.00.0'};
+            app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>SCH+</b></font>'; 'v.1.00.0'};
 
-            % Create CloseButton
-            app.CloseButton = uiimage(app.GridLayout);
-            app.CloseButton.ScaleMethod = 'none';
-            app.CloseButton.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.CloseButton.Visible = 'off';
-            app.CloseButton.Layout.Row = 1;
-            app.CloseButton.Layout.Column = 3;
-            app.CloseButton.ImageSource = 'close.svg';
-
-            % Create ContainerAuxApps
-            app.ContainerAuxApps = uipanel(app.GridLayout);
-            app.ContainerAuxApps.Visible = 'off';
-            app.ContainerAuxApps.Layout.Row = 2;
-            app.ContainerAuxApps.Layout.Column = [1 3];
-
-            % Create ContainerAuxAppsGrid
-            app.ContainerAuxAppsGrid = uigridlayout(app.ContainerAuxApps);
-            app.ContainerAuxAppsGrid.ColumnWidth = {'1x'};
-            app.ContainerAuxAppsGrid.RowHeight = {'1x'};
-            app.ContainerAuxAppsGrid.BackgroundColor = [0.9608 0.9686 0.9686];
-
-            % Create ContainerAuxAppsContent
-            app.ContainerAuxAppsContent = uiimage(app.ContainerAuxAppsGrid);
-            app.ContainerAuxAppsContent.Layout.Row = 1;
-            app.ContainerAuxAppsContent.Layout.Column = 1;
-
-            % Create ContainerMainApp
-            app.ContainerMainApp = uipanel(app.GridLayout);
-            app.ContainerMainApp.BackgroundColor = [0.9412 0.9412 0.9412];
-            app.ContainerMainApp.Layout.Row = 2;
-            app.ContainerMainApp.Layout.Column = [1 3];
-
-            % Create ContainerMainAppGrid
-            app.ContainerMainAppGrid = uigridlayout(app.ContainerMainApp);
-            app.ContainerMainAppGrid.ColumnWidth = {'1x', 90, 10, 28, 28};
-            app.ContainerMainAppGrid.RowHeight = {32, 6, 10, 22, 10, 322, '1x'};
-            app.ContainerMainAppGrid.ColumnSpacing = 0;
-            app.ContainerMainAppGrid.RowSpacing = 0;
-            app.ContainerMainAppGrid.BackgroundColor = [0.9608 0.9686 0.9686];
-
-            % Create SearchEntryPoint
-            app.SearchEntryPoint = uieditfield(app.ContainerMainAppGrid, 'text');
-            app.SearchEntryPoint.CharacterLimits = [0 128];
-            app.SearchEntryPoint.ValueChangingFcn = createCallbackFcn(app, @onSearchEntryPointChanging, true);
-            app.SearchEntryPoint.Tag = 'PROMPT';
-            app.SearchEntryPoint.FontSize = 14;
-            app.SearchEntryPoint.FontColor = [0 0.1294 0.2392];
-            app.SearchEntryPoint.Placeholder = 'O que você quer pesquisar?';
-            app.SearchEntryPoint.Layout.Row = [1 2];
-            app.SearchEntryPoint.Layout.Column = [1 5];
-
-            % Create SearchEntryButton
-            app.SearchEntryButton = uiimage(app.ContainerMainAppGrid);
-            app.SearchEntryButton.ScaleMethod = 'none';
-            app.SearchEntryButton.ImageClickedFcn = createCallbackFcn(app, @onSearchEntryButtonPushed, true);
-            app.SearchEntryButton.Enable = 'off';
-            app.SearchEntryButton.Layout.Row = [1 2];
-            app.SearchEntryButton.Layout.Column = 4;
-            app.SearchEntryButton.ImageSource = 'search-20px.svg';
-
-            % Create SearchSetupButton
-            app.SearchSetupButton = uiimage(app.ContainerMainAppGrid);
-            app.SearchSetupButton.ScaleMethod = 'none';
-            app.SearchSetupButton.ImageClickedFcn = createCallbackFcn(app, @SearchSetupButtonImageClicked, true);
-            app.SearchSetupButton.Layout.Row = [1 2];
-            app.SearchSetupButton.Layout.Column = 5;
-            app.SearchSetupButton.ImageSource = 'settings-20px.svg';
-
-            % Create LastSearch
-            app.LastSearch = uilabel(app.ContainerMainAppGrid);
-            app.LastSearch.FontSize = 11;
-            app.LastSearch.FontColor = [0.4588 0.5294 0.6];
-            app.LastSearch.Layout.Row = 4;
-            app.LastSearch.Layout.Column = 1;
-            app.LastSearch.Text = '';
-
-            % Create ViewRange
-            app.ViewRange = uilabel(app.ContainerMainAppGrid);
-            app.ViewRange.HorizontalAlignment = 'right';
-            app.ViewRange.FontSize = 11;
-            app.ViewRange.FontColor = [0.4588 0.5294 0.6];
-            app.ViewRange.Layout.Row = 4;
-            app.ViewRange.Layout.Column = 2;
-            app.ViewRange.Text = '';
-
-            % Create ViewPreviousRangeButton
-            app.ViewPreviousRangeButton = uiimage(app.ContainerMainAppGrid);
-            app.ViewPreviousRangeButton.ImageClickedFcn = createCallbackFcn(app, @onViewRangeButtonClicked, true);
-            app.ViewPreviousRangeButton.Enable = 'off';
-            app.ViewPreviousRangeButton.Visible = 'off';
-            app.ViewPreviousRangeButton.Layout.Row = 4;
-            app.ViewPreviousRangeButton.Layout.Column = 4;
-            app.ViewPreviousRangeButton.ImageSource = 'chevron-left.svg';
-
-            % Create ViewNextRangeButton
-            app.ViewNextRangeButton = uiimage(app.ContainerMainAppGrid);
-            app.ViewNextRangeButton.ImageClickedFcn = createCallbackFcn(app, @onViewRangeButtonClicked, true);
-            app.ViewNextRangeButton.Enable = 'off';
-            app.ViewNextRangeButton.Visible = 'off';
-            app.ViewNextRangeButton.Layout.Row = 4;
-            app.ViewNextRangeButton.Layout.Column = 5;
-            app.ViewNextRangeButton.ImageSource = 'chevron-right.svg';
-
-            % Create SearchResults
-            app.SearchResults = uilabel(app.ContainerMainAppGrid);
-            app.SearchResults.VerticalAlignment = 'top';
-            app.SearchResults.WordWrap = 'on';
-            app.SearchResults.FontSize = 11;
-            app.SearchResults.Layout.Row = [6 7];
-            app.SearchResults.Layout.Column = [1 5];
-            app.SearchResults.Interpreter = 'html';
-            app.SearchResults.Text = '';
-
-            % Create SearchSuggestions
-            app.SearchSuggestions = uilistbox(app.ContainerMainAppGrid);
-            app.SearchSuggestions.Items = {''};
-            app.SearchSuggestions.Tag = 'CAIXA DE BUSCA';
-            app.SearchSuggestions.Visible = 'off';
-            app.SearchSuggestions.FontSize = 14;
-            app.SearchSuggestions.FontColor = [0 0.1294 0.2392];
-            app.SearchSuggestions.Layout.Row = [3 6];
-            app.SearchSuggestions.Layout.Column = [1 5];
-            app.SearchSuggestions.Value = {};
-
-            % Create TabNavigator
-            app.TabNavigator = uigridlayout(app.GridLayout);
-            app.TabNavigator.ColumnWidth = {28, '1x', '1x', '1x', 28};
-            app.TabNavigator.RowHeight = {'1x', 22};
-            app.TabNavigator.RowSpacing = 0;
-            app.TabNavigator.Padding = [10 10 10 16];
-            app.TabNavigator.Layout.Row = 3;
-            app.TabNavigator.Layout.Column = [1 3];
-            app.TabNavigator.BackgroundColor = [0.1294 0.2 0.2392];
-
-            % Create Tab1Button
-            app.Tab1Button = uiimage(app.TabNavigator);
-            app.Tab1Button.ScaleMethod = 'none';
-            app.Tab1Button.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.Tab1Button.Layout.Row = [1 2];
-            app.Tab1Button.Layout.Column = 2;
-            app.Tab1Button.VerticalAlignment = 'top';
-            app.Tab1Button.ImageSource = 'search-sparkle-24px-yellow.svg';
-
-            % Create Tab1Label
-            app.Tab1Label = uilabel(app.TabNavigator);
-            app.Tab1Label.HorizontalAlignment = 'center';
-            app.Tab1Label.FontSize = 11;
-            app.Tab1Label.FontColor = [1 1 0.0667];
-            app.Tab1Label.Layout.Row = 2;
-            app.Tab1Label.Layout.Column = 2;
-            app.Tab1Label.Text = 'Pesquisa';
-
-            % Create Tab2Button
-            app.Tab2Button = uiimage(app.TabNavigator);
-            app.Tab2Button.ScaleMethod = 'none';
-            app.Tab2Button.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.Tab2Button.Layout.Row = [1 2];
-            app.Tab2Button.Layout.Column = 3;
-            app.Tab2Button.VerticalAlignment = 'top';
-            app.Tab2Button.ImageSource = 'checklist-24px-white.svg';
-
-            % Create Tab2Label
-            app.Tab2Label = uilabel(app.TabNavigator);
-            app.Tab2Label.HorizontalAlignment = 'center';
-            app.Tab2Label.FontSize = 11;
-            app.Tab2Label.FontColor = [1 1 1];
-            app.Tab2Label.Layout.Row = 2;
-            app.Tab2Label.Layout.Column = 3;
-            app.Tab2Label.Text = 'Produtos';
-
-            % Create Tab3Button
-            app.Tab3Button = uiimage(app.TabNavigator);
-            app.Tab3Button.ScaleMethod = 'none';
-            app.Tab3Button.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.Tab3Button.Layout.Row = [1 2];
-            app.Tab3Button.Layout.Column = 4;
-            app.Tab3Button.VerticalAlignment = 'top';
-            app.Tab3Button.ImageSource = 'gear-24px-white.svg';
-
-            % Create Tab3Label
-            app.Tab3Label = uilabel(app.TabNavigator);
-            app.Tab3Label.HorizontalAlignment = 'center';
-            app.Tab3Label.FontSize = 11;
-            app.Tab3Label.FontColor = [1 1 1];
-            app.Tab3Label.Layout.Row = 2;
-            app.Tab3Label.Layout.Column = 4;
-            app.Tab3Label.Text = 'Configurações';
+            % Create AppInfo
+            app.AppInfo = uiimage(app.TitleGrid);
+            app.AppInfo.ScaleMethod = 'none';
+            app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.AppInfo.Layout.Row = 1;
+            app.AppInfo.Layout.Column = 3;
+            app.AppInfo.ImageSource = 'kebab-vertical-24px-white.svg';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

@@ -41,7 +41,6 @@ classdef winProducts_exported < matlab.apps.AppBase
         jsBackDoor
         progressDialog
         popupContainer
-        SubTabGroup = struct('Children', -1, 'UserData', [])
     end
 
 
@@ -129,44 +128,33 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function applyJSCustomizations(app, tabIndex)
-            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
-                return
-            end
-            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
-            
-            switch tabIndex
-                case 1
-                    appName = class(app);
-                    elToModify = {
-                        app.UITable;
-                        app.AddNonCertificate;
-                        app.AnalysisDetails;
-                        app.OpenPopupProject;
-                        app.GenerateReport;
-                        app.UploadFinalFile;
-                        app.ShowDataRules;
-                        app.dockModule_Undock;
-                        app.dockModule_Close
-                    };
-                    ui.CustomizationBase.getElementsDataTag(elToModify);
+        function applyJSCustomizations(app)
+            appName = class(app);
+            elToModify = {
+                app.UITable;
+                app.AddNonCertificate;
+                app.AnalysisDetails;
+                app.OpenPopupProject;
+                app.GenerateReport;
+                app.UploadFinalFile;
+                app.ShowDataRules;
+                app.dockModule_Undock;
+                app.dockModule_Close
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
 
-                    try
-                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.AddNonCertificate.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona produto NÃO homologado à lista')), ...
-                            struct('appName', appName, 'dataTag', app.AnalysisDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre formulário para edição de lista de produtos inspecionados')), ...
-                            struct('appName', appName, 'dataTag', app.OpenPopupProject.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
-                            struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
-                            struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
-                            struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
-                        });
-                    catch
-                    end
-
-                otherwise
-                    % ...
+            try
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.AddNonCertificate.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona produto NÃO homologado à lista')), ...
+                    struct('appName', appName, 'dataTag', app.AnalysisDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre formulário para edição de lista de produtos inspecionados')), ...
+                    struct('appName', appName, 'dataTag', app.OpenPopupProject.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Edita informações do projeto<br>(fiscalizada, arquivo de backup etc)')), ...
+                    struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
+                    struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
+                    struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
+                    struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                    struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                });
+            catch
             end
         end
 

@@ -216,6 +216,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                 end
             end
 
+            try
+                appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, [], app.executionMode)
+            catch ME
+                appEngine.util.killingMATLABRuntime(app.executionMode)
+            end
+
             delete(app)
 
         end

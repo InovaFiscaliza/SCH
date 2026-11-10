@@ -81,8 +81,6 @@ classdef desktop_exported < matlab.apps.AppBase
         popupContainer
         popupCurrentApp
 
-        SubTabGroup = struct('Children', -1, 'UserData', [])
-
         eFiscalizaObj
         filteringObj = tableFiltering
         wordCloudObj
@@ -679,66 +677,55 @@ classdef desktop_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function applyJSCustomizations(app, tabIndex)
-            if app.SubTabGroup.UserData.isTabInitialized(tabIndex)
-                return
+        function applyJSCustomizations(app)
+            appName = class(app);
+            elToModify = {
+                app.Tab1Button;
+                app.Tab2Button;
+                app.Tab3Button;
+                app.Tab4Button;
+                app.SearchEntryPoint;
+                app.SearchSuggestions;
+                app.AttributesLabel;
+                app.ExportVisibleTable;
+                app.AddSelectedToBucket;
+                app.ProductDetails;
+                app.PanelVisibility;
+                app.UITable;
+                app.PopupTempWarning;
+                app.Homologation;
+                app.Image;
+                app.Ads;
+                app.WordCloud
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
+
+            try
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px 0 0 0')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'selector', 'input', 'style', struct('paddingRight', '60px')), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'style', struct('borderTop', '0')), ...
+                    struct('appName', appName, 'dataTag', app.AttributesLabel.UserData.id, 'styleImportant', struct('borderLeft', '3px solid #a6a6a6', 'paddingLeft', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.ExportVisibleTable.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exporta resultados de busca em arquivo Excel (.xlsx)')), ...
+                    struct('appName', appName, 'dataTag', app.AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos inspecionados')), ...
+                    struct('appName', appName, 'dataTag', app.ProductDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre painel de atributos em tela inteira')), ...
+                    struct('appName', appName, 'dataTag', app.PanelVisibility.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Alterna visibilidade do painel')), ...
+                    struct('appName', appName, 'dataTag', app.UITable.UserData.id, 'tableMultiline', struct('status', true, 'verticalCenter', true), 'tableSelectionStyle', struct('color', '#ffffff', 'backgroundColor', '#21333d')), ...
+                    struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                    struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                    struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                    struct('appName', appName, 'dataTag', app.Tab4Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
+                    struct('appName', appName, 'dataTag', app.PopupTempWarning.UserData.id, 'style', struct('borderRadius', '8px', 'pointerEvents', 'none')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                });
+            catch
             end
-            app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
 
-            switch tabIndex
-                case 1
-                    appName = class(app);
-                    elToModify = {
-                        app.Tab1Button;
-                        app.Tab2Button;
-                        app.Tab3Button;
-                        app.Tab4Button;
-                        app.SearchEntryPoint;
-                        app.SearchSuggestions;
-                        app.AttributesLabel;
-                        app.ExportVisibleTable;
-                        app.AddSelectedToBucket;
-                        app.ProductDetails;
-                        app.PanelVisibility;
-                        app.UITable;
-                        app.PopupTempWarning;
-                        app.Homologation;
-                        app.Image;
-                        app.Ads;
-                        app.WordCloud
-                    };
-                    ui.CustomizationBase.getElementsDataTag(elToModify);
-
-                    try
-                        sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px 0 0 0')), ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'selector', 'input', 'style', struct('paddingRight', '60px')), ...
-                            struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'style', struct('borderTop', '0')), ...
-                            struct('appName', appName, 'dataTag', app.AttributesLabel.UserData.id, 'styleImportant', struct('borderLeft', '3px solid #a6a6a6', 'paddingLeft', '8px')), ...
-                            struct('appName', appName, 'dataTag', app.ExportVisibleTable.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exporta resultados de busca em arquivo Excel (.xlsx)')), ...
-                            struct('appName', appName, 'dataTag', app.AddSelectedToBucket.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Adiciona registros à lista de produtos inspecionados')), ...
-                            struct('appName', appName, 'dataTag', app.ProductDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre painel de atributos em tela inteira')), ...
-                            struct('appName', appName, 'dataTag', app.PanelVisibility.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Alterna visibilidade do painel')), ...
-                            struct('appName', appName, 'dataTag', app.UITable.UserData.id, 'tableMultiline', struct('status', true, 'verticalCenter', true), 'tableSelectionStyle', struct('color', '#ffffff', 'backgroundColor', '#21333d')), ...
-                            struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
-                            struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
-                            struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
-                            struct('appName', appName, 'dataTag', app.Tab4Button.UserData.id, 'generation', 1, 'class', 'tab-navigator-button'), ...
-                            struct('appName', appName, 'dataTag', app.PopupTempWarning.UserData.id, 'style', struct('borderRadius', '8px', 'pointerEvents', 'none')), ...
-                            struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
-                            struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
-                        });
-                    catch
-                    end
-
-                    try
-                        ui.TextView.startup(app.jsBackDoor, app.Homologation, appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
-                        ui.TextView.startup(app.jsBackDoor, app.Ads,          appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
-                    catch
-                    end
-
-                otherwise
-                    % ...
+            try
+                ui.TextView.startup(app.jsBackDoor, app.Homologation, appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
+                ui.TextView.startup(app.jsBackDoor, app.Ads,          appName, struct('class', {{'textview--borderless', 'textview--wordbreak'}}));
+            catch
             end
         end
 
@@ -782,12 +769,11 @@ classdef desktop_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
-            app.tabGroupController = ui.TabNavigator(app.NavBar, app.TabGroup, app.progressDialog, app.jsBackDoor);
-            addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", struct('On', '', 'Off', ''), matlab.graphics.GraphicsPlaceholder, 1)
-            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      2)
-            addComponent(app.tabGroupController, "External", "auxApp.winCustoms",  app.Tab3Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      3)
-            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab4Button, "AlwaysOn", struct('On', '', 'Off', ''), app.Tab1Button,                      4)
-            app.tabGroupController.inlineSVG = true;
+            app.tabGroupController = ui.TabNavigator(app);
+            addComponent(app.tabGroupController, "Built-in", "",                   app.Tab1Button, "AlwaysOn", matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "External", "auxApp.winProducts", app.Tab2Button, "AlwaysOn", app.Tab1Button,                      2)
+            addComponent(app.tabGroupController, "External", "auxApp.winCustoms",  app.Tab3Button, "AlwaysOn", app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfig",   app.Tab4Button, "AlwaysOn", app.Tab1Button,                      4)
 
             % Inicialização da propriedade "UserData" da tabela.
             app.UITable.UserData.matchRowIdxs = [];
@@ -1599,12 +1585,6 @@ classdef desktop_exported < matlab.apps.AppBase
             try
                 util.writeExternalFile.Annotation(app.rootFolder, app.General.fileFolder.DataHub_POST, app.annotationTable);
             catch
-            end
-
-            try
-                appEngine.beforeDeleteApp(app.progressDialog, app.General_I.fileFolder.tempPath, app.tabGroupController, app.executionMode)
-            catch ME
-                appEngine.util.killingMATLABRuntime(app.executionMode)
             end
 
             delete(app)
