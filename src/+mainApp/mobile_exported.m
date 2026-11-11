@@ -202,9 +202,14 @@ classdef mobile_exported < matlab.apps.AppBase
                         app.General.AppVersion.browser = event.HTMLEventData;
 
                     case 'findResourceStaticURL'
-                        resourceStaticURL = event.HTMLEventData;
-                        if ~isempty(resourceStaticURL)
-                            app.General.AppVersion.application.resourceStaticURL = resourceStaticURL;
+                        resourceURL = event.HTMLEventData;
+                        if ~isempty(resourceURL)
+                            app.General.AppVersion.application.resourceStaticURL = resourceURL;
+
+                            % Atualiza o placeholder, renderizado possivelmente antes da URL estar disponível.
+                            if isempty(app.searchResults) && isempty(app.SearchResults.Text)
+                                app.SearchResults.Text = createWarningPlaceholder(app);
+                            end
                         end
 
                     case 'onMobileSearchResultDetailsRequested'
@@ -632,7 +637,7 @@ classdef mobile_exported < matlab.apps.AppBase
                     app.searchResults = table();
                     app.searchResultSituations = strings(0, 1);
                     app.resultPageStart = 1;
-                    app.SearchResults.Text = '';
+                    app.SearchResults.Text = createWarningPlaceholder(app);
                     set([app.ViewPreviousRangeButton, app.ViewNextRangeButton], 'Visible', 0)
                     setComponentsState(app, 'resultsRange')
                     updateSearchContext(app)
@@ -964,6 +969,13 @@ classdef mobile_exported < matlab.apps.AppBase
                 detailsButton, ...
                 addButton ...
             );
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlPlaceholder = createWarningPlaceholder(app)
+            title = 'Nenhuma pesquisa realizada';
+            message = 'Informe os critérios de busca<br>para visualizar os resultados';
+            htmlPlaceholder = util.HtmlTextGenerator.createWarningPlaceholder(app.General, title, message);
         end
 
         %-----------------------------------------------------------------%

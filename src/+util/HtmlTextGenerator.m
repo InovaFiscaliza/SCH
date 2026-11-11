@@ -418,6 +418,29 @@ classdef (Abstract) HtmlTextGenerator
                 totalCount = sum(categoriesCount);
             end
         end
+
+        %-----------------------------------------------------------------%
+        function htmlPlaceholder = createWarningPlaceholder(generalSettings, title, message)
+            htmlPlaceholder = '';
+
+            resourceURL = generalSettings.AppVersion.application.resourceStaticURL;
+            if isempty(resourceURL)
+                return
+            end
+            
+            iconURL = replace(resourceURL, '{resourceName}', 'warning.svg');
+            iconHTML = sprintf('<img src="%s" width="48" height="48"><br><br>', iconURL);
+
+            htmlPlaceholder = sprintf([ ...
+                '<table style="width: 100%%;"><tbody><tr>' ...
+                    '<td align="center">' ...
+                        '%s' ...
+                        '<font style="color: #00213d; font-size: 14px;"><b>%s</b></font><br><br>' ...
+                        '<font style="color: #4a6283; font-size: 12px;">%s</font>' ...
+                    '</td>' ...
+                '</tr></tbody></table>' ...
+            ], iconHTML, title, message);
+        end
     end
 
 

@@ -129,11 +129,13 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             nProducts = height(inspectedProducts);
 
             if nProducts == 0
-                app.ViewRange.Text = 'Nenhum produto adicionado à lista  ';
-                app.Products.Text = '';
+                app.ViewRange.Text = '';
+                app.Products.Text = createWarningPlaceholder(app);
                 return
+
             elseif nProducts == 1
                 app.ViewRange.Text = 'Um único produto na lista  ';
+
             else
                 app.ViewRange.Text = sprintf('%d produtos na lista  ', nProducts);
             end
@@ -150,11 +152,20 @@ classdef mobileProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
+        function htmlPlaceholder = createWarningPlaceholder(app)
+            title = 'Nenhum produto adicionado';
+            message = 'Adicione um produto para iniciar<br>o preenchimento das informações';
+            htmlPlaceholder = util.HtmlTextGenerator.createWarningPlaceholder(app.mainApp.General, title, message);
+        end
+
+        %-----------------------------------------------------------------%
         function htmlCard = createProductCard(app, inspectedProducts, rowIdx)
             homologation = char(string(inspectedProducts.('Homologação'){rowIdx}));
             if strcmp(homologation, '-')
                 homologation = 'Produto não homologado';
             end
+
+            situationColor = getSituationColor(app, homologation);
 
             manufacturer = char(string(inspectedProducts.('Fabricante'){rowIdx}));
             modelName    = char(string(inspectedProducts.('Modelo'){rowIdx}));
@@ -171,17 +182,18 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             htmlCard = sprintf([ ...
                 '<section style="background-color: white; margin: 0 2px 0 0; padding: 10px; border: 1px solid #d7dce0; border-radius: 8px;">' ...
                     '<table style="width: 100%%;"><tbody><tr>' ...
-                        '<td style="background-color: #087dba; width: 5px;"></td>' ...
+                        '<td style="background-color: %s; width: 5px;"></td>' ...
                         '<td style="padding-left: 10px;"><p>' ...
                             '<font style="color: rgb(32, 32, 32); font-size: 16px;"><b>%s</b></font><br>' ...
                             '<font style="color: rgb(96, 96, 96);">%s</font><br>' ...
                             '<font style="color: rgb(96, 96, 96);">%s</font>' ...
                         '</p></td>' ...
-                        '<td style="width: 34px;">%s</td>' ...
-                        '<td style="width: 20px;">%s</td>' ...
+                        '<td style="width: 34px;"><font style="font-size: 13px;">%s</font></td>' ...
+                        '<td style="width: 24px;">%s</td>' ...
                     '</tr></tbody></table>' ...
                 '</section>' ...
             ], ...
+                situationColor, ...
                 escapeHtml(app, homologation), ...
                 escapeHtml(app, manufacturer), ...
                 escapeHtml(app, modelName), ...
@@ -196,7 +208,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
                 case 'edit'
                     htmlLink = ui.TextView.createHTMLLink('edit', app.AppHandleNameInBase, eventName, num2str(rowIdx));
                 otherwise
-                    htmlLink = ui.TextView.createHTMLLink('customImage', app.AppHandleNameInBase, eventName, num2str(rowIdx), iconName, 16, 16, app.mainApp.General);
+                    htmlLink = ui.TextView.createHTMLLink('customImage', app.AppHandleNameInBase, eventName, num2str(rowIdx), iconName, 20, 20, app.mainApp.General);
             end
             htmlLink = sprintf('<span title="%s">%s</span>', tooltip, htmlLink);
         end
@@ -224,6 +236,16 @@ classdef mobileProducts_exported < matlab.apps.AppBase
 
             updateInspectedProducts(app.projectData, 'delete', rowIdx)
             renderInspectedProducts(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function color = getSituationColor(~, situation)
+            switch string(situation)
+                case 'Produto não homologado'
+                    color = '#ea6071'; % 'rgb(192, 57, 43)';
+                otherwise
+                    color = '#84939d'; % 'rgb(128, 128, 128)';
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -343,7 +365,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.CurrentFilterIcon.ScaleMethod = 'none';
             app.CurrentFilterIcon.Layout.Row = 1;
             app.CurrentFilterIcon.Layout.Column = 1;
-            app.CurrentFilterIcon.ImageSource = 'checklist.svg';
+            app.CurrentFilterIcon.ImageSource = 'package.svg';
 
             % Create CurrentFilterLabel
             app.CurrentFilterLabel = uilabel(app.CurrentFilterGrid);
@@ -372,7 +394,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.ViewRange.FontColor = [0.4588 0.5294 0.6];
             app.ViewRange.Layout.Row = 1;
             app.ViewRange.Layout.Column = [1 2];
-            app.ViewRange.Text = 'Nenhum produto adicionado à lista  ';
+            app.ViewRange.Text = '';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

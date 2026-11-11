@@ -204,6 +204,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
 
             numProducts = height(app.projectData.inspectedProducts);
             app.ProductPosition.Text = sprintf('%d de %d', currentProductIdx, numProducts);
+            set([app.ProductNext, app.ProductPrevious], 'Enable', numProducts > 1)
 
             app.Type.Value = char(app.projectData.inspectedProducts.("Tipo")(currentProductIdx));
             updateTypeSubtypeMapping(app, app.Type.Value, app.projectData.inspectedProducts.("Subtipo"){currentProductIdx})
@@ -397,7 +398,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 387 1720];
+                app.UIFigure.Position = [100 100 387 720];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
@@ -487,7 +488,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             % Create ProductStatusGrid
             app.ProductStatusGrid = uigridlayout(app.GridLayout);
             app.ProductStatusGrid.ColumnWidth = {'1x', '1x', '1x'};
-            app.ProductStatusGrid.RowHeight = {22, 38, 22, 38, 22, 38, 22, 38, 22, 28, 28, 28, 1, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 44, '1x'};
+            app.ProductStatusGrid.RowHeight = {22, 38, 22, 38, 22, 38, 22, 38, 22, 28, 28, 28, 1, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 38, 22, 76, '1x'};
             app.ProductStatusGrid.RowSpacing = 5;
             app.ProductStatusGrid.Padding = [0 0 1 0];
             app.ProductStatusGrid.Layout.Row = 2;
