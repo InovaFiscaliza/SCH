@@ -385,6 +385,21 @@ classdef mobile_exported < matlab.apps.AppBase
 
             try
                 switch class(callingApp)
+                    case {'auxApp.mobileSearchAddSelectedToBucket', 'auxApp.mobileSearchAddSelectedToBucket_exported'}
+                        switch eventName
+                            case 'onAddSelectedToBucketRequest'
+                                schDetailedIdxs = varargin{1};
+
+                                applyLayout(app, 'mainAppMobile')
+                                delete(app.popupCurrentApp)
+                                app.popupCurrentApp = [];
+
+                                addInspectedProducts(app, schDetailedIdxs)
+
+                            otherwise
+                                error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
+                        end
+
                     case {'auxApp.mobileSearchFilter', 'auxApp.mobileSearchFilter_exported'}
                         switch eventName
                             case 'onSearchModeChanged'
@@ -445,7 +460,7 @@ classdef mobile_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'SearchFilter', 'ProductInfo'})}
+                auxAppName char {mustBeMember(auxAppName, {'SearchAddSelectedToBucket', 'SearchFilter', 'ProductInfo'})}
                 context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'REPORT'})}
             end
 
@@ -848,6 +863,21 @@ classdef mobile_exported < matlab.apps.AppBase
 
             homologation = char(string(app.searchResults.('Homologação')(resultIdx)));
             schDetailedIdxs = find(strcmp(app.schData.detailed.('Homologação'), homologation));
+
+            schDetailed = app.schData.detailed(schDetailedIdxs, {'Homologação', 'Solicitante', 'Fabricante', 'Modelo', 'Nome Comercial'});
+            [~, schDetailedUniqueFirstIdxs] = unique(schDetailed, 'rows');
+            schDetailedIdxs = schDetailedIdxs(sort(schDetailedUniqueFirstIdxs));
+
+            if numel(schDetailedIdxs) > 1
+                ipcMainMatlabOpenPopupApp(app, app, 'SearchAddSelectedToBucket', app.Context, schDetailedIdxs)
+                return
+            end
+
+            addInspectedProducts(app, schDetailedIdxs)
+        end
+
+        %-----------------------------------------------------------------%
+        function addInspectedProducts(app, schDetailedIdxs)
             addedCount = 0;
 
             for ii = 1:numel(schDetailedIdxs)

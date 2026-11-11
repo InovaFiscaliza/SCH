@@ -49,6 +49,9 @@ classdef mobileProducts_exported < matlab.apps.AppBase
                     case 'onMobileProductDeleteRequested'
                         deleteInspectedProduct(app, str2double(event.HTMLEventData))
 
+                    case 'onMobileProductWarningRequested'
+                        showInspectedProductWarnings(app, str2double(event.HTMLEventData))
+
                     otherwise
                         ipcMainJSEventsHandler(app.mainApp, event)
                 end
@@ -144,9 +147,11 @@ classdef mobileProducts_exported < matlab.apps.AppBase
                 app.AppHandleNameInBase = ui.Table.exportAppHandleToBaseWorkspace(app);
             end
 
+            invalidRowIdxs = validateInspectedProducts(app.projectData);
+
             cards = strings(nProducts, 1);
             for ii = 1:nProducts
-                cards(ii) = createProductCard(app, inspectedProducts, ii);
+                cards(ii) = createProductCard(app, inspectedProducts, ii, ismember(ii, invalidRowIdxs));
             end
             app.Products.Text = char(join(cards, newline));
         end
@@ -159,7 +164,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function htmlCard = createProductCard(app, inspectedProducts, rowIdx)
+        function htmlCard = createProductCard(app, inspectedProducts, rowIdx, isInvalid)
             homologation = char(string(inspectedProducts.('Homologação'){rowIdx}));
             if strcmp(homologation, '-')
                 homologation = 'Produto não homologado';
@@ -179,12 +184,17 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             editButton   = createProductActionLink(app, 'onMobileProductEditRequested',   rowIdx, 'edit', '', 'Editar produto');
             deleteButton = createProductActionLink(app, 'onMobileProductDeleteRequested', rowIdx, 'customImage', 'close-16px-red.svg', 'Excluir produto');
 
+            warningButton = '';
+            if isInvalid
+                warningButton = ['&nbsp;' createProductActionLink(app, 'onMobileProductWarningRequested', rowIdx, 'customImage', 'warning-20px-red.svg', 'Ver pendências do registro')];
+            end
+
             htmlCard = sprintf([ ...
                 '<section style="background-color: white; margin: 0 2px 0 0; padding: 10px; border: 1px solid #d7dce0; border-radius: 8px;">' ...
                     '<table style="width: 100%%;"><tbody><tr>' ...
                         '<td style="background-color: %s; width: 5px;"></td>' ...
                         '<td style="padding-left: 10px;"><p>' ...
-                            '<font style="color: rgb(32, 32, 32); font-size: 16px;"><b>%s</b></font><br>' ...
+                            '<font style="color: rgb(32, 32, 32); font-size: 16px;"><b>%s</b>%s</font><br>' ...
                             '<font style="color: rgb(96, 96, 96);">%s</font><br>' ...
                             '<font style="color: rgb(96, 96, 96);">%s</font>' ...
                         '</p></td>' ...
@@ -195,6 +205,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             ], ...
                 situationColor, ...
                 escapeHtml(app, homologation), ...
+                warningButton, ...
                 escapeHtml(app, manufacturer), ...
                 escapeHtml(app, modelName), ...
                 editButton, ...
@@ -211,6 +222,29 @@ classdef mobileProducts_exported < matlab.apps.AppBase
                     htmlLink = ui.TextView.createHTMLLink('customImage', app.AppHandleNameInBase, eventName, num2str(rowIdx), iconName, 20, 20, app.mainApp.General);
             end
             htmlLink = sprintf('<span title="%s">%s</span>', tooltip, htmlLink);
+        end
+
+        %-----------------------------------------------------------------%
+        function showInspectedProductWarnings(app, rowIdx)
+            if ~isscalar(rowIdx) || ~isfinite(rowIdx) || rowIdx < 1 || rowIdx > height(app.projectData.inspectedProducts)
+                return
+            end
+
+            [~, ruleViolationMatrix] = validateInspectedProducts(app.projectData);
+            if ~any(ruleViolationMatrix(rowIdx, :))
+                return
+            end
+
+            html = util.HtmlTextGenerator.createInspectedProductWarnings(ruleViolationMatrix(rowIdx, :));
+
+            sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                'dataTag',  'productWarnings', ...
+                'imageUrl', 'warning-20px-red.svg', ...
+                'title',    'Registro com pendências', ...
+                'width',    85, ...
+                'height',   50, ...
+                'html',     html ...
+            ));
         end
 
         %-----------------------------------------------------------------%

@@ -441,6 +441,20 @@ classdef (Abstract) HtmlTextGenerator
                 '</tr></tbody></table>' ...
             ], iconHTML, title, message);
         end
+
+        %-----------------------------------------------------------------%
+        function htmlContent = createInspectedProductWarnings(violationMask)
+            % violationMask: vetor lógico (1 x N) de uma linha da matriz
+            % retornada por "validateInspectedProducts" (model.Project).
+            rules = model.ProjectBase.getInspectedProductsValidationRules();
+            descriptions = {rules(violationMask).description};
+            items = strcat('<li style="margin-bottom: 6px;">', descriptions, '</li>');
+
+            htmlContent = sprintf([ ...
+                '<p style="margin-top: 0;">O registro apresenta as seguintes pendências:</p>' ...
+                '<ul style="padding-left: 18px;">%s</ul>' ...
+            ], strjoin(items, ''));
+        end
     end
 
 

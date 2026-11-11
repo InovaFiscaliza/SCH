@@ -13,6 +13,7 @@ classdef (Abstract) ProjectBase
     %   ├── model.ProjectBase.computeInspectedProductHash   (Static)
     %   ├── model.ProjectBase.createInspectedProductsTable  (Static)
     %   ├── model.ProjectBase.validateCategoricalColumns    (Static)
+    %   ├── model.ProjectBase.getInspectedProductsValidationRules (Static)
     %   ├── model.ProjectBase.initializeInspectedProduct    (Static)
     %   │   └── model.ProjectBase.computeInspectedProductHash
     %   ├── model.ProjectBase.prepareCustomsRules           (Static)
@@ -253,6 +254,79 @@ classdef (Abstract) ProjectBase
                     inspectedProducts.(column)(invalidIndexes) = categorical(columnSpec.default);
                 end
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function rules = getInspectedProductsValidationRules()
+            % Fonte única das regras de consistência e preenchimento da tabela
+            % "inspectedProducts", respeitando regras estabelecidas no eFiscaliza
+            % p/ upload da lista de produtos inspecionados. Cada elemento do
+            % vetor de structs (na ordem #01 a #13) possui os campos:
+            % • columns    : colunas relacionadas à regra (cellstr);
+            % • description: descrição da regra, apresentada ao usuário;
+            % • validate   : função anônima que recebe a tabela "inspectedProducts"
+            %                e retorna vetor lógico (N x 1), true p/ linhas que
+            %                VIOLAM a regra.
+            %
+            % Para criar uma nova regra, basta incluir uma nova chamada a "rule" abaixo.
+
+            sumOf = @(t, columns) sum(double(t{:, columns}), 2);
+            text  = @(t, column)  string(t.(column));
+            rule  = @(columns, description, validate) struct('columns', {columns}, 'description', description, 'validate', validate);
+
+            rules = [
+                rule({'Tipo', 'Subtipo'}, ...
+                    'Tipo e subtipo devem ser preenchidos.', ...
+                    @(t) text(t, 'Tipo') == "-" | text(t, 'Subtipo') == "-");
+
+                rule({'Fabricante'}, ...
+                    'Fabricante deve ser preenchido.', ...
+                    @(t) text(t, 'Fabricante') == "");
+
+                rule({'Modelo'}, ...
+                    'Modelo deve ser preenchido.', ...
+                    @(t) text(t, 'Modelo') == "");
+
+                rule({'Valor Unit. (R$)'}, ...
+                    'Valor unitário não pode ser menor do que zero.', ...
+                    @(t) t.("Valor Unit. (R$)") < 0);
+
+                rule({'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}, ...
+                    'A soma das quantidades em uso, vendida, em estoque/aduana e anunciada deve ser maior que zero.', ...
+                    @(t) sumOf(t, {'Qtd. uso', 'Qtd. vendida', 'Qtd. estoque/aduana', 'Qtd. anunciada'}) <= 0);
+
+                rule({'Qtd. uso', 'Qtd. estoque/aduana', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ...
+                    'A soma das quantidades em uso e em estoque/aduana não pode ser menor do que a soma das quantidades lacradas, apreendidas e retidas (RFB).', ...
+                    @(t) sumOf(t, {'Qtd. uso', 'Qtd. estoque/aduana'}) < sumOf(t, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}));
+
+                rule({'Situação'}, ...
+                    'Situação deve ser preenchida.', ...
+                    @(t) text(t, 'Situação') == "-");
+
+                rule({'Situação', 'Infração'}, ...
+                    'Situação e infração devem ser coerentes: situação regular não admite infração, e situação irregular exige infração.', ...
+                    @(t) (text(t, 'Situação') == "Regular" & text(t, 'Infração') ~= "-") | (text(t, 'Situação') == "Irregular" & text(t, 'Infração') == "-"));
+
+                rule({'Situação', 'Valor Unit. (R$)'}, ...
+                    'Em situação irregular, o valor unitário deve ser maior do que zero.', ...
+                    @(t) text(t, 'Situação') == "Irregular" & t.("Valor Unit. (R$)") == 0);
+
+                rule({'Situação', 'Fonte do valor'}, ...
+                    'Em situação irregular, a fonte do valor deve ser preenchida.', ...
+                    @(t) text(t, 'Situação') == "Irregular" & text(t, 'Fonte do valor') == "");
+
+                rule({'Situação', 'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}, ...
+                    'Em situação regular, não pode haver quantidades lacradas, apreendidas ou retidas (RFB).', ...
+                    @(t) text(t, 'Situação') == "Regular" & sumOf(t, {'Qtd. lacradas', 'Qtd. apreendidas', 'Qtd. retidas (RFB)'}) > 0);
+
+                rule({'Qtd. lacradas', 'Qtd. apreendidas', 'Lacre'}, ...
+                    'Havendo quantidades lacradas ou apreendidas, o lacre deve ser preenchido.', ...
+                    @(t) sumOf(t, {'Qtd. lacradas', 'Qtd. apreendidas'}) > 0 & text(t, 'Lacre') == "");
+
+                rule({'Qtd. lacradas', 'Qtd. apreendidas', 'PLAI'}, ...
+                    'Havendo quantidades lacradas ou apreendidas, o PLAI deve ser preenchido.', ...
+                    @(t) sumOf(t, {'Qtd. lacradas', 'Qtd. apreendidas'}) > 0 & text(t, 'PLAI') == "")
+            ];
         end
 
         %-----------------------------------------------------------------%

@@ -64,6 +64,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'secondaryDockAppMobile'
+        AppHandleNameInBase = ''
     end
 
 
@@ -84,6 +85,22 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
 
 
     methods
+        %-----------------------------------------------------------------%
+        function ipcSecondaryJSEventsHandler(app, event)
+            try
+                switch event.HTMLEventName
+                    case 'onMobileProductWarningRequested'
+                        showInspectedProductWarnings(app)
+
+                    otherwise
+                        ipcMainJSEventsHandler(app.mainApp, event)
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.message);
+            end
+        end
+
         %-----------------------------------------------------------------%
         function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
             try
@@ -184,23 +201,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function updateForm(app, currentProductIdx)
-            homologation = app.projectData.inspectedProducts.("Homologação"){currentProductIdx};
-            if strcmp(homologation, '-')
-                homologation = 'Produto não homologado';
-            end
-
-            app.Homologation.Text = sprintf([ ...
-                '<section>' ...
-                    '<table style="width: 100%%;">' ...
-                        '<tbody>' ...
-                            '<tr>' ...
-                                '<td><font style="font-size: 16px;"><b>%s</b></font><br>Caracterização do produto e levantamento de informações fiscalizatórias.</td>' ...
-                                '<td style="width: 76px;"><section style="border: 1px solid #C3D9EC; border-radius: 5px; padding: 5px; margin-right: 2px; background-color: #DCEBFA; color: #245A7A">Em edição</section></td>' ...
-                            '</tr>' ...
-                        '</tbody>' ...
-                    '</table>' ...
-                '</section>' ...
-            ], homologation);
+            updateHomologationTitle(app, currentProductIdx)
 
             numProducts = height(app.projectData.inspectedProducts);
             app.ProductPosition.Text = sprintf('%d de %d', currentProductIdx, numProducts);
@@ -236,6 +237,64 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.Value = char(app.projectData.inspectedProducts.("Infração")(currentProductIdx));
             app.Corrigible.Value = char(app.projectData.inspectedProducts.("Sanável?")(currentProductIdx));
             app.Note.Value = app.projectData.inspectedProducts.("Informações adicionais"){currentProductIdx};
+        end
+
+        %-----------------------------------------------------------------%
+        function updateHomologationTitle(app, currentProductIdx)
+            homologation = app.projectData.inspectedProducts.("Homologação"){currentProductIdx};
+            if strcmp(homologation, '-')
+                homologation = 'Produto não homologado';
+            end
+
+            [~, ruleViolationMatrix] = validateInspectedProducts(app.projectData);
+            warningLink = '';
+            if any(ruleViolationMatrix(currentProductIdx, :))
+                warningLink = ['&nbsp;' createWarningLink(app)];
+            end
+
+            app.Homologation.Text = sprintf([ ...
+                '<section>' ...
+                    '<table style="width: 100%%;">' ...
+                        '<tbody>' ...
+                            '<tr>' ...
+                                '<td><font style="font-size: 16px;"><b>%s</b>%s</font><br>Caracterização do produto e levantamento de informações fiscalizatórias.</td>' ...
+                                '<td style="width: 76px;"><section style="border: 1px solid #C3D9EC; border-radius: 5px; padding: 5px; margin-right: 2px; background-color: #DCEBFA; color: #245A7A">Em edição</section></td>' ...
+                            '</tr>' ...
+                        '</tbody>' ...
+                    '</table>' ...
+                '</section>' ...
+            ], homologation, warningLink);
+        end
+
+        %-----------------------------------------------------------------%
+        function htmlLink = createWarningLink(app)
+            if isempty(app.AppHandleNameInBase) || ~evalin('base', sprintf('exist("%s", "var") && isa(%s, "%s") && isvalid(%s)', app.AppHandleNameInBase, app.AppHandleNameInBase, class(app), app.AppHandleNameInBase))
+                app.AppHandleNameInBase = ui.Table.exportAppHandleToBaseWorkspace(app);
+            end
+
+            htmlLink = ui.TextView.createHTMLLink('customImage', app.AppHandleNameInBase, 'onMobileProductWarningRequested', '1', 'warning-20px-red.svg', 20, 20, app.mainApp.General);
+            htmlLink = sprintf('<span title="Ver pendências do registro">%s</span>', htmlLink);
+        end
+
+        %-----------------------------------------------------------------%
+        function showInspectedProductWarnings(app)
+            currentProductIdx = app.inputArgs.selectedProductIdx;
+
+            [~, ruleViolationMatrix] = validateInspectedProducts(app.projectData);
+            if ~any(ruleViolationMatrix(currentProductIdx, :))
+                return
+            end
+
+            html = util.HtmlTextGenerator.createInspectedProductWarnings(ruleViolationMatrix(currentProductIdx, :));
+
+            sendEventToHTMLSource(app.mainApp.jsBackDoor, 'textHighlight', struct( ...
+                'dataTag',  'productWarnings', ...
+                'imageUrl', 'warning-20px-red.svg', ...
+                'title',    'Registro com pendências', ...
+                'width',    85, ...
+                'height',   50, ...
+                'html',     html ...
+            ));
         end
 
         %-----------------------------------------------------------------%
@@ -355,6 +414,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
 
             currentProductIdx = app.inputArgs.selectedProductIdx;
             updateInspectedProducts(app.projectData, 'edit', currentProductIdx, productData(:, 1), productData(:, 2)')
+            updateHomologationTitle(app, currentProductIdx)
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onInspectedProductEdited', "PRODUCTS", currentProductIdx)
             
         end
@@ -401,6 +461,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
                 app.UIFigure.Position = [100 100 387 720];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
+                app.UIFigure.Resize = 'off';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
 
                 app.Container = app.UIFigure;
