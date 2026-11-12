@@ -74,7 +74,7 @@ classdef (Abstract) HtmlTextGenerator
             dataType = varargin{1};
 
             switch dataType
-                case 'ProdutoHomologado'
+                case {'ProdutoHomologado', 'ProdutoHomologado - Mobile'}
                     relatedSCHTable = varargin{2};
                     wordCloudsCount = varargin{3};
                     imagesCount = varargin{4};
@@ -176,9 +176,12 @@ classdef (Abstract) HtmlTextGenerator
                     displayEntry(3) = struct('group', 'Modelo:',     'value', Modelo);
             end
 
-            freeInitialText = sprintf('<font style="color: white; background-color: #638094; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
-            %freeInitialText = sprintf('<font style="font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
-            htmlContent     = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, 'textview', 'normal+gray', 'margin-top: 7px; ');
+            freeInitialText = '';
+            if ~strcmp(dataType, 'ProdutoHomologado - Mobile')
+                freeInitialText = sprintf('<font style="color: white; background-color: #638094; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            end
+            
+            htmlContent = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, 'textview', 'normal+gray', 'margin-top: 7px; ');
             
             function htmlList = getListOfValues(referenceTable, columnName)        
                 values = setdiff(unique(referenceTable.(columnName)), {''});

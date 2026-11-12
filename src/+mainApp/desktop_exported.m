@@ -583,16 +583,17 @@ classdef desktop_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function ipcMainMatlabCallAuxiliarApp(app, auxAppName, communicationType, varargin)
             hAuxApp = getAppHandle(app.tabGroupController, auxAppName);
+            if isempty(hAuxApp) || ~isvalid(hAuxApp)
+                return
+            end
 
-            if ~isempty(hAuxApp)
-                switch communicationType
-                    case 'MATLAB'
-                        operationType = varargin{1};
-                        ipcSecondaryMatlabCallsHandler(hAuxApp, app, operationType, varargin{2:end});
-                    case 'JS'
-                        event = varargin{1};
-                        ipcSecondaryJSEventsHandler(hAuxApp, event)
-                end
+            switch communicationType
+                case 'MATLAB'
+                    operationType = varargin{1};
+                    ipcSecondaryMatlabCallsHandler(hAuxApp, app, operationType, varargin{2:end});
+                case 'JS'
+                    event = varargin{1};
+                    ipcSecondaryJSEventsHandler(hAuxApp, event)
             end
         end
 

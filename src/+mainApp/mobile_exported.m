@@ -11,6 +11,7 @@ classdef mobile_exported < matlab.apps.AppBase
         TabGroup                 matlab.ui.container.TabGroup
         Tab1                     matlab.ui.container.Tab
         Grid1                    matlab.ui.container.GridLayout
+        PopupTempWarning         matlab.ui.control.Label
         SearchSuggestions        matlab.ui.control.ListBox
         SearchResults            matlab.ui.control.Label
         ViewNextRangeButton      matlab.ui.control.Image
@@ -122,6 +123,19 @@ classdef mobile_exported < matlab.apps.AppBase
                     case 'textHighlight'
                         uialert(app.UIFigure, jsonencode(event.HTMLEventData), '', 'Icon', 'success')
 
+                    case 'openExternalURL'
+                        url = event.HTMLEventData;
+                        try
+                            uri = matlab.net.URI(url);
+                            isValid = ismember(uri.Scheme, ["http", "https"]) && ~isempty(uri.Host);
+                        catch
+                            isValid = false;
+                        end
+
+                        if isValid
+                            web(url, '-browser')
+                        end
+
                     case 'closeFcnCallFromPopupApp'
                         context = event.HTMLEventData.context;
                         popupCurrentAppTag = event.HTMLEventData.dockAppName;
@@ -210,6 +224,15 @@ classdef mobile_exported < matlab.apps.AppBase
                             if isempty(app.searchResults) && isempty(app.SearchResults.Text)
                                 app.SearchResults.Text = createWarningPlaceholder(app);
                             end
+                        end
+
+                    case 'backgroundBecameTransparent'
+                        switch event.HTMLEventData
+                            case 'PopupTempWarning'
+                                app.PopupTempWarning.Visible = "off";
+
+                            otherwise
+                                error('UnexpectedEvent')
                         end
 
                     case 'onMobileSearchResultDetailsRequested'
@@ -442,7 +465,7 @@ classdef mobile_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function ipcMainMatlabCallAuxiliarApp(app, auxAppName, communicationType, varargin)
             hAuxApp = getAppHandle(app.tabGroupController, auxAppName);
-            if isempty(hAuxApp)
+            if isempty(hAuxApp) || ~isvalid(hAuxApp)
                 return
             end
 
@@ -507,25 +530,27 @@ classdef mobile_exported < matlab.apps.AppBase
                 app.AppInfo;
                 app.SearchEntryPoint;
                 app.CurrentFilterPanel;
-                app.SearchSuggestions;
                 app.SearchResults;
-                app.ContainerAuxApps
+                app.SearchSuggestions; % Invisível na inicialização
+                app.PopupTempWarning;  % Invisível na inicialização
+                app.ContainerAuxApps   % Invisível na inicialização
             };
             ui.CustomizationBase.getElementsDataTag(elToModify);
     
             try
                 sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                    struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
-                    struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
-                    struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id, 'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
-                    struct('appName', appName, 'dataTag', app.TitleGrid.UserData.id, 'styleImportant', struct('borderRadius', '0')), ...
-                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderRadius', '8px 0 0 0')), ...
-                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'selector', 'input', 'style', struct('paddingRight', '60px')), ...
+                    struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.TitleGrid.UserData.id,          'styleImportant', struct('borderRadius', '0')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id,   'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderRadius', '8px 0 0 0')), ...
                     struct('appName', appName, 'dataTag', app.CurrentFilterPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
-                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderTop', '0')), ...
-                    struct('appName', appName, 'dataTag', app.ContainerAuxApps.UserData.id, 'style', struct('borderRadius', '0 0 5px 5px')), ...
-                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id, 'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
-                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id, 'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id,   'selector', 'input', 'style', struct('paddingRight', '60px')), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id,  'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderTop', '0')), ...
+                    struct('appName', appName, 'dataTag', app.ContainerAuxApps.UserData.id,   'style', struct('borderRadius', '0 0 5px 5px')), ...
+                    struct('appName', appName, 'dataTag', app.PopupTempWarning.UserData.id,   'style', struct('borderRadius', '8px', 'pointerEvents', 'none')), ...
+                    struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id,   'generation', 2, 'listener', struct('componentName', 'mainApp.searchEntryPoint',  'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})), ...
+                    struct('appName', appName, 'dataTag', app.SearchSuggestions.UserData.id,  'generation', 1, 'listener', struct('componentName', 'mainApp.searchSuggestions', 'keyEvents', {{'ArrowUp', 'ArrowDown', 'Enter', 'Escape', 'Tab'}})) ...
                 });
             catch
             end
@@ -839,20 +864,32 @@ classdef mobile_exported < matlab.apps.AppBase
 
             homologation = char(string(app.searchResults.('Homologação')(resultIdx)));
             relatedSCH = app.schData.detailed(strcmp(app.schData.detailed.('Homologação'), homologation), :);
+
+            situation = char(relatedSCH.("Situação")(1));
+            situationColor = getSituationColor(app, situation);
+
             annotations = app.annotationTable(strcmp(app.annotationTable.('Homologação'), homologation), :);
             images = unique(annotations(strcmp(annotations.('Atributo'), 'Image'), :).Valor);
             wordClouds = annotations(strcmp(annotations.('Atributo'), 'WordCloud'), :);
+
             adsMask = strcmp(app.projectData.regulatronData.adsTable.('certificado'), replace(homologation, '-', ''));
             ads = app.projectData.regulatronData.adsTable(adsMask, :);
 
             htmlContent = util.HtmlTextGenerator.ProductInfo( ...
-                'ProdutoHomologado', ...
+                'ProdutoHomologado - Mobile', ...
                 relatedSCH, ...
                 height(wordClouds), ...
                 numel(images), ...
                 ads ...
             );
-            ui.Dialog(app.UIFigure, 'info', htmlContent);
+            sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                'dataTag', homologation, ...
+                'imageUrl', 'package.svg', ...
+                'title', sprintf('%s <font style="color: %s; font-size: 11px;">%s</font>', homologation, situationColor, situation), ...
+                'width', 85, ...
+                'height', 60, ...
+                'html', htmlContent ...
+            ));
         end
 
         %-----------------------------------------------------------------%
@@ -869,11 +906,27 @@ classdef mobile_exported < matlab.apps.AppBase
             schDetailedIdxs = schDetailedIdxs(sort(schDetailedUniqueFirstIdxs));
 
             if numel(schDetailedIdxs) > 1
-                ipcMainMatlabOpenPopupApp(app, app, 'SearchAddSelectedToBucket', app.Context, schDetailedIdxs)
+                % Abre o módulo de seleção apenas se houver ao menos um produto ainda não incluído.
+                if all(isInspectedProduct(app, schDetailedIdxs))
+                    showPopupTempWarning(app, model.ProjectBase.WARNING_ENTRYEXIST.SEARCH)
+                else
+                    ipcMainMatlabOpenPopupApp(app, app, 'SearchAddSelectedToBucket', app.Context, schDetailedIdxs)
+                end
                 return
             end
 
             addInspectedProducts(app, schDetailedIdxs)
+        end
+
+        %-----------------------------------------------------------------%
+        function isIncluded = isInspectedProduct(app, schDetailedIdxs)
+            isIncluded = false(size(schDetailedIdxs));
+
+            for ii = 1:numel(schDetailedIdxs)
+                [~, productHash] = model.ProjectBase.initializeInspectedProduct( ...
+                    'Homologado', app.General, app.schData.detailed, schDetailedIdxs(ii));
+                isIncluded(ii) = ismember(productHash, app.projectData.inspectedProducts.('Hash'));
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -895,10 +948,21 @@ classdef mobile_exported < matlab.apps.AppBase
 
             if addedCount > 0
                 ipcMainMatlabCallAuxiliarApp(app, 'PRODUCTS', 'MATLAB', 'updateInspectedProducts')
-                ui.Dialog(app.UIFigure, 'success', sprintf('%d produto(s) incluído(s) na lista de produtos sob análise.', addedCount));
+                if addedCount == 1
+                    showPopupTempWarning(app, 'Incluído um registro na lista de produtos inspecionados.')
+                else
+                    showPopupTempWarning(app, sprintf('Incluídos %d registros na lista de produtos inspecionados.', addedCount))
+                end
             else
-                ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.SEARCH);
+                showPopupTempWarning(app, model.ProjectBase.WARNING_ENTRYEXIST.SEARCH)
             end
+        end
+
+        %-----------------------------------------------------------------%
+        function showPopupTempWarning(app, msg)
+            set(app.PopupTempWarning, 'Text', msg, 'Visible', 'on')
+            sendEventToHTMLSource(app.jsBackDoor, 'setBackgroundTransparent', struct('componentName', 'PopupTempWarning', 'componentDataTag', app.PopupTempWarning.UserData.id, 'interval_ms', 75));
+            drawnow
         end
 
         %-----------------------------------------------------------------%
@@ -1213,7 +1277,14 @@ classdef mobile_exported < matlab.apps.AppBase
                         "popup" ...
                     );
 
-                    sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct('dataTag', '123456', 'imageUrl', 'add-to-card.svg', 'title', 'Homologação', 'width', 80, 'height', 60, 'html', appInfo));
+                    sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                        'dataTag', '123456', ...
+                        'imageUrl', 'info.svg', ...
+                        'title', 'Aspectos gerais', ...
+                        'width', 85, ...
+                        'height', 60, ...
+                        'html', appInfo ...
+                    ));
             end
 
         end
@@ -1391,7 +1462,7 @@ classdef mobile_exported < matlab.apps.AppBase
             % Create Grid1
             app.Grid1 = uigridlayout(app.Tab1);
             app.Grid1.ColumnWidth = {'1x', 90, 10, 28, 28};
-            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, '1x'};
+            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, '1x', 46};
             app.Grid1.ColumnSpacing = 0;
             app.Grid1.RowSpacing = 0;
             app.Grid1.Padding = [10 10 10 42];
@@ -1524,7 +1595,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchResults.VerticalAlignment = 'top';
             app.SearchResults.WordWrap = 'on';
             app.SearchResults.FontSize = 11;
-            app.SearchResults.Layout.Row = [7 8];
+            app.SearchResults.Layout.Row = [7 9];
             app.SearchResults.Layout.Column = [1 5];
             app.SearchResults.Interpreter = 'html';
             app.SearchResults.Text = '';
@@ -1539,6 +1610,17 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchSuggestions.Layout.Row = [2 7];
             app.SearchSuggestions.Layout.Column = [1 5];
             app.SearchSuggestions.Value = {};
+
+            % Create PopupTempWarning
+            app.PopupTempWarning = uilabel(app.Grid1);
+            app.PopupTempWarning.BackgroundColor = [0.6353 0.0784 0.1843];
+            app.PopupTempWarning.HorizontalAlignment = 'center';
+            app.PopupTempWarning.WordWrap = 'on';
+            app.PopupTempWarning.FontColor = [1 1 1];
+            app.PopupTempWarning.Visible = 'off';
+            app.PopupTempWarning.Layout.Row = 9;
+            app.PopupTempWarning.Layout.Column = [1 5];
+            app.PopupTempWarning.Text = '';
 
             % Create Tab2
             app.Tab2 = uitab(app.TabGroup);
