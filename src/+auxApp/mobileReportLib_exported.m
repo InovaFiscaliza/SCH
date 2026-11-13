@@ -735,7 +735,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 22, 22, 22};
-            app.GridLayout.RowHeight = {22, 166, 1, 22, 81, 1, 22, '1x', 1, 38};
+            app.GridLayout.RowHeight = {22, 176, 1, 22, 90, 1, 22, '1x', 1, 38};
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
             app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
@@ -786,7 +786,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create prjGrid
             app.prjGrid = uigridlayout(app.prjPanel);
             app.prjGrid.ColumnWidth = {130, '1x', 22, 22};
-            app.prjGrid.RowHeight = {22, 32, 15, 22, 32};
+            app.prjGrid.RowHeight = {22, 38, 15, 22, 38};
             app.prjGrid.ColumnSpacing = 5;
             app.prjGrid.RowSpacing = 5;
             app.prjGrid.BackgroundColor = [0.9686 0.9765 0.9804];
@@ -862,8 +862,8 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
 
             % Create eFiscalizaGrid
             app.eFiscalizaGrid = uigridlayout(app.eFiscalizaPanel);
-            app.eFiscalizaGrid.ColumnWidth = {'1x', 10, '1x', 10, '1x', 5, 22};
-            app.eFiscalizaGrid.RowHeight = {22, 32};
+            app.eFiscalizaGrid.ColumnWidth = {110, 10, 105, 10, '1x', 5, 22};
+            app.eFiscalizaGrid.RowHeight = {22, 38};
             app.eFiscalizaGrid.ColumnSpacing = 0;
             app.eFiscalizaGrid.RowSpacing = 5;
             app.eFiscalizaGrid.BackgroundColor = [0.9686 0.9765 0.9804];
@@ -881,7 +881,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaSystem.BackgroundColor = [1 1 1];
             app.eFiscalizaSystem.Layout.Row = 2;
             app.eFiscalizaSystem.Layout.Column = 1;
-            app.eFiscalizaSystem.Value = 'eFiscaliza';
+            app.eFiscalizaSystem.Value = 'eFiscaliza DS';
 
             % Create eFiscalizaUnitLabel
             app.eFiscalizaUnitLabel = uilabel(app.eFiscalizaGrid);
@@ -891,18 +891,18 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
 
             % Create eFiscalizaUnit
             app.eFiscalizaUnit = uidropdown(app.eFiscalizaGrid);
-            app.eFiscalizaUnit.Items = {};
+            app.eFiscalizaUnit.Items = {''};
             app.eFiscalizaUnit.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.eFiscalizaUnit.BackgroundColor = [1 1 1];
             app.eFiscalizaUnit.Layout.Row = 2;
             app.eFiscalizaUnit.Layout.Column = 3;
-            app.eFiscalizaUnit.Value = {};
+            app.eFiscalizaUnit.Value = '';
 
             % Create eFiscalizaIssueLabel
             app.eFiscalizaIssueLabel = uilabel(app.eFiscalizaGrid);
             app.eFiscalizaIssueLabel.Layout.Row = 1;
             app.eFiscalizaIssueLabel.Layout.Column = [5 7];
-            app.eFiscalizaIssueLabel.Text = 'Atividade de inspeção:';
+            app.eFiscalizaIssueLabel.Text = 'Atividade inspeção:';
 
             % Create eFiscalizaIssue
             app.eFiscalizaIssue = uieditfield(app.eFiscalizaGrid, 'numeric');
@@ -942,7 +942,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create reportGrid
             app.reportGrid = uigridlayout(app.reportPanel);
             app.reportGrid.ColumnWidth = {'1x', '1x', '1x', 17};
-            app.reportGrid.RowHeight = {22, 32, 22, '1x'};
+            app.reportGrid.RowHeight = {22, 38, 22, '1x'};
             app.reportGrid.RowSpacing = 5;
             app.reportGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
@@ -994,7 +994,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create reportEntityGrid
             app.reportEntityGrid = uigridlayout(app.reportEntityPanel);
             app.reportEntityGrid.ColumnWidth = {'1x', 107, 22};
-            app.reportEntityGrid.RowHeight = {22, 32, 22, 32};
+            app.reportEntityGrid.RowHeight = {22, 38, 22, 38};
             app.reportEntityGrid.RowSpacing = 5;
             app.reportEntityGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 

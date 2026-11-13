@@ -336,7 +336,7 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 22};
-            app.GridLayout.RowHeight = {22, 158, 1, 22, '1x'};
+            app.GridLayout.RowHeight = {22, 176, 1, 22, '1x'};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
@@ -369,7 +369,7 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             % Create SearchGrid
             app.SearchGrid = uigridlayout(app.SearchPanel);
             app.SearchGrid.ColumnWidth = {130, '1x'};
-            app.SearchGrid.RowHeight = {22, 38, 22, 38};
+            app.SearchGrid.RowHeight = {22, 38, 15, 22, 38};
             app.SearchGrid.RowSpacing = 5;
             app.SearchGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
@@ -396,9 +396,10 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             app.NumMinWordsLabel = uilabel(app.SearchGrid);
             app.NumMinWordsLabel.VerticalAlignment = 'bottom';
             app.NumMinWordsLabel.FontColor = [0 0.1294 0.2392];
-            app.NumMinWordsLabel.Layout.Row = 3;
+            app.NumMinWordsLabel.Layout.Row = [3 4];
             app.NumMinWordsLabel.Layout.Column = [1 2];
-            app.NumMinWordsLabel.Text = 'Qtd. mínima de sugestões apresentadas para seleção:';
+            app.NumMinWordsLabel.Interpreter = 'html';
+            app.NumMinWordsLabel.Text = {'Qtd. mínima de sugestões apresentadas para seleção:'; '<font style="font-size: 11px; color:gray;">(resultados que mais se aproximam do digitado)</font>'};
 
             % Create NumMinWords
             app.NumMinWords = uidropdown(app.SearchGrid);
@@ -406,7 +407,7 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             app.NumMinWords.ValueChangedFcn = createCallbackFcn(app, @onSearchParameterValueChanged, true);
             app.NumMinWords.FontColor = [0 0.1294 0.2392];
             app.NumMinWords.BackgroundColor = [1 1 1];
-            app.NumMinWords.Layout.Row = 4;
+            app.NumMinWords.Layout.Row = 5;
             app.NumMinWords.Layout.Column = 1;
             app.NumMinWords.Value = '20';
 
