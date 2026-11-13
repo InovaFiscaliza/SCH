@@ -5,8 +5,8 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         UIFigure                matlab.ui.Figure
         GridLayout              matlab.ui.container.GridLayout
         GridLayout2             matlab.ui.container.GridLayout
-        SaveButton              matlab.ui.control.Button
-        RefreshButton           matlab.ui.control.Button
+        UploadFinalFile         matlab.ui.control.Button
+        GenerateReport          matlab.ui.control.Button
         reportPanel             matlab.ui.container.Panel
         reportGrid              matlab.ui.container.GridLayout
         reportEntityPanel       matlab.ui.container.Panel
@@ -33,7 +33,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         eFiscalizaUnitLabel     matlab.ui.control.Label
         eFiscalizaSystem        matlab.ui.control.DropDown
         eFiscalizaSystemLabel   matlab.ui.control.Label
-        eFISCALIZALabel         matlab.ui.control.Label
+        eFiscalizaLabel         matlab.ui.control.Label
         prjPanel                matlab.ui.container.Panel
         prjGrid                 matlab.ui.container.GridLayout
         prjLastReportDelete     matlab.ui.control.Image
@@ -53,7 +53,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'secondaryAppMobile'
-        Context = 'REPORT'
+        Context = 'PRODUCTS'
         AppHandleNameInBase = ''
     end
 
@@ -73,32 +73,122 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
     methods (Access = public)
         %-----------------------------------------------------------------%
         function ipcSecondaryJSEventsHandler(app, event)
-            % ...
+            try
+                switch event.HTMLEventName
+                    case 'textHighlight'
+                        % Retorno dos botões de showTextHighlight.
+                        dataTag = event.HTMLEventData.dataTag;
+                        if isstruct(dataTag) && isfield(dataTag, 'action') && strcmp(event.HTMLEventData.id, 'confirm')
+                            switch dataTag.action
+                                case 'generateReport'
+                                    reportDispatchOperation(app, 'onReportGenerate')
+                            end
+                        end
+
+                    otherwise
+                        ipcMainJSEventsHandler(app.mainApp, event)
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.message);
+            end
         end
 
         %-----------------------------------------------------------------%
         function ipcSecondaryMatlabCallsHandler(app, callingApp, eventName, varargin)
-            % ...
+            try
+                switch class(callingApp)
+                    case {'mainApp.mobile', 'mainApp.mobile_exported'}
+                        switch eventName
+                            % mainApp.mobile >> auxApp.mobileReportLib
+                            % auxApp.mobileProducts >> mainApp.mobile >> auxApp.mobileReportLib
+                            case {'updateInspectedProducts', ...
+                                  'onInspectedProductEdited', ...
+                                  'onReportGenerate',         ...
+                                  'onFinalReportFileChanged'}
+                                updatePanel(app, app.Context)
+
+                            case 'onFetchIssueDetails'
+                                system   = varargin{1};
+                                issue    = varargin{2};
+                                details  = varargin{3};
+                                msgError = varargin{4};
+
+                                if ~isempty(msgError)
+                                    error(msgError)
+                                end
+
+                                msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
+                                ui.Dialog(app.UIFigure, 'info', msg);
+
+                            otherwise
+                                error('auxApp:mobileReportLib:UnexpectedCall', 'Unexpected call "%s"', eventName)
+                        end
+
+                    otherwise
+                        error('auxApp:mobileReportLib:UnexpectedCaller', 'Unexpected caller "%s"', class(callingApp))
+                end
+
+            catch ME
+                ui.Dialog(app.UIFigure, 'error', ME.message);
+            end
         end
 
         %-----------------------------------------------------------------%
         function applyJSCustomizations(app)
-            % ...
+            appName = class(app);
+            elToModify = {
+                app.prjPanel;
+                app.eFiscalizaPanel;
+                app.reportPanel;
+                app.reportEntityPanel;
+                app.prjName;
+                app.prjLastReport;
+                app.eFiscalizaSystem;
+                app.eFiscalizaUnit;
+                app.eFiscalizaIssue;
+                app.reportModel;
+                app.reportVersion;
+                app.reportEntityType;
+                app.reportEntityId;
+                app.reportEntityName
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
+    
+            try
+                sendEventToHTMLSource(app.mainApp.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.prjPanel.UserData.id,          'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.eFiscalizaPanel.UserData.id,   'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.reportPanel.UserData.id,       'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.reportEntityPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.prjName.UserData.id,           'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.prjLastReport.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.eFiscalizaSystem.UserData.id,  'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.eFiscalizaUnit.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.eFiscalizaIssue.UserData.id,   'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.reportModel.UserData.id,       'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.reportVersion.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.reportEntityType.UserData.id,  'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.reportEntityId.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.reportEntityName.UserData.id,  'generation', 1, 'style', struct('borderColor', '#AEBBC2')) ...
+                });
+            catch
+            end
         end
 
         %-----------------------------------------------------------------%
         function initializeAppProperties(app)
-            % ...
+            app.projectData = app.mainApp.projectData;
         end
 
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
-            % ...
+            set([app.prjPanel, app.eFiscalizaPanel, app.reportPanel, app.reportEntityPanel], 'BorderColor', '#D5DDE1')
         end
 
         %-----------------------------------------------------------------%
         function applyInitialLayout(app)
-            % ...
+            updatePanel(app, app.Context)
         end
     end
     
@@ -161,6 +251,73 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             end
             set(app.reportEntityId, 'Value', app.projectData.modules.(context).ui.entity.id, 'BackgroundColor', backgroundColor, 'FontColor', fontColor)
             app.reportEntityIdCheck.Enable = ~isempty(app.reportEntityId.Value);
+
+            updateToolbar(app)
+        end
+
+        %-----------------------------------------------------------------%
+        function updateToolbar(app)
+            reportFinalVersionGenerated = ~isempty(app.projectData.modules.(app.Context).generatedFiles.lastHTMLDocFullPath);
+            app.UploadFinalFile.Enable = reportFinalVersionGenerated;
+        end
+
+        %-----------------------------------------------------------------%
+        function reportDispatchOperation(app, eventName)
+            if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
+                eventData = ws.eFiscaliza.getCredentials('auto', app.mainApp.executionMode, app.jsBackDoor, eventName, app.Context);
+                if ~isempty(eventData)
+                    eventData.uuid = eventName;
+                    eventData.context = app.Context;
+
+                    ipcMainJSEventsHandler(app.mainApp, struct('HTMLEventName', 'customForm', 'HTMLEventData', eventData))
+                end
+            else
+                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, app.Context)
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function showTextHighlight(app, imageUrl, title, message, action, buttons)
+            % "buttons" é um vetor de estruturas com os campos "id" e "label". O clique em 
+            % um botão retorna ao método ipcSecondaryJSEventsHandler o "id" e o "dataTag".
+            % O contexto "REPORT" (tag da aba) roteia o evento do mainApp a este módulo.
+            if isempty(buttons)
+                html = ['<div style="line-height: 18px;">' message '</div>'];
+
+            else
+                buttonStyle = 'padding: 0 30px; height: 38px; background-color: #087dba; color: #ffffff; border: 1px solid #7d7d7d; border-radius: 5px; font-size: 12px; cursor: pointer;';
+                buttonsHtml = '';
+                for ii = 1:numel(buttons)
+                    margin = '';
+                    if ii > 1
+                        margin = ' margin-left: 8px;';
+                    end
+                    buttonsHtml = [buttonsHtml sprintf('<button id="%s" type="button" style="%s%s">%s</button>', buttons(ii).id, buttonStyle, margin, buttons(ii).label)]; %#ok<AGROW>
+                end
+
+                html = [ ...
+                    '<div style="display: grid; grid-template-rows: auto 1fr auto; flex: 1 1 auto; line-height: 18px;">' ...
+                        '<div>' message '</div>' ...
+                        '<div></div>' ...
+                        '<div style="text-align: right;">' buttonsHtml '</div>' ...
+                    '</div>' ...
+                ];
+            end
+
+            sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                'dataTag',  struct('context', 'REPORT', 'action', action), ...
+                'imageUrl', imageUrl, ...
+                'title',    title, ...
+                'width',    85, ...
+                'height',   60, ...
+                'html',     html ...
+            ));
+        end
+
+        %-----------------------------------------------------------------%
+        function showConfirmationTextHighlight(app, title, message, action)
+            buttons = struct('id', {'confirm', 'cancel'}, 'label', {'Sim', 'Não'});
+            showTextHighlight(app, 'warning-20px-red.svg', title, message, action, buttons)
         end
     end
     
@@ -196,7 +353,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
                 return
             end
     
-            context = app.inputArgs.context;
+            context = app.Context;
             restart(app.projectData, {context}, app.mainApp.General)
 
             ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectRestart', context)
@@ -208,8 +365,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         function onProjectLoad(app, event)
             
             appName  = class.Constants.appName;
-            context  = app.inputArgs.context;
-            varargin = app.inputArgs.varargin;
+            context  = app.Context;
             
             [fileFullPath, fileFolder] = ui.Dialog(app.UIFigure, 'uigetfile', '', {'*.mat', [appName ' (*.mat)']}, app.mainApp.General.fileFolder.lastVisited, {'MultiSelect', 'off'});
             if isempty(fileFullPath)
@@ -220,7 +376,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             d = ui.Dialog(app.UIFigure, "progressdlg", "Em andamento...");
             
             try
-                msg = load(app.projectData, 'file', fileFullPath, app.mainApp.General, varargin{:});
+                msg = load(app.projectData, 'file', fileFullPath, app.mainApp.General);
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onProjectLoad', context)
                 updatePanel(app, context)
 
@@ -240,11 +396,10 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         function onProjectSave(app, event)
             
             appName  = class.Constants.appName;
-            context  = app.inputArgs.context;
-            varargin = app.inputArgs.varargin;
+            context  = app.Context;
 
             if isfile(app.projectData.file)
-                if ~checkIfUpdateNeeded(app.projectData, varargin{:})
+                if ~checkIfUpdateNeeded(app.projectData)
                     msgQuestion = sprintf('Ao que parece, o projeto "<b>%s</b>" não sofreu alterações.<br><br>Deseja continuar mesmo assim?', app.projectData.name);
                     selection   = ui.Dialog(app.UIFigure, "uiconfirm", msgQuestion, {'Sim', 'Não'}, 1, 2);
                     if strcmp(selection, 'Não')
@@ -282,7 +437,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         % ...and 7 other components
         function onProjectInfoUpdate(app, event)
 
-            context = app.inputArgs.context;
+            context = app.Context;
 
             fieldValue = event.Value;
             switch event.Source
@@ -329,12 +484,12 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         function onFetchIssueDetails(app, event)
             
             % <VALIDAÇÕES>
-            context = app.inputArgs.context;
+            context = app.Context;
             issue = app.projectData.modules.(context).ui.issue;
             
             if ~validateReportRequirements(app.projectData, context, 'issue')
                 msg = sprintf('O número da inspeção "%.0f" é inválido.', issue);
-                ui.Dialog(app.UIFigure, 'warning', msg);
+                showTextHighlight(app, 'warning-20px-red.svg', 'Atenção', msg, 'warning', [])
                 return
             end
             % </VALIDAÇÕES>
@@ -345,7 +500,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
 
             if ~isempty(details)
                 msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
-                ui.Dialog(app.UIFigure, 'info', msg);
+                showTextHighlight(app, 'info.svg', 'Detalhes da Inspeção', msg, 'info', [])
 
             else
                 eventName = 'onFetchIssueDetails';
@@ -368,7 +523,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
         % Image clicked function: prjLastReportDelete, prjLastReportView
         function onFinalReportFileButtonClicked(app, event)
             
-            context = app.inputArgs.context;
+            context = app.Context;
             updateNeeded = false;
             lastHTMLDocFullPath = getGeneratedDocumentFileName(app.projectData, '.html', context);
 
@@ -408,12 +563,135 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             end
 
             if ~isempty(details)                
-                msg = util.HtmlTextGenerator.entityDetails(app.reportEntityId.Value, details);                
+                imageUrl = 'info.svg';
+                title    = 'Dados da fiscalizada';
+                msg      = util.HtmlTextGenerator.entityDetails(app.reportEntityId.Value, details);                
             else
-                msg = 'Esta pesquisa está disponível apenas para CNPJs válidos.';
+                imageUrl = 'warning-20px-red.svg';
+                title    = 'Atenção';
+                msg      = 'Esta pesquisa está disponível apenas para CNPJs válidos.';
             end
             
-            ui.Dialog(app.UIFigure, "none", msg);
+            showTextHighlight(app, imageUrl, title, msg, 'entityDetails', [])
+
+        end
+
+        % Button pushed function: GenerateReport
+        function onGenerateReportButtonPushed(app, event)
+            
+            % <VALIDAÇÕES>
+            context = app.Context;
+            issue = app.projectData.modules.(context).ui.issue;
+
+            msgWarning = {};
+            if isempty(app.projectData.inspectedProducts)
+                msgWarning{end+1} = '• A lista de produtos inspecionados está vazia.';
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'reportModel')
+                msgWarning{end+1} = '• Pendente escolha do modelo de relatório.';
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'issue')
+                msgWarning{end+1} = sprintf('• O número da inspeção "%.0f" é inválido.', issue);
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'unit')
+                msgWarning{end+1} = '• Unidade geradora do documento precisa ser selecionada.';
+            end
+
+            if ~validateReportRequirements(app.projectData, context, 'entity')
+                msgWarning{end+1} = '• Qualificação da fiscalizada ainda pendente.';
+            end
+
+            invalidRowIndexes = validateInspectedProducts(app.projectData);
+            if ~isempty(invalidRowIndexes)
+                msgWarning{end+1} = sprintf('• Os registros da(s) linha(s) %s estão incompletos.', strjoin(string(invalidRowIndexes), ', '));
+            end
+
+            if ~isempty(msgWarning)
+                msgInfo = sprintf([ ...
+                        'Foi(ram) identificada(s) a(s) pendência(s):<br>%s' ...
+                        '<br><br>' ...
+                        '<b>Essa(s) pendência(s) precisa(m) ser resolvida(s) ' ...
+                        'antes da geração do relatório</b>.' ...
+                ], strjoin(msgWarning, '<br>'));
+                showTextHighlight(app, 'warning-20px-red.svg', 'Pendências', msgInfo, 'warning', [])
+                return
+            end
+            % </VALIDAÇÕES>
+
+            msgQuestion = sprintf('Confirma que se trata de monitoração relacionada à Atividade de Inspeção nº %.0f?', issue);
+            showConfirmationTextHighlight(app, 'Confirmação', msgQuestion, 'generateReport')
+
+        end
+
+        % Button pushed function: UploadFinalFile
+        function onUploadFinalFileButtonPushed(app, event)
+            
+            % <VALIDAÇÕES>
+            context = app.Context;
+            
+            system = app.projectData.modules.(context).ui.system;
+            issue = app.projectData.modules.(context).ui.issue;
+
+            generatedHtmlFilePath = getGeneratedDocumentFileName(app.projectData, '.html', context);
+            reportGenerationId = app.projectData.modules.(context).generatedFiles.id;
+            currentProjectHash = model.ProjectBase.computeProjectHash('', '', app.projectData.inspectedProducts, [], []);            
+
+            msg = '';
+            if isempty(generatedHtmlFilePath)
+                msg = 'A versão definitiva do relatório ainda não foi gerada.';
+            elseif ~isfile(generatedHtmlFilePath)
+                msg = sprintf('O arquivo "%s" não foi encontrado.', generatedHtmlFilePath);
+            elseif ~strcmp(reportGenerationId, currentProjectHash)
+                msg = [ ...
+                    'A lista de produtos inspecionados foi modificada após a ' ...
+                    'geração do relatório. Por essa razão, é necessário gerar ' ...
+                    'novamente a versão definitiva do relatório antes do seu ' ...
+                    '<i>upload</i> para o SEI' ...
+                ];
+            elseif ~isfolder(app.mainApp.General.fileFolder.DataHub_POST)
+                msg = 'Pendente mapear pasta do Sharepoint';
+            elseif ~validateReportRequirements(app.projectData, context, 'issue')
+                msg = sprintf('O número da inspeção "%.0f" é inválido.', issue);
+            elseif ~validateReportRequirements(app.projectData, context, 'unit')
+                msg = 'Unidade geradora do documento precisa ser selecionada.';
+            elseif isempty(system)
+                msg = 'Ambiente do eFiscaliza precisa ser selecionado.';
+            end
+
+            if ~isempty(msg)
+                ui.Dialog(app.UIFigure, 'warning', msg);
+                return
+            end
+
+            uploadedFiles = getUploadedFiles(app.projectData, context, system, issue);
+            if ~isempty(uploadedFiles)
+                uploadedStatus = extractAfter({uploadedFiles.status}, 'Documento cadastrado no SEI sob o nº ');
+
+                if isscalar(uploadedStatus)
+                    uploadedStatus = uploadedStatus{1};
+                else                    
+                    uploadedStatus = strjoin([{strjoin(uploadedStatus(1:end-1), ', ')}, uploadedStatus(end)], ' e ');
+                end
+
+                msgQuestion = sprintf([ ...
+                    'Já foi realizado <i>upload</i> para o SEI de relatório que engloba ' ...
+                    'a presente lista de produtos inspecionados - SEI nº %s.<br><br>' ...
+                    'Deseja realizar um novo <i>upload</i> para o SEI?' ...
+                ], uploadedStatus);
+                userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
+
+                if strcmp(userSelection, 'Não')
+                    return
+                end
+            end
+            % </VALIDAÇÕES>
+
+            % <PROCESSO>
+            reportDispatchOperation(app, 'onUploadArtifacts')
+            % </PROCESSO>
 
         end
     end
@@ -457,10 +735,10 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 22, 22, 22};
-            app.GridLayout.RowHeight = {22, 160, 22, 81, 22, '1x', 1, 38};
+            app.GridLayout.RowHeight = {22, 166, 1, 22, 81, 1, 22, '1x', 1, 38};
             app.GridLayout.RowSpacing = 5;
-            app.GridLayout.Padding = [10 10 10 44];
-            app.GridLayout.BackgroundColor = [0.9608 0.9686 0.9686];
+            app.GridLayout.Padding = [10 10 10 42];
+            app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create prjLabel
             app.prjLabel = uilabel(app.GridLayout);
@@ -469,13 +747,12 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjLabel.FontColor = [0.1294 0.2 0.2392];
             app.prjLabel.Layout.Row = 1;
             app.prjLabel.Layout.Column = 1;
-            app.prjLabel.Text = 'PROJETO';
+            app.prjLabel.Text = 'Projeto';
 
             % Create prjOpenFileButton
             app.prjOpenFileButton = uiimage(app.GridLayout);
             app.prjOpenFileButton.ScaleMethod = 'none';
             app.prjOpenFileButton.ImageClickedFcn = createCallbackFcn(app, @onProjectLoad, true);
-            app.prjOpenFileButton.Tooltip = {'Abre projeto'};
             app.prjOpenFileButton.Layout.Row = 1;
             app.prjOpenFileButton.Layout.Column = 2;
             app.prjOpenFileButton.VerticalAlignment = 'bottom';
@@ -486,7 +763,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjSaveButton.ScaleMethod = 'none';
             app.prjSaveButton.ImageClickedFcn = createCallbackFcn(app, @onProjectSave, true);
             app.prjSaveButton.Enable = 'off';
-            app.prjSaveButton.Tooltip = {'Salva projeto'};
             app.prjSaveButton.Layout.Row = 1;
             app.prjSaveButton.Layout.Column = 3;
             app.prjSaveButton.VerticalAlignment = 'bottom';
@@ -496,7 +772,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjNewProjectButton = uiimage(app.GridLayout);
             app.prjNewProjectButton.ScaleMethod = 'none';
             app.prjNewProjectButton.ImageClickedFcn = createCallbackFcn(app, @onProjectRestart, true);
-            app.prjNewProjectButton.Tooltip = {'Cria novo projeto'};
             app.prjNewProjectButton.Layout.Row = 1;
             app.prjNewProjectButton.Layout.Column = 4;
             app.prjNewProjectButton.VerticalAlignment = 'bottom';
@@ -514,7 +789,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjGrid.RowHeight = {22, 32, 15, 22, 32};
             app.prjGrid.ColumnSpacing = 5;
             app.prjGrid.RowSpacing = 5;
-            app.prjGrid.BackgroundColor = [0.9608 0.9686 0.9686];
+            app.prjGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
             % Create prjNameLabel
             app.prjNameLabel = uilabel(app.prjGrid);
@@ -557,7 +832,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjLastReportView.ScaleMethod = 'none';
             app.prjLastReportView.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
             app.prjLastReportView.Enable = 'off';
-            app.prjLastReportView.Tooltip = {'Visualiza relatório'};
             app.prjLastReportView.Layout.Row = 5;
             app.prjLastReportView.Layout.Column = 3;
             app.prjLastReportView.ImageSource = 'eye.svg';
@@ -567,24 +841,23 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.prjLastReportDelete.ScaleMethod = 'none';
             app.prjLastReportDelete.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
             app.prjLastReportDelete.Enable = 'off';
-            app.prjLastReportDelete.Tooltip = {'Exclui relatório'};
             app.prjLastReportDelete.Layout.Row = 5;
             app.prjLastReportDelete.Layout.Column = 4;
             app.prjLastReportDelete.ImageSource = 'close-16px-red.svg';
 
-            % Create eFISCALIZALabel
-            app.eFISCALIZALabel = uilabel(app.GridLayout);
-            app.eFISCALIZALabel.VerticalAlignment = 'bottom';
-            app.eFISCALIZALabel.FontWeight = 'bold';
-            app.eFISCALIZALabel.FontColor = [0.1294 0.2 0.2392];
-            app.eFISCALIZALabel.Layout.Row = 3;
-            app.eFISCALIZALabel.Layout.Column = [1 4];
-            app.eFISCALIZALabel.Text = 'eFISCALIZA';
+            % Create eFiscalizaLabel
+            app.eFiscalizaLabel = uilabel(app.GridLayout);
+            app.eFiscalizaLabel.VerticalAlignment = 'bottom';
+            app.eFiscalizaLabel.FontWeight = 'bold';
+            app.eFiscalizaLabel.FontColor = [0.1294 0.2 0.2392];
+            app.eFiscalizaLabel.Layout.Row = 4;
+            app.eFiscalizaLabel.Layout.Column = [1 4];
+            app.eFiscalizaLabel.Text = 'eFiscaliza';
 
             % Create eFiscalizaPanel
             app.eFiscalizaPanel = uipanel(app.GridLayout);
             app.eFiscalizaPanel.AutoResizeChildren = 'off';
-            app.eFiscalizaPanel.Layout.Row = 4;
+            app.eFiscalizaPanel.Layout.Row = 5;
             app.eFiscalizaPanel.Layout.Column = [1 4];
 
             % Create eFiscalizaGrid
@@ -593,7 +866,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaGrid.RowHeight = {22, 32};
             app.eFiscalizaGrid.ColumnSpacing = 0;
             app.eFiscalizaGrid.RowSpacing = 5;
-            app.eFiscalizaGrid.BackgroundColor = [0.9608 0.9686 0.9686];
+            app.eFiscalizaGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
             % Create eFiscalizaSystemLabel
             app.eFiscalizaSystemLabel = uilabel(app.eFiscalizaGrid);
@@ -646,7 +919,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaIssueDetails.ScaleMethod = 'none';
             app.eFiscalizaIssueDetails.ImageClickedFcn = createCallbackFcn(app, @onFetchIssueDetails, true);
             app.eFiscalizaIssueDetails.Enable = 'off';
-            app.eFiscalizaIssueDetails.Tooltip = {'Detalhes da inspeção'};
             app.eFiscalizaIssueDetails.Layout.Row = 2;
             app.eFiscalizaIssueDetails.Layout.Column = 7;
             app.eFiscalizaIssueDetails.ImageSource = 'eye.svg';
@@ -656,15 +928,15 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportLabel.VerticalAlignment = 'bottom';
             app.reportLabel.FontWeight = 'bold';
             app.reportLabel.FontColor = [0.1294 0.2 0.2392];
-            app.reportLabel.Layout.Row = 5;
+            app.reportLabel.Layout.Row = 7;
             app.reportLabel.Layout.Column = 1;
-            app.reportLabel.Text = 'RELATÓRIO';
+            app.reportLabel.Text = 'Relatório';
 
             % Create reportPanel
             app.reportPanel = uipanel(app.GridLayout);
             app.reportPanel.AutoResizeChildren = 'off';
             app.reportPanel.BackgroundColor = [1 1 1];
-            app.reportPanel.Layout.Row = 6;
+            app.reportPanel.Layout.Row = 8;
             app.reportPanel.Layout.Column = [1 4];
 
             % Create reportGrid
@@ -672,7 +944,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportGrid.ColumnWidth = {'1x', '1x', '1x', 17};
             app.reportGrid.RowHeight = {22, 32, 22, '1x'};
             app.reportGrid.RowSpacing = 5;
-            app.reportGrid.BackgroundColor = [0.9608 0.9686 0.9686];
+            app.reportGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
             % Create reportModelLabel
             app.reportModelLabel = uilabel(app.reportGrid);
@@ -709,7 +981,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create reportEntityPanelLabel
             app.reportEntityPanelLabel = uilabel(app.reportGrid);
             app.reportEntityPanelLabel.VerticalAlignment = 'bottom';
-            app.reportEntityPanelLabel.FontSize = 11;
             app.reportEntityPanelLabel.Layout.Row = 3;
             app.reportEntityPanelLabel.Layout.Column = 1;
             app.reportEntityPanelLabel.Text = 'Fiscalizada';
@@ -725,7 +996,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityGrid.ColumnWidth = {'1x', 107, 22};
             app.reportEntityGrid.RowHeight = {22, 32, 22, 32};
             app.reportEntityGrid.RowSpacing = 5;
-            app.reportEntityGrid.BackgroundColor = [0.9608 0.9686 0.9686];
+            app.reportEntityGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
             % Create reportEntityTypeLabel
             app.reportEntityTypeLabel = uilabel(app.reportEntityGrid);
@@ -736,12 +1007,12 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
 
             % Create reportEntityType
             app.reportEntityType = uidropdown(app.reportEntityGrid);
-            app.reportEntityType.Items = {};
+            app.reportEntityType.Items = {''};
             app.reportEntityType.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportEntityType.BackgroundColor = [1 1 1];
             app.reportEntityType.Layout.Row = 2;
             app.reportEntityType.Layout.Column = 1;
-            app.reportEntityType.Value = {};
+            app.reportEntityType.Value = '';
 
             % Create reportEntityIdLabel
             app.reportEntityIdLabel = uilabel(app.reportEntityGrid);
@@ -755,7 +1026,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityIdCheck = uiimage(app.reportEntityGrid);
             app.reportEntityIdCheck.ImageClickedFcn = createCallbackFcn(app, @reportEntityIdCheckImageClicked, true);
             app.reportEntityIdCheck.Enable = 'off';
-            app.reportEntityIdCheck.Tooltip = {'Consulta'};
             app.reportEntityIdCheck.Layout.Row = 1;
             app.reportEntityIdCheck.Layout.Column = 3;
             app.reportEntityIdCheck.VerticalAlignment = 'bottom';
@@ -766,7 +1036,6 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityId.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportEntityId.Layout.Row = 2;
             app.reportEntityId.Layout.Column = [2 3];
-            app.reportEntityId.Value = '01802524000101';
 
             % Create reportEntityNameLabel
             app.reportEntityNameLabel = uilabel(app.reportEntityGrid);
@@ -786,28 +1055,29 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.GridLayout2 = uigridlayout(app.GridLayout);
             app.GridLayout2.RowHeight = {'1x'};
             app.GridLayout2.Padding = [0 0 0 0];
-            app.GridLayout2.Layout.Row = 8;
+            app.GridLayout2.Layout.Row = 10;
             app.GridLayout2.Layout.Column = [1 4];
 
-            % Create RefreshButton
-            app.RefreshButton = uibutton(app.GridLayout2, 'push');
-            app.RefreshButton.Icon = 'Publish_HTML_16.png';
-            app.RefreshButton.BackgroundColor = [0.0314 0.4902 0.7294];
-            app.RefreshButton.FontColor = [1 1 1];
-            app.RefreshButton.Enable = 'off';
-            app.RefreshButton.Layout.Row = 1;
-            app.RefreshButton.Layout.Column = 1;
-            app.RefreshButton.Text = 'Gerar relatório';
+            % Create GenerateReport
+            app.GenerateReport = uibutton(app.GridLayout2, 'push');
+            app.GenerateReport.ButtonPushedFcn = createCallbackFcn(app, @onGenerateReportButtonPushed, true);
+            app.GenerateReport.Icon = 'Publish_HTML_16.png';
+            app.GenerateReport.BackgroundColor = [0.0314 0.4902 0.7294];
+            app.GenerateReport.FontColor = [1 1 1];
+            app.GenerateReport.Layout.Row = 1;
+            app.GenerateReport.Layout.Column = 1;
+            app.GenerateReport.Text = 'Gerar relatório';
 
-            % Create SaveButton
-            app.SaveButton = uibutton(app.GridLayout2, 'push');
-            app.SaveButton.Icon = 'up-20px.png';
-            app.SaveButton.BackgroundColor = [0.0314 0.4902 0.7294];
-            app.SaveButton.FontColor = [1 1 1];
-            app.SaveButton.Enable = 'off';
-            app.SaveButton.Layout.Row = 1;
-            app.SaveButton.Layout.Column = 2;
-            app.SaveButton.Text = 'Upload relatório';
+            % Create UploadFinalFile
+            app.UploadFinalFile = uibutton(app.GridLayout2, 'push');
+            app.UploadFinalFile.ButtonPushedFcn = createCallbackFcn(app, @onUploadFinalFileButtonPushed, true);
+            app.UploadFinalFile.Icon = 'up-20px.png';
+            app.UploadFinalFile.BackgroundColor = [0.0314 0.4902 0.7294];
+            app.UploadFinalFile.FontColor = [1 1 1];
+            app.UploadFinalFile.Enable = 'off';
+            app.UploadFinalFile.Layout.Row = 1;
+            app.UploadFinalFile.Layout.Column = 2;
+            app.UploadFinalFile.Text = 'Upload relatório';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

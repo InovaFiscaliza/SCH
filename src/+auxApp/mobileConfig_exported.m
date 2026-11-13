@@ -353,12 +353,11 @@ classdef mobileConfig_exported < matlab.apps.AppBase
 
             % Create SearchRefreshButton
             app.SearchRefreshButton = uiimage(app.GridLayout);
+            app.SearchRefreshButton.ScaleMethod = 'none';
             app.SearchRefreshButton.ImageClickedFcn = createCallbackFcn(app, @onRefreshButtonClicked, true);
             app.SearchRefreshButton.Visible = 'off';
-            app.SearchRefreshButton.Tooltip = {'Retorna às configurações iniciais'};
             app.SearchRefreshButton.Layout.Row = 1;
             app.SearchRefreshButton.Layout.Column = 2;
-            app.SearchRefreshButton.VerticalAlignment = 'bottom';
             app.SearchRefreshButton.ImageSource = 'Refresh_18.png';
 
             % Create SearchPanel
@@ -422,12 +421,11 @@ classdef mobileConfig_exported < matlab.apps.AppBase
 
             % Create FiscalizaRefreshButton
             app.FiscalizaRefreshButton = uiimage(app.GridLayout);
+            app.FiscalizaRefreshButton.ScaleMethod = 'none';
             app.FiscalizaRefreshButton.ImageClickedFcn = createCallbackFcn(app, @onRefreshButtonClicked, true);
             app.FiscalizaRefreshButton.Visible = 'off';
-            app.FiscalizaRefreshButton.Tooltip = {'Retorna às configurações iniciais'};
             app.FiscalizaRefreshButton.Layout.Row = 4;
             app.FiscalizaRefreshButton.Layout.Column = 2;
-            app.FiscalizaRefreshButton.VerticalAlignment = 'bottom';
             app.FiscalizaRefreshButton.ImageSource = 'Refresh_18.png';
 
             % Create FiscalizaPanel

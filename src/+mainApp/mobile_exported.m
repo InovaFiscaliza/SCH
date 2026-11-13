@@ -418,6 +418,32 @@ classdef mobile_exported < matlab.apps.AppBase
     
                         applyLayout(app, 'mainAppMobile')
     
+                    case {'auxApp.mobileReportLib', 'auxApp.mobileReportLib_exported'}
+                        switch eventName
+                            case 'onUpdateLastVisitedFolder'
+                                filePath = varargin{1};
+                                updateLastVisitedFolder(app, filePath)
+
+                            case {'onReportGenerate', 'onUploadArtifacts'}
+                                context = varargin{1};
+                                reportHandleOperation(app, eventName, context, [], varargin{2:end})
+
+                            case 'onFetchIssueDetails'
+                                context = varargin{1};
+                                reportFetchIssueDetails(app, context, [])
+
+                            case {'onProjectRestart', 'onProjectLoad'}
+                                context  = varargin{1};
+                                varargin = [{eventName}, varargin(2:end)];
+                                ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', varargin{:})
+
+                            case 'onFinalReportFileChanged'
+                                % O próprio módulo já atualiza o seu painel.
+
+                            otherwise
+                                error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
+                        end
+
                     case {'auxApp.mobileProductInfo', 'auxApp.mobileProductInfo_exported'}
                         switch eventName
                             case 'onInspectedProductEdited'
@@ -1068,6 +1094,237 @@ classdef mobile_exported < matlab.apps.AppBase
             escapedValue = char(value);
             escapedValue = replace(escapedValue, {'&', '<', '>', '"', ''''}, {'&amp;', '&lt;', '&gt;', '&quot;', '&#39;'});
         end
+
+        %-----------------------------------------------------------------%
+        function updateLastVisitedFolder(app, filePath)
+            app.General_I.fileFolder.lastVisited = filePath;
+            app.General.fileFolder.lastVisited   = filePath;
+
+            appEngine.util.generalSettingsSave(class.Constants.appName, app.rootFolder, app.General_I, app.executionMode)
+        end
+    end
+
+
+    methods (Access = private)
+        %-----------------------------------------------------------------%
+        % SISTEMA DE GESTÃO DA FISCALIZAÇÃO (eFiscaliza/SEI)
+        %-----------------------------------------------------------------%
+        function createEFiscalizaObject(app, credentials)
+            if ~isempty(credentials)
+                loginMode = 'mfa';
+                if ~isfield(credentials, 'mfaLogin')
+                    loginMode = 'manual';
+                end
+
+                app.eFiscalizaObj = ws.eFiscaliza(loginMode, credentials.login, credentials.password);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function reportHandleOperation(app, eventName, context, credentials, varargin)
+            arguments
+                app
+                eventName {mustBeMember(eventName, {'onFetchIssueDetails', 'onReportGenerate', 'onUploadArtifacts'})}
+                context {mustBeMember(context, {'PRODUCTS'})}
+                credentials
+            end
+
+            arguments (Repeating)
+                varargin
+            end
+
+            switch eventName
+                case 'onFetchIssueDetails'
+                    reportFetchIssueDetails(app, context, credentials)
+
+                case 'onReportGenerate'
+                    reportGenerate(app, context, credentials);
+        
+                case 'onUploadArtifacts'
+                    reportUploadArtifacts(app, context, credentials, 'uploadDocument');
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function callingApp = getReportCallingApp(app)
+            % O contexto de geração de relatório ("PRODUCTS") é distinto da aba que 
+            % o apresenta ("REPORT"), módulo que dispara as operações.
+            callingApp = getAppHandle(app.tabGroupController, 'REPORT');
+            if isempty(callingApp) || ~isvalid(callingApp)
+                callingApp = app;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function reportFetchIssueDetails(app, context, credentials)
+            callingApp = getReportCallingApp(app);
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            system = app.projectData.modules.(context).ui.system;
+            issue  = app.projectData.modules.(context).ui.issue;
+            [details, msgError] = getOrFetchIssueDetails(app.projectData, system, issue, app.eFiscalizaObj);
+
+            if app ~= callingApp
+                ipcMainMatlabCallAuxiliarApp(app, 'REPORT', 'MATLAB', 'onFetchIssueDetails', system, issue, details, msgError)
+
+            else
+                if isempty(msgError)
+                    msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
+                    imageUrl = 'info.svg';
+                    title = 'Detalhes da Inspeção';
+                else
+                    app.eFiscalizaObj = [];
+                    msg = msgError;
+                    imageUrl = 'warning-20px-red.svg';
+                    title = 'Falha ao obter detalhes da inspeção';
+                end
+
+                sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                    'dataTag',  'issueDetails', ...
+                    'imageUrl', imageUrl, ...
+                    'title',    title, ...
+                    'width',    85, ...
+                    'height',   60, ...
+                    'html',     ['<div style="line-height: 18px;">' msg '</div>'] ...
+                ));
+            end
+
+            callingApp.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function reportGenerate(app, context, credentials)
+            callingApp = getReportCallingApp(app);
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            try
+                reportLibConnection.Controller.Run(app, callingApp, context)
+                if app ~= callingApp
+                    ipcMainMatlabCallAuxiliarApp(app, 'REPORT', 'MATLAB', 'onReportGenerate')
+                end
+
+            catch ME
+                ui.Dialog(callingApp.UIFigure, 'error', getReport(ME));
+            end
+
+            callingApp.progressDialog.Visible = 'hidden';
+        end
+
+        %-----------------------------------------------------------------%
+        function reportUploadArtifacts(app, context, credentials, operation)
+            callingApp = getReportCallingApp(app);
+
+            callingApp.progressDialog.Visible = 'visible';
+
+            createEFiscalizaObject(app, credentials)
+            [status1, icon1, msg1, seiReport] = reportUploadToSEI(app, context, operation, true);
+            ui.Dialog(callingApp.UIFigure, icon1, msg1);
+
+            callingApp.progressDialog.Visible = 'hidden';
+
+            if status1 && strcmp(app.projectData.modules.(context).ui.system, 'eFiscaliza')
+                [status2, msg2] = reportUploadFilesToSharepoint(app, context, seiReport);
+
+                if ~status2
+                    ui.Dialog(callingApp.UIFigure, 'error', msg2);
+                end
+            end
+        end
+
+        %-------------------------------------------------------------------------%
+        function [status, icon, msg, seiReport] = reportUploadToSEI(app, context, operation, updateUploadedFileList)
+            try
+                env = strsplit(app.projectData.modules.(context).ui.system);
+                if isscalar(env)
+                    env = 'PD';
+                else
+                    env = env{2};
+                end
+
+                system = app.projectData.modules.(context).ui.system;
+                unit = app.projectData.modules.(context).ui.unit;
+                issue = app.projectData.modules.(context).ui.issue;
+                issueInfo = struct( ...
+                    'type', 'ATIVIDADE DE INSPEÇÃO', ...
+                    'id', issue ...
+                );
+
+                switch operation
+                    case 'uploadDocument'
+                        HTMLFile = getGeneratedDocumentFileName(app.projectData, '.html', context);
+                        correlationKey = model.ProjectCommon.extractCorrelationKey(HTMLFile);
+
+                        [~, modelIdx]   = ismember(app.projectData.modules.(context).ui.reportModel, {app.projectData.report.templates.Name});
+                        docType         = app.projectData.report.templates(modelIdx).DocumentType;
+                        [~, docTypeIdx] = ismember(docType, {app.General.eFiscaliza.internal.typeIdMapping.type});
+
+                        docSpec = app.General.eFiscaliza;
+                        docSpec.originId = docSpec.internal.originId;
+                        docSpec.typeId = app.General.eFiscaliza.internal.typeIdMapping(docTypeIdx).id;
+                        docSpec.nomeArvore = ['[' class.Constants.appName ']'];
+                        docSpec.note = sprintf('%s\ncorrelationKey="%s"', docSpec.note, correlationKey);
+
+                        if app.projectData.modules.(context).ui.entity.status
+                            docSpec.interessados = {struct( ...
+                                'sigla', app.projectData.modules.(context).ui.entity.id, ...
+                                'nome', app.projectData.modules.(context).ui.entity.name ...
+                            )};
+                        end     
+
+                        [response, seiReport] = run(app.eFiscalizaObj, env, operation, issueInfo, unit, docSpec, HTMLFile);
+
+                    otherwise
+                        error('Unexpected call')
+                end
+
+                if ~contains(response, 'Documento cadastrado no SEI', 'IgnoreCase', true)
+                    error(response)
+                end
+
+                if updateUploadedFileList
+                    updateUploadedFiles(app.projectData, context, system, issue, response)
+                end
+
+                status = true;
+                icon = 'success';
+                msg = response;
+
+            catch ME
+                app.eFiscalizaObj = [];
+                
+                status = false;
+                icon = 'error';
+                msg = ME.message;
+                seiReport = '';
+            end
+        end
+
+        %------------------------------------------------------------------------%
+        function [status, msg] = reportUploadFilesToSharepoint(app, context, seiReport)
+            sharepointFileList = { ...
+                getGeneratedDocumentFileName(app.projectData, '.json',  context), ...
+                getGeneratedDocumentFileName(app.projectData, '.teams', context)  ...
+            };
+            model.ProjectCommon.updateSeiReport(sharepointFileList{1}, seiReport)
+        
+            statusList = false(1, numel(sharepointFileList));
+            msgList = {};
+        
+            for ii = 1:numel(sharepointFileList)
+                [statusList(ii), msgWarning] = copyfile(sharepointFileList{ii}, app.General.fileFolder.DataHub_POST, 'f');
+        
+                if ~statusList(ii)
+                    msgList{end+1} = msgWarning;
+                end
+            end
+        
+            status = all(statusList);
+            msg = strjoin(msgList, '\n\n');
+        end
     end
     
 
@@ -1240,8 +1497,10 @@ classdef mobile_exported < matlab.apps.AppBase
                     applyLayout(app, 'mainAppMobile')
 
                 case app.AppInfo
-                    delete(app.popupCurrentApp) %% APAGAR DEPOIS %%
-                    delete(app.tabGroupController.Components.appHandle{4}) %% APAGAR DEPOIS %%
+                    % <DEBUG>
+                    % delete(app.popupCurrentApp)
+                    % delete(app.tabGroupController.Components.appHandle{3})
+                    % </DEBUG>
 
                     appInfo = util.HtmlTextGenerator.AppInfo( ...
                         app.General, ...
