@@ -636,7 +636,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.FilterStrategyLabel.FontColor = [0 0.1294 0.2392];
             app.FilterStrategyLabel.Layout.Row = 2;
             app.FilterStrategyLabel.Layout.Column = [1 2];
-            app.FilterStrategyLabel.Text = 'Estratégia:';
+            app.FilterStrategyLabel.Text = 'Estratégia';
 
             % Create FilterStrategy
             app.FilterStrategy = uidropdown(app.GridLayout);
@@ -655,7 +655,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextLabel.FontColor = [0 0.1294 0.2392];
             app.FreeTextLabel.Layout.Row = 4;
             app.FreeTextLabel.Layout.Column = [1 2];
-            app.FreeTextLabel.Text = 'Pesquisa textual:';
+            app.FreeTextLabel.Text = 'Pesquisa textual';
 
             % Create FreeTextRadioGroup
             app.FreeTextRadioGroup = uibuttongroup(app.GridLayout);
@@ -688,7 +688,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.ColumnFilterLabel.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterLabel.Layout.Row = 6;
             app.ColumnFilterLabel.Layout.Column = [1 2];
-            app.ColumnFilterLabel.Text = 'Filtro por coluna:';
+            app.ColumnFilterLabel.Text = 'Filtro por coluna';
 
             % Create ColumnFilterPanel
             app.ColumnFilterPanel = uipanel(app.GridLayout);

@@ -281,7 +281,7 @@ classdef mobileSearchAddSelectedToBucket_exported < matlab.apps.AppBase
             app.TreeLabel.Layout.Row = 2;
             app.TreeLabel.Layout.Column = [1 2];
             app.TreeLabel.Interpreter = 'html';
-            app.TreeLabel.Text = {'<b>Registros encontrados:</b>'; '<font style="font-size: 11px;">(Solicitante, Fabricante, Modelo e Nome Comercial)</font>'};
+            app.TreeLabel.Text = {'<b>Registros encontrados</b>'; '<font style="font-size: 11px;">(Solicitante, Fabricante, Modelo e Nome Comercial)</font>'};
 
             % Create Tree
             app.Tree = uitree(app.GridLayout, 'checkbox');

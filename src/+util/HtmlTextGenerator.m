@@ -176,12 +176,19 @@ classdef (Abstract) HtmlTextGenerator
                     displayEntry(3) = struct('group', 'Modelo:',     'value', Modelo);
             end
 
-            freeInitialText = '';
-            if ~strcmp(dataType, 'ProdutoHomologado - Mobile')
-                freeInitialText = sprintf('<font style="color: white; background-color: #638094; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+            switch dataType
+                case 'ProdutoHomologado - Mobile'
+                    freeInitialText = '';
+                    outputFormat = 'popup';
+                    customStyle = '';
+
+                otherwise
+                    freeInitialText = sprintf('<font style="color: white; background-color: #638094; display: inline-block; vertical-align: middle; padding: 5px; border-radius: 5px; font-size: 16px;"><b>%s</b></font><font style="%sfont-size: 9px;"> %s</font><br><br>', Homologacao, StatusColor, upper(Status));
+                    outputFormat = 'textview';
+                    customStyle = 'margin-top: 7px; ';
             end
             
-            htmlContent = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, 'textview', 'normal+gray', 'margin-top: 7px; ');
+            htmlContent = textFormatGUI.struct2PrettyPrintList(displayEntry, 'delete', freeInitialText, outputFormat, 'normal+gray', customStyle);
             
             function htmlList = getListOfValues(referenceTable, columnName)        
                 values = setdiff(unique(referenceTable.(columnName)), {''});

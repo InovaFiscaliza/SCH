@@ -5,6 +5,7 @@ classdef mobile_exported < matlab.apps.AppBase
         UIFigure                 matlab.ui.Figure
         GridLayout               matlab.ui.container.GridLayout
         TitleGrid                matlab.ui.container.GridLayout
+        Image                    matlab.ui.control.Image
         AppInfo                  matlab.ui.control.Image
         AppTitle                 matlab.ui.control.Label
         ReturnButton             matlab.ui.control.Image
@@ -30,9 +31,10 @@ classdef mobile_exported < matlab.apps.AppBase
         SearchEntryPoint         matlab.ui.control.EditField
         Tab2                     matlab.ui.container.Tab
         Tab3                     matlab.ui.container.Tab
+        Tab4                     matlab.ui.container.Tab
         ContainerAuxApps         matlab.ui.container.Panel
         NavBar                   matlab.ui.container.GridLayout
-        Image                    matlab.ui.control.Image
+        Tab4Button               matlab.ui.control.StateButton
         Tab3Button               matlab.ui.control.StateButton
         Tab2Button               matlab.ui.control.StateButton
         Tab1Button               matlab.ui.control.StateButton
@@ -121,7 +123,14 @@ classdef mobile_exported < matlab.apps.AppBase
                         closeFcn(app, event)
 
                     case 'textHighlight'
-                        uialert(app.UIFigure, jsonencode(event.HTMLEventData), '', 'Icon', 'success')
+                        % Eventos originados de botões de um popup de um módulo auxiliar
+                        % (dataTag com o campo "context") são repassados a esse módulo.
+                        hData = event.HTMLEventData;
+                        if isstruct(hData) && isfield(hData, 'dataTag') && isstruct(hData.dataTag) && isfield(hData.dataTag, 'context')
+                            ipcMainMatlabCallAuxiliarApp(app, hData.dataTag.context, 'JS', event)
+                        else
+                            uialert(app.UIFigure, jsonencode(hData), '', 'Icon', 'success')
+                        end
 
                     case 'openExternalURL'
                         url = event.HTMLEventData;
@@ -177,39 +186,6 @@ classdef mobile_exported < matlab.apps.AppBase
                                 end
 
                                 reportHandleOperation(app, eventName, context, event.HTMLEventData, varargin{:})
-
-                            case 'openDevTools'
-                                if isequal(app.General.operationMode.DevTools, rmfield(event.HTMLEventData, 'uuid'))
-                                    webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
-                                    webWin.openDevTools();
-                                end
-
-                            case 'onGetImageUrl'
-                                url = event.HTMLEventData.url;
-
-                                try
-                                    uri = matlab.net.URI(url);
-                                    isValid = uri.Scheme == "https" && ~isempty(uri.Host);
-                                catch
-                                    isValid = false;
-                                end
-
-                                if ~isValid
-                                    ui.Dialog(app.UIFigure, 'warning', 'Endereço não é válido.');
-                                    return
-                                end
-
-                                requestKey = char(matlab.lang.internal.uuid());
-                                jsonFileName = fullfile(app.General.fileFolder.DataHub_POST, sprintf('regulatron_%s_%s.request',  datestr(now, 'yyyymmdd'), requestKey));
-                                jsonContent = jsonencode(struct( ...
-                                    'requestKey', requestKey, ...
-                                    'createdAt', datestr(now, 'yyyy-mm-ddTHH:MM:SS'), ...
-                                    'clientName', class.Constants.appName, ...
-                                    'url', url ...
-                                ), 'PrettyPrint', true);
-
-                                writematrix(jsonContent, jsonFileName, "FileType", "text", "QuoteStrings", "none", "WriteMode", "overwrite", "Encoding", "UTF-8")
-                                ui.Dialog(app.UIFigure, 'info', sprintf('Aberta requisição de raspagem para anúncio publicado em <b>%s://%s</b>', uri.Scheme, uri.Host));
                         end
 
                     case 'getNavigatorBasicInformation'
@@ -526,6 +502,7 @@ classdef mobile_exported < matlab.apps.AppBase
                 app.Tab1Button;
                 app.Tab2Button;
                 app.Tab3Button;
+                app.Tab4Button;
                 app.TitleGrid;
                 app.AppInfo;
                 app.SearchEntryPoint;
@@ -542,6 +519,7 @@ classdef mobile_exported < matlab.apps.AppBase
                     struct('appName', appName, 'dataTag', app.Tab1Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
                     struct('appName', appName, 'dataTag', app.Tab2Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
                     struct('appName', appName, 'dataTag', app.Tab3Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
+                    struct('appName', appName, 'dataTag', app.Tab4Button.UserData.id,         'generation', 1, 'class', {{'tab-navigator-button', 'tab-navigator-button--mobile'}}), ...
                     struct('appName', appName, 'dataTag', app.TitleGrid.UserData.id,          'styleImportant', struct('borderRadius', '0')), ...
                     struct('appName', appName, 'dataTag', app.SearchEntryPoint.UserData.id,   'generation', 1, 'style', struct('borderColor', '#AEBBC2', 'borderRadius', '8px 0 0 0')), ...
                     struct('appName', appName, 'dataTag', app.CurrentFilterPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
@@ -620,6 +598,7 @@ classdef mobile_exported < matlab.apps.AppBase
             addComponent(app.tabGroupController, "Built-in", "",                       app.Tab1Button, "AlwaysOn", matlab.graphics.GraphicsPlaceholder, 1)
             addComponent(app.tabGroupController, "External", "auxApp.mobileProducts",  app.Tab2Button, "AlwaysOn", app.Tab1Button,                      2)
             addComponent(app.tabGroupController, "External", "auxApp.mobileReportLib", app.Tab3Button, "AlwaysOn", app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "External", "auxApp.mobileConfig",    app.Tab4Button, "AlwaysOn", app.Tab1Button,                      4)
             app.Tab1Button.Value = true;
 
             if any(app.filteringObj.filterRules.Enable)
@@ -1249,11 +1228,11 @@ classdef mobile_exported < matlab.apps.AppBase
 
         % Callback function: AppInfo, ReturnButton, Tab1Button, Tab2Button,
         % 
-        % ...and 1 other component
+        % ...and 2 other components
         function onTabNavigatorButtonPushed(app, event)
             
             switch event.Source
-                case {app.Tab1Button, app.Tab2Button, app.Tab3Button}
+                case {app.Tab1Button, app.Tab2Button, app.Tab3Button, app.Tab4Button}
                     applyLayout(app, 'mainAppMobile')
                     openModule(app.tabGroupController, event.Source, event.PreviousValue, app.General, app)
 
@@ -1262,7 +1241,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
                 case app.AppInfo
                     delete(app.popupCurrentApp) %% APAGAR DEPOIS %%
-                    delete(app.tabGroupController.Components.appHandle{2}) %% APAGAR DEPOIS %%
+                    delete(app.tabGroupController.Components.appHandle{4}) %% APAGAR DEPOIS %%
 
                     appInfo = util.HtmlTextGenerator.AppInfo( ...
                         app.General, ...
@@ -1389,8 +1368,8 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create NavBar
             app.NavBar = uigridlayout(app.GridLayout);
-            app.NavBar.ColumnWidth = {20, '1x', '1x', '1x', 20};
-            app.NavBar.RowHeight = {'1x', 22};
+            app.NavBar.ColumnWidth = {'1x', '1x', '1x', '1x'};
+            app.NavBar.RowHeight = {'1x'};
             app.NavBar.RowSpacing = 0;
             app.NavBar.Padding = [10 10 10 16];
             app.NavBar.Layout.Row = 3;
@@ -1407,8 +1386,8 @@ classdef mobile_exported < matlab.apps.AppBase
             app.Tab1Button.BackgroundColor = [0.1294 0.2 0.2392];
             app.Tab1Button.FontSize = 11;
             app.Tab1Button.FontColor = [0.9412 0.9412 0.1333];
-            app.Tab1Button.Layout.Row = [1 2];
-            app.Tab1Button.Layout.Column = 2;
+            app.Tab1Button.Layout.Row = 1;
+            app.Tab1Button.Layout.Column = 1;
 
             % Create Tab2Button
             app.Tab2Button = uibutton(app.NavBar, 'state');
@@ -1420,28 +1399,34 @@ classdef mobile_exported < matlab.apps.AppBase
             app.Tab2Button.BackgroundColor = [0.1294 0.2 0.2392];
             app.Tab2Button.FontSize = 11;
             app.Tab2Button.FontColor = [1 1 1];
-            app.Tab2Button.Layout.Row = [1 2];
-            app.Tab2Button.Layout.Column = 3;
+            app.Tab2Button.Layout.Row = 1;
+            app.Tab2Button.Layout.Column = 2;
 
             % Create Tab3Button
             app.Tab3Button = uibutton(app.NavBar, 'state');
             app.Tab3Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
-            app.Tab3Button.Tag = 'CONFIG';
-            app.Tab3Button.Icon = 'gear-24px-white.svg';
+            app.Tab3Button.Tag = 'REPORT';
+            app.Tab3Button.Icon = 'organization-24px-white.svg';
             app.Tab3Button.IconAlignment = 'top';
-            app.Tab3Button.Text = 'Configurações';
+            app.Tab3Button.Text = 'Relatório';
             app.Tab3Button.BackgroundColor = [0.1294 0.2 0.2392];
             app.Tab3Button.FontSize = 11;
             app.Tab3Button.FontColor = [1 1 1];
-            app.Tab3Button.Layout.Row = [1 2];
-            app.Tab3Button.Layout.Column = 4;
+            app.Tab3Button.Layout.Row = 1;
+            app.Tab3Button.Layout.Column = 3;
 
-            % Create Image
-            app.Image = uiimage(app.NavBar);
-            app.Image.ImageClickedFcn = createCallbackFcn(app, @DevToolsButtonPushed, true);
-            app.Image.Layout.Row = 2;
-            app.Image.Layout.Column = 5;
-            app.Image.ImageSource = 'Debug_18.png';
+            % Create Tab4Button
+            app.Tab4Button = uibutton(app.NavBar, 'state');
+            app.Tab4Button.ValueChangedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
+            app.Tab4Button.Tag = 'CONFIG';
+            app.Tab4Button.Icon = 'gear-24px-white.svg';
+            app.Tab4Button.IconAlignment = 'top';
+            app.Tab4Button.Text = 'Configurações';
+            app.Tab4Button.BackgroundColor = [0.1294 0.2 0.2392];
+            app.Tab4Button.FontSize = 11;
+            app.Tab4Button.FontColor = [1 1 1];
+            app.Tab4Button.Layout.Row = 1;
+            app.Tab4Button.Layout.Column = 4;
 
             % Create ContainerAuxApps
             app.ContainerAuxApps = uipanel(app.GridLayout);
@@ -1630,9 +1615,13 @@ classdef mobile_exported < matlab.apps.AppBase
             app.Tab3 = uitab(app.TabGroup);
             app.Tab3.AutoResizeChildren = 'off';
 
+            % Create Tab4
+            app.Tab4 = uitab(app.TabGroup);
+            app.Tab4.AutoResizeChildren = 'off';
+
             % Create TitleGrid
             app.TitleGrid = uigridlayout(app.GridLayout);
-            app.TitleGrid.ColumnWidth = {32, '1x', 28};
+            app.TitleGrid.ColumnWidth = {32, '1x', 28, 28};
             app.TitleGrid.RowHeight = {'1x'};
             app.TitleGrid.Padding = [0 0 0 0];
             app.TitleGrid.Layout.Row = 1;
@@ -1653,7 +1642,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.AppTitle.FontSize = 10;
             app.AppTitle.FontColor = [1 1 1];
             app.AppTitle.Layout.Row = 1;
-            app.AppTitle.Layout.Column = 2;
+            app.AppTitle.Layout.Column = [2 3];
             app.AppTitle.Interpreter = 'html';
             app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>SCH+</b></font>'; 'v.1.00.0'};
 
@@ -1662,8 +1651,15 @@ classdef mobile_exported < matlab.apps.AppBase
             app.AppInfo.ScaleMethod = 'none';
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.AppInfo.Layout.Row = 1;
-            app.AppInfo.Layout.Column = 3;
+            app.AppInfo.Layout.Column = 4;
             app.AppInfo.ImageSource = 'kebab-vertical-24px-white.svg';
+
+            % Create Image
+            app.Image = uiimage(app.TitleGrid);
+            app.Image.ImageClickedFcn = createCallbackFcn(app, @DevToolsButtonPushed, true);
+            app.Image.Layout.Row = 1;
+            app.Image.Layout.Column = 3;
+            app.Image.ImageSource = 'Debug_18.png';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

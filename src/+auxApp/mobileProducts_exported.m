@@ -52,6 +52,12 @@ classdef mobileProducts_exported < matlab.apps.AppBase
                     case 'onMobileProductWarningRequested'
                         showInspectedProductWarnings(app, str2double(event.HTMLEventData))
 
+                    case 'textHighlight'
+                        dataTag = event.HTMLEventData.dataTag;
+                        if isstruct(dataTag) && isfield(dataTag, 'action') && strcmp(dataTag.action, 'deleteInspectedProduct') && strcmp(event.HTMLEventData.id, 'confirm')
+                            confirmDeleteInspectedProduct(app, dataTag.hash)
+                        end
+
                     otherwise
                         ipcMainJSEventsHandler(app.mainApp, event)
                 end
@@ -248,23 +254,40 @@ classdef mobileProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function editInspectedProduct(app, rowIdx)
-            if ~isscalar(rowIdx) || ~isfinite(rowIdx) || rowIdx < 1 || rowIdx > height(app.projectData.inspectedProducts)
-                return
-            end
-
-            ui.Dialog(app.UIFigure, 'info', 'Edição de produto ainda não disponível nesta versão.');
-        end
-
-        %-----------------------------------------------------------------%
         function deleteInspectedProduct(app, rowIdx)
             if ~isscalar(rowIdx) || ~isfinite(rowIdx) || rowIdx < 1 || rowIdx > height(app.projectData.inspectedProducts)
                 return
             end
 
-            msgQuestion = 'Deseja excluir o produto da lista de produtos inspecionados?';
-            userSelection = ui.Dialog(app.UIFigure, 'uiconfirm', msgQuestion, {'Sim', 'Não'}, 2, 2);
-            if strcmp(userSelection, 'Não')
+            productHash = char(string(app.projectData.inspectedProducts.('Hash')(rowIdx)));
+            buttonStyle = 'padding: 0 30px; height: 38px; background-color: #087dba; color: #ffffff; border: 1px solid #7d7d7d; border-radius: 5px; font-size: 12px; cursor: pointer;';
+            html = [ ...
+                '<div style="display: grid; grid-template-rows: auto 1fr auto; flex: 1 1 auto;">' ...
+                    '<p style="margin: 0;">Deseja excluir o produto da lista de produtos inspecionados?</p>' ...
+                    '<div></div>' ...
+                    '<div style="text-align: right;">' ...
+                        sprintf('<button id="confirm" type="button" style="%s margin-right: 8px;">Sim</button>', buttonStyle) ...
+                        sprintf('<button id="cancel" type="button" style="%s">Não</button>', buttonStyle) ...
+                    '</div>' ...
+                '</div>' ...
+            ];
+
+            sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                'dataTag',  struct('context', app.Context, 'action', 'deleteInspectedProduct', 'hash', productHash), ...
+                'imageUrl', 'close-16px-red.svg', ...
+                'title',    'Excluir produto', ...
+                'width',    85, ...
+                'height',   60, ...
+                'html',     html ...
+            ));
+        end
+
+        %-----------------------------------------------------------------%
+        function confirmDeleteInspectedProduct(app, productHash)
+            % O índice é recalculado a partir do hash, pois a lista pode ter mudado
+            % entre a solicitação e a confirmação.
+            rowIdx = find(strcmp(string(app.projectData.inspectedProducts.('Hash')), productHash), 1);
+            if isempty(rowIdx)
                 return
             end
 
@@ -317,7 +340,14 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             
             [productData, productHash] = model.ProjectBase.initializeInspectedProduct('NãoHomologado', app.mainApp.General);
             if ismember(productHash, app.projectData.inspectedProducts.("Hash"))
-                ui.Dialog(app.UIFigure, 'warning', model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS);
+                sendEventToHTMLSource(app.jsBackDoor, 'textHighlight', struct( ...
+                    'dataTag',  'productAlreadyExists', ...
+                    'imageUrl', 'warning-20px-red.svg', ...
+                    'title',    'Produto já incluído', ...
+                    'width',    85, ...
+                    'height',   60, ...
+                    'html',     ['<div style="line-height: 18px;">' model.ProjectBase.WARNING_ENTRYEXIST.PRODUCTS '</div>'] ...
+                ));
                 return
             end
 

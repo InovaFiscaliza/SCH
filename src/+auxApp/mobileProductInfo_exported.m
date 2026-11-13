@@ -564,7 +564,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.TypeLabel.FontColor = [0 0.1294 0.2392];
             app.TypeLabel.Layout.Row = 1;
             app.TypeLabel.Layout.Column = 1;
-            app.TypeLabel.Text = 'Tipo:';
+            app.TypeLabel.Text = 'Tipo';
 
             % Create Type
             app.Type = uidropdown(app.ProductStatusGrid);
@@ -583,7 +583,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.SubtypeLabel.FontColor = [0 0.1294 0.2392];
             app.SubtypeLabel.Layout.Row = 3;
             app.SubtypeLabel.Layout.Column = 1;
-            app.SubtypeLabel.Text = 'Subtipo:';
+            app.SubtypeLabel.Text = 'Subtipo';
 
             % Create Subtype
             app.Subtype = uidropdown(app.ProductStatusGrid);
@@ -603,7 +603,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ManufacturerLabel.FontColor = [0 0.1294 0.2392];
             app.ManufacturerLabel.Layout.Row = 5;
             app.ManufacturerLabel.Layout.Column = [1 2];
-            app.ManufacturerLabel.Text = 'Fabricante:';
+            app.ManufacturerLabel.Text = 'Fabricante';
 
             % Create Manufacturer
             app.Manufacturer = uieditfield(app.ProductStatusGrid, 'text');
@@ -619,7 +619,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ModelLabel.FontColor = [0 0.1294 0.2392];
             app.ModelLabel.Layout.Row = 5;
             app.ModelLabel.Layout.Column = 3;
-            app.ModelLabel.Text = 'Modelo:';
+            app.ModelLabel.Text = 'Modelo';
 
             % Create Model
             app.Model = uieditfield(app.ProductStatusGrid, 'text');
@@ -635,7 +635,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ImportadorLabel.FontColor = [0 0.1294 0.2392];
             app.ImportadorLabel.Layout.Row = 7;
             app.ImportadorLabel.Layout.Column = [1 2];
-            app.ImportadorLabel.Text = 'Importador:';
+            app.ImportadorLabel.Text = 'Importador';
 
             % Create Importador
             app.Importador = uieditfield(app.ProductStatusGrid, 'text');
@@ -651,7 +651,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.CodAduanaLabel.FontColor = [0 0.1294 0.2392];
             app.CodAduanaLabel.Layout.Row = 7;
             app.CodAduanaLabel.Layout.Column = 3;
-            app.CodAduanaLabel.Text = 'Código aduaneiro:';
+            app.CodAduanaLabel.Text = 'Código aduaneiro';
 
             % Create CodAduana
             app.CodAduana = uieditfield(app.ProductStatusGrid, 'text');
@@ -667,7 +667,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.EvidenceLabel.FontColor = [0 0.1294 0.2392];
             app.EvidenceLabel.Layout.Row = 9;
             app.EvidenceLabel.Layout.Column = [1 2];
-            app.EvidenceLabel.Text = 'Evidências:';
+            app.EvidenceLabel.Text = 'Evidências';
 
             % Create RF
             app.RF = uicheckbox(app.ProductStatusGrid);
@@ -701,7 +701,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.UnitPriceLabel.FontColor = [0 0.1294 0.2392];
             app.UnitPriceLabel.Layout.Row = 14;
             app.UnitPriceLabel.Layout.Column = 1;
-            app.UnitPriceLabel.Text = 'Valor unitário (R$):';
+            app.UnitPriceLabel.Text = 'Valor unitário (R$)';
 
             % Create UnitPrice
             app.UnitPrice = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -719,7 +719,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.UnitPriceSourceLabel.FontColor = [0 0.1294 0.2392];
             app.UnitPriceSourceLabel.Layout.Row = 14;
             app.UnitPriceSourceLabel.Layout.Column = [2 3];
-            app.UnitPriceSourceLabel.Text = 'Fonte (nota fiscal, mostruário etc):';
+            app.UnitPriceSourceLabel.Text = 'Fonte (nota fiscal, mostruário etc)';
 
             % Create UnitPriceSource
             app.UnitPriceSource = uieditfield(app.ProductStatusGrid, 'text');
@@ -735,7 +735,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdVendidaLabel.FontColor = [0 0.1294 0.2392];
             app.QtdVendidaLabel.Layout.Row = 16;
             app.QtdVendidaLabel.Layout.Column = 1;
-            app.QtdVendidaLabel.Text = 'Qtd. vendida:';
+            app.QtdVendidaLabel.Text = 'Qtd. vendida';
 
             % Create QtdVendida
             app.QtdVendida = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -754,7 +754,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdUsoLabel.FontColor = [0 0.1294 0.2392];
             app.QtdUsoLabel.Layout.Row = 16;
             app.QtdUsoLabel.Layout.Column = 2;
-            app.QtdUsoLabel.Text = 'Qtd. em uso:';
+            app.QtdUsoLabel.Text = 'Qtd. em uso';
 
             % Create QtdUso
             app.QtdUso = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -773,7 +773,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdEstoqueLabel.FontColor = [0 0.1294 0.2392];
             app.QtdEstoqueLabel.Layout.Row = 16;
             app.QtdEstoqueLabel.Layout.Column = 3;
-            app.QtdEstoqueLabel.Text = 'Qtd. estoque:';
+            app.QtdEstoqueLabel.Text = 'Qtd. estoque';
 
             % Create QtdEstoque
             app.QtdEstoque = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -792,7 +792,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdAnunciadaLabel.FontColor = [0 0.1294 0.2392];
             app.QtdAnunciadaLabel.Layout.Row = 18;
             app.QtdAnunciadaLabel.Layout.Column = 1;
-            app.QtdAnunciadaLabel.Text = 'Qtd. anunciada:';
+            app.QtdAnunciadaLabel.Text = 'Qtd. anunciada';
 
             % Create QtdAnunciada
             app.QtdAnunciada = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -811,7 +811,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdLacradaLabel.FontColor = [0 0.1294 0.2392];
             app.QtdLacradaLabel.Layout.Row = 18;
             app.QtdLacradaLabel.Layout.Column = 2;
-            app.QtdLacradaLabel.Text = 'Qtd. lacrada:';
+            app.QtdLacradaLabel.Text = 'Qtd. lacrada';
 
             % Create QtdLacrada
             app.QtdLacrada = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -830,7 +830,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdApreendidaLabel.FontColor = [0 0.1294 0.2392];
             app.QtdApreendidaLabel.Layout.Row = 18;
             app.QtdApreendidaLabel.Layout.Column = 3;
-            app.QtdApreendidaLabel.Text = 'Qtd. apreendida:';
+            app.QtdApreendidaLabel.Text = 'Qtd. apreendida';
 
             % Create QtdApreendida
             app.QtdApreendida = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -849,7 +849,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.QtdRetidaLabel.FontColor = [0 0.1294 0.2392];
             app.QtdRetidaLabel.Layout.Row = 20;
             app.QtdRetidaLabel.Layout.Column = 1;
-            app.QtdRetidaLabel.Text = 'Qtd. retida (RFB):';
+            app.QtdRetidaLabel.Text = 'Qtd. retida (RFB)';
 
             % Create QtdRetida
             app.QtdRetida = uieditfield(app.ProductStatusGrid, 'numeric');
@@ -868,7 +868,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.SituationLabel.FontColor = [0 0.1294 0.2392];
             app.SituationLabel.Layout.Row = 22;
             app.SituationLabel.Layout.Column = 1;
-            app.SituationLabel.Text = 'Situação:';
+            app.SituationLabel.Text = 'Situação';
 
             % Create Situation
             app.Situation = uidropdown(app.ProductStatusGrid);
@@ -906,7 +906,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ViolationTypeLabel.FontColor = [0 0.1294 0.2392];
             app.ViolationTypeLabel.Layout.Row = 24;
             app.ViolationTypeLabel.Layout.Column = [1 2];
-            app.ViolationTypeLabel.Text = 'Infração:';
+            app.ViolationTypeLabel.Text = 'Infração';
 
             % Create ViolationType
             app.ViolationType = uidropdown(app.ProductStatusGrid);
@@ -925,7 +925,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.PLAILabel.FontColor = [0 0.1294 0.2392];
             app.PLAILabel.Layout.Row = 26;
             app.PLAILabel.Layout.Column = [1 2];
-            app.PLAILabel.Text = 'PLAI:';
+            app.PLAILabel.Text = 'PLAI';
 
             % Create PLAI
             app.PLAI = uieditfield(app.ProductStatusGrid, 'text');
@@ -942,7 +942,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.LacreLabel.FontColor = [0 0.1294 0.2392];
             app.LacreLabel.Layout.Row = 26;
             app.LacreLabel.Layout.Column = 3;
-            app.LacreLabel.Text = 'Lacre:';
+            app.LacreLabel.Text = 'Lacre';
 
             % Create Lacre
             app.Lacre = uieditfield(app.ProductStatusGrid, 'text');
@@ -958,7 +958,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.NoteLabel.FontColor = [0 0.1294 0.2392];
             app.NoteLabel.Layout.Row = 28;
             app.NoteLabel.Layout.Column = [1 3];
-            app.NoteLabel.Text = 'Informações adicionais:';
+            app.NoteLabel.Text = 'Informações adicionais';
 
             % Create Note
             app.Note = uitextarea(app.ProductStatusGrid);
