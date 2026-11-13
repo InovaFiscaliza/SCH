@@ -119,7 +119,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
                                 end
 
                                 msg = util.HtmlTextGenerator.issueDetails(system, issue, details);
-                                ui.Dialog(app.UIFigure, 'info', msg);
+                                showTextHighlight(app, 'info.svg', 'Detalhes da Inspeção', msg, 'info', [])
 
                             otherwise
                                 error('auxApp:mobileReportLib:UnexpectedCall', 'Unexpected call "%s"', eventName)
@@ -941,7 +941,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
 
             % Create reportGrid
             app.reportGrid = uigridlayout(app.reportPanel);
-            app.reportGrid.ColumnWidth = {'1x', '1x', '1x', 17};
+            app.reportGrid.ColumnWidth = {225, '1x', 17};
             app.reportGrid.RowHeight = {22, 38, 22, '1x'};
             app.reportGrid.RowSpacing = 5;
             app.reportGrid.BackgroundColor = [0.9686 0.9765 0.9804];
@@ -959,14 +959,14 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportModel.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportModel.BackgroundColor = [1 1 1];
             app.reportModel.Layout.Row = 2;
-            app.reportModel.Layout.Column = [1 2];
+            app.reportModel.Layout.Column = 1;
             app.reportModel.Value = '';
 
             % Create reportVersionLabel
             app.reportVersionLabel = uilabel(app.reportGrid);
             app.reportVersionLabel.WordWrap = 'on';
             app.reportVersionLabel.Layout.Row = 1;
-            app.reportVersionLabel.Layout.Column = [3 4];
+            app.reportVersionLabel.Layout.Column = [2 3];
             app.reportVersionLabel.Text = 'Versão:';
 
             % Create reportVersion
@@ -975,7 +975,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportVersion.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportVersion.BackgroundColor = [1 1 1];
             app.reportVersion.Layout.Row = 2;
-            app.reportVersion.Layout.Column = [3 4];
+            app.reportVersion.Layout.Column = [2 3];
             app.reportVersion.Value = 'Preliminar';
 
             % Create reportEntityPanelLabel
@@ -989,11 +989,11 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityPanel = uipanel(app.reportGrid);
             app.reportEntityPanel.AutoResizeChildren = 'off';
             app.reportEntityPanel.Layout.Row = 4;
-            app.reportEntityPanel.Layout.Column = [1 4];
+            app.reportEntityPanel.Layout.Column = [1 3];
 
             % Create reportEntityGrid
             app.reportEntityGrid = uigridlayout(app.reportEntityPanel);
-            app.reportEntityGrid.ColumnWidth = {'1x', 107, 22};
+            app.reportEntityGrid.ColumnWidth = {22, '1x', '1x', 22};
             app.reportEntityGrid.RowHeight = {22, 38, 22, 38};
             app.reportEntityGrid.RowSpacing = 5;
             app.reportEntityGrid.BackgroundColor = [0.9686 0.9765 0.9804];
@@ -1002,7 +1002,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityTypeLabel = uilabel(app.reportEntityGrid);
             app.reportEntityTypeLabel.VerticalAlignment = 'bottom';
             app.reportEntityTypeLabel.Layout.Row = 1;
-            app.reportEntityTypeLabel.Layout.Column = 1;
+            app.reportEntityTypeLabel.Layout.Column = [1 2];
             app.reportEntityTypeLabel.Text = 'Tipo:';
 
             % Create reportEntityType
@@ -1011,7 +1011,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityType.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportEntityType.BackgroundColor = [1 1 1];
             app.reportEntityType.Layout.Row = 2;
-            app.reportEntityType.Layout.Column = 1;
+            app.reportEntityType.Layout.Column = [1 2];
             app.reportEntityType.Value = '';
 
             % Create reportEntityIdLabel
@@ -1019,7 +1019,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityIdLabel.VerticalAlignment = 'bottom';
             app.reportEntityIdLabel.WordWrap = 'on';
             app.reportEntityIdLabel.Layout.Row = 1;
-            app.reportEntityIdLabel.Layout.Column = 2;
+            app.reportEntityIdLabel.Layout.Column = 3;
             app.reportEntityIdLabel.Text = 'CNPJ/CPF:';
 
             % Create reportEntityIdCheck
@@ -1027,7 +1027,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityIdCheck.ImageClickedFcn = createCallbackFcn(app, @reportEntityIdCheckImageClicked, true);
             app.reportEntityIdCheck.Enable = 'off';
             app.reportEntityIdCheck.Layout.Row = 1;
-            app.reportEntityIdCheck.Layout.Column = 3;
+            app.reportEntityIdCheck.Layout.Column = 4;
             app.reportEntityIdCheck.VerticalAlignment = 'bottom';
             app.reportEntityIdCheck.ImageSource = 'Info_36.png';
 
@@ -1035,21 +1035,21 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportEntityId = uieditfield(app.reportEntityGrid, 'text');
             app.reportEntityId.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportEntityId.Layout.Row = 2;
-            app.reportEntityId.Layout.Column = [2 3];
+            app.reportEntityId.Layout.Column = [3 4];
 
             % Create reportEntityNameLabel
             app.reportEntityNameLabel = uilabel(app.reportEntityGrid);
             app.reportEntityNameLabel.VerticalAlignment = 'bottom';
             app.reportEntityNameLabel.WordWrap = 'on';
             app.reportEntityNameLabel.Layout.Row = 3;
-            app.reportEntityNameLabel.Layout.Column = 1;
+            app.reportEntityNameLabel.Layout.Column = [1 4];
             app.reportEntityNameLabel.Text = 'Nome da fiscalizada:';
 
             % Create reportEntityName
             app.reportEntityName = uieditfield(app.reportEntityGrid, 'text');
             app.reportEntityName.ValueChangedFcn = createCallbackFcn(app, @onProjectInfoUpdate, true);
             app.reportEntityName.Layout.Row = 4;
-            app.reportEntityName.Layout.Column = [1 3];
+            app.reportEntityName.Layout.Column = [1 4];
 
             % Create GridLayout2
             app.GridLayout2 = uigridlayout(app.GridLayout);
