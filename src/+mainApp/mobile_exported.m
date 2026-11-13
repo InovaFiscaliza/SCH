@@ -5,7 +5,6 @@ classdef mobile_exported < matlab.apps.AppBase
         UIFigure                 matlab.ui.Figure
         GridLayout               matlab.ui.container.GridLayout
         TitleGrid                matlab.ui.container.GridLayout
-        Image                    matlab.ui.control.Image
         AppInfo                  matlab.ui.control.Image
         AppTitle                 matlab.ui.control.Label
         ReturnButton             matlab.ui.control.Image
@@ -1528,7 +1527,7 @@ classdef mobile_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: SearchSetupButton
-        function SearchSetupButtonImageClicked(app, event)
+        function onSearchSetupButtonClicked(app, event)
             
             ipcMainMatlabOpenPopupApp(app, app, 'SearchFilter', app.Context)
 
@@ -1557,14 +1556,8 @@ classdef mobile_exported < matlab.apps.AppBase
 
         end
 
-        % Image clicked function: Image
-        function DevToolsButtonPushed(app, event)
-            webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
-                                    webWin.openDevTools();
-        end
-
         % Image clicked function: CurrentFilterVisibility
-        function CurrentFilterVisibilityImageClicked(app, event)
+        function onCurrentFilterVisibilityChanged(app, event)
             
             app.CurrentFilterPanel.UserData.status = ~app.CurrentFilterPanel.UserData.status;
 
@@ -1735,7 +1728,7 @@ classdef mobile_exported < matlab.apps.AppBase
             % Create SearchSetupButton
             app.SearchSetupButton = uiimage(app.Grid1);
             app.SearchSetupButton.ScaleMethod = 'none';
-            app.SearchSetupButton.ImageClickedFcn = createCallbackFcn(app, @SearchSetupButtonImageClicked, true);
+            app.SearchSetupButton.ImageClickedFcn = createCallbackFcn(app, @onSearchSetupButtonClicked, true);
             app.SearchSetupButton.Layout.Row = 1;
             app.SearchSetupButton.Layout.Column = 5;
             app.SearchSetupButton.ImageSource = 'settings-20px.svg';
@@ -1770,7 +1763,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create CurrentFilterVisibility
             app.CurrentFilterVisibility = uiimage(app.CurrentFilterGrid);
-            app.CurrentFilterVisibility.ImageClickedFcn = createCallbackFcn(app, @CurrentFilterVisibilityImageClicked, true);
+            app.CurrentFilterVisibility.ImageClickedFcn = createCallbackFcn(app, @onCurrentFilterVisibilityChanged, true);
             app.CurrentFilterVisibility.Layout.Row = 1;
             app.CurrentFilterVisibility.Layout.Column = [1 6];
             app.CurrentFilterVisibility.HorizontalAlignment = 'right';
@@ -1857,7 +1850,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create PopupTempWarning
             app.PopupTempWarning = uilabel(app.Grid1);
-            app.PopupTempWarning.BackgroundColor = [0.6353 0.0784 0.1843];
+            app.PopupTempWarning.BackgroundColor = [0.1294 0.2 0.2392];
             app.PopupTempWarning.HorizontalAlignment = 'center';
             app.PopupTempWarning.WordWrap = 'on';
             app.PopupTempWarning.FontColor = [1 1 1];
@@ -1880,7 +1873,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create TitleGrid
             app.TitleGrid = uigridlayout(app.GridLayout);
-            app.TitleGrid.ColumnWidth = {32, '1x', 28, 28};
+            app.TitleGrid.ColumnWidth = {32, '1x', 28};
             app.TitleGrid.RowHeight = {'1x'};
             app.TitleGrid.Padding = [0 0 0 0];
             app.TitleGrid.Layout.Row = 1;
@@ -1901,7 +1894,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.AppTitle.FontSize = 10;
             app.AppTitle.FontColor = [1 1 1];
             app.AppTitle.Layout.Row = 1;
-            app.AppTitle.Layout.Column = [2 3];
+            app.AppTitle.Layout.Column = 2;
             app.AppTitle.Interpreter = 'html';
             app.AppTitle.Text = {'<font style="font-size: 16px; line-height: 16px;"><b>SCH+</b></font>'; 'v.1.00.0'};
 
@@ -1910,15 +1903,8 @@ classdef mobile_exported < matlab.apps.AppBase
             app.AppInfo.ScaleMethod = 'none';
             app.AppInfo.ImageClickedFcn = createCallbackFcn(app, @onTabNavigatorButtonPushed, true);
             app.AppInfo.Layout.Row = 1;
-            app.AppInfo.Layout.Column = 4;
+            app.AppInfo.Layout.Column = 3;
             app.AppInfo.ImageSource = 'kebab-vertical-24px-white.svg';
-
-            % Create Image
-            app.Image = uiimage(app.TitleGrid);
-            app.Image.ImageClickedFcn = createCallbackFcn(app, @DevToolsButtonPushed, true);
-            app.Image.Layout.Row = 1;
-            app.Image.Layout.Column = 3;
-            app.Image.ImageSource = 'Debug_18.png';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

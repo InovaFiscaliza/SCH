@@ -6,6 +6,7 @@ classdef mobileConfig_exported < matlab.apps.AppBase
         GridLayout                matlab.ui.container.GridLayout
         FiscalizaPanel            matlab.ui.container.Panel
         FiscalizaGrid             matlab.ui.container.GridLayout
+        DevToolsButton            matlab.ui.control.Image
         FileCompressionMode       matlab.ui.control.DropDown
         FileCompressionModeLabel  matlab.ui.control.Label
         MacrothemesList           matlab.ui.control.EditField
@@ -80,12 +81,12 @@ classdef mobileConfig_exported < matlab.apps.AppBase
     
             try
                 sendEventToHTMLSource(app.mainApp.jsBackDoor, 'initializeComponents', { ...
-                    struct('appName', appName, 'dataTag', app.SearchPanel.UserData.id, 'generation', 1, 'style', struct('borderRadius', '8px')), ...
-                    struct('appName', appName, 'dataTag', app.FiscalizaPanel.UserData.id,           'generation', 1, 'style', struct('borderRadius', '8px')), ...
-                    struct('appName', appName, 'dataTag', app.NumMinCharacters.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
-                    struct('appName', appName, 'dataTag', app.NumMinWords.UserData.id,          'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
-                    struct('appName', appName, 'dataTag', app.MacrothemesList.UserData.id,           'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
-                    struct('appName', appName, 'dataTag', app.FileCompressionMode.UserData.id,    'generation', 1, 'style', struct('borderColor', '#AEBBC2')) ...
+                    struct('appName', appName, 'dataTag', app.SearchPanel.UserData.id,         'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.FiscalizaPanel.UserData.id,      'generation', 1, 'style', struct('borderRadius', '8px')), ...
+                    struct('appName', appName, 'dataTag', app.NumMinCharacters.UserData.id,    'selector', '.mwTextField', 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.NumMinWords.UserData.id,         'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.MacrothemesList.UserData.id,     'generation', 1, 'style', struct('borderColor', '#AEBBC2')), ...
+                    struct('appName', appName, 'dataTag', app.FileCompressionMode.UserData.id, 'generation', 1, 'style', struct('borderColor', '#AEBBC2')) ...
                 });
             catch
             end
@@ -114,6 +115,10 @@ classdef mobileConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
             set([app.SearchPanel, app.FiscalizaPanel], 'BorderColor', '#D5DDE1')
+
+            if ~strcmp(app.mainApp.executionMode, 'webApp')
+                app.DevToolsButton.Visible = 'on';
+            end
         end
 
         %-----------------------------------------------------------------%
@@ -295,6 +300,14 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             saveGeneralSettings(app)
             
         end
+
+        % Image clicked function: DevToolsButton
+        function onDevToolsButtonClicked(app, event)
+                        
+            webWin = struct(struct(struct(app.UIFigure).Controller).PlatformHost).CEF;
+            webWin.openDevTools();
+            
+        end
     end
 
     % Component initialization
@@ -438,7 +451,7 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             % Create FiscalizaGrid
             app.FiscalizaGrid = uigridlayout(app.FiscalizaPanel);
             app.FiscalizaGrid.ColumnWidth = {130, '1x', 22};
-            app.FiscalizaGrid.RowHeight = {22, 38, 22, 38};
+            app.FiscalizaGrid.RowHeight = {22, 38, 22, 38, '1x', 22};
             app.FiscalizaGrid.RowSpacing = 5;
             app.FiscalizaGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
@@ -481,6 +494,14 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             app.FileCompressionMode.Layout.Row = 4;
             app.FileCompressionMode.Layout.Column = 1;
             app.FileCompressionMode.Value = 'Sim';
+
+            % Create DevToolsButton
+            app.DevToolsButton = uiimage(app.FiscalizaGrid);
+            app.DevToolsButton.ImageClickedFcn = createCallbackFcn(app, @onDevToolsButtonClicked, true);
+            app.DevToolsButton.Visible = 'off';
+            app.DevToolsButton.Layout.Row = 6;
+            app.DevToolsButton.Layout.Column = 3;
+            app.DevToolsButton.ImageSource = 'Debug_18.png';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
