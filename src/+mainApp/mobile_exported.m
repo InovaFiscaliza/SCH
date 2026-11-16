@@ -131,19 +131,6 @@ classdef mobile_exported < matlab.apps.AppBase
                             uialert(app.UIFigure, jsonencode(hData), '', 'Icon', 'success')
                         end
 
-                    case 'openExternalURL'
-                        url = event.HTMLEventData;
-                        try
-                            uri = matlab.net.URI(url);
-                            isValid = ismember(uri.Scheme, ["http", "https"]) && ~isempty(uri.Host);
-                        catch
-                            isValid = false;
-                        end
-
-                        if isValid
-                            web(url, '-browser')
-                        end
-
                     case 'closeFcnCallFromPopupApp'
                         context = event.HTMLEventData.context;
                         popupCurrentAppTag = event.HTMLEventData.dockAppName;
@@ -1424,6 +1411,20 @@ classdef mobile_exported < matlab.apps.AppBase
 
         end
 
+        % Value changed function: SearchSuggestions
+        function onSearchSuggestionsValueChanged(app, event)
+            
+            % Em dispositivos touch, o toque no item da lista não dispara 
+            % "WindowButtonDownFcn". Nesses casos, a seleção do item é 
+            % tratada aqui. Em desktop, a seleção por teclado (setas) altera 
+            % "Value" e não deve confirmar a sugestão.
+            browserInfo = app.General.AppVersion.browser;
+            if isstruct(browserInfo) && isfield(browserInfo, 'mobile') && browserInfo.mobile && isnumeric(app.SearchSuggestions.Value)
+                ipcMainJSEventsHandler(app, struct('HTMLEventName', 'mainApp.searchSuggestions', 'HTMLEventData', 'Enter'))
+            end
+
+        end
+
         % Image clicked function: SearchEntryButton
         function onSearchEntryButtonPushed(app, event)
             
@@ -1589,6 +1590,7 @@ classdef mobile_exported < matlab.apps.AppBase
                 app.UIFigure.AutoResizeChildren = 'off';
                 app.UIFigure.Position = [100 100 393 852];
                 app.UIFigure.Name = 'SCH';
+                app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.CloseRequestFcn = createCallbackFcn(app, @closeFcn, true);
                 app.UIFigure.WindowButtonDownFcn = createCallbackFcn(app, @onFigureWindowButtonDown, true);
 
@@ -1840,6 +1842,7 @@ classdef mobile_exported < matlab.apps.AppBase
             % Create SearchSuggestions
             app.SearchSuggestions = uilistbox(app.Grid1);
             app.SearchSuggestions.Items = {''};
+            app.SearchSuggestions.ValueChangedFcn = createCallbackFcn(app, @onSearchSuggestionsValueChanged, true);
             app.SearchSuggestions.Tag = 'CAIXA DE BUSCA';
             app.SearchSuggestions.Visible = 'off';
             app.SearchSuggestions.FontSize = 14;

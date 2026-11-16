@@ -51,14 +51,7 @@ classdef winSCH_exported < matlab.apps.AppBase
                         if parpoolFlag
                             updateLog(app, 'Inicializando workers para execução de operações em paralelo...')
                         end
-
-                        if ~app.renderCount
-                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
-                        else
-                            appEngine.beforeReload(app, app.Role)
-                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
-                        end
-
+                        
                         app.navigatorBasicInformation = event.HTMLEventData;
                         if isempty(app.isMobile)
                             app.isMobile = app.navigatorBasicInformation.mobile;
@@ -66,14 +59,12 @@ classdef winSCH_exported < matlab.apps.AppBase
                         
                         app.renderCount = app.renderCount+1;
 
-                        if isempty(app.mainApp) || ~isvalid(app.mainApp)
-                            startMainApp(app)
-                        end
+                        appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         ipcMainJSEventsHandler(app.mainApp, event)
     
                     case 'unload'
-                        closeFcn(app)
-    
+                        closeFcn(app, event)
+
                     otherwise
                         if isempty(app.mainApp) || ~isvalid(app.mainApp)
                             error('winSCH:UnexpectedEvent', 'Unexpected event "%s"', event.HTMLEventName)
@@ -88,7 +79,7 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function loadConfigurationFile(app, MFilePath)
+        function loadConfigurationFile(app, appName, MFilePath)
             updateLog(app, 'Lendo arquivo de configuração "GeneralSettings.json"...')
 
             % "GeneralSettings.json"
@@ -136,13 +127,29 @@ classdef winSCH_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function readDataBaseExternalFiles(app, generalSettings)
-            if nargin < 2
-                generalSettings = app.General_I;
-            end
-
+        function initializeAppProperties(app)
             updateLog(app, 'Lendo bases de dados de referência do SCH e Regulatron...')
+            readDataBaseExternalFiles(app, app.General_I)
+        end
 
+        %-----------------------------------------------------------------%
+        function initializeUIComponents(app)
+            % ...
+        end
+
+        %-----------------------------------------------------------------%
+        function applyInitialLayout(app)
+            if app.isMobile
+                app.UIFigure.Position(3:4) = [393, 852];
+                app.mainApp = mainApp.mobile_exported(app.UIFigure, app);
+            else
+                app.UIFigure.Position(3:4) = [1244, 660];
+                app.mainApp = mainApp.desktop_exported(app.UIFigure, app);
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function readDataBaseExternalFiles(app, generalSettings)
             [app.schData, ...
              app.schDataCategories, ...
              app.releasedData, ...
@@ -150,7 +157,10 @@ classdef winSCH_exported < matlab.apps.AppBase
              app.cacheColumns]  = util.readExternalFile.SCHData(app.rootFolder, generalSettings.fileFolder.DataHub_GET, generalSettings);
             app.annotationTable = util.readExternalFile.Annotation(app.rootFolder, generalSettings.fileFolder.DataHub_GET);
         end
+    end
 
+
+    methods (Access = private)
         %-----------------------------------------------------------------%
         function updateLog(app, msg)
             if ~isvalid(app.Log)
@@ -163,24 +173,6 @@ classdef winSCH_exported < matlab.apps.AppBase
                 app.Log.Text = sprintf('%s\n%s', app.Log.Text, msg);
             end
             drawnow
-        end
-
-        %-----------------------------------------------------------------%
-        function startMainApp(app)
-            requestVisibilityChange(app.progressDialog, 'visible', 'locked')
-
-            loadConfigurationFile(app, fileparts(mfilename('fullpath')))
-            readDataBaseExternalFiles(app)
-
-            if app.isMobile
-                app.UIFigure.Position(3:4) = [393, 852];
-                app.mainApp = mainApp.mobile_exported(app.UIFigure, app);
-            else
-                app.UIFigure.Position(3:4) = [1244, 660];
-                app.mainApp = mainApp.desktop_exported(app.UIFigure, app);
-            end
-
-            requestVisibilityChange(app.progressDialog, 'visible', 'locked')
         end
     end
     
@@ -206,12 +198,27 @@ classdef winSCH_exported < matlab.apps.AppBase
 
         % Close request function: UIFigure
         function closeFcn(app, event)
+
+            % O evento "unload" indica que o navegador já foi fechado (ou está 
+            % em fechamento). Nesse caso não há interação possível com o 
+            % usuário (ex.: uiconfirm) e o encerramento deve seguir mesmo que 
+            % o mainApp falhe ao salvar o seu estado.
+            isUnloadEvent = exist('event', 'var') && isfield(struct(event), 'HTMLEventName') && strcmp(event.HTMLEventName, 'unload');
  
             if ~isempty(app.mainApp) && isvalid(app.mainApp)
-                ipcMainJSEventsHandler(app.mainApp, struct('Source', app.UIFigure, 'EventName', 'Close', 'HTMLEventName', 'unload'))
+                if isUnloadEvent
+                    mainAppEvent = struct('HTMLEventName', 'unload');
+                else
+                    mainAppEvent = struct('Source', app.UIFigure, 'EventName', 'Close', 'HTMLEventName', 'unload');
+                end
+
+                try
+                    ipcMainJSEventsHandler(app.mainApp, mainAppEvent)
+                catch
+                end
 
                 % Mantém a figura se o mainApp não foi encerrado (usuário cancelou).
-                if isvalid(app.mainApp)
+                if ~isUnloadEvent && isvalid(app.mainApp)
                     return
                 end
             end

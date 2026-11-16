@@ -736,9 +736,10 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 22, 22, 22};
-            app.GridLayout.RowHeight = {22, 176, 1, 22, 90, 1, 22, '1x', 1, 38};
+            app.GridLayout.RowHeight = {22, 176, 1, 22, 90, 1, 22, 276, '1x', 1, 38};
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
+            app.GridLayout.Scrollable = 'on';
             app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create prjLabel
@@ -937,13 +938,13 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.reportPanel = uipanel(app.GridLayout);
             app.reportPanel.AutoResizeChildren = 'off';
             app.reportPanel.BackgroundColor = [1 1 1];
-            app.reportPanel.Layout.Row = 8;
+            app.reportPanel.Layout.Row = [8 9];
             app.reportPanel.Layout.Column = [1 4];
 
             % Create reportGrid
             app.reportGrid = uigridlayout(app.reportPanel);
             app.reportGrid.ColumnWidth = {225, '1x', 17};
-            app.reportGrid.RowHeight = {22, 38, 22, '1x'};
+            app.reportGrid.RowHeight = {22, 38, 22, 158, '1x'};
             app.reportGrid.RowSpacing = 5;
             app.reportGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
@@ -989,7 +990,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             % Create reportEntityPanel
             app.reportEntityPanel = uipanel(app.reportGrid);
             app.reportEntityPanel.AutoResizeChildren = 'off';
-            app.reportEntityPanel.Layout.Row = 4;
+            app.reportEntityPanel.Layout.Row = [4 5];
             app.reportEntityPanel.Layout.Column = [1 3];
 
             % Create reportEntityGrid
@@ -1056,7 +1057,7 @@ classdef mobileReportLib_exported < matlab.apps.AppBase
             app.GridLayout2 = uigridlayout(app.GridLayout);
             app.GridLayout2.RowHeight = {'1x'};
             app.GridLayout2.Padding = [0 0 0 0];
-            app.GridLayout2.Layout.Row = 10;
+            app.GridLayout2.Layout.Row = 11;
             app.GridLayout2.Layout.Column = [1 4];
 
             % Create GenerateReport

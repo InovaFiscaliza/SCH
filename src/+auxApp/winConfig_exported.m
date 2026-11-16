@@ -998,7 +998,7 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_WordCloudColumn.FontSize = 11;
             app.config_WordCloudColumn.BackgroundColor = [1 1 1];
             app.config_WordCloudColumn.Layout.Row = 2;
-            app.config_WordCloudColumn.Layout.Column = 1;
+            app.config_WordCloudColumn.Layout.Column = [1 2];
             app.config_WordCloudColumn.Value = 'Modelo';
 
             % Create config_MiscelaneousLabel3
