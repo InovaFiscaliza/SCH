@@ -507,7 +507,15 @@ classdef mobile_exported < matlab.apps.AppBase
 
             requestVisibilityChange(callingApp.progressDialog, 'hidden', 'unlocked')
         end
+    end
 
+
+    methods (Access = public)
+        %-----------------------------------------------------------------%
+        function navigateToTab(app, clickedButton)
+            onTabNavigatorButtonPushed(app, struct('Source', clickedButton, 'PreviousValue', false))
+        end
+        
         %-----------------------------------------------------------------%
         function applyJSCustomizations(app)
             appName = class(app);
@@ -1703,10 +1711,11 @@ classdef mobile_exported < matlab.apps.AppBase
             % Create Grid1
             app.Grid1 = uigridlayout(app.Tab1);
             app.Grid1.ColumnWidth = {'1x', 90, 10, 28, 28};
-            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, '1x', 46};
+            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, 318, '1x', 46};
             app.Grid1.ColumnSpacing = 0;
             app.Grid1.RowSpacing = 0;
             app.Grid1.Padding = [10 10 10 42];
+            app.Grid1.Scrollable = 'on';
             app.Grid1.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create SearchEntryPoint
@@ -1836,7 +1845,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchResults.VerticalAlignment = 'top';
             app.SearchResults.WordWrap = 'on';
             app.SearchResults.FontSize = 11;
-            app.SearchResults.Layout.Row = [7 9];
+            app.SearchResults.Layout.Row = [7 10];
             app.SearchResults.Layout.Column = [1 5];
             app.SearchResults.Interpreter = 'html';
             app.SearchResults.Text = '';
@@ -1860,7 +1869,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.PopupTempWarning.WordWrap = 'on';
             app.PopupTempWarning.FontColor = [1 1 1];
             app.PopupTempWarning.Visible = 'off';
-            app.PopupTempWarning.Layout.Row = 9;
+            app.PopupTempWarning.Layout.Row = 10;
             app.PopupTempWarning.Layout.Column = [1 5];
             app.PopupTempWarning.Text = '';
 

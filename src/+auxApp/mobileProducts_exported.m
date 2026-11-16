@@ -395,10 +395,12 @@ classdef mobileProducts_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.RowHeight = {22, '1x', 97};
+            app.GridLayout.ColumnWidth = {'1x'};
+            app.GridLayout.RowHeight = {22, 564, '1x', 97};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
+            app.GridLayout.Scrollable = 'on';
             app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create Products
@@ -406,15 +408,15 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.Products.VerticalAlignment = 'top';
             app.Products.WordWrap = 'on';
             app.Products.FontSize = 11;
-            app.Products.Layout.Row = 2;
-            app.Products.Layout.Column = [1 2];
+            app.Products.Layout.Row = [2 3];
+            app.Products.Layout.Column = 1;
             app.Products.Interpreter = 'html';
             app.Products.Text = '';
 
             % Create CurrentFilterPanel
             app.CurrentFilterPanel = uipanel(app.GridLayout);
-            app.CurrentFilterPanel.Layout.Row = 3;
-            app.CurrentFilterPanel.Layout.Column = [1 2];
+            app.CurrentFilterPanel.Layout.Row = 4;
+            app.CurrentFilterPanel.Layout.Column = 1;
 
             % Create CurrentFilterGrid
             app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
@@ -457,7 +459,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.ViewRange.FontSize = 11;
             app.ViewRange.FontColor = [0.4588 0.5294 0.6];
             app.ViewRange.Layout.Row = 1;
-            app.ViewRange.Layout.Column = [1 2];
+            app.ViewRange.Layout.Column = 1;
             app.ViewRange.Text = '';
 
             % Show the figure after all components are created

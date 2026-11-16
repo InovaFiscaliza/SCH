@@ -5,8 +5,8 @@ classdef winConfig_exported < matlab.apps.AppBase
         UIFigure                     matlab.ui.Figure
         GridLayout                   matlab.ui.container.GridLayout
         DockModule                   matlab.ui.container.GridLayout
-        dockModule_Close             matlab.ui.control.Image
-        dockModule_Undock            matlab.ui.control.Image
+        DockCloseButton              matlab.ui.control.Image
+        DockUndockButton             matlab.ui.control.Image
         SubTabGroup                  matlab.ui.container.TabGroup
         SubTab1                      matlab.ui.container.Tab
         SubGrid1                     matlab.ui.container.GridLayout
@@ -126,15 +126,16 @@ classdef winConfig_exported < matlab.apps.AppBase
             end
             app.SubTabGroup.UserData.isTabInitialized(tabIndex) = true;
             
+            appName = class(app);
             switch tabIndex
                 case 1
-                    appName = class(app);
                     elToModify = {
                         app.versionInfo;
+                        app.tool_versionInfoRefresh;
                         app.tool_exportTable;
                         app.tool_openDevTools;
-                        app.dockModule_Undock;
-                        app.dockModule_Close
+                        app.DockUndockButton;
+                        app.DockCloseButton
                     };
                     ui.CustomizationBase.getElementsDataTag(elToModify);
 
@@ -145,20 +146,22 @@ classdef winConfig_exported < matlab.apps.AppBase
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                            struct('appName', appName, 'dataTag', app.tool_versionInfoRefresh.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Verifica atualizações')), ...
                             struct('appName', appName, 'dataTag', app.tool_exportTable.UserData.id,  'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre cópia de base dados no Excel')), ...
                             struct('appName', appName, 'dataTag', app.tool_openDevTools.UserData.id, 'tooltip', struct('defaultPosition', 'top',    'textContent', 'Abre DevTools')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                            struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id,  'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                            struct('appName', appName, 'dataTag', app.DockUndockButton.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                            struct('appName', appName, 'dataTag', app.DockCloseButton.UserData.id,  'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
                         });
                     catch
                     end
 
                 case 2
-                    ui.CustomizationBase.getElementsDataTag({app.CustomsColumnNamesButton});
+                    ui.CustomizationBase.getElementsDataTag({app.config_SearchModeDefaultParameters; app.CustomsColumnNamesButton});
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', class(app), 'dataTag', app.CustomsColumnNamesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição dos nomes das colunas<br>Ex: "Código da Remessa", "Importador", "Descrição"')) ...
+                            struct('appName', appName, 'dataTag', app.config_SearchModeDefaultParameters.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Retorna às configurações iniciais')), ...
+                            struct('appName', appName, 'dataTag', app.CustomsColumnNamesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição dos nomes das colunas<br>Ex: "Código da Remessa", "Importador", "Descrição"')) ...
                         });
                     catch
                     end
@@ -166,11 +169,12 @@ classdef winConfig_exported < matlab.apps.AppBase
                     updatePanel_Analysis(app)
 
                 case 3
-                    ui.CustomizationBase.getElementsDataTag({app.MacrothemesButton});
+                    ui.CustomizationBase.getElementsDataTag({app.eFiscalizaRefresh; app.MacrothemesButton});
 
                     try
                         sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
-                            struct('appName', class(app), 'dataTag', app.MacrothemesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição da lista de macrotemas<br>Ex: "PACP-Combate à Pirataria", ""')) ...
+                            struct('appName', appName, 'dataTag', app.eFiscalizaRefresh.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Retorna às configurações iniciais')), ...
+                            struct('appName', appName, 'dataTag', app.MacrothemesButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Habilita ou desabilita a edição da lista de macrotemas<br>Ex: "PACP-Combate à Pirataria", ""')) ...
                         });
                     catch
                     end
@@ -208,7 +212,7 @@ classdef winConfig_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.dockModule_Undock.Enable       = 1;
+                app.DockUndockButton.Enable       = 1;
                 app.tool_openDevTools.Enable       = 1;
                 app.tool_versionInfoRefresh.Enable = 1;
                 app.openAuxiliarAppAsDocked.Enable = 1;
@@ -356,13 +360,13 @@ classdef winConfig_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: dockModule_Close, dockModule_Undock
+        % Image clicked function: DockCloseButton, DockUndockButton
         function DockModuleGroup_ButtonPushed(app, event)
             
             [idx, auxAppTag, relatedButton] = getAppInfoFromHandle(app.mainApp.tabGroupController, app);
 
             switch event.Source
-                case app.dockModule_Undock
+                case app.DockUndockButton
                     appGeneral = app.mainApp.General;
                     appGeneral.operationMode.Dock = false;
                     
@@ -374,7 +378,7 @@ classdef winConfig_exported < matlab.apps.AppBase
                     
                     delete(app)
 
-                case app.dockModule_Close
+                case app.DockCloseButton
                     closeModule(app.mainApp.tabGroupController, auxAppTag, app.mainApp.General)
             end
 
@@ -845,7 +849,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.tool_versionInfoRefresh.ScaleMethod = 'none';
             app.tool_versionInfoRefresh.ImageClickedFcn = createCallbackFcn(app, @Toolbar_AppEnvRefreshButtonPushed, true);
             app.tool_versionInfoRefresh.Enable = 'off';
-            app.tool_versionInfoRefresh.Tooltip = {'Verifica atualizações'};
             app.tool_versionInfoRefresh.Layout.Row = 1;
             app.tool_versionInfoRefresh.Layout.Column = 2;
             app.tool_versionInfoRefresh.VerticalAlignment = 'bottom';
@@ -906,7 +909,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.config_SearchModeDefaultParameters.ScaleMethod = 'none';
             app.config_SearchModeDefaultParameters.ImageClickedFcn = createCallbackFcn(app, @Analysis_DefaultParametersClicked, true);
             app.config_SearchModeDefaultParameters.Visible = 'off';
-            app.config_SearchModeDefaultParameters.Tooltip = {'Retorna às configurações iniciais'};
             app.config_SearchModeDefaultParameters.Layout.Row = 1;
             app.config_SearchModeDefaultParameters.Layout.Column = 2;
             app.config_SearchModeDefaultParameters.VerticalAlignment = 'bottom';
@@ -1091,7 +1093,6 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.eFiscalizaRefresh.ScaleMethod = 'none';
             app.eFiscalizaRefresh.ImageClickedFcn = createCallbackFcn(app, @Config_ProjectRefreshImageClicked, true);
             app.eFiscalizaRefresh.Visible = 'off';
-            app.eFiscalizaRefresh.Tooltip = {'Retorna às configurações iniciais'};
             app.eFiscalizaRefresh.Layout.Row = 1;
             app.eFiscalizaRefresh.Layout.Column = 2;
             app.eFiscalizaRefresh.VerticalAlignment = 'bottom';
@@ -1308,22 +1309,22 @@ classdef winConfig_exported < matlab.apps.AppBase
             app.DockModule.Layout.Column = [3 5];
             app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
-            % Create dockModule_Undock
-            app.dockModule_Undock = uiimage(app.DockModule);
-            app.dockModule_Undock.ScaleMethod = 'none';
-            app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Undock.Enable = 'off';
-            app.dockModule_Undock.Layout.Row = 1;
-            app.dockModule_Undock.Layout.Column = 1;
-            app.dockModule_Undock.ImageSource = 'Undock_18White.png';
+            % Create DockUndockButton
+            app.DockUndockButton = uiimage(app.DockModule);
+            app.DockUndockButton.ScaleMethod = 'none';
+            app.DockUndockButton.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.DockUndockButton.Enable = 'off';
+            app.DockUndockButton.Layout.Row = 1;
+            app.DockUndockButton.Layout.Column = 1;
+            app.DockUndockButton.ImageSource = 'Undock_18White.png';
 
-            % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModule);
-            app.dockModule_Close.ScaleMethod = 'none';
-            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
-            app.dockModule_Close.Layout.Row = 1;
-            app.dockModule_Close.Layout.Column = 2;
-            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
+            % Create DockCloseButton
+            app.DockCloseButton = uiimage(app.DockModule);
+            app.DockCloseButton.ScaleMethod = 'none';
+            app.DockCloseButton.ImageClickedFcn = createCallbackFcn(app, @DockModuleGroup_ButtonPushed, true);
+            app.DockCloseButton.Layout.Row = 1;
+            app.DockCloseButton.Layout.Column = 2;
+            app.DockCloseButton.ImageSource = 'Delete_12SVG_white.svg';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

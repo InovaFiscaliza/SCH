@@ -441,7 +441,6 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             % Create ProductPrevious
             app.ProductPrevious = uiimage(app.HomologationGrid);
             app.ProductPrevious.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
-            app.ProductPrevious.Tooltip = {''};
             app.ProductPrevious.Layout.Row = 3;
             app.ProductPrevious.Layout.Column = 5;
             app.ProductPrevious.ImageSource = 'chevron-left.svg';
@@ -449,7 +448,6 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             % Create ProductNext
             app.ProductNext = uiimage(app.HomologationGrid);
             app.ProductNext.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
-            app.ProductNext.Tooltip = {''};
             app.ProductNext.Layout.Row = 3;
             app.ProductNext.Layout.Column = 6;
             app.ProductNext.ImageSource = 'chevron-right.svg';

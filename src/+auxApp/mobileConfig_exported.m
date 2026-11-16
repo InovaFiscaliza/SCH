@@ -349,10 +349,11 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x', 22};
-            app.GridLayout.RowHeight = {22, 176, 1, 22, '1x'};
+            app.GridLayout.RowHeight = {22, 176, 1, 22, 160, '1x'};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
+            app.GridLayout.Scrollable = 'on';
             app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create SearchLabel
@@ -445,13 +446,13 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             % Create FiscalizaPanel
             app.FiscalizaPanel = uipanel(app.GridLayout);
             app.FiscalizaPanel.AutoResizeChildren = 'off';
-            app.FiscalizaPanel.Layout.Row = 5;
+            app.FiscalizaPanel.Layout.Row = [5 6];
             app.FiscalizaPanel.Layout.Column = [1 2];
 
             % Create FiscalizaGrid
             app.FiscalizaGrid = uigridlayout(app.FiscalizaPanel);
             app.FiscalizaGrid.ColumnWidth = {130, '1x', 22};
-            app.FiscalizaGrid.RowHeight = {22, 38, 22, 38, '1x', 22};
+            app.FiscalizaGrid.RowHeight = {22, 38, 22, 38, '1x'};
             app.FiscalizaGrid.RowSpacing = 5;
             app.FiscalizaGrid.BackgroundColor = [0.9686 0.9765 0.9804];
 
@@ -499,8 +500,9 @@ classdef mobileConfig_exported < matlab.apps.AppBase
             app.DevToolsButton = uiimage(app.FiscalizaGrid);
             app.DevToolsButton.ImageClickedFcn = createCallbackFcn(app, @onDevToolsButtonClicked, true);
             app.DevToolsButton.Visible = 'off';
-            app.DevToolsButton.Layout.Row = 6;
+            app.DevToolsButton.Layout.Row = 5;
             app.DevToolsButton.Layout.Column = 3;
+            app.DevToolsButton.VerticalAlignment = 'bottom';
             app.DevToolsButton.ImageSource = 'Debug_18.png';
 
             % Show the figure after all components are created

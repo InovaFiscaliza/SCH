@@ -74,6 +74,34 @@ classdef dockReportLib_exported < matlab.apps.AppBase
     
     methods (Access = private)
         %-----------------------------------------------------------------%
+        function applyJSCustomization(app)
+            appName = class(app);
+            elToModify = {
+                app.prjOpenFileButton;
+                app.prjSaveButton;
+                app.prjNewProjectButton;
+                app.prjLastReportView;
+                app.prjLastReportDelete;
+                app.eFiscalizaIssueDetails;
+                app.reportEntityIdCheck
+            };
+            ui.CustomizationBase.getElementsDataTag(elToModify);
+
+            try
+                sendEventToHTMLSource(app.jsBackDoor, 'initializeComponents', { ...
+                    struct('appName', appName, 'dataTag', app.prjOpenFileButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Abre projeto', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.prjSaveButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Salva projeto', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.prjNewProjectButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Cria novo projeto', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.prjLastReportView.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Visualiza relatório', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.prjLastReportDelete.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Exclui relatório', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.eFiscalizaIssueDetails.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Detalhes da inspeção', 'zIndex', 901)), ... 
+                    struct('appName', appName, 'dataTag', app.reportEntityIdCheck.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Consulta', 'zIndex', 901)) ... 
+                });
+            catch
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function updatePanel(app, context)
             % PROJECT INITIALIZATION
             if isempty(app.projectData.modules.(context).ui.system) && ~isequal(app.projectData.modules.(context).ui.system, app.mainApp.General.reportLib.system)
@@ -143,6 +171,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             try
                 appEngine.boot(app, app.Role, mainApp, callingApp)
 
+                applyJSCustomization(app)
                 app.inputArgs = struct('context', context, 'varargin', {varargin});
                 updatePanel(app, context)
                 
@@ -460,7 +489,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.prjOpenFileButton = uiimage(app.GridLayout);
             app.prjOpenFileButton.ScaleMethod = 'none';
             app.prjOpenFileButton.ImageClickedFcn = createCallbackFcn(app, @onProjectLoad, true);
-            app.prjOpenFileButton.Tooltip = {'Abre projeto'};
             app.prjOpenFileButton.Layout.Row = 2;
             app.prjOpenFileButton.Layout.Column = 2;
             app.prjOpenFileButton.VerticalAlignment = 'bottom';
@@ -471,7 +499,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.prjSaveButton.ScaleMethod = 'none';
             app.prjSaveButton.ImageClickedFcn = createCallbackFcn(app, @onProjectSave, true);
             app.prjSaveButton.Enable = 'off';
-            app.prjSaveButton.Tooltip = {'Salva projeto'};
             app.prjSaveButton.Layout.Row = 2;
             app.prjSaveButton.Layout.Column = 3;
             app.prjSaveButton.VerticalAlignment = 'bottom';
@@ -481,7 +508,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.prjNewProjectButton = uiimage(app.GridLayout);
             app.prjNewProjectButton.ScaleMethod = 'none';
             app.prjNewProjectButton.ImageClickedFcn = createCallbackFcn(app, @onProjectRestart, true);
-            app.prjNewProjectButton.Tooltip = {'Cria novo projeto'};
             app.prjNewProjectButton.Layout.Row = 2;
             app.prjNewProjectButton.Layout.Column = 4;
             app.prjNewProjectButton.VerticalAlignment = 'bottom';
@@ -545,7 +571,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.prjLastReportView.ScaleMethod = 'none';
             app.prjLastReportView.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
             app.prjLastReportView.Enable = 'off';
-            app.prjLastReportView.Tooltip = {'Visualiza relatório'};
             app.prjLastReportView.Layout.Row = 5;
             app.prjLastReportView.Layout.Column = 3;
             app.prjLastReportView.ImageSource = 'eye.svg';
@@ -555,7 +580,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.prjLastReportDelete.ScaleMethod = 'none';
             app.prjLastReportDelete.ImageClickedFcn = createCallbackFcn(app, @onFinalReportFileButtonClicked, true);
             app.prjLastReportDelete.Enable = 'off';
-            app.prjLastReportDelete.Tooltip = {'Exclui relatório'};
             app.prjLastReportDelete.Layout.Row = 5;
             app.prjLastReportDelete.Layout.Column = 4;
             app.prjLastReportDelete.ImageSource = 'close-16px-red.svg';
@@ -640,7 +664,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaIssueDetails.ScaleMethod = 'none';
             app.eFiscalizaIssueDetails.ImageClickedFcn = createCallbackFcn(app, @onFetchIssueDetails, true);
             app.eFiscalizaIssueDetails.Enable = 'off';
-            app.eFiscalizaIssueDetails.Tooltip = {'Detalhes da inspeção'};
             app.eFiscalizaIssueDetails.Layout.Row = 2;
             app.eFiscalizaIssueDetails.Layout.Column = 7;
             app.eFiscalizaIssueDetails.ImageSource = 'eye.svg';
@@ -756,7 +779,6 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportEntityIdCheck = uiimage(app.reportEntityGrid);
             app.reportEntityIdCheck.ImageClickedFcn = createCallbackFcn(app, @reportEntityIdCheckImageClicked, true);
             app.reportEntityIdCheck.Enable = 'off';
-            app.reportEntityIdCheck.Tooltip = {'Consulta'};
             app.reportEntityIdCheck.Layout.Row = 1;
             app.reportEntityIdCheck.Layout.Column = 3;
             app.reportEntityIdCheck.VerticalAlignment = 'bottom';

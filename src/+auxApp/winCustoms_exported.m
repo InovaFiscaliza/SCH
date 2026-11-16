@@ -5,8 +5,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
         UIFigure                   matlab.ui.Figure
         GridLayout                 matlab.ui.container.GridLayout
         DockModule                 matlab.ui.container.GridLayout
-        dockModule_Close           matlab.ui.control.Image
-        dockModule_Undock          matlab.ui.control.Image
+        DockCloseButton            matlab.ui.control.Image
+        DockUndockButton           matlab.ui.control.Image
         Toolbar                    matlab.ui.container.GridLayout
         ShowDataRules              matlab.ui.control.Image
         ToolbarSeparator3          matlab.ui.control.Image
@@ -156,8 +156,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
                 app.GenerateReport;
                 app.UploadFinalFile;
                 app.ShowDataRules;
-                app.dockModule_Undock;
-                app.dockModule_Close
+                app.DockUndockButton;
+                app.DockCloseButton
             };
             ui.CustomizationBase.getElementsDataTag(elToModify);
 
@@ -174,8 +174,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
                     struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
                     struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
-                    struct('appName', appName, 'dataTag', app.dockModule_Undock.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                    struct('appName', appName, 'dataTag', app.dockModule_Close.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                    struct('appName', appName, 'dataTag', app.DockUndockButton.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
+                    struct('appName', appName, 'dataTag', app.DockCloseButton.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
                 });
             catch
             end
@@ -189,7 +189,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
             if ~strcmp(app.mainApp.executionMode, 'webApp')
-                app.dockModule_Undock.Enable = 1;
+                app.DockUndockButton.Enable = 1;
             end
 
             app.UITable.UserData.visibleRows = [];
@@ -423,13 +423,13 @@ classdef winCustoms_exported < matlab.apps.AppBase
             
         end
 
-        % Image clicked function: dockModule_Close, dockModule_Undock
+        % Image clicked function: DockCloseButton, DockUndockButton
         function onDockModuleGroupButtonClicked(app, event)
             
             [idx, auxAppTag, relatedButton] = getAppInfoFromHandle(app.mainApp.tabGroupController, app);
 
             switch event.Source
-                case app.dockModule_Undock
+                case app.DockUndockButton
                     appGeneral = app.mainApp.General;
                     appGeneral.operationMode.Dock = false;
                     
@@ -441,7 +441,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     
                     delete(app)
 
-                case app.dockModule_Close
+                case app.DockCloseButton
                     closeModule(app.mainApp.tabGroupController, auxAppTag, app.mainApp.General)
             end
 
@@ -1134,22 +1134,22 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.DockModule.Layout.Column = [6 9];
             app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
-            % Create dockModule_Undock
-            app.dockModule_Undock = uiimage(app.DockModule);
-            app.dockModule_Undock.ScaleMethod = 'none';
-            app.dockModule_Undock.ImageClickedFcn = createCallbackFcn(app, @onDockModuleGroupButtonClicked, true);
-            app.dockModule_Undock.Enable = 'off';
-            app.dockModule_Undock.Layout.Row = 1;
-            app.dockModule_Undock.Layout.Column = 1;
-            app.dockModule_Undock.ImageSource = 'Undock_18White.png';
+            % Create DockUndockButton
+            app.DockUndockButton = uiimage(app.DockModule);
+            app.DockUndockButton.ScaleMethod = 'none';
+            app.DockUndockButton.ImageClickedFcn = createCallbackFcn(app, @onDockModuleGroupButtonClicked, true);
+            app.DockUndockButton.Enable = 'off';
+            app.DockUndockButton.Layout.Row = 1;
+            app.DockUndockButton.Layout.Column = 1;
+            app.DockUndockButton.ImageSource = 'Undock_18White.png';
 
-            % Create dockModule_Close
-            app.dockModule_Close = uiimage(app.DockModule);
-            app.dockModule_Close.ScaleMethod = 'none';
-            app.dockModule_Close.ImageClickedFcn = createCallbackFcn(app, @onDockModuleGroupButtonClicked, true);
-            app.dockModule_Close.Layout.Row = 1;
-            app.dockModule_Close.Layout.Column = 2;
-            app.dockModule_Close.ImageSource = 'Delete_12SVG_white.svg';
+            % Create DockCloseButton
+            app.DockCloseButton = uiimage(app.DockModule);
+            app.DockCloseButton.ScaleMethod = 'none';
+            app.DockCloseButton.ImageClickedFcn = createCallbackFcn(app, @onDockModuleGroupButtonClicked, true);
+            app.DockCloseButton.Layout.Row = 1;
+            app.DockCloseButton.Layout.Column = 2;
+            app.DockCloseButton.ImageSource = 'Delete_12SVG_white.svg';
 
             % Create ContextMenu
             app.ContextMenu = uicontextmenu(app.UIFigure);
