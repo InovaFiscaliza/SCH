@@ -275,7 +275,6 @@ classdef desktop_exported < matlab.apps.AppBase
                     case 'backgroundBecameTransparent'
                         switch event.HTMLEventData
                             case 'PopupTempWarning'
-                                app.AddSelectedToBucket.Enable = "on";
                                 app.PopupTempWarning.Visible = "off";
 
                             otherwise
@@ -623,7 +622,7 @@ classdef desktop_exported < matlab.apps.AppBase
                     'VariableTypes', {'string', 'double', 'double', 'logical'}, ...
                     'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
                 );
-                popupSpecifications(1, :) = {"CustomsAnalysisDetails", 598, 592, false};
+                popupSpecifications(1, :) = {"CustomsAnalysisDetails", 598, 597, false};
                 popupSpecifications(2, :) = {"CustomsFilter", 518, 376, false};
                 popupSpecifications(3, :) = {"CustomsManageFiles", 518, 518, false};
                 popupSpecifications(4, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
@@ -1288,7 +1287,6 @@ classdef desktop_exported < matlab.apps.AppBase
 
         %-----------------------------------------------------------------%
         function showPopupTempWarning(app, msg)
-            app.AddSelectedToBucket.Enable = "off";
             set(app.PopupTempWarning, 'Text', msg, 'Visible', 'on')
             sendEventToHTMLSource(app.jsBackDoor, 'setBackgroundTransparent', struct('componentName', 'PopupTempWarning', 'componentDataTag', app.PopupTempWarning.UserData.id, 'interval_ms', 75));
             drawnow
@@ -1301,10 +1299,6 @@ classdef desktop_exported < matlab.apps.AppBase
 
             app.ExportVisibleTable.Enable = nonEmptyTable;
             app.ProductDetails.Enable = nonEmptyTable;
-
-            if app.PopupTempWarning.Visible
-                matlab.waitfor(app.PopupTempWarning, 'Visible', @(propValue) ~logical(propValue), .5, 5, 'propValue')
-            end
             app.AddSelectedToBucket.Enable = nonEmptySelection;
         end
 
@@ -1588,6 +1582,7 @@ classdef desktop_exported < matlab.apps.AppBase
             catch
             end
 
+            appEngine.util.killingMATLABRuntime(app.executionMode)
             delete(app)
 
         end
@@ -2023,7 +2018,7 @@ classdef desktop_exported < matlab.apps.AppBase
             app.GridLayout.RowHeight = {54, '1x'};
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
-            app.GridLayout.BackgroundColor = [0.9412 0.9412 0.9412];
+            app.GridLayout.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create TabGroup
             app.TabGroup = uitabgroup(app.GridLayout);

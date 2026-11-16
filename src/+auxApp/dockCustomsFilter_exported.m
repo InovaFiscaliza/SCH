@@ -399,20 +399,18 @@ classdef dockCustomsFilter_exported < matlab.apps.AppBase
             % Create Title
             app.Title = uilabel(app.GridLayout);
             app.Title.VerticalAlignment = 'top';
-            app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = 1;
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="color: gray; font-size: 10px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
+            app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="font-size: 11px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
 
             % Create ColumnFilterLabel
             app.ColumnFilterLabel = uilabel(app.GridLayout);
             app.ColumnFilterLabel.VerticalAlignment = 'bottom';
             app.ColumnFilterLabel.FontSize = 11;
-            app.ColumnFilterLabel.FontWeight = 'bold';
-            app.ColumnFilterLabel.FontColor = [0 0.451 0.7412];
+            app.ColumnFilterLabel.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterLabel.Layout.Row = 2;
             app.ColumnFilterLabel.Layout.Column = 1;
             app.ColumnFilterLabel.Text = 'Filtro por coluna';

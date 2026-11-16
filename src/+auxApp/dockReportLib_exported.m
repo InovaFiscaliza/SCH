@@ -441,18 +441,17 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = [1 4];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Gerenciamento do projeto</b>'; '<font style="color: gray; font-size: 10px;">Salve e abra projetos, registre informações da atividade e configure o relatório</font>'};
+            app.Title.Text = {'<b>Gerenciamento do projeto</b>'; '<font style="font-size: 11px;">Salve e abra projetos, registre informações da atividade e configure o relatório</font>'};
 
             % Create prjLabel
             app.prjLabel = uilabel(app.GridLayout);
             app.prjLabel.VerticalAlignment = 'bottom';
             app.prjLabel.FontSize = 11;
-            app.prjLabel.FontWeight = 'bold';
-            app.prjLabel.FontColor = [0 0.451 0.7412];
+            app.prjLabel.FontColor = [0 0.1294 0.2392];
             app.prjLabel.Layout.Row = 2;
             app.prjLabel.Layout.Column = 1;
             app.prjLabel.Text = 'Projeto';
@@ -565,8 +564,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.eFiscalizaLabel = uilabel(app.GridLayout);
             app.eFiscalizaLabel.VerticalAlignment = 'bottom';
             app.eFiscalizaLabel.FontSize = 11;
-            app.eFiscalizaLabel.FontWeight = 'bold';
-            app.eFiscalizaLabel.FontColor = [0 0.451 0.7412];
+            app.eFiscalizaLabel.FontColor = [0 0.1294 0.2392];
             app.eFiscalizaLabel.Layout.Row = 4;
             app.eFiscalizaLabel.Layout.Column = 1;
             app.eFiscalizaLabel.Text = 'Sistema de gestão à fiscalização - eFiscaliza';
@@ -651,8 +649,7 @@ classdef dockReportLib_exported < matlab.apps.AppBase
             app.reportLabel = uilabel(app.GridLayout);
             app.reportLabel.VerticalAlignment = 'bottom';
             app.reportLabel.FontSize = 11;
-            app.reportLabel.FontWeight = 'bold';
-            app.reportLabel.FontColor = [0 0.451 0.7412];
+            app.reportLabel.FontColor = [0 0.1294 0.2392];
             app.reportLabel.Layout.Row = 6;
             app.reportLabel.Layout.Column = 1;
             app.reportLabel.Text = 'Relatório';

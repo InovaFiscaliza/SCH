@@ -27,6 +27,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
         UITable                    matlab.ui.control.Table
         ReportContent              matlab.ui.control.Hyperlink
         Title                      matlab.ui.control.Label
+        TitleIcon                  matlab.ui.control.Image
         ContextMenu                matlab.ui.container.ContextMenu
         AnalysisDetailsViaContext  matlab.ui.container.Menu
     end
@@ -922,23 +923,29 @@ classdef winCustoms_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {20, '1x', 96, 16, 22, 10, 8, 2};
+            app.GridLayout.ColumnWidth = {20, 24, 5, '1x', 96, 16, 22, 10, 8, 2};
             app.GridLayout.RowHeight = {2, 8, 10, 14, 20, 20, '1x', 20, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 0;
             app.GridLayout.Padding = [0 0 0 0];
             app.GridLayout.BackgroundColor = [1 1 1];
 
+            % Create TitleIcon
+            app.TitleIcon = uiimage(app.GridLayout);
+            app.TitleIcon.Layout.Row = [4 5];
+            app.TitleIcon.Layout.Column = 2;
+            app.TitleIcon.VerticalAlignment = 'top';
+            app.TitleIcon.ImageSource = 'group-by-ref-type.svg';
+
             % Create Title
             app.Title = uilabel(app.GridLayout);
             app.Title.VerticalAlignment = 'top';
-            app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
-            app.Title.Layout.Row = [4 5];
-            app.Title.Layout.Column = 2;
+            app.Title.FontColor = [0.1294 0.2 0.2392];
+            app.Title.Layout.Row = [4 6];
+            app.Title.Layout.Column = [4 7];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Análise e destinação das remessas</b>'; '<font style="color: gray; font-size: 10px;">Analise as remessas de produtos importados e avalie a destinação final sugerida para cada uma.</font>'};
+            app.Title.Text = {'<b>Análise e destinação das remessas</b>'; '<font style="font-size: 11px;">Analise as remessas de produtos importados e avalie a destinação final sugerida para cada uma.</font>'};
 
             % Create ReportContent
             app.ReportContent = uihyperlink(app.GridLayout);
@@ -950,7 +957,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.ReportContent.FontColor = [0.502 0.502 0.502];
             app.ReportContent.Enable = 'off';
             app.ReportContent.Layout.Row = 6;
-            app.ReportContent.Layout.Column = [3 5];
+            app.ReportContent.Layout.Column = [5 7];
             app.ReportContent.Text = 'TODOS OS REGISTROS 👁';
 
             % Create UITable
@@ -964,7 +971,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.UITable.CellEditCallback = createCallbackFcn(app, @onTableCellEdited, true);
             app.UITable.SelectionChangedFcn = createCallbackFcn(app, @onTableSelectionChanged, true);
             app.UITable.Layout.Row = 7;
-            app.UITable.Layout.Column = [2 5];
+            app.UITable.Layout.Column = [2 7];
             app.UITable.FontSize = 11;
 
             % Create NumRows
@@ -973,7 +980,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.NumRows.FontSize = 10;
             app.NumRows.FontColor = [0.651 0.651 0.651];
             app.NumRows.Layout.Row = 8;
-            app.NumRows.Layout.Column = [2 4];
+            app.NumRows.Layout.Column = [4 6];
             app.NumRows.Text = '';
 
             % Create FilterIconStatus
@@ -982,7 +989,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.FilterIconStatus.Enable = 'off';
             app.FilterIconStatus.Visible = 'off';
             app.FilterIconStatus.Layout.Row = 8;
-            app.FilterIconStatus.Layout.Column = 5;
+            app.FilterIconStatus.Layout.Column = 7;
             app.FilterIconStatus.HorizontalAlignment = 'right';
             app.FilterIconStatus.ImageSource = 'filter.svg';
 
@@ -994,7 +1001,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.Toolbar.RowSpacing = 0;
             app.Toolbar.Padding = [10 5 10 5];
             app.Toolbar.Layout.Row = 9;
-            app.Toolbar.Layout.Column = [1 8];
+            app.Toolbar.Layout.Column = [1 10];
             app.Toolbar.BackgroundColor = [0.9608 0.9608 0.9608];
 
             % Create FilterSetup
@@ -1124,7 +1131,7 @@ classdef winCustoms_exported < matlab.apps.AppBase
             app.DockModule.Padding = [5 2 5 2];
             app.DockModule.Visible = 'off';
             app.DockModule.Layout.Row = [2 4];
-            app.DockModule.Layout.Column = [4 7];
+            app.DockModule.Layout.Column = [6 9];
             app.DockModule.BackgroundColor = [0.1294 0.2 0.2392];
 
             % Create dockModule_Undock

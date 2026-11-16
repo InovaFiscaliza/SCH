@@ -211,7 +211,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 598 592];
+                app.UIFigure.Position = [100 100 598 597];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.Resize = 'off';
@@ -237,8 +237,8 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {'1x', 110};
-            app.GridLayout.RowHeight = {40, 22, 168, 22, 246, 1, 24};
+            app.GridLayout.ColumnWidth = {388, 170};
+            app.GridLayout.RowHeight = {40, 22, 168, 22, 246, 34};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
@@ -249,18 +249,17 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = [1 2];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Edição em lote de registros</b>'; '<font style="color: gray; font-size: 10px;">As alterações realizadas abaixo serão aplicadas a todos os registros selecionados</font>'};
+            app.Title.Text = {'<b>Edição em lote de registros</b>'; '<font style="font-size: 11px;">As alterações realizadas abaixo serão aplicadas a todos os registros selecionados</font>'};
 
             % Create SummaryLabel
             app.SummaryLabel = uilabel(app.GridLayout);
             app.SummaryLabel.VerticalAlignment = 'bottom';
             app.SummaryLabel.FontSize = 11;
-            app.SummaryLabel.FontWeight = 'bold';
-            app.SummaryLabel.FontColor = [0 0.4471 0.7412];
+            app.SummaryLabel.FontColor = [0 0.1294 0.2392];
             app.SummaryLabel.Layout.Row = 2;
             app.SummaryLabel.Layout.Column = 1;
             app.SummaryLabel.Text = 'Resumo dos registros selecionados';
@@ -287,7 +286,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create CardInfo1
             app.CardInfo1 = uilabel(app.SummaryGrid);
             app.CardInfo1.WordWrap = 'on';
-            app.CardInfo1.FontColor = [0 0.4471 0.7412];
+            app.CardInfo1.FontColor = [0 0.1294 0.2392];
             app.CardInfo1.Layout.Row = 1;
             app.CardInfo1.Layout.Column = 2;
             app.CardInfo1.Interpreter = 'html';
@@ -303,7 +302,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create CardText2
             app.CardText2 = uilabel(app.SummaryGrid);
             app.CardText2.WordWrap = 'on';
-            app.CardText2.FontColor = [0 0.4471 0.7412];
+            app.CardText2.FontColor = [0 0.1294 0.2392];
             app.CardText2.Layout.Row = 1;
             app.CardText2.Layout.Column = 4;
             app.CardText2.Interpreter = 'html';
@@ -320,7 +319,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.CardText3 = uilabel(app.SummaryGrid);
             app.CardText3.WordWrap = 'on';
             app.CardText3.FontSize = 11;
-            app.CardText3.FontColor = [0 0.4471 0.7412];
+            app.CardText3.FontColor = [0 0.1294 0.2392];
             app.CardText3.Layout.Row = 2;
             app.CardText3.Layout.Column = 2;
             app.CardText3.Interpreter = 'html';
@@ -337,7 +336,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.CardText4 = uilabel(app.SummaryGrid);
             app.CardText4.WordWrap = 'on';
             app.CardText4.FontSize = 11;
-            app.CardText4.FontColor = [0 0.4471 0.7412];
+            app.CardText4.FontColor = [0 0.1294 0.2392];
             app.CardText4.Layout.Row = 2;
             app.CardText4.Layout.Column = 4;
             app.CardText4.Interpreter = 'html';
@@ -354,7 +353,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.CardText5 = uilabel(app.SummaryGrid);
             app.CardText5.WordWrap = 'on';
             app.CardText5.FontSize = 11;
-            app.CardText5.FontColor = [0 0.4471 0.7412];
+            app.CardText5.FontColor = [0 0.1294 0.2392];
             app.CardText5.Layout.Row = 3;
             app.CardText5.Layout.Column = [2 4];
             app.CardText5.Interpreter = 'html';
@@ -364,8 +363,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.EditionLabel = uilabel(app.GridLayout);
             app.EditionLabel.VerticalAlignment = 'bottom';
             app.EditionLabel.FontSize = 11;
-            app.EditionLabel.FontWeight = 'bold';
-            app.EditionLabel.FontColor = [0 0.4471 0.7412];
+            app.EditionLabel.FontColor = [0 0.1294 0.2392];
             app.EditionLabel.Layout.Row = 4;
             app.EditionLabel.Layout.Column = 1;
             app.EditionLabel.Text = 'Campos editáveis';
@@ -387,8 +385,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.FinalDestinationLabel = uilabel(app.EditionGrid);
             app.FinalDestinationLabel.VerticalAlignment = 'bottom';
             app.FinalDestinationLabel.FontSize = 11;
-            app.FinalDestinationLabel.FontWeight = 'bold';
-            app.FinalDestinationLabel.FontColor = [0 0.4471 0.7412];
+            app.FinalDestinationLabel.FontColor = [0 0.1294 0.2392];
             app.FinalDestinationLabel.Layout.Row = 1;
             app.FinalDestinationLabel.Layout.Column = 1;
             app.FinalDestinationLabel.Text = 'Destinação final';
@@ -429,8 +426,7 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             app.NoteLabel = uilabel(app.EditionGrid);
             app.NoteLabel.VerticalAlignment = 'bottom';
             app.NoteLabel.FontSize = 11;
-            app.NoteLabel.FontWeight = 'bold';
-            app.NoteLabel.FontColor = [0 0.4471 0.7412];
+            app.NoteLabel.FontColor = [0 0.1294 0.2392];
             app.NoteLabel.Layout.Row = 3;
             app.NoteLabel.Layout.Column = 1;
             app.NoteLabel.Text = 'Nota';
@@ -445,12 +441,13 @@ classdef dockCustomsAnalysisDetails_exported < matlab.apps.AppBase
             % Create Button
             app.Button = uibutton(app.GridLayout, 'push');
             app.Button.ButtonPushedFcn = createCallbackFcn(app, @onButtonPushed, true);
+            app.Button.Icon = 'save-16px-white.svg';
             app.Button.BackgroundColor = [0 0.451 0.7412];
             app.Button.FontSize = 11;
             app.Button.FontColor = [1 1 1];
-            app.Button.Layout.Row = 7;
+            app.Button.Layout.Row = 6;
             app.Button.Layout.Column = 2;
-            app.Button.Text = 'Aplica alterações';
+            app.Button.Text = '   Aplica alterações';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

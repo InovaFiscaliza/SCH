@@ -112,9 +112,10 @@ classdef mobile_exported < matlab.apps.AppBase
                         MFilePath   = fileparts(fileparts(mfilename('fullpath')));
                         parpoolFlag = true;
 
-                        if ~app.renderCount
-                            appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
+                        if app.renderCount
+                            appEngine.beforeReload(app, app.Role)
                         end
+                        appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         
                         app.renderCount = app.renderCount+1;
     
@@ -1365,6 +1366,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
             IndexedDBCache(app.projectData)
 
+            appEngine.util.killingMATLABRuntime(app.executionMode)
             delete(app)
 
         end

@@ -507,11 +507,11 @@ classdef dockSearchProductDetails_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
-            app.Title.Layout.Column = [1 17];
+            app.Title.Layout.Column = [1 18];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Informações do produto</b>'; '<font style="color: gray; font-size: 10px;">Consulte características, imagens, termos associados e anúncios encontrados para este produto</font>'};
+            app.Title.Text = {'<b>Informações do produto</b>'; '<font style="font-size: 11px;">Consulte características, imagens, termos associados e anúncios encontrados para este produto</font>'};
 
             % Create HomologationCount
             app.HomologationCount = uilabel(app.GridLayout);

@@ -57,10 +57,10 @@ classdef winSCH_exported < matlab.apps.AppBase
                             app.isMobile = app.navigatorBasicInformation.mobile;
                         end
                         
-                        app.renderCount = app.renderCount+1;
-
                         appEngine.activate(app, app.Role, MFilePath, parpoolFlag)
                         ipcMainJSEventsHandler(app.mainApp, event)
+
+                        app.renderCount = app.renderCount+1;
     
                     case 'unload'
                         closeFcn(app, event)
@@ -246,7 +246,7 @@ classdef winSCH_exported < matlab.apps.AppBase
             % Create UIFigure and hide until all components are created
             app.UIFigure = uifigure('Visible', 'off');
             app.UIFigure.AutoResizeChildren = 'off';
-            app.UIFigure.Color = [0.9608 0.9686 0.9686];
+            app.UIFigure.Color = [0.1294 0.2 0.2392];
             app.UIFigure.Position = [100 100 1244 660];
             app.UIFigure.Name = 'SCH';
             app.UIFigure.Icon = fullfile(pathToMLAPP, 'resources', 'Icons', 'icon_32.png');

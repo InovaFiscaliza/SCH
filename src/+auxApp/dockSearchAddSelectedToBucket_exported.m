@@ -168,11 +168,11 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = [1 2];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Selecionar modelos inspecionados</b>'; '<font style="color: gray; font-size: 10px;">Selecione os modelos deste certificado que devem ser incluídos na lista de produtos inspecionados</font>'};
+            app.Title.Text = {'<b>Selecionar modelos inspecionados</b>'; '<font style="font-size: 11px;">Selecione os modelos deste certificado que devem ser incluídos na lista de produtos inspecionados</font>'};
 
             % Create HomologationPanel
             app.HomologationPanel = uipanel(app.GridLayout);

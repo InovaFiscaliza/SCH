@@ -202,8 +202,8 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {22, 336, 110};
-            app.GridLayout.RowHeight = {40, 398, 1, 24};
+            app.GridLayout.ColumnWidth = {18, 276, 170};
+            app.GridLayout.RowHeight = {40, 388, 34};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
@@ -214,11 +214,11 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = [1 3];
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Arquivos da remessa</b>'; '<font style="color: gray; font-size: 10px;">Selecione o arquivo que deseja visualizar</font>'};
+            app.Title.Text = {'<b>Arquivos da remessa</b>'; '<font style="font-size: 11px;">Selecione o arquivo que deseja visualizar</font>'};
 
             % Create Tree
             app.Tree = uitree(app.GridLayout, 'checkbox');
@@ -233,7 +233,7 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Delete = uiimage(app.GridLayout);
             app.Delete.ImageClickedFcn = createCallbackFcn(app, @DeleteClicked, true);
             app.Delete.Enable = 'off';
-            app.Delete.Layout.Row = 4;
+            app.Delete.Layout.Row = 3;
             app.Delete.Layout.Column = 1;
             app.Delete.ImageSource = 'Delete_32Red.png';
 
@@ -241,14 +241,14 @@ classdef dockCustomsManageFiles_exported < matlab.apps.AppBase
             app.Button = uibutton(app.GridLayout, 'push');
             app.Button.ButtonPushedFcn = createCallbackFcn(app, @onButtonPushed, true);
             app.Button.Tag = 'OK';
-            app.Button.IconAlignment = 'right';
+            app.Button.Icon = 'save-16px-white.svg';
             app.Button.BackgroundColor = [0 0.451 0.7412];
             app.Button.FontSize = 11;
             app.Button.FontColor = [1 1 1];
             app.Button.Enable = 'off';
-            app.Button.Layout.Row = 4;
+            app.Button.Layout.Row = 3;
             app.Button.Layout.Column = 3;
-            app.Button.Text = 'Confirma troca';
+            app.Button.Text = '   Confirma troca';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';

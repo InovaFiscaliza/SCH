@@ -422,18 +422,17 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Title.VerticalAlignment = 'top';
             app.Title.WordWrap = 'on';
             app.Title.FontSize = 15;
-            app.Title.FontColor = [0 0.4471 0.7412];
+            app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
             app.Title.Layout.Column = 1;
             app.Title.Interpreter = 'html';
-            app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="color: gray; font-size: 10px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
+            app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="font-size: 11px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
 
             % Create FilterStrategyLabel
             app.FilterStrategyLabel = uilabel(app.GridLayout);
             app.FilterStrategyLabel.VerticalAlignment = 'bottom';
             app.FilterStrategyLabel.FontSize = 11;
-            app.FilterStrategyLabel.FontWeight = 'bold';
-            app.FilterStrategyLabel.FontColor = [0 0.451 0.7412];
+            app.FilterStrategyLabel.FontColor = [0 0.1294 0.2392];
             app.FilterStrategyLabel.Layout.Row = 2;
             app.FilterStrategyLabel.Layout.Column = 1;
             app.FilterStrategyLabel.Text = 'Estratégia de filtragem';
@@ -452,8 +451,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextLabel = uilabel(app.GridLayout);
             app.FreeTextLabel.VerticalAlignment = 'bottom';
             app.FreeTextLabel.FontSize = 11;
-            app.FreeTextLabel.FontWeight = 'bold';
-            app.FreeTextLabel.FontColor = [0 0.451 0.7412];
+            app.FreeTextLabel.FontColor = [0 0.1294 0.2392];
             app.FreeTextLabel.Layout.Row = 4;
             app.FreeTextLabel.Layout.Column = 1;
             app.FreeTextLabel.Text = 'Texto livre';
@@ -485,8 +483,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.ColumnFilterLabel = uilabel(app.GridLayout);
             app.ColumnFilterLabel.VerticalAlignment = 'bottom';
             app.ColumnFilterLabel.FontSize = 11;
-            app.ColumnFilterLabel.FontWeight = 'bold';
-            app.ColumnFilterLabel.FontColor = [0 0.451 0.7412];
+            app.ColumnFilterLabel.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterLabel.Layout.Row = 6;
             app.ColumnFilterLabel.Layout.Column = 1;
             app.ColumnFilterLabel.Text = 'Filtro por coluna';
