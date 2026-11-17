@@ -1,44 +1,45 @@
-classdef mobileSearchFilter_exported < matlab.apps.AppBase
+classdef dockSearchFilterMobile_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure                matlab.ui.Figure
-        GridLayout              matlab.ui.container.GridLayout
-        CurrentFilterPanel      matlab.ui.container.Panel
-        CurrentFilterGrid       matlab.ui.container.GridLayout
-        CurrentFilterColumn     matlab.ui.control.Label
-        CurrentFilterText       matlab.ui.control.Label
-        CurrentFilterStrategy   matlab.ui.control.Label
-        CurrentFilterLabel      matlab.ui.control.Label
-        CurrentFilterIcon       matlab.ui.control.Image
-        SaveButton              matlab.ui.control.Button
-        RefreshButton           matlab.ui.control.Button
-        ColumnFilterPanel       matlab.ui.container.Panel
-        ColumnFilterGrid        matlab.ui.container.GridLayout
-        ColumnFilterList        matlab.ui.container.CheckBoxTree
-        ColumnFilterDel         matlab.ui.control.Image
-        ColumnFilterAdd         matlab.ui.control.Image
-        Value2_TextFree         matlab.ui.control.EditField
-        Value2_TextList         matlab.ui.control.DropDown
-        Value2_Numeric          matlab.ui.control.NumericEditField
-        Value2_Date             matlab.ui.control.DatePicker
-        Operation2_List         matlab.ui.control.DropDown
-        Operation2_LogicalGrid  matlab.ui.container.ButtonGroup
-        Operation2_LogicalOr    matlab.ui.control.RadioButton
-        Operation2_LogicalAnd   matlab.ui.control.RadioButton
-        Value1_TextFree         matlab.ui.control.EditField
-        Value1_TextList         matlab.ui.control.DropDown
-        Value1_Numeric          matlab.ui.control.NumericEditField
-        Value1_Date             matlab.ui.control.DatePicker
-        Operation1_List         matlab.ui.control.DropDown
-        SymbolicNameList        matlab.ui.control.DropDown
-        ColumnFilterLabel       matlab.ui.control.Label
-        FreeTextRadioGroup      matlab.ui.container.ButtonGroup
-        FreeTextByMatch         matlab.ui.control.RadioButton
-        FreeTextBySimilatiry    matlab.ui.control.RadioButton
-        FreeTextLabel           matlab.ui.control.Label
-        FilterStrategy          matlab.ui.control.DropDown
-        FilterStrategyLabel     matlab.ui.control.Label
+        UIFigure                 matlab.ui.Figure
+        GridLayout               matlab.ui.container.GridLayout
+        CurrentFilterPanel       matlab.ui.container.Panel
+        CurrentFilterGrid        matlab.ui.container.GridLayout
+        CurrentFilterColumn      matlab.ui.control.Label
+        CurrentFilterText        matlab.ui.control.Label
+        CurrentFilterStrategy    matlab.ui.control.Label
+        CurrentFilterVisibility  matlab.ui.control.Image
+        CurrentFilterLabel       matlab.ui.control.Label
+        CurrentFilterIcon        matlab.ui.control.Image
+        SaveButton               matlab.ui.control.Button
+        RefreshButton            matlab.ui.control.Button
+        ColumnFilterPanel        matlab.ui.container.Panel
+        ColumnFilterGrid         matlab.ui.container.GridLayout
+        ColumnFilterList         matlab.ui.container.CheckBoxTree
+        ColumnFilterDel          matlab.ui.control.Image
+        ColumnFilterAdd          matlab.ui.control.Image
+        Value2_TextFree          matlab.ui.control.EditField
+        Value2_TextList          matlab.ui.control.DropDown
+        Value2_Numeric           matlab.ui.control.NumericEditField
+        Value2_Date              matlab.ui.control.DatePicker
+        Operation2_List          matlab.ui.control.DropDown
+        Operation2_LogicalGrid   matlab.ui.container.ButtonGroup
+        Operation2_LogicalOr     matlab.ui.control.RadioButton
+        Operation2_LogicalAnd    matlab.ui.control.RadioButton
+        Value1_TextFree          matlab.ui.control.EditField
+        Value1_TextList          matlab.ui.control.DropDown
+        Value1_Numeric           matlab.ui.control.NumericEditField
+        Value1_Date              matlab.ui.control.DatePicker
+        Operation1_List          matlab.ui.control.DropDown
+        SymbolicNameList         matlab.ui.control.DropDown
+        ColumnFilterLabel        matlab.ui.control.Label
+        FreeTextRadioGroup       matlab.ui.container.ButtonGroup
+        FreeTextByMatch          matlab.ui.control.RadioButton
+        FreeTextBySimilatiry     matlab.ui.control.RadioButton
+        FreeTextLabel            matlab.ui.control.Label
+        FilterStrategy           matlab.ui.control.DropDown
+        FilterStrategyLabel      matlab.ui.control.Label
     end
 
     
@@ -143,6 +144,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             set([app.Value1_Date, app.Value2_Date], 'BackgroundColor', '#ffffff')
             set([app.FreeTextRadioGroup, app.ColumnFilterPanel], 'BorderColor', '#D5DDE1')
             addStyle(app.ColumnFilterList, uistyle('Interpreter', 'html'))
+            app.CurrentFilterPanel.UserData.status = true;
 
             % DROPDOWN "COLUNAS"
             columnRawNames = app.mainApp.schData.detailed.Properties.VariableNames;
@@ -576,10 +578,27 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
         end
 
         % Selection changed function: ColumnFilterList
-        function ColumnFilterListSelectionChanged(app, event)
+        function onColumnFilterListSelectionChanged(app, event)
             
             app.ColumnFilterDel.Visible = ~isempty(app.ColumnFilterList.SelectedNodes);
             
+        end
+
+        % Image clicked function: CurrentFilterVisibility
+        function onCurrentFilterVisibilityChanged(app, event)
+            
+            app.CurrentFilterPanel.UserData.status = ~app.CurrentFilterPanel.UserData.status;
+
+            if app.CurrentFilterPanel.UserData.status
+                app.GridLayout.RowHeight{1} = 92;
+                app.CurrentFilterVisibility.ImageSource = 'chevron-up.svg';
+            else
+                app.GridLayout.RowHeight{1} = 44;
+                app.CurrentFilterVisibility.ImageSource = 'chevron-down.svg';
+            end
+
+            focus(app.UIFigure)
+
         end
     end
 
@@ -855,7 +874,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
 
             % Create ColumnFilterList
             app.ColumnFilterList = uitree(app.ColumnFilterGrid, 'checkbox');
-            app.ColumnFilterList.SelectionChangedFcn = createCallbackFcn(app, @ColumnFilterListSelectionChanged, true);
+            app.ColumnFilterList.SelectionChangedFcn = createCallbackFcn(app, @onColumnFilterListSelectionChanged, true);
             app.ColumnFilterList.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterList.Layout.Row = 6;
             app.ColumnFilterList.Layout.Column = [1 4];
@@ -913,6 +932,14 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
             app.CurrentFilterLabel.Layout.Column = [2 5];
             app.CurrentFilterLabel.Text = 'Especificação do filtro atual';
 
+            % Create CurrentFilterVisibility
+            app.CurrentFilterVisibility = uiimage(app.CurrentFilterGrid);
+            app.CurrentFilterVisibility.ImageClickedFcn = createCallbackFcn(app, @onCurrentFilterVisibilityChanged, true);
+            app.CurrentFilterVisibility.Layout.Row = 1;
+            app.CurrentFilterVisibility.Layout.Column = [1 6];
+            app.CurrentFilterVisibility.HorizontalAlignment = 'right';
+            app.CurrentFilterVisibility.ImageSource = 'chevron-up.svg';
+
             % Create CurrentFilterStrategy
             app.CurrentFilterStrategy = uilabel(app.CurrentFilterGrid);
             app.CurrentFilterStrategy.VerticalAlignment = 'top';
@@ -953,7 +980,7 @@ classdef mobileSearchFilter_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = mobileSearchFilter_exported(Container, varargin)
+        function app = dockSearchFilterMobile_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

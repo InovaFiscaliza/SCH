@@ -1,16 +1,17 @@
-classdef mobileProducts_exported < matlab.apps.AppBase
+classdef winProductsMobile_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure            matlab.ui.Figure
-        GridLayout          matlab.ui.container.GridLayout
-        ViewRange           matlab.ui.control.Label
-        CurrentFilterPanel  matlab.ui.container.Panel
-        CurrentFilterGrid   matlab.ui.container.GridLayout
-        SaveButton          matlab.ui.control.Button
-        CurrentFilterLabel  matlab.ui.control.Label
-        CurrentFilterIcon   matlab.ui.control.Image
-        Products            matlab.ui.control.Label
+        UIFigure                 matlab.ui.Figure
+        GridLayout               matlab.ui.container.GridLayout
+        ViewRange                matlab.ui.control.Label
+        CurrentFilterPanel       matlab.ui.container.Panel
+        CurrentFilterGrid        matlab.ui.container.GridLayout
+        CurrentFilterVisibility  matlab.ui.control.Image
+        SaveButton               matlab.ui.control.Button
+        CurrentFilterLabel       matlab.ui.control.Label
+        CurrentFilterIcon        matlab.ui.control.Image
+        Products                 matlab.ui.control.Label
     end
 
     
@@ -122,6 +123,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function initializeUIComponents(app)
             app.CurrentFilterPanel.BorderColor = '#c9d9ec';
+            app.CurrentFilterPanel.UserData.status = true;
         end
 
         %-----------------------------------------------------------------%
@@ -355,6 +357,25 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             renderInspectedProducts(app)
 
         end
+
+        % Image clicked function: CurrentFilterVisibility
+        function CurrentFilterVisibilityImageClicked(app, event)
+            
+            app.CurrentFilterPanel.UserData.status = ~app.CurrentFilterPanel.UserData.status;
+
+            if app.CurrentFilterPanel.UserData.status
+                app.GridLayout.RowHeight{end} = 97;
+                app.SaveButton.Visible = 'on';
+                app.CurrentFilterVisibility.ImageSource = 'chevron-down.svg';
+            else
+                app.GridLayout.RowHeight{end} = 47;
+                app.SaveButton.Visible = 'off';
+                app.CurrentFilterVisibility.ImageSource = 'chevron-up.svg';
+            end
+
+            focus(app.UIFigure)
+
+        end
     end
 
     % Component initialization
@@ -396,11 +417,10 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
             app.GridLayout.ColumnWidth = {'1x'};
-            app.GridLayout.RowHeight = {22, 564, '1x', 97};
+            app.GridLayout.RowHeight = {22, '1x', 97};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [10 10 10 42];
-            app.GridLayout.Scrollable = 'on';
             app.GridLayout.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create Products
@@ -408,20 +428,20 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.Products.VerticalAlignment = 'top';
             app.Products.WordWrap = 'on';
             app.Products.FontSize = 11;
-            app.Products.Layout.Row = [2 3];
+            app.Products.Layout.Row = 2;
             app.Products.Layout.Column = 1;
             app.Products.Interpreter = 'html';
             app.Products.Text = '';
 
             % Create CurrentFilterPanel
             app.CurrentFilterPanel = uipanel(app.GridLayout);
-            app.CurrentFilterPanel.Layout.Row = 4;
+            app.CurrentFilterPanel.Layout.Row = 3;
             app.CurrentFilterPanel.Layout.Column = 1;
 
             % Create CurrentFilterGrid
             app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
             app.CurrentFilterGrid.ColumnWidth = {18, '1x', 18};
-            app.CurrentFilterGrid.RowHeight = {22, '1x', 38};
+            app.CurrentFilterGrid.RowHeight = {22, 5, 38};
             app.CurrentFilterGrid.ColumnSpacing = 5;
             app.CurrentFilterGrid.RowSpacing = 5;
             app.CurrentFilterGrid.BackgroundColor = [0.9333 0.9569 0.9843];
@@ -453,6 +473,14 @@ classdef mobileProducts_exported < matlab.apps.AppBase
             app.SaveButton.Layout.Column = 2;
             app.SaveButton.Text = 'Adicionar produto não homologado';
 
+            % Create CurrentFilterVisibility
+            app.CurrentFilterVisibility = uiimage(app.CurrentFilterGrid);
+            app.CurrentFilterVisibility.ImageClickedFcn = createCallbackFcn(app, @CurrentFilterVisibilityImageClicked, true);
+            app.CurrentFilterVisibility.Layout.Row = 1;
+            app.CurrentFilterVisibility.Layout.Column = [1 3];
+            app.CurrentFilterVisibility.HorizontalAlignment = 'right';
+            app.CurrentFilterVisibility.ImageSource = 'chevron-down.svg';
+
             % Create ViewRange
             app.ViewRange = uilabel(app.GridLayout);
             app.ViewRange.HorizontalAlignment = 'right';
@@ -471,7 +499,7 @@ classdef mobileProducts_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = mobileProducts_exported(Container, varargin)
+        function app = winProductsMobile_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

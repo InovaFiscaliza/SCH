@@ -371,7 +371,7 @@ classdef mobile_exported < matlab.apps.AppBase
 
             try
                 switch class(callingApp)
-                    case {'auxApp.mobileSearchAddSelectedToBucket', 'auxApp.mobileSearchAddSelectedToBucket_exported'}
+                    case {'auxApp.dockSearchAddSelectedToBucketMobile', 'auxApp.dockSearchAddSelectedToBucketMobile_exported'}
                         switch eventName
                             case 'onAddSelectedToBucketRequest'
                                 schDetailedIdxs = varargin{1};
@@ -386,7 +386,7 @@ classdef mobile_exported < matlab.apps.AppBase
                                 error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
                         end
 
-                    case {'auxApp.mobileSearchFilter', 'auxApp.mobileSearchFilter_exported'}
+                    case {'auxApp.dockSearchFilterMobile', 'auxApp.dockSearchFilterMobile_exported'}
                         switch eventName
                             case 'onSearchModeChanged'
                                 app.SearchEntryButton.UserData = struct('valueToSearch', '', 'wordsToSearch', {{}});
@@ -405,7 +405,7 @@ classdef mobile_exported < matlab.apps.AppBase
     
                         applyLayout(app, 'mainAppMobile')
     
-                    case {'auxApp.mobileReportLib', 'auxApp.mobileReportLib_exported'}
+                    case {'auxApp.winReportLibMobile', 'auxApp.winReportLibMobile_exported'}
                         switch eventName
                             case 'onUpdateLastVisitedFolder'
                                 filePath = varargin{1};
@@ -431,7 +431,7 @@ classdef mobile_exported < matlab.apps.AppBase
                                 error('mainApp:mobile:UnexpectedEvent', 'Unexpected event "%s"', eventName)
                         end
 
-                    case {'auxApp.mobileProductInfo', 'auxApp.mobileProductInfo_exported'}
+                    case {'auxApp.dockProductInfoMobile', 'auxApp.dockProductInfoMobile_exported'}
                         switch eventName
                             case 'onInspectedProductEdited'
                                 context  = varargin{1};
@@ -480,7 +480,7 @@ classdef mobile_exported < matlab.apps.AppBase
                 varargin 
             end
 
-            auxDockAppName = sprintf('auxApp.mobile%s', auxAppName);
+            auxDockAppName = sprintf('auxApp.dock%sMobile', auxAppName);
             if ~isempty(app.popupCurrentApp) && isvalid(app.popupCurrentApp)
                 if contains(class(app.popupCurrentApp), auxDockAppName)
                     ipcSecondaryMatlabCallsHandler(app.popupCurrentApp, app, 'updateForm', varargin{:})
@@ -616,10 +616,10 @@ classdef mobile_exported < matlab.apps.AppBase
         %-----------------------------------------------------------------%
         function applyInitialLayout(app)
             app.tabGroupController = ui.TabNavigator(app);
-            addComponent(app.tabGroupController, "Built-in", "",                       app.Tab1Button, "AlwaysOn", matlab.graphics.GraphicsPlaceholder, 1)
-            addComponent(app.tabGroupController, "External", "auxApp.mobileProducts",  app.Tab2Button, "AlwaysOn", app.Tab1Button,                      2)
-            addComponent(app.tabGroupController, "External", "auxApp.mobileReportLib", app.Tab3Button, "AlwaysOn", app.Tab1Button,                      3)
-            addComponent(app.tabGroupController, "External", "auxApp.mobileConfig",    app.Tab4Button, "AlwaysOn", app.Tab1Button,                      4)
+            addComponent(app.tabGroupController, "Built-in", "",                          app.Tab1Button, "AlwaysOn", matlab.graphics.GraphicsPlaceholder, 1)
+            addComponent(app.tabGroupController, "External", "auxApp.winProductsMobile",  app.Tab2Button, "AlwaysOn", app.Tab1Button,                      2)
+            addComponent(app.tabGroupController, "External", "auxApp.winReportLibMobile", app.Tab3Button, "AlwaysOn", app.Tab1Button,                      3)
+            addComponent(app.tabGroupController, "External", "auxApp.winConfigMobile",    app.Tab4Button, "AlwaysOn", app.Tab1Button,                      4)
             app.Tab1Button.Value = true;
 
             if any(app.filteringObj.filterRules.Enable)
@@ -1384,7 +1384,7 @@ classdef mobile_exported < matlab.apps.AppBase
             
             % O listener que captura cliques do mouse só é aplicável no
             % modo SEARCH.
-            if app.TabGroup.SelectedTab == app.TabGroup.Children(1)
+            if app.TabGroup.SelectedTab ~= app.TabGroup.Children(1)
                 return
             end
 
@@ -1710,12 +1710,11 @@ classdef mobile_exported < matlab.apps.AppBase
 
             % Create Grid1
             app.Grid1 = uigridlayout(app.Tab1);
-            app.Grid1.ColumnWidth = {'1x', 90, 10, 28, 28};
-            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, 318, '1x', 46};
+            app.Grid1.ColumnWidth = {'1x', 10, 28, 28};
+            app.Grid1.RowHeight = {38, 10, 92, 10, 22, 10, 144, '1x', 46};
             app.Grid1.ColumnSpacing = 0;
             app.Grid1.RowSpacing = 0;
             app.Grid1.Padding = [10 10 10 42];
-            app.Grid1.Scrollable = 'on';
             app.Grid1.BackgroundColor = [0.9451 0.9569 0.9608];
 
             % Create SearchEntryPoint
@@ -1727,7 +1726,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchEntryPoint.FontColor = [0 0.1294 0.2392];
             app.SearchEntryPoint.Placeholder = 'O que você quer pesquisar?';
             app.SearchEntryPoint.Layout.Row = 1;
-            app.SearchEntryPoint.Layout.Column = [1 5];
+            app.SearchEntryPoint.Layout.Column = [1 4];
 
             % Create SearchEntryButton
             app.SearchEntryButton = uiimage(app.Grid1);
@@ -1735,7 +1734,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchEntryButton.ImageClickedFcn = createCallbackFcn(app, @onSearchEntryButtonPushed, true);
             app.SearchEntryButton.Enable = 'off';
             app.SearchEntryButton.Layout.Row = 1;
-            app.SearchEntryButton.Layout.Column = 4;
+            app.SearchEntryButton.Layout.Column = 3;
             app.SearchEntryButton.ImageSource = 'search-20px.svg';
 
             % Create SearchSetupButton
@@ -1743,13 +1742,13 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchSetupButton.ScaleMethod = 'none';
             app.SearchSetupButton.ImageClickedFcn = createCallbackFcn(app, @onSearchSetupButtonClicked, true);
             app.SearchSetupButton.Layout.Row = 1;
-            app.SearchSetupButton.Layout.Column = 5;
+            app.SearchSetupButton.Layout.Column = 4;
             app.SearchSetupButton.ImageSource = 'settings-20px.svg';
 
             % Create CurrentFilterPanel
             app.CurrentFilterPanel = uipanel(app.Grid1);
             app.CurrentFilterPanel.Layout.Row = 3;
-            app.CurrentFilterPanel.Layout.Column = [1 5];
+            app.CurrentFilterPanel.Layout.Column = [1 4];
 
             % Create CurrentFilterGrid
             app.CurrentFilterGrid = uigridlayout(app.CurrentFilterPanel);
@@ -1819,7 +1818,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.ViewRange.FontSize = 11;
             app.ViewRange.FontColor = [0.4588 0.5294 0.6];
             app.ViewRange.Layout.Row = 5;
-            app.ViewRange.Layout.Column = 2;
+            app.ViewRange.Layout.Column = 1;
             app.ViewRange.Text = '';
 
             % Create ViewPreviousRangeButton
@@ -1828,7 +1827,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.ViewPreviousRangeButton.Enable = 'off';
             app.ViewPreviousRangeButton.Visible = 'off';
             app.ViewPreviousRangeButton.Layout.Row = 5;
-            app.ViewPreviousRangeButton.Layout.Column = 4;
+            app.ViewPreviousRangeButton.Layout.Column = 3;
             app.ViewPreviousRangeButton.ImageSource = 'chevron-left.svg';
 
             % Create ViewNextRangeButton
@@ -1837,7 +1836,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.ViewNextRangeButton.Enable = 'off';
             app.ViewNextRangeButton.Visible = 'off';
             app.ViewNextRangeButton.Layout.Row = 5;
-            app.ViewNextRangeButton.Layout.Column = 5;
+            app.ViewNextRangeButton.Layout.Column = 4;
             app.ViewNextRangeButton.ImageSource = 'chevron-right.svg';
 
             % Create SearchResults
@@ -1845,8 +1844,8 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchResults.VerticalAlignment = 'top';
             app.SearchResults.WordWrap = 'on';
             app.SearchResults.FontSize = 11;
-            app.SearchResults.Layout.Row = [7 10];
-            app.SearchResults.Layout.Column = [1 5];
+            app.SearchResults.Layout.Row = [7 9];
+            app.SearchResults.Layout.Column = [1 4];
             app.SearchResults.Interpreter = 'html';
             app.SearchResults.Text = '';
 
@@ -1859,7 +1858,7 @@ classdef mobile_exported < matlab.apps.AppBase
             app.SearchSuggestions.FontSize = 14;
             app.SearchSuggestions.FontColor = [0 0.1294 0.2392];
             app.SearchSuggestions.Layout.Row = [2 7];
-            app.SearchSuggestions.Layout.Column = [1 5];
+            app.SearchSuggestions.Layout.Column = [1 4];
             app.SearchSuggestions.Value = {};
 
             % Create PopupTempWarning
@@ -1869,8 +1868,8 @@ classdef mobile_exported < matlab.apps.AppBase
             app.PopupTempWarning.WordWrap = 'on';
             app.PopupTempWarning.FontColor = [1 1 1];
             app.PopupTempWarning.Visible = 'off';
-            app.PopupTempWarning.Layout.Row = 10;
-            app.PopupTempWarning.Layout.Column = [1 5];
+            app.PopupTempWarning.Layout.Row = 9;
+            app.PopupTempWarning.Layout.Column = [1 4];
             app.PopupTempWarning.Text = '';
 
             % Create Tab2

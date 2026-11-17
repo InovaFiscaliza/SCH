@@ -1,4 +1,4 @@
-classdef mobileProductInfo_exported < matlab.apps.AppBase
+classdef dockProductInfoMobile_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -484,7 +484,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {'1x', 28, 28};
+            app.GridLayout.ColumnWidth = {'1x'};
             app.GridLayout.RowHeight = {92, '1x'};
             app.GridLayout.ColumnSpacing = 0;
             app.GridLayout.RowSpacing = 5;
@@ -495,7 +495,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.HomologationPanel = uipanel(app.GridLayout);
             app.HomologationPanel.AutoResizeChildren = 'off';
             app.HomologationPanel.Layout.Row = 1;
-            app.HomologationPanel.Layout.Column = [1 3];
+            app.HomologationPanel.Layout.Column = 1;
 
             % Create HomologationGrid
             app.HomologationGrid = uigridlayout(app.HomologationPanel);
@@ -553,7 +553,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
             app.ProductStatusGrid.RowSpacing = 5;
             app.ProductStatusGrid.Padding = [0 0 1 0];
             app.ProductStatusGrid.Layout.Row = 2;
-            app.ProductStatusGrid.Layout.Column = [1 3];
+            app.ProductStatusGrid.Layout.Column = 1;
             app.ProductStatusGrid.Scrollable = 'on';
             app.ProductStatusGrid.BackgroundColor = [0.9451 0.9569 0.9608];
 
@@ -976,7 +976,7 @@ classdef mobileProductInfo_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = mobileProductInfo_exported(Container, varargin)
+        function app = dockProductInfoMobile_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)

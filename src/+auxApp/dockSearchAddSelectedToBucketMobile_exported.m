@@ -1,4 +1,4 @@
-classdef mobileSearchAddSelectedToBucket_exported < matlab.apps.AppBase
+classdef dockSearchAddSelectedToBucketMobile_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -314,7 +314,7 @@ classdef mobileSearchAddSelectedToBucket_exported < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = mobileSearchAddSelectedToBucket_exported(Container, varargin)
+        function app = dockSearchAddSelectedToBucketMobile_exported(Container, varargin)
 
             % Create UIFigure and components
             createComponents(app, Container)
