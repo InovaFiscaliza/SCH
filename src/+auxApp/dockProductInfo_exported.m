@@ -39,7 +39,6 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         Interference          matlab.ui.control.CheckBox
         InUse                 matlab.ui.control.CheckBox
         RF                    matlab.ui.control.CheckBox
-        EvidenceLabel         matlab.ui.control.Label
         CodAduana             matlab.ui.control.EditField
         CodAduanaLabel        matlab.ui.control.Label
         Importador            matlab.ui.control.EditField
@@ -59,6 +58,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
         ProductPosition       matlab.ui.control.Label
         Homologation          matlab.ui.control.Label
         HomologationIcon      matlab.ui.control.Image
+        Title                 matlab.ui.control.Label
     end
 
     
@@ -107,8 +107,6 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
     methods (Access = private)
         %-----------------------------------------------------------------%
         function initialValues(app)
-            app.HomologationPanel.BorderColor = '#c9d9ec';
-            app.EvidencePanel.BorderColor = '#AEBBC2';
             app.Type.Items = categories(app.projectData.inspectedProducts.("Tipo"));
             app.Subtype.Items = {};
             app.Situation.Items = categories(app.projectData.inspectedProducts.("Situação"));
@@ -172,18 +170,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
                 warningLink = ['&nbsp;' createWarningLink(app)];
             end
 
-            app.Homologation.Text = sprintf([ ...
-                '<section>' ...
-                    '<table style="width: 100%%;">' ...
-                        '<tbody>' ...
-                            '<tr>' ...
-                                '<td><font style="font-size: 16px;"><b>%s</b>%s</font><br>Caracterização do produto e levantamento de informações fiscalizatórias.</td>' ...
-                                '<td style="width: 76px;"><section style="border: 1px solid #C3D9EC; border-radius: 5px; padding: 5px; margin-right: 2px; background-color: #DCEBFA; color: #245A7A">Em edição</section></td>' ...
-                            '</tr>' ...
-                        '</tbody>' ...
-                    '</table>' ...
-                '</section>' ...
-            ], homologation, warningLink);
+            app.Homologation.Text = sprintf('<font style="font-size: 16px;"><b>%s</b>%s</font>', homologation, warningLink);
         end
 
         %-----------------------------------------------------------------%
@@ -369,7 +356,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             if isempty(Container)
                 app.UIFigure = uifigure('Visible', 'off');
                 app.UIFigure.AutoResizeChildren = 'off';
-                app.UIFigure.Position = [100 100 840 628];
+                app.UIFigure.Position = [100 100 742 604];
                 app.UIFigure.Name = 'SCH';
                 app.UIFigure.Icon = 'icon_32.png';
                 app.UIFigure.Resize = 'off';
@@ -395,25 +382,36 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {106, 106, 106, 106, 106, 105, 105};
-            app.GridLayout.RowHeight = {92, 22, 22, 22, 22, 22, 22, 22, 40, 22, 22, 22, 22, 22, 22, 22, 68};
+            app.GridLayout.ColumnWidth = {92, 92, 92, 92, 91, 92, 91};
+            app.GridLayout.RowHeight = {40, 54, 22, 22, 21, 22, 21, 22, 1, 62, 21, 22, 21, 22, 21, 22, 21, 42};
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
             app.GridLayout.BackgroundColor = [1 1 1];
 
+            % Create Title
+            app.Title = uilabel(app.GridLayout);
+            app.Title.VerticalAlignment = 'top';
+            app.Title.WordWrap = 'on';
+            app.Title.FontSize = 15;
+            app.Title.FontColor = [0 0.1294 0.2392];
+            app.Title.Layout.Row = 1;
+            app.Title.Layout.Column = [1 7];
+            app.Title.Interpreter = 'html';
+            app.Title.Text = {'<b>Edição do registro</b>'; '<font style="font-size: 11px;">Caracterização do produto e levantamento de informações fiscalizatórias</font>'};
+
             % Create HomologationPanel
             app.HomologationPanel = uipanel(app.GridLayout);
             app.HomologationPanel.AutoResizeChildren = 'off';
-            app.HomologationPanel.Layout.Row = 1;
+            app.HomologationPanel.Layout.Row = 2;
             app.HomologationPanel.Layout.Column = [1 7];
 
             % Create HomologationGrid
             app.HomologationGrid = uigridlayout(app.HomologationPanel);
-            app.HomologationGrid.ColumnWidth = {18, 5, '1x', 10, 28, 28};
-            app.HomologationGrid.RowHeight = {22, '1x', 22};
+            app.HomologationGrid.ColumnWidth = {26, 5, '1x', 90, 10, 28, 28};
+            app.HomologationGrid.RowHeight = {32};
             app.HomologationGrid.ColumnSpacing = 0;
             app.HomologationGrid.RowSpacing = 0;
-            app.HomologationGrid.BackgroundColor = [0.9333 0.9569 0.9843];
+            app.HomologationGrid.BackgroundColor = [1 1 1];
 
             % Create HomologationIcon
             app.HomologationIcon = uiimage(app.HomologationGrid);
@@ -423,40 +421,39 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
 
             % Create Homologation
             app.Homologation = uilabel(app.HomologationGrid);
-            app.Homologation.VerticalAlignment = 'top';
             app.Homologation.FontColor = [0 0.1294 0.2392];
-            app.Homologation.Layout.Row = [1 2];
-            app.Homologation.Layout.Column = [3 6];
+            app.Homologation.Layout.Row = 1;
+            app.Homologation.Layout.Column = 3;
             app.Homologation.Interpreter = 'html';
             app.Homologation.Text = '';
 
             % Create ProductPosition
             app.ProductPosition = uilabel(app.HomologationGrid);
             app.ProductPosition.HorizontalAlignment = 'right';
-            app.ProductPosition.FontSize = 14;
-            app.ProductPosition.Layout.Row = 3;
-            app.ProductPosition.Layout.Column = 3;
+            app.ProductPosition.FontColor = [0.502 0.502 0.502];
+            app.ProductPosition.Layout.Row = 1;
+            app.ProductPosition.Layout.Column = 4;
             app.ProductPosition.Text = '';
 
             % Create ProductPrevious
             app.ProductPrevious = uiimage(app.HomologationGrid);
             app.ProductPrevious.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
-            app.ProductPrevious.Layout.Row = 3;
-            app.ProductPrevious.Layout.Column = 5;
+            app.ProductPrevious.Layout.Row = 1;
+            app.ProductPrevious.Layout.Column = 6;
             app.ProductPrevious.ImageSource = 'chevron-left.svg';
 
             % Create ProductNext
             app.ProductNext = uiimage(app.HomologationGrid);
             app.ProductNext.ImageClickedFcn = createCallbackFcn(app, @onProductsArrowButtonClicked, true);
-            app.ProductNext.Layout.Row = 3;
-            app.ProductNext.Layout.Column = 6;
+            app.ProductNext.Layout.Row = 1;
+            app.ProductNext.Layout.Column = 7;
             app.ProductNext.ImageSource = 'chevron-right.svg';
 
             % Create TypeLabel
             app.TypeLabel = uilabel(app.GridLayout);
             app.TypeLabel.VerticalAlignment = 'bottom';
             app.TypeLabel.FontSize = 11;
-            app.TypeLabel.Layout.Row = 2;
+            app.TypeLabel.Layout.Row = 3;
             app.TypeLabel.Layout.Column = 1;
             app.TypeLabel.Text = 'Tipo:';
 
@@ -466,7 +463,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Type.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Type.FontSize = 11;
             app.Type.BackgroundColor = [1 1 1];
-            app.Type.Layout.Row = 3;
+            app.Type.Layout.Row = 4;
             app.Type.Layout.Column = [1 4];
             app.Type.Value = {};
 
@@ -474,7 +471,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.SubtypeLabel = uilabel(app.GridLayout);
             app.SubtypeLabel.VerticalAlignment = 'bottom';
             app.SubtypeLabel.FontSize = 11;
-            app.SubtypeLabel.Layout.Row = 2;
+            app.SubtypeLabel.Layout.Row = 3;
             app.SubtypeLabel.Layout.Column = 5;
             app.SubtypeLabel.Text = 'Subtipo:';
 
@@ -485,7 +482,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Subtype.Enable = 'off';
             app.Subtype.FontSize = 11;
             app.Subtype.BackgroundColor = [1 1 1];
-            app.Subtype.Layout.Row = 3;
+            app.Subtype.Layout.Row = 4;
             app.Subtype.Layout.Column = [5 7];
             app.Subtype.Value = '';
 
@@ -493,7 +490,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ManufacturerLabel = uilabel(app.GridLayout);
             app.ManufacturerLabel.VerticalAlignment = 'bottom';
             app.ManufacturerLabel.FontSize = 11;
-            app.ManufacturerLabel.Layout.Row = 4;
+            app.ManufacturerLabel.Layout.Row = 5;
             app.ManufacturerLabel.Layout.Column = [1 3];
             app.ManufacturerLabel.Text = 'Fabricante:';
 
@@ -501,14 +498,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Manufacturer = uieditfield(app.GridLayout, 'text');
             app.Manufacturer.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Manufacturer.FontSize = 11;
-            app.Manufacturer.Layout.Row = 5;
+            app.Manufacturer.Layout.Row = 6;
             app.Manufacturer.Layout.Column = [1 4];
 
             % Create ModelLabel
             app.ModelLabel = uilabel(app.GridLayout);
             app.ModelLabel.VerticalAlignment = 'bottom';
             app.ModelLabel.FontSize = 11;
-            app.ModelLabel.Layout.Row = 4;
+            app.ModelLabel.Layout.Row = 5;
             app.ModelLabel.Layout.Column = 5;
             app.ModelLabel.Text = 'Modelo:';
 
@@ -516,14 +513,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Model = uieditfield(app.GridLayout, 'text');
             app.Model.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Model.FontSize = 11;
-            app.Model.Layout.Row = 5;
+            app.Model.Layout.Row = 6;
             app.Model.Layout.Column = [5 7];
 
             % Create ImportadorLabel
             app.ImportadorLabel = uilabel(app.GridLayout);
             app.ImportadorLabel.VerticalAlignment = 'bottom';
             app.ImportadorLabel.FontSize = 11;
-            app.ImportadorLabel.Layout.Row = 6;
+            app.ImportadorLabel.Layout.Row = 7;
             app.ImportadorLabel.Layout.Column = [1 3];
             app.ImportadorLabel.Text = 'Importador:';
 
@@ -531,14 +528,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Importador = uieditfield(app.GridLayout, 'text');
             app.Importador.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Importador.FontSize = 11;
-            app.Importador.Layout.Row = 7;
+            app.Importador.Layout.Row = 8;
             app.Importador.Layout.Column = [1 4];
 
             % Create CodAduanaLabel
             app.CodAduanaLabel = uilabel(app.GridLayout);
             app.CodAduanaLabel.VerticalAlignment = 'bottom';
             app.CodAduanaLabel.FontSize = 11;
-            app.CodAduanaLabel.Layout.Row = 6;
+            app.CodAduanaLabel.Layout.Row = 7;
             app.CodAduanaLabel.Layout.Column = [5 6];
             app.CodAduanaLabel.Text = 'Código aduaneiro:';
 
@@ -546,26 +543,20 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.CodAduana = uieditfield(app.GridLayout, 'text');
             app.CodAduana.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.CodAduana.FontSize = 11;
-            app.CodAduana.Layout.Row = 7;
+            app.CodAduana.Layout.Row = 8;
             app.CodAduana.Layout.Column = [5 7];
-
-            % Create EvidenceLabel
-            app.EvidenceLabel = uilabel(app.GridLayout);
-            app.EvidenceLabel.VerticalAlignment = 'bottom';
-            app.EvidenceLabel.FontSize = 11;
-            app.EvidenceLabel.Layout.Row = 8;
-            app.EvidenceLabel.Layout.Column = [1 2];
-            app.EvidenceLabel.Text = 'Evidências:';
 
             % Create EvidencePanel
             app.EvidencePanel = uipanel(app.GridLayout);
             app.EvidencePanel.AutoResizeChildren = 'off';
-            app.EvidencePanel.Layout.Row = 9;
+            app.EvidencePanel.Title = '❗Evidências';
+            app.EvidencePanel.Layout.Row = 10;
             app.EvidencePanel.Layout.Column = [1 7];
+            app.EvidencePanel.FontSize = 11;
 
             % Create EvidenceGrid
             app.EvidenceGrid = uigridlayout(app.EvidencePanel);
-            app.EvidenceGrid.ColumnWidth = {211, 222, 314};
+            app.EvidenceGrid.ColumnWidth = {'1x', '1x', '1x'};
             app.EvidenceGrid.RowHeight = {28};
             app.EvidenceGrid.Padding = [10 5 10 5];
             app.EvidenceGrid.BackgroundColor = [1 1 1];
@@ -599,7 +590,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.UnitPriceLabel = uilabel(app.GridLayout);
             app.UnitPriceLabel.VerticalAlignment = 'bottom';
             app.UnitPriceLabel.FontSize = 11;
-            app.UnitPriceLabel.Layout.Row = 10;
+            app.UnitPriceLabel.Layout.Row = 11;
             app.UnitPriceLabel.Layout.Column = [1 2];
             app.UnitPriceLabel.Text = 'Valor unitário (R$):';
 
@@ -609,29 +600,29 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.UnitPrice.ValueDisplayFormat = '%.2f';
             app.UnitPrice.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.UnitPrice.FontSize = 11;
-            app.UnitPrice.Layout.Row = 11;
-            app.UnitPrice.Layout.Column = [1 2];
+            app.UnitPrice.Layout.Row = 12;
+            app.UnitPrice.Layout.Column = 1;
 
             % Create UnitPriceSourceLabel
             app.UnitPriceSourceLabel = uilabel(app.GridLayout);
             app.UnitPriceSourceLabel.VerticalAlignment = 'bottom';
             app.UnitPriceSourceLabel.FontSize = 11;
-            app.UnitPriceSourceLabel.Layout.Row = 10;
-            app.UnitPriceSourceLabel.Layout.Column = [3 7];
+            app.UnitPriceSourceLabel.Layout.Row = 11;
+            app.UnitPriceSourceLabel.Layout.Column = [2 7];
             app.UnitPriceSourceLabel.Text = 'Fonte do valor (nota fiscal, site na internet, mostruário de loja etc):';
 
             % Create UnitPriceSource
             app.UnitPriceSource = uieditfield(app.GridLayout, 'text');
             app.UnitPriceSource.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.UnitPriceSource.FontSize = 11;
-            app.UnitPriceSource.Layout.Row = 11;
-            app.UnitPriceSource.Layout.Column = [3 7];
+            app.UnitPriceSource.Layout.Row = 12;
+            app.UnitPriceSource.Layout.Column = [2 7];
 
             % Create QtdVendidaLabel
             app.QtdVendidaLabel = uilabel(app.GridLayout);
             app.QtdVendidaLabel.VerticalAlignment = 'bottom';
             app.QtdVendidaLabel.FontSize = 11;
-            app.QtdVendidaLabel.Layout.Row = 12;
+            app.QtdVendidaLabel.Layout.Row = 13;
             app.QtdVendidaLabel.Layout.Column = 1;
             app.QtdVendidaLabel.Text = 'Qtd. vendida:';
 
@@ -642,14 +633,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdVendida.ValueDisplayFormat = '%.0f';
             app.QtdVendida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdVendida.FontSize = 11;
-            app.QtdVendida.Layout.Row = 13;
+            app.QtdVendida.Layout.Row = 14;
             app.QtdVendida.Layout.Column = 1;
 
             % Create QtdUsoLabel
             app.QtdUsoLabel = uilabel(app.GridLayout);
             app.QtdUsoLabel.VerticalAlignment = 'bottom';
             app.QtdUsoLabel.FontSize = 11;
-            app.QtdUsoLabel.Layout.Row = 12;
+            app.QtdUsoLabel.Layout.Row = 13;
             app.QtdUsoLabel.Layout.Column = 2;
             app.QtdUsoLabel.Text = 'Qtd. em uso:';
 
@@ -660,16 +651,16 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdUso.ValueDisplayFormat = '%.0f';
             app.QtdUso.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdUso.FontSize = 11;
-            app.QtdUso.Layout.Row = 13;
+            app.QtdUso.Layout.Row = 14;
             app.QtdUso.Layout.Column = 2;
 
             % Create QtdEstoqueLabel
             app.QtdEstoqueLabel = uilabel(app.GridLayout);
             app.QtdEstoqueLabel.VerticalAlignment = 'bottom';
             app.QtdEstoqueLabel.FontSize = 11;
-            app.QtdEstoqueLabel.Layout.Row = 12;
-            app.QtdEstoqueLabel.Layout.Column = [3 4];
-            app.QtdEstoqueLabel.Text = 'Qtd. estoque/aduana:';
+            app.QtdEstoqueLabel.Layout.Row = 13;
+            app.QtdEstoqueLabel.Layout.Column = 3;
+            app.QtdEstoqueLabel.Text = 'Qtd. estoque:';
 
             % Create QtdEstoque
             app.QtdEstoque = uieditfield(app.GridLayout, 'numeric');
@@ -678,14 +669,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdEstoque.ValueDisplayFormat = '%.0f';
             app.QtdEstoque.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdEstoque.FontSize = 11;
-            app.QtdEstoque.Layout.Row = 13;
+            app.QtdEstoque.Layout.Row = 14;
             app.QtdEstoque.Layout.Column = 3;
 
             % Create QtdAnunciadaLabel
             app.QtdAnunciadaLabel = uilabel(app.GridLayout);
             app.QtdAnunciadaLabel.VerticalAlignment = 'bottom';
             app.QtdAnunciadaLabel.FontSize = 11;
-            app.QtdAnunciadaLabel.Layout.Row = 12;
+            app.QtdAnunciadaLabel.Layout.Row = 13;
             app.QtdAnunciadaLabel.Layout.Column = 4;
             app.QtdAnunciadaLabel.Text = 'Qtd. anunciada:';
 
@@ -696,14 +687,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdAnunciada.ValueDisplayFormat = '%.0f';
             app.QtdAnunciada.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdAnunciada.FontSize = 11;
-            app.QtdAnunciada.Layout.Row = 13;
+            app.QtdAnunciada.Layout.Row = 14;
             app.QtdAnunciada.Layout.Column = 4;
 
             % Create QtdLacradaLabel
             app.QtdLacradaLabel = uilabel(app.GridLayout);
             app.QtdLacradaLabel.VerticalAlignment = 'bottom';
             app.QtdLacradaLabel.FontSize = 11;
-            app.QtdLacradaLabel.Layout.Row = 12;
+            app.QtdLacradaLabel.Layout.Row = 13;
             app.QtdLacradaLabel.Layout.Column = 5;
             app.QtdLacradaLabel.Text = 'Qtd. lacrada:';
 
@@ -714,14 +705,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdLacrada.ValueDisplayFormat = '%.0f';
             app.QtdLacrada.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdLacrada.FontSize = 11;
-            app.QtdLacrada.Layout.Row = 13;
+            app.QtdLacrada.Layout.Row = 14;
             app.QtdLacrada.Layout.Column = 5;
 
             % Create QtdApreendidaLabel
             app.QtdApreendidaLabel = uilabel(app.GridLayout);
             app.QtdApreendidaLabel.VerticalAlignment = 'bottom';
             app.QtdApreendidaLabel.FontSize = 11;
-            app.QtdApreendidaLabel.Layout.Row = 12;
+            app.QtdApreendidaLabel.Layout.Row = 13;
             app.QtdApreendidaLabel.Layout.Column = 6;
             app.QtdApreendidaLabel.Text = 'Qtd. apreendida:';
 
@@ -732,14 +723,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdApreendida.ValueDisplayFormat = '%.0f';
             app.QtdApreendida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdApreendida.FontSize = 11;
-            app.QtdApreendida.Layout.Row = 13;
+            app.QtdApreendida.Layout.Row = 14;
             app.QtdApreendida.Layout.Column = 6;
 
             % Create QtdRetidaLabel
             app.QtdRetidaLabel = uilabel(app.GridLayout);
             app.QtdRetidaLabel.VerticalAlignment = 'bottom';
             app.QtdRetidaLabel.FontSize = 11;
-            app.QtdRetidaLabel.Layout.Row = 12;
+            app.QtdRetidaLabel.Layout.Row = 13;
             app.QtdRetidaLabel.Layout.Column = 7;
             app.QtdRetidaLabel.Text = 'Qtd. retida (RFB):';
 
@@ -750,14 +741,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.QtdRetida.ValueDisplayFormat = '%.0f';
             app.QtdRetida.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.QtdRetida.FontSize = 11;
-            app.QtdRetida.Layout.Row = 13;
+            app.QtdRetida.Layout.Row = 14;
             app.QtdRetida.Layout.Column = 7;
 
             % Create SituationLabel
             app.SituationLabel = uilabel(app.GridLayout);
             app.SituationLabel.VerticalAlignment = 'bottom';
             app.SituationLabel.FontSize = 11;
-            app.SituationLabel.Layout.Row = 14;
+            app.SituationLabel.Layout.Row = 15;
             app.SituationLabel.Layout.Column = 1;
             app.SituationLabel.Text = 'Situação:';
 
@@ -767,7 +758,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Situation.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Situation.FontSize = 11;
             app.Situation.BackgroundColor = [1 1 1];
-            app.Situation.Layout.Row = 15;
+            app.Situation.Layout.Row = 16;
             app.Situation.Layout.Column = 1;
             app.Situation.Value = {};
 
@@ -775,7 +766,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationTypeLabel = uilabel(app.GridLayout);
             app.ViolationTypeLabel.VerticalAlignment = 'bottom';
             app.ViolationTypeLabel.FontSize = 11;
-            app.ViolationTypeLabel.Layout.Row = 14;
+            app.ViolationTypeLabel.Layout.Row = 15;
             app.ViolationTypeLabel.Layout.Column = [2 3];
             app.ViolationTypeLabel.Text = 'Infração:';
 
@@ -785,7 +776,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.ViolationType.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.ViolationType.FontSize = 11;
             app.ViolationType.BackgroundColor = [1 1 1];
-            app.ViolationType.Layout.Row = 15;
+            app.ViolationType.Layout.Row = 16;
             app.ViolationType.Layout.Column = [2 3];
             app.ViolationType.Value = {};
 
@@ -793,7 +784,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.CorrigibleLabel = uilabel(app.GridLayout);
             app.CorrigibleLabel.VerticalAlignment = 'bottom';
             app.CorrigibleLabel.FontSize = 11;
-            app.CorrigibleLabel.Layout.Row = 14;
+            app.CorrigibleLabel.Layout.Row = 15;
             app.CorrigibleLabel.Layout.Column = 4;
             app.CorrigibleLabel.Text = 'Sanável?';
 
@@ -803,7 +794,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Corrigible.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Corrigible.FontSize = 11;
             app.Corrigible.BackgroundColor = [1 1 1];
-            app.Corrigible.Layout.Row = 15;
+            app.Corrigible.Layout.Row = 16;
             app.Corrigible.Layout.Column = 4;
             app.Corrigible.Value = {};
 
@@ -811,7 +802,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.LacreLabel = uilabel(app.GridLayout);
             app.LacreLabel.VerticalAlignment = 'bottom';
             app.LacreLabel.FontSize = 11;
-            app.LacreLabel.Layout.Row = 14;
+            app.LacreLabel.Layout.Row = 15;
             app.LacreLabel.Layout.Column = 5;
             app.LacreLabel.Text = 'Lacre:';
 
@@ -819,14 +810,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Lacre = uieditfield(app.GridLayout, 'text');
             app.Lacre.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Lacre.FontSize = 11;
-            app.Lacre.Layout.Row = 15;
+            app.Lacre.Layout.Row = 16;
             app.Lacre.Layout.Column = 5;
 
             % Create PLAILabel
             app.PLAILabel = uilabel(app.GridLayout);
             app.PLAILabel.VerticalAlignment = 'bottom';
             app.PLAILabel.FontSize = 11;
-            app.PLAILabel.Layout.Row = 14;
+            app.PLAILabel.Layout.Row = 15;
             app.PLAILabel.Layout.Column = [6 7];
             app.PLAILabel.Text = 'PLAI:';
 
@@ -835,14 +826,14 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.PLAI.CharacterLimits = [0 20];
             app.PLAI.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.PLAI.FontSize = 11;
-            app.PLAI.Layout.Row = 15;
+            app.PLAI.Layout.Row = 16;
             app.PLAI.Layout.Column = [6 7];
 
             % Create NoteLabel
             app.NoteLabel = uilabel(app.GridLayout);
             app.NoteLabel.VerticalAlignment = 'bottom';
             app.NoteLabel.FontSize = 11;
-            app.NoteLabel.Layout.Row = 16;
+            app.NoteLabel.Layout.Row = 17;
             app.NoteLabel.Layout.Column = [1 4];
             app.NoteLabel.Text = 'Informações adicionais:';
 
@@ -850,7 +841,7 @@ classdef dockProductInfo_exported < matlab.apps.AppBase
             app.Note = uitextarea(app.GridLayout);
             app.Note.ValueChangedFcn = createCallbackFcn(app, @onParameterValueChanged, true);
             app.Note.FontSize = 11;
-            app.Note.Layout.Row = 17;
+            app.Note.Layout.Row = 18;
             app.Note.Layout.Column = [1 7];
 
             % Show the figure after all components are created

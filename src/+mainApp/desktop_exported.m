@@ -626,7 +626,7 @@ classdef desktop_exported < matlab.apps.AppBase
                 popupSpecifications(2, :) = {"CustomsFilter", 518, 376, false};
                 popupSpecifications(3, :) = {"CustomsManageFiles", 518, 518, false};
                 popupSpecifications(4, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
-                popupSpecifications(5, :) = {"ProductInfo", 840, 628, false};
+                popupSpecifications(5, :) = {"ProductInfo", 742, 604, false};
                 popupSpecifications(6, :) = {"ReportLib", 460, 608, false};
                 popupSpecifications(7, :) = {"SearchAddSelectedToBucket", 518, 518, false};
                 popupSpecifications(8, :) = {"SearchFilter", 518, 518, false};

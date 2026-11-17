@@ -18,6 +18,7 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
     properties (Access = private)
         %-----------------------------------------------------------------%
         Role = 'secondaryDockApp'
+        alreadyIncludedIdxs = []
     end
 
 
@@ -32,9 +33,19 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
     
     methods (Access = private)
         %-----------------------------------------------------------------%
+        function checkedIdxs = getCheckedIdxs(app)
+            checkedIdxs = [];
+            if ~isempty(app.Tree.CheckedNodes)
+                checkedIdxs = [app.Tree.CheckedNodes.NodeData];
+            end
+        end
+
+        %-----------------------------------------------------------------%
         function updateForm(app, schDetailedIdxs)
+            app.alreadyIncludedIdxs = [];
+
             homologation = app.mainApp.schData.detailed.("Homologação"){schDetailedIdxs(1)};
-            app.Homologation.Text = sprintf('<font style="color:gray;">Homologação nº</font> <b>%s</b>', homologation);
+            app.Homologation.Text = sprintf('%s', homologation);
 
             checkedNodes = matlab.ui.container.TreeNode.empty;
 
@@ -57,6 +68,7 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
                 [~, productHash] = model.ProjectBase.initializeInspectedProduct('Homologado', app.mainApp.General, app.mainApp.schData.detailed, idx);    
                 if ismember(productHash, app.mainApp.projectData.inspectedProducts.("Hash"))
                     checkedNodes(end+1) = treeNode;
+                    app.alreadyIncludedIdxs(end+1) = idx;
                 end
             end
 
@@ -99,20 +111,31 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
         % Callback function: Tree
         function onTreeCheckedNodesChanged(app, event)
             
-            app.Button.Enable = ~isempty(app.Tree.CheckedNodes);
+            nodes = app.Tree.Children;
+            checkedIdxs = getCheckedIdxs(app);
+
+            % Itens já incluídos na lista de produtos inspecionados não 
+            % podem ser desmarcados: se isso ocorreu, restaura-se a marcação.
+            if ~all(ismember(app.alreadyIncludedIdxs, checkedIdxs))
+                restoredIdxs = union(checkedIdxs, app.alreadyIncludedIdxs);
+                app.Tree.CheckedNodes = nodes(ismember([nodes.NodeData], restoredIdxs));
+                return
+            end
+
+            app.Button.Enable = ~isempty(setdiff(checkedIdxs, app.alreadyIncludedIdxs));
             
         end
 
         % Button pushed function: Button
         function onButtonPushed(app, event)
             
-            if isempty(app.Tree.CheckedNodes)
-                onTreeCheckedNodesChanged(app)
+            newIdxs = setdiff(getCheckedIdxs(app), app.alreadyIncludedIdxs);
+            if isempty(newIdxs)
+                app.Button.Enable = 'off';
                 return
             end
 
-            homDetailedIdxs = [app.Tree.CheckedNodes.NodeData];
-            ipcMainMatlabCallsHandler(app.mainApp, app, 'onAddSelectedToBucketRequest', homDetailedIdxs)
+            ipcMainMatlabCallsHandler(app.mainApp, app, 'onAddSelectedToBucketRequest', newIdxs)
 
         end
     end
@@ -156,8 +179,8 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {363, 110};
-            app.GridLayout.RowHeight = {40, 44, 22, 322, 1, 24};
+            app.GridLayout.ColumnWidth = {303, 170};
+            app.GridLayout.RowHeight = {40, 54, 22, 308, 34};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
@@ -183,30 +206,29 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
             % Create HomologationGrid
             app.HomologationGrid = uigridlayout(app.HomologationPanel);
             app.HomologationGrid.ColumnWidth = {26, '1x'};
-            app.HomologationGrid.RowHeight = {'1x'};
+            app.HomologationGrid.RowHeight = {32};
             app.HomologationGrid.BackgroundColor = [1 1 1];
 
             % Create HomologationIcon
             app.HomologationIcon = uiimage(app.HomologationGrid);
-            app.HomologationIcon.Enable = 'off';
             app.HomologationIcon.Layout.Row = 1;
             app.HomologationIcon.Layout.Column = 1;
-            app.HomologationIcon.ImageSource = 'circuit-board.svg';
+            app.HomologationIcon.ImageSource = 'package.svg';
 
             % Create Homologation
             app.Homologation = uilabel(app.HomologationGrid);
-            app.Homologation.WordWrap = 'on';
-            app.Homologation.FontColor = [0 0.4471 0.7412];
+            app.Homologation.FontSize = 16;
+            app.Homologation.FontWeight = 'bold';
+            app.Homologation.FontColor = [0 0.1294 0.2392];
             app.Homologation.Layout.Row = 1;
             app.Homologation.Layout.Column = 2;
-            app.Homologation.Interpreter = 'html';
-            app.Homologation.Text = '<font style="color:gray;">Homologação nº</font>';
+            app.Homologation.Text = '';
 
             % Create TreeLabel
             app.TreeLabel = uilabel(app.GridLayout);
             app.TreeLabel.VerticalAlignment = 'bottom';
             app.TreeLabel.FontSize = 11;
-            app.TreeLabel.FontColor = [0 0.451 0.7412];
+            app.TreeLabel.FontColor = [0 0.1294 0.2392];
             app.TreeLabel.Layout.Row = 3;
             app.TreeLabel.Layout.Column = 1;
             app.TreeLabel.Text = 'Registros encontrados';
@@ -224,14 +246,14 @@ classdef dockSearchAddSelectedToBucket_exported < matlab.apps.AppBase
             app.Button = uibutton(app.GridLayout, 'push');
             app.Button.ButtonPushedFcn = createCallbackFcn(app, @onButtonPushed, true);
             app.Button.Tag = 'OK';
-            app.Button.IconAlignment = 'right';
+            app.Button.Icon = 'add-16px-white.svg';
             app.Button.BackgroundColor = [0 0.451 0.7412];
             app.Button.FontSize = 11;
             app.Button.FontColor = [1 1 1];
             app.Button.Enable = 'off';
-            app.Button.Layout.Row = 6;
+            app.Button.Layout.Row = 5;
             app.Button.Layout.Column = 2;
-            app.Button.Text = 'Confirma inclusão';
+            app.Button.Text = '   Confirma inclusão';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
