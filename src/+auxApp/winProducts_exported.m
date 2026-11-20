@@ -299,17 +299,21 @@ classdef winProducts_exported < matlab.apps.AppBase
         end
 
         %-----------------------------------------------------------------%
-        function reportDispatchOperation(app, eventName)
+        function reportDispatchOperation(app, eventName, varargin)
             if isempty(app.mainApp.eFiscalizaObj) || ~isvalid(app.mainApp.eFiscalizaObj)
-                eventData = ws.eFiscaliza.getCredentials('auto', app.mainApp.executionMode, app.jsBackDoor, eventName, app.Context);
+                eventData = ws.eFiscaliza.getCredentials('auto', app.mainApp.executionMode, app.jsBackDoor, eventName, app.Context, varargin{:});
                 if ~isempty(eventData)
                     eventData.uuid = eventName;
                     eventData.context = app.Context;
+                    
+                    if ~isempty(varargin)
+                        eventData.varargin = varargin;
+                    end
 
                     ipcMainJSEventsHandler(app.mainApp, struct('HTMLEventName', 'customForm', 'HTMLEventData', eventData))
                 end
             else
-                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, app.Context)
+                ipcMainMatlabCallsHandler(app.mainApp, app, eventName, app.Context, varargin{:})
             end
         end
     end

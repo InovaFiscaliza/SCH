@@ -1323,7 +1323,7 @@ classdef desktop_exported < matlab.apps.AppBase
                     loginMode = 'manual';
                 end
 
-                app.eFiscalizaObj = ws.eFiscaliza(loginMode, credentials.login, credentials.password);
+                app.eFiscalizaObj = ws.eFiscaliza(loginMode, credentials.login, credentials.password, credentials);
             end
         end
 
