@@ -60,7 +60,7 @@ classdef (Abstract) HtmlTextGenerator
             dataStruct(end+1) = struct('group', [upper(appName) 'Data_Annotation'], 'value', struct('numberOfRows', height(annotationTable), 'numberOfUniqueHom', numel(unique(annotationTable.("Homologação")))));
 
             if ~isempty(eFiscalizaObj) && isvalid(eFiscalizaObj)
-                dataStruct(end+1) = struct('group', 'USUÁRIO AUTENTICADO', 'value', eFiscalizaObj.login);
+                dataStruct(end+1) = struct('group', 'USUÁRIO AUTENTICADO', 'value', eFiscalizaObj.userAttributes);
             end
 
             freeInitialText = sprintf('<font style="font-size: 12px;">O repositório das ferramentas desenvolvidas no Laboratório de inovação da SFI pode ser acessado <a href="%s" target="_blank">aqui</a>.</font>\n\n', appURL.Sharepoint);
