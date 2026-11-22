@@ -93,8 +93,8 @@ classdef winCustoms_exported < matlab.apps.AppBase
                             case 'onCustomsShipmentsTableChanged'
                                 loadSelectedFile(app)
 
-                            % audApp.dockCustomsFilter >> mainApp.desktop >> auxApp.winCustoms
-                            case 'onCustomsColumnFilterChanged'
+                            % auxApp.dockTableFilter >> mainApp.desktop >> auxApp.winCustoms
+                            case 'onFilterRulesChanged'
                                 loadSelectedFile(app)
 
                             % audApp.dockCustomsManageFiles >> mainApp.desktop >> auxApp.winCustoms
@@ -174,8 +174,9 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     struct('appName', appName, 'dataTag', app.GenerateReport.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Gera relatório')), ...
                     struct('appName', appName, 'dataTag', app.UploadFinalFile.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Upload relatório')), ...
                     struct('appName', appName, 'dataTag', app.ShowDataRules.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Apresenta as regras de validação dos campos')), ...
-                    struct('appName', appName, 'dataTag', app.DockUndockButton.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Reabre módulo em outra janela')), ...
-                    struct('appName', appName, 'dataTag', app.DockCloseButton.UserData.id, 'tooltip', struct('defaultPosition', 'bottom', 'textContent', 'Fecha módulo')) ...
+                    ...
+                    struct('appName', appName, 'dataTag', app.DockUndockButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Reabre módulo em outra janela')), ...
+                    struct('appName', appName, 'dataTag', app.DockCloseButton.UserData.id, 'tooltip', struct('defaultPosition', 'top', 'textContent', 'Fecha módulo')) ...
                 });
             catch
             end
@@ -704,8 +705,10 @@ classdef winCustoms_exported < matlab.apps.AppBase
                     optionalArgs = {customsShipmentsIdx, customsDataIdxs};
 
                 case app.FilterSetup
-                    dockAppTag = 'CustomsFilter';
-                    optionalArgs = {customsShipmentsIdx};
+                    customsShipments = app.projectData.customsShipments(customsShipmentsIdx);
+
+                    dockAppTag = 'TableFilter';
+                    optionalArgs = {customsShipments.Data, customsShipments.UserData.Filter};
 
                 case app.ManageFiles
                     dockAppTag = 'CustomsManageFiles';

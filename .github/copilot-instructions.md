@@ -41,8 +41,8 @@ incremente a versão em `src/config/GeneralSettings.json` para que o app atualiz
 **Funcionalidade**:
 - `preCompile()` (padrão) ou `preCompile('generateExportedApps', prjInfo, appNames)`: converte .mlapp em .m legível (`*_exported.m`)
 - `preCompile('generateMLAPPFromExported', prjInfo, appNames)`: operação inversa, recria o .mlapp a partir do `*_exported.m` (via `m2mlapp`)
-- A implementação está em `appEngine.generateExportedApps` e `appEngine.generateMLAPPFromExported` (SupportPackages). `prjInfo` (padrão: `currentProject`) e `appNames` (cellstr com nomes de classe, como `{'winConfig'}`; padrão: todos) são opcionais
-- Nos apps auxiliares (`src/+auxApp`), injeta suporte a renderização em containers genéricos. O app principal (`.mlapp` diretamente em `src`) só tem o nome da classe e do construtor alterados (sufixo `_exported`)
+- A implementação está em `appEngine.AppExporter` (SupportPackages, métodos `toExported` e `toMLAPP`), que independe de projeto aberto e recebe pastas varridas recursivamente; `preCompile` passa a pasta `src` do projeto. `prjInfo` (padrão: deduzido do local de `preCompile.m`) e `appNames` (cellstr com nomes de classe, como `{'winConfig'}`; padrão: todos) são opcionais
+- Apps em pacotes (`src/+auxApp` e `src/+mainApp`, as versões desktop e mobile) recebem suporte a renderização em containers genéricos. O launcher (`winSCH.mlapp`, fora de pacotes, diretamente em `src`) só tem o nome da classe e do construtor alterados (sufixo `_exported`)
 - Os `*_exported.m` permitem versionar e editar o código fora do App Designer
 
 **Container Support**: 

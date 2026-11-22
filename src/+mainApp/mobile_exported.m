@@ -68,7 +68,7 @@ classdef mobile_exported < matlab.apps.AppBase
         popupCurrentApp
 
         eFiscalizaObj
-        filteringObj = tableFiltering
+        filteringObj = model.TableFilter
         wordCloudObj
 
         projectData

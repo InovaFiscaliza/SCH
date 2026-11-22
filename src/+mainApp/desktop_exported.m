@@ -82,7 +82,7 @@ classdef desktop_exported < matlab.apps.AppBase
         popupCurrentApp
 
         eFiscalizaObj
-        filteringObj = tableFiltering
+        filteringObj = model.TableFilter
         wordCloudObj
 
         projectData
@@ -487,7 +487,7 @@ classdef desktop_exported < matlab.apps.AppBase
 
                             % DOCKS:OTHERS
                             case {'auxApp.dockCustomsAnalysisDetails', 'auxApp.dockCustomsAnalysisDetails_exported', ...
-                                  'auxApp.dockCustomsFilter', 'auxApp.dockCustomsFilter_exported', ...
+                                  'auxApp.dockTableFilter', 'auxApp.dockTableFilter_exported', ...
                                   'auxApp.dockCustomsManageRules', 'auxApp.dockCustomsManageRules_exported', ...
                                   'auxApp.dockCustomsManageFiles', 'auxApp.dockCustomsManageFiles_exported', ...
                                   'auxApp.dockProductInfo', 'auxApp.dockProductInfo_exported', ...
@@ -518,8 +518,10 @@ classdef desktop_exported < matlab.apps.AppBase
                                         updateCustomsShipments(app.projectData, 'delete', customsShipmentsIdx)
                                         ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName)
 
-                                    case 'onCustomsColumnFilterChanged'
-                                        ipcMainMatlabCallAuxiliarApp(app, 'CUSTOMS', 'MATLAB', eventName, varargin{:})
+                                    % auxApp.dockTableFilter
+                                    case 'onFilterRulesChanged'
+                                        context = varargin{1};
+                                        ipcMainMatlabCallAuxiliarApp(app, context, 'MATLAB', eventName)
 
                                     % auxApp.dockSearchFilterSetup
                                     case 'onSearchModeChanged'
@@ -601,7 +603,7 @@ classdef desktop_exported < matlab.apps.AppBase
             arguments
                 app
                 callingApp
-                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsFilter', 'CustomsManageFiles', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails'})}
+                auxAppName char {mustBeMember(auxAppName, {'CustomsAnalysisDetails', 'CustomsManageFiles', 'CustomsManageRules', 'ProductInfo', 'ReportLib', 'SearchAddSelectedToBucket', 'SearchFilter', 'SearchProductDetails', 'TableFilter'})}
                 context char {mustBeMember(context, {'mainApp', 'SEARCH', 'PRODUCTS', 'CUSTOMS', 'CONFIG'})}
             end
 
@@ -623,7 +625,7 @@ classdef desktop_exported < matlab.apps.AppBase
                     'VariableNames', {'AuxAppName', 'Width', 'Height', 'IsFluid'} ...
                 );
                 popupSpecifications(1, :) = {"CustomsAnalysisDetails", 598, 597, false};
-                popupSpecifications(2, :) = {"CustomsFilter", 518, 376, false};
+                popupSpecifications(2, :) = {"TableFilter", 518, 376, false};
                 popupSpecifications(3, :) = {"CustomsManageFiles", 518, 518, false};
                 popupSpecifications(4, :) = {"CustomsManageRules", 1038, 628, false}; % PENDENTE
                 popupSpecifications(5, :) = {"ProductInfo", 742, 604, false};

@@ -157,8 +157,8 @@ classdef dockSearchFilterMobile_exported < matlab.apps.AppBase
             [columnNames, sortedIdxs] = textAnalysis.sort(columnRawNames);
             columnTypes = columnRawTypes(sortedIdxs);
             
-            pseudoClasses = tableFiltering.getPseudoClasses(columnTypes);
-            symbolicNames = tableFiltering.mergedSymbolWithColumnNames(columnNames, columnTypes);
+            pseudoClasses = model.TableFilter.getPseudoClasses(columnTypes);
+            symbolicNames = model.TableFilter.mergedSymbolWithColumnNames(columnNames, columnTypes);
             
             % Atualiza componente dropdown com os nomes símbolicos das
             % colunas, além de armazenar em "UserData" detalhes sobre os
@@ -186,7 +186,7 @@ classdef dockSearchFilterMobile_exported < matlab.apps.AppBase
                 'type', app.mainApp.General.context.SEARCH.type, ...
                 'mode', app.mainApp.General.context.SEARCH.mode ...
             );
-            app.draftFilteringObj = tableFiltering;
+            app.draftFilteringObj = model.TableFilter;
             app.draftFilteringObj.filterRules = app.mainApp.filteringObj.filterRules;
 
             updateSearchContext(app)
@@ -405,7 +405,7 @@ classdef dockSearchFilterMobile_exported < matlab.apps.AppBase
             if isempty(pseudoClass)
                 operations = {};
             else
-                operations = tableFiltering.getFilterCapabilities(pseudoClass);
+                operations = model.TableFilter.getFilterCapabilities(pseudoClass);
             end
             
             app.Operation1_List.Items = operations;

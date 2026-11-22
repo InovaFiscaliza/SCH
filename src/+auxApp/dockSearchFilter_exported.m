@@ -7,6 +7,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
         ColumnFilterPanel       matlab.ui.container.Panel
         ColumnFilterGrid        matlab.ui.container.GridLayout
         ColumnFilterList        matlab.ui.container.CheckBoxTree
+        ColumnFilterDel         matlab.ui.control.Image
         ColumnFilterAdd         matlab.ui.control.Image
         Value2_TextFree         matlab.ui.control.EditField
         Value2_TextList         matlab.ui.control.DropDown
@@ -30,8 +31,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
         FilterStrategy          matlab.ui.control.DropDown
         FilterStrategyLabel     matlab.ui.control.Label
         Title                   matlab.ui.control.Label
-        ContextMenu             matlab.ui.container.ContextMenu
-        ColumnFilterDel         matlab.ui.container.Menu
+        TitleIcon               matlab.ui.control.Image
     end
 
     
@@ -70,8 +70,8 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             [columnNames, sortedIdxs] = textAnalysis.sort(columnRawNames);
             columnTypes = columnRawTypes(sortedIdxs);
             
-            pseudoClasses = tableFiltering.getPseudoClasses(columnTypes);
-            symbolicNames = tableFiltering.mergedSymbolWithColumnNames(columnNames, columnTypes);
+            pseudoClasses = model.TableFilter.getPseudoClasses(columnTypes);
+            symbolicNames = model.TableFilter.mergedSymbolWithColumnNames(columnNames, columnTypes);
             
             % Atualiza componente dropdown com os nomes símbolicos das
             % colunas, além de armazenar em "UserData" detalhes sobre os
@@ -91,6 +91,12 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             % classe da coluna. Guarda-se um handle p/ o elemento ativo.
             app.Operation1_List.UserData.inputHandle = [];
             app.Operation2_List.UserData.inputHandle = [];
+
+            % Reinicializa os campos de valor.
+            set([app.Value1_Date,     app.Value2_Date],     'Value', NaT, 'Visible', 'off')
+            set([app.Value1_Numeric,  app.Value2_Numeric],  'Value', 1,   'Visible', 'off')
+            set([app.Value1_TextList, app.Value2_TextList], 'Editable', 'on', 'Items', {''}, 'Value', '', 'Visible', 'off')
+            set([app.Value1_TextFree, app.Value2_TextFree], 'Value', '',  'Visible', 'on')
         end
 
         %-----------------------------------------------------------------%
@@ -122,20 +128,23 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             if ~isempty(app.ColumnFilterList.Children)
                 delete(app.ColumnFilterList.Children)
             end
+            app.ColumnFilterDel.Visible = 'off';
 
             filterList = getFilterList(app.mainApp.filteringObj, 'SCH');
             if ~isempty(filterList)
                 checkedNodes = [];
     
                 for ii = 1:numel(filterList)
-                    childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii, 'ContextMenu', app.ContextMenu);
+                    childNode = uitreenode(app.ColumnFilterList, 'Text', filterList{ii}, 'NodeData', ii);
     
                     if app.mainApp.filteringObj.filterRules.Enable(ii)
                         checkedNodes = [checkedNodes, childNode];
                     end
                 end
     
-                app.ColumnFilterList.CheckedNodes = checkedNodes;
+                if ~isempty(checkedNodes)
+                    app.ColumnFilterList.CheckedNodes = checkedNodes;
+                end
             end
         end
 
@@ -160,6 +169,28 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             categoriesIndex = find(strcmp({app.mainApp.schDataCategories.columnName}, columnName), 1);
             if ~isempty(categoriesIndex)
                 categories = app.mainApp.schDataCategories(categoriesIndex).categories;
+            end
+        end
+
+        %-----------------------------------------------------------------%
+        function errorMessage = validateInputValue(app, value, pseudoClass)
+            errorMessage = '';
+
+            switch pseudoClass
+                case {'cellstr', 'categorical'}
+                    if isempty(strtrim(value))
+                        errorMessage = 'O valor do filtro não pode ser vazio.';
+                    end
+
+                case 'numeric'
+                    if ~isscalar(value) || ~isfinite(value)
+                        errorMessage = 'O valor do filtro deve ser um número finito.';
+                    end
+
+                case 'datetime'
+                    if isnat(value)
+                        errorMessage = 'Selecione uma data para o filtro.';
+                    end
             end
         end
     end
@@ -236,7 +267,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             if isempty(pseudoClass)
                 operations = {};
             else
-                operations = tableFiltering.getFilterCapabilities(pseudoClass);
+                operations = model.TableFilter.getFilterCapabilities(pseudoClass);
             end
             
             app.Operation1_List.Items = operations;
@@ -281,7 +312,6 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             switch pseudoClass
                 case 'cellstr'
                     [~, tagIndex] = ismember('textFree', tagHandles);
-                  % optionalArgs  = {'Value', ''};
                     optionalArgs  = {};
 
                 case 'numeric'
@@ -292,15 +322,20 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
                     [~, tagIndex] = ismember('datePicker', tagHandles);
                     optionalArgs  = {};
 
+                case 'logical'
+                    [~, tagIndex] = ismember('textList', tagHandles);
+                    optionalArgs  = {'Editable', 'off', 'Items', {'true', 'false'}};
+
                 case 'categorical'
-                    % Se a coluna tiver mais de 500 categorias, apresenta-se 
-                    % como uieditfield (text) ao invés de dropdown.
+                    % Se a coluna tiver mais de 500 categorias (lista vazia 
+                    % em "schDataCategories"), apresenta-se como uieditfield 
+                    % (text) ao invés de dropdown.
                     if isempty(categories)
                         [~, tagIndex] = ismember('textFree', tagHandles);
                         optionalArgs  = {};
                     else
                         [~, tagIndex] = ismember('textList', tagHandles);
-                        optionalArgs  = {'Items', [{''}; categories]};
+                        optionalArgs  = {'Editable', 'on', 'Items', [{''}; categories]};
                     end
             end
 
@@ -311,9 +346,10 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
         end
 
         % Image clicked function: ColumnFilterAdd
-        function onFilterAddImageClicked(app, event)
+        function onFilterAddButtonClicked(app, event)
             
-            columnName = app.SymbolicNameList.UserData.selected.columnName;            
+            columnName  = app.SymbolicNameList.UserData.selected.columnName;
+            pseudoClass = app.SymbolicNameList.UserData.selected.pseudoClass;
             operators  = {app.Operation1_List.Value};
             values     = {app.Operation1_List.UserData.inputHandle.Value};
             connector  = app.Operation2_LogicalGrid.SelectedObject.Text;
@@ -321,6 +357,20 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             if ~isempty(app.Operation2_List.Value) && (~strcmp(app.Operation1_List.Value, app.Operation2_List.Value) || ~isequal(app.Operation1_List.UserData.inputHandle.Value, app.Operation2_List.UserData.inputHandle.Value))
                 operators = [operators, {app.Operation2_List.Value}];
                 values    = [values, {app.Operation2_List.UserData.inputHandle.Value}];
+            end
+
+            for ii = 1:numel(values)
+                errorMessage = validateInputValue(app, values{ii}, pseudoClass);
+                if ~isempty(errorMessage)
+                    ui.Dialog(app.UIFigure, 'warning', errorMessage);
+                    return
+                end
+            end
+
+            % Colunas lógicas são filtradas por uidropdown com os valores
+            % "true" e "false", convertidos aqui para logical.
+            if strcmp(pseudoClass, 'logical')
+                values = cellfun(@(x) strcmp(x, 'true'), values, 'UniformOutput', false);
             end
 
             try
@@ -335,18 +385,28 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: ColumnFilterDel
-        function onFilterDelImageClicked(app, event)
+        % Image clicked function: ColumnFilterDel
+        function onFilterDelButtonClicked(app, event)
             
-            selectedNodes = app.ColumnFilterList.SelectedNodes;
+            selectedNode = app.ColumnFilterList.SelectedNodes;
 
-            if ~isempty(selectedNodes)
-                removeFilterRule(app.mainApp.filteringObj, [selectedNodes.NodeData])
+            if ~isempty(selectedNode)
+                removeFilterRule(app.mainApp.filteringObj, selectedNode.NodeData)
                 updateTree(app)
 
                 ipcMainMatlabCallsHandler(app.mainApp, app, 'onColumnFilterChanged')
             end
 
+        end
+
+        % Selection changed function: ColumnFilterList
+        function onColumnFilterListSelectionChanged(app, event)
+            
+            selectedNode = app.ColumnFilterList.SelectedNodes;
+
+            % O botão de exclusão só é exibido para regras deletáveis.
+            app.ColumnFilterDel.Visible = ~isempty(selectedNode) && app.mainApp.filteringObj.filterRules.Deletable(selectedNode.NodeData);
+            
         end
 
         % Callback function: ColumnFilterList
@@ -410,12 +470,20 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
 
             % Create GridLayout
             app.GridLayout = uigridlayout(app.Container);
-            app.GridLayout.ColumnWidth = {478};
+            app.GridLayout.ColumnWidth = {22, 451};
             app.GridLayout.RowHeight = {40, 22, 22, 22, 88, 22, 232};
             app.GridLayout.ColumnSpacing = 5;
             app.GridLayout.RowSpacing = 5;
             app.GridLayout.Padding = [20 20 20 20];
             app.GridLayout.BackgroundColor = [1 1 1];
+
+            % Create TitleIcon
+            app.TitleIcon = uiimage(app.GridLayout);
+            app.TitleIcon.ScaleMethod = 'none';
+            app.TitleIcon.Layout.Row = 1;
+            app.TitleIcon.Layout.Column = 1;
+            app.TitleIcon.VerticalAlignment = 'top';
+            app.TitleIcon.ImageSource = 'settings-20px.svg';
 
             % Create Title
             app.Title = uilabel(app.GridLayout);
@@ -424,7 +492,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Title.FontSize = 15;
             app.Title.FontColor = [0 0.1294 0.2392];
             app.Title.Layout.Row = 1;
-            app.Title.Layout.Column = 1;
+            app.Title.Layout.Column = 2;
             app.Title.Interpreter = 'html';
             app.Title.Text = {'<b>Configurações de filtragem e exibição</b>'; '<font style="font-size: 11px;">Defina como os filtros serão aplicados para refinar os resultados exibidos</font>'};
 
@@ -434,7 +502,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FilterStrategyLabel.FontSize = 11;
             app.FilterStrategyLabel.FontColor = [0 0.1294 0.2392];
             app.FilterStrategyLabel.Layout.Row = 2;
-            app.FilterStrategyLabel.Layout.Column = 1;
+            app.FilterStrategyLabel.Layout.Column = 2;
             app.FilterStrategyLabel.Text = 'Estratégia de filtragem';
 
             % Create FilterStrategy
@@ -444,7 +512,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FilterStrategy.FontSize = 11;
             app.FilterStrategy.BackgroundColor = [1 1 1];
             app.FilterStrategy.Layout.Row = 3;
-            app.FilterStrategy.Layout.Column = 1;
+            app.FilterStrategy.Layout.Column = 2;
             app.FilterStrategy.Value = 'Texto livre + Filtro por coluna';
 
             % Create FreeTextLabel
@@ -453,7 +521,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextLabel.FontSize = 11;
             app.FreeTextLabel.FontColor = [0 0.1294 0.2392];
             app.FreeTextLabel.Layout.Row = 4;
-            app.FreeTextLabel.Layout.Column = 1;
+            app.FreeTextLabel.Layout.Column = 2;
             app.FreeTextLabel.Text = 'Texto livre';
 
             % Create FreeTextRadioGroup
@@ -462,14 +530,14 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextRadioGroup.SelectionChangedFcn = createCallbackFcn(app, @onSearchModeChanged, true);
             app.FreeTextRadioGroup.BackgroundColor = [1 1 1];
             app.FreeTextRadioGroup.Layout.Row = 5;
-            app.FreeTextRadioGroup.Layout.Column = 1;
+            app.FreeTextRadioGroup.Layout.Column = 2;
 
             % Create FreeTextBySimilatiry
             app.FreeTextBySimilatiry = uiradiobutton(app.FreeTextRadioGroup);
             app.FreeTextBySimilatiry.Text = {'[TS] Texto por Similaridade'; '<font style="color: gray; font-size:10px">Apresenta sugestões conforme o texto é digitado.</font>'};
             app.FreeTextBySimilatiry.FontSize = 11;
             app.FreeTextBySimilatiry.Interpreter = 'html';
-            app.FreeTextBySimilatiry.Position = [11 43 456 43];
+            app.FreeTextBySimilatiry.Position = [11 43 435 43];
             app.FreeTextBySimilatiry.Value = true;
 
             % Create FreeTextByMatch
@@ -477,7 +545,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.FreeTextByMatch.Text = {'[TE] Texto Exato'; '<font style="color: gray; font-size:10px">Busca um ou mais termos, separados por vírgulas, sem apresentação de sugestões.</font>'};
             app.FreeTextByMatch.FontSize = 11;
             app.FreeTextByMatch.Interpreter = 'html';
-            app.FreeTextByMatch.Position = [12 3 457 41];
+            app.FreeTextByMatch.Position = [12 3 434 41];
 
             % Create ColumnFilterLabel
             app.ColumnFilterLabel = uilabel(app.GridLayout);
@@ -485,19 +553,19 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.ColumnFilterLabel.FontSize = 11;
             app.ColumnFilterLabel.FontColor = [0 0.1294 0.2392];
             app.ColumnFilterLabel.Layout.Row = 6;
-            app.ColumnFilterLabel.Layout.Column = 1;
+            app.ColumnFilterLabel.Layout.Column = 2;
             app.ColumnFilterLabel.Text = 'Filtro por coluna';
 
             % Create ColumnFilterPanel
             app.ColumnFilterPanel = uipanel(app.GridLayout);
             app.ColumnFilterPanel.AutoResizeChildren = 'off';
             app.ColumnFilterPanel.Layout.Row = 7;
-            app.ColumnFilterPanel.Layout.Column = 1;
+            app.ColumnFilterPanel.Layout.Column = 2;
 
             % Create ColumnFilterGrid
             app.ColumnFilterGrid = uigridlayout(app.ColumnFilterPanel);
-            app.ColumnFilterGrid.ColumnWidth = {130, '1x', 22};
-            app.ColumnFilterGrid.RowHeight = {22, 22, 22, 22, 18, '1x'};
+            app.ColumnFilterGrid.ColumnWidth = {22, 110, '1x', 22};
+            app.ColumnFilterGrid.RowHeight = {22, 22, 22, 22, 22, '1x'};
             app.ColumnFilterGrid.ColumnSpacing = 5;
             app.ColumnFilterGrid.RowSpacing = 5;
             app.ColumnFilterGrid.BackgroundColor = [1 1 1];
@@ -509,7 +577,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.SymbolicNameList.FontSize = 11;
             app.SymbolicNameList.BackgroundColor = [1 1 1];
             app.SymbolicNameList.Layout.Row = 1;
-            app.SymbolicNameList.Layout.Column = [1 3];
+            app.SymbolicNameList.Layout.Column = [1 4];
             app.SymbolicNameList.Value = {};
 
             % Create Operation1_List
@@ -519,7 +587,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Operation1_List.FontSize = 11;
             app.Operation1_List.BackgroundColor = [1 1 1];
             app.Operation1_List.Layout.Row = 2;
-            app.Operation1_List.Layout.Column = 1;
+            app.Operation1_List.Layout.Column = [1 2];
             app.Operation1_List.Value = {};
 
             % Create Value1_Date
@@ -527,9 +595,10 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value1_Date.Editable = 'off';
             app.Value1_Date.Tag = 'datePicker';
             app.Value1_Date.FontSize = 11;
+            app.Value1_Date.BackgroundColor = [0.96 0.96 0.96];
             app.Value1_Date.Visible = 'off';
             app.Value1_Date.Layout.Row = 2;
-            app.Value1_Date.Layout.Column = [2 3];
+            app.Value1_Date.Layout.Column = [3 4];
 
             % Create Value1_Numeric
             app.Value1_Numeric = uieditfield(app.ColumnFilterGrid, 'numeric');
@@ -537,7 +606,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value1_Numeric.FontSize = 11;
             app.Value1_Numeric.Visible = 'off';
             app.Value1_Numeric.Layout.Row = 2;
-            app.Value1_Numeric.Layout.Column = [2 3];
+            app.Value1_Numeric.Layout.Column = [3 4];
             app.Value1_Numeric.Value = 1;
 
             % Create Value1_TextList
@@ -549,7 +618,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value1_TextList.FontSize = 11;
             app.Value1_TextList.BackgroundColor = [1 1 1];
             app.Value1_TextList.Layout.Row = 2;
-            app.Value1_TextList.Layout.Column = [2 3];
+            app.Value1_TextList.Layout.Column = [3 4];
             app.Value1_TextList.Value = '';
 
             % Create Value1_TextFree
@@ -558,7 +627,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value1_TextFree.FontSize = 11;
             app.Value1_TextFree.FontColor = [0.149 0.149 0.149];
             app.Value1_TextFree.Layout.Row = 2;
-            app.Value1_TextFree.Layout.Column = [2 3];
+            app.Value1_TextFree.Layout.Column = [3 4];
 
             % Create Operation2_LogicalGrid
             app.Operation2_LogicalGrid = uibuttongroup(app.ColumnFilterGrid);
@@ -566,20 +635,20 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Operation2_LogicalGrid.BorderType = 'none';
             app.Operation2_LogicalGrid.BackgroundColor = [1 1 1];
             app.Operation2_LogicalGrid.Layout.Row = 3;
-            app.Operation2_LogicalGrid.Layout.Column = 1;
+            app.Operation2_LogicalGrid.Layout.Column = [1 2];
 
             % Create Operation2_LogicalAnd
             app.Operation2_LogicalAnd = uiradiobutton(app.Operation2_LogicalGrid);
             app.Operation2_LogicalAnd.Text = 'E';
             app.Operation2_LogicalAnd.FontSize = 11;
-            app.Operation2_LogicalAnd.Position = [20 1 51 22];
+            app.Operation2_LogicalAnd.Position = [1 1 51 22];
             app.Operation2_LogicalAnd.Value = true;
 
             % Create Operation2_LogicalOr
             app.Operation2_LogicalOr = uiradiobutton(app.Operation2_LogicalGrid);
             app.Operation2_LogicalOr.Text = 'Ou';
             app.Operation2_LogicalOr.FontSize = 11;
-            app.Operation2_LogicalOr.Position = [79 1 50 22];
+            app.Operation2_LogicalOr.Position = [60 1 50 22];
 
             % Create Operation2_List
             app.Operation2_List = uidropdown(app.ColumnFilterGrid);
@@ -588,7 +657,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Operation2_List.FontSize = 11;
             app.Operation2_List.BackgroundColor = [1 1 1];
             app.Operation2_List.Layout.Row = 4;
-            app.Operation2_List.Layout.Column = 1;
+            app.Operation2_List.Layout.Column = [1 2];
             app.Operation2_List.Value = {};
 
             % Create Value2_Date
@@ -596,9 +665,10 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value2_Date.Editable = 'off';
             app.Value2_Date.Tag = 'datePicker';
             app.Value2_Date.FontSize = 11;
+            app.Value2_Date.BackgroundColor = [0.96 0.96 0.96];
             app.Value2_Date.Visible = 'off';
             app.Value2_Date.Layout.Row = 4;
-            app.Value2_Date.Layout.Column = [2 3];
+            app.Value2_Date.Layout.Column = [3 4];
 
             % Create Value2_Numeric
             app.Value2_Numeric = uieditfield(app.ColumnFilterGrid, 'numeric');
@@ -606,7 +676,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value2_Numeric.FontSize = 11;
             app.Value2_Numeric.Visible = 'off';
             app.Value2_Numeric.Layout.Row = 4;
-            app.Value2_Numeric.Layout.Column = [2 3];
+            app.Value2_Numeric.Layout.Column = [3 4];
             app.Value2_Numeric.Value = 1;
 
             % Create Value2_TextList
@@ -618,7 +688,7 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value2_TextList.FontSize = 11;
             app.Value2_TextList.BackgroundColor = [1 1 1];
             app.Value2_TextList.Layout.Row = 4;
-            app.Value2_TextList.Layout.Column = [2 3];
+            app.Value2_TextList.Layout.Column = [3 4];
             app.Value2_TextList.Value = '';
 
             % Create Value2_TextFree
@@ -627,34 +697,34 @@ classdef dockSearchFilter_exported < matlab.apps.AppBase
             app.Value2_TextFree.FontSize = 11;
             app.Value2_TextFree.FontColor = [0.149 0.149 0.149];
             app.Value2_TextFree.Layout.Row = 4;
-            app.Value2_TextFree.Layout.Column = [2 3];
+            app.Value2_TextFree.Layout.Column = [3 4];
 
             % Create ColumnFilterAdd
             app.ColumnFilterAdd = uiimage(app.ColumnFilterGrid);
             app.ColumnFilterAdd.ScaleMethod = 'none';
-            app.ColumnFilterAdd.ImageClickedFcn = createCallbackFcn(app, @onFilterAddImageClicked, true);
+            app.ColumnFilterAdd.ImageClickedFcn = createCallbackFcn(app, @onFilterAddButtonClicked, true);
             app.ColumnFilterAdd.Enable = 'off';
             app.ColumnFilterAdd.Layout.Row = 5;
-            app.ColumnFilterAdd.Layout.Column = 3;
+            app.ColumnFilterAdd.Layout.Column = 1;
             app.ColumnFilterAdd.ImageSource = 'Add_16.png';
+
+            % Create ColumnFilterDel
+            app.ColumnFilterDel = uiimage(app.ColumnFilterGrid);
+            app.ColumnFilterDel.ImageClickedFcn = createCallbackFcn(app, @onFilterDelButtonClicked, true);
+            app.ColumnFilterDel.Visible = 'off';
+            app.ColumnFilterDel.Layout.Row = 5;
+            app.ColumnFilterDel.Layout.Column = 4;
+            app.ColumnFilterDel.ImageSource = 'close-16px-red.svg';
 
             % Create ColumnFilterList
             app.ColumnFilterList = uitree(app.ColumnFilterGrid, 'checkbox');
+            app.ColumnFilterList.SelectionChangedFcn = createCallbackFcn(app, @onColumnFilterListSelectionChanged, true);
             app.ColumnFilterList.FontSize = 11;
             app.ColumnFilterList.Layout.Row = 6;
-            app.ColumnFilterList.Layout.Column = [1 3];
+            app.ColumnFilterList.Layout.Column = [1 4];
 
             % Assign Checked Nodes
             app.ColumnFilterList.CheckedNodesChangedFcn = createCallbackFcn(app, @onColumnFilterCheckedNodesChanged, true);
-
-            % Create ContextMenu
-            app.ContextMenu = uicontextmenu(app.UIFigure);
-            app.ContextMenu.Tag = 'auxApp.dockFilterSetup';
-
-            % Create ColumnFilterDel
-            app.ColumnFilterDel = uimenu(app.ContextMenu);
-            app.ColumnFilterDel.MenuSelectedFcn = createCallbackFcn(app, @onFilterDelImageClicked, true);
-            app.ColumnFilterDel.Text = '❌ Excluir';
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
